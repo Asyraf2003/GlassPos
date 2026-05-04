@@ -112,6 +112,48 @@ final class SupplierPayableReportExcelExportFeatureTest extends TestCase
         $spreadsheet->disconnectWorksheets();
     }
 
+    public function test_supplier_payable_excel_export_writes_formula_like_text_as_literal_strings(): void
+    {
+        $this->seedProduct('product-1', 'KB-001', 'Ban Luar', 'Federal', 100, 50000);
+
+        $this->seedSupplier('supplier-1', '=1+1');
+        $this->seedSupplierInvoice('invoice-1', 'supplier-1', '=2+2', '2030-01-07', '2030-01-20', 100000);
+        $this->seedSupplierInvoiceLine('invoice-line-1', 'invoice-1', 'product-1', 2, 100000, 50000);
+        $this->seedSupplierReceipt('receipt-1', 'invoice-1', '2030-01-07');
+        $this->seedSupplierReceiptLine('receipt-line-1', 'receipt-1', 'invoice-line-1', 2);
+
+        $response = $this->actingAs($this->user('admin'))->get(
+            route('admin.reports.supplier_payable.export_excel', [
+                'period_mode' => 'monthly',
+                'reference_date' => '2030-01-31',
+            ])
+        );
+
+        $response->assertOk();
+
+        $path = tempnam(sys_get_temp_dir(), 'supplier-payable-formula-injection-');
+        file_put_contents($path, $response->streamedContent());
+
+        $spreadsheet = IOFactory::load($path);
+        $detail = $spreadsheet->getSheetByName('Detail Hutang Pemasok');
+        $supplier = $spreadsheet->getSheetByName('Rekap Per Supplier');
+
+        $this->assertNotNull($detail);
+        $this->assertNotNull($supplier);
+
+        $this->assertSame('=2+2', $detail->getCell('B2')->getValue());
+        $this->assertSame(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING, $detail->getCell('B2')->getDataType());
+
+        $this->assertSame('=1+1', $detail->getCell('C2')->getValue());
+        $this->assertSame(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING, $detail->getCell('C2')->getDataType());
+
+        $this->assertSame('supplier-1', $supplier->getCell('A2')->getValue());
+        $this->assertSame(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING, $supplier->getCell('A2')->getDataType());
+
+        unlink($path);
+        $spreadsheet->disconnectWorksheets();
+    }
+
     public function test_kasir_cannot_export_supplier_payable_report(): void
     {
         $response = $this->actingAs($this->user('kasir'))->get(

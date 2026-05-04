@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Reporting\Exports;
 
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 final class TransactionReportExcelTableWriter
@@ -33,10 +34,15 @@ final class TransactionReportExcelTableWriter
     private function writeRow(Worksheet $sheet, int $rowNumber, array $values): void
     {
         foreach (array_values($values) as $index => $value) {
-            $sheet->setCellValue(
-                Coordinate::stringFromColumnIndex($index + 1).$rowNumber,
-                $value,
-            );
+            $coordinate = Coordinate::stringFromColumnIndex($index + 1).$rowNumber;
+
+            if (is_string($value)) {
+                $sheet->setCellValueExplicit($coordinate, $value, DataType::TYPE_STRING);
+
+                continue;
+            }
+
+            $sheet->setCellValue($coordinate, $value);
         }
     }
 }
