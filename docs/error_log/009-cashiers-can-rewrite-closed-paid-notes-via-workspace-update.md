@@ -338,3 +338,7 @@ This is not the same root cause as #009.
 - #018 is about refunded notes being mutable because guard logic only rejected isClosed() and did not reject isRefunded().
 
 Both findings show cashier mutation guards must deny all terminal note states, not only one route/state combination.
+
+## Related #019 - Cashiers can list historical closed notes by date
+
+#019 is an indirect cashier access-boundary relation. #009 concerns unauthorized mutation through workspace update, while #019 concerns read-only disclosure of historical closed notes through the cashier table endpoint using a client-controlled date anchor and `openOnly=false`.

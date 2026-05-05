@@ -278,3 +278,7 @@ Laporan #018 valid sebagai High severity refunded-note terminal-state authorizat
 Bug sebelumnya memperkenalkan refunded state tetapi tidak memperbarui guard yang hanya mengenal closed sebagai terminal. Setelah full refund, note dapat lolos cashier mutation guard dan addability policy karena net settlement menjadi nol.
 
 Patch minimal sudah tepat: refunded sekarang ditolak oleh cashier mutation guard dan addability policy. Namun test belum terbukti pass karena dependency environment belum tersedia, jadi status tetap patched with verification gap.
+
+## Related #019 - Cashiers can list historical closed notes by date
+
+#019 is related through cashier access-boundary enforcement. #018 covers refunded terminal-state mutation/addability guards, while #019 covers historical closed-note disclosure through the cashier history table when a client-controlled date anchor is accepted.
