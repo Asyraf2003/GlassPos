@@ -275,3 +275,24 @@ This is not the same root cause as #009.
 - #010 is about concurrent payment allocation being lost during legitimate revision/payment interleaving.
 
 Both findings involve workspace revision, but #009 is route authorization while #010 is transactional serialization.
+
+## Related Settled-Note Revision Guard Finding From Error Log 011
+
+### Related Error Log
+
+- 011-cashier-revision-path-mutates-settled-note-state.md
+
+### Update
+
+Update 3.
+
+### Reason
+
+A later audit report found a separate High severity authorization issue in the cashier workspace revision path.
+
+This is not the same root cause as #009.
+
+- #009 is about cashier.notes.workspace.update being routed through view-only access, allowing mutation of stored closed notes.
+- #011 is about CreateNoteRevisionHandler missing EditableWorkspaceNoteGuard, allowing mutation of payment-derived settled notes whose stored note_state is still open.
+
+Both findings must be considered together. Cashier workspace revision requires both route-level mutation guard and application-level editability guard.

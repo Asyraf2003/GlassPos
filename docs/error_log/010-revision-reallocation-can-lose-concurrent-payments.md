@@ -280,3 +280,24 @@ Laporan #010 valid sebagai High severity financial-integrity race condition.
 Bug sebelumnya memungkinkan revision allocation rebuild menghapus allocation dari concurrent payment karena memakai stale non-locked snapshot dan broad delete by note_id. Payment row bisa tetap ada, sementara allocation row hilang.
 
 Patch mengarah benar secara minimal: serialize competing same-note payment/revision flows menggunakan row lock pada note. Namun status tetap verification gap sampai concurrency test atau minimal focused test berhasil dijalankan dan sampai semua competing mutation paths terbukti memakai locking protocol yang sama.
+
+## Related CreateNoteRevisionHandler Guard Finding From Error Log 011
+
+### Related Error Log
+
+- 011-cashier-revision-path-mutates-settled-note-state.md
+
+### Update
+
+Update 2.
+
+### Reason
+
+A later audit report patched the same CreateNoteRevisionHandler file for a separate issue.
+
+This is not the same root cause as #010.
+
+- #010 is about missing serialization between note revision and payment recording, fixed by getByIdForUpdate().
+- #011 is about missing payment-derived editability guard, fixed by EditableWorkspaceNoteGuard::assertEditable().
+
+Final CreateNoteRevisionHandler must preserve both fixes. It should not regress from getByIdForUpdate() back to getById() when adding assertEditable().

@@ -328,3 +328,24 @@ This is not the same root cause as #005.
 - #010 is about concurrent payment allocation being lost during revision capture/delete/rebuild due to missing serialization.
 
 Both findings affect payment allocation rebuild during note revision and should be considered together before changing NoteReplacementPaymentAllocationReconciler or active replacement flow.
+
+## Related Settled-Note Revision Guard Finding From Error Log 011
+
+### Related Error Log
+
+- 011-cashier-revision-path-mutates-settled-note-state.md
+
+### Update
+
+Update 6.
+
+### Reason
+
+A later audit report found a separate High severity issue in the note revision financial mutation path.
+
+This is not the same root cause as #005.
+
+- #005 is about payment allocation replay silently dropping overpaid excess during downward revision.
+- #011 is about missing payment-derived editability guard before revision mutates settled note state.
+
+Both findings show that note revision must be protected by both correct payment replay semantics and strict editability policy.
