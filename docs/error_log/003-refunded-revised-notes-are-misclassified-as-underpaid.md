@@ -391,3 +391,24 @@ This update patches the #003 double-subtraction issue for revised notes by resto
 However, because #001 was caused by refund_component_allocations being added too broadly for active refunds, this patch must be treated as settlement-risky until both active-refund and revised-historical-refund scenarios are locked by tests.
 
 The technical direction may still need explicit settlement semantics later so active refunds and historical consumed refunds are not forced through the same generic aggregate.
+
+## Related Workflow Finding From Error Log 004
+
+### Related Error Log
+
+- 004-refunded-work-items-survive-revisions-and-inflate-stock.md
+
+### Update
+
+Update 3.
+
+### Reason
+
+A later audit report found a separate High severity issue in the same refund + note revision lifecycle.
+
+This is not the same root cause as #003.
+
+- #003 is a settlement classification issue caused by mixed net/gross refund accounting after revised-note allocation replay.
+- #004 is an inventory integrity issue caused by refund-referenced work_items surviving revision deletion and being processed repeatedly by inventory reversal.
+
+Both findings should be considered together when changing note revision, refund preservation, payment allocation replay, or inventory reversal logic.
