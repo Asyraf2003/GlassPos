@@ -245,3 +245,24 @@ Laporan #006 valid sebagai High severity financial-integrity issue.
 Bug sebelumnya mempercayai field price_basis dari client untuk melewati minimum price policy. Itu trust-boundary bug yang cukup klasik: hidden field dianggap seperti dokumen kerajaan, padahal user bisa mengeditnya dari browser.
 
 Patch minimal sudah benar untuk root cause langsung: WorkItemFactory sekarang selalu menjalankan MinSellingPricePolicy untuk store-stock lines. Namun patch masih perlu behavior test karena php -l hanya membuktikan sintaks valid, bukan invariant bisnis benar-benar terkunci.
+
+## Related Workspace Security Finding From Error Log 007
+
+### Related Error Log
+
+- 007-admin-note-edit-page-exposes-stored-xss.md
+
+### Update
+
+Update 2.
+
+### Reason
+
+A later audit report found a separate High severity issue in the shared note workspace surface.
+
+This is not the same root cause as #006.
+
+- #006 is about server-side price floor bypass through client-controlled price_basis.
+- #007 is about stored XSS caused by raw JSON embedding of cashier-controlled note fields into the admin edit workspace.
+
+Both findings involve note workspace/revision input crossing trust boundaries, so future workspace changes must verify both server-side financial invariants and safe client-side rendering.
