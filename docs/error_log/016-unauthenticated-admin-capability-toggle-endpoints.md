@@ -298,3 +298,47 @@ The #002 update remains indirectly related to the identity/access cluster. #002 
 ## Related #027 - Admin invoice creation bypasses transaction-entry gate
 
 #027 is related through identity/access capability enforcement. #016 covers unauthenticated capability toggle endpoints, while #027 covers a supplier-invoice mutation route that bypassed the transaction-entry capability gate after authentication.
+
+## Related report: Unauthenticated admin capability toggle routes
+
+Classification: update existing #016, not a new unique error-log file.
+
+Severity: High.
+
+Related commit: af9afc8.
+
+Patch report commit: eed085b.
+
+Summary:
+The identity-access admin transaction capability toggle endpoints were reachable through the main web router after `routes/web.php` included `routes/web/identity_access.php`. The route group used only Laravel `web` middleware, which provides session/CSRF behavior but does not authenticate or authorize the caller.
+
+The enable and disable FormRequests authorized all callers and accepted both `target_actor_id` and `performed_by_actor_id` from client-controlled request input. The controllers passed those values directly into the enable/disable use cases. The handlers only checked that the target actor existed and had an admin role before mutating `admin_transaction_capability_states` and recording an audit event using the untrusted performer actor ID.
+
+Impact:
+An unauthenticated HTTP client with a normal session/CSRF token could enable or disable admin transaction capability for a known or guessed admin actor ID and forge audit attribution. This is a high-severity authorization bypass on a security-control surface, with audit-integrity impact. It is not treated as critical because the path does not by itself grant an authenticated admin session or direct arbitrary financial transaction execution.
+
+Attack path:
+Unauthenticated HTTP client with own session/CSRF token -> main Laravel web route -> included identity-access route file -> POST capability toggle endpoint with only `web` middleware -> FormRequest authorizes caller and accepts actor IDs from request body -> controller passes client-supplied IDs -> use case checks only target-is-admin -> capability state and audit record are mutated.
+
+Affected files:
+- `routes/web.php`
+- `routes/web/identity_access.php`
+- `app/Adapters/In/Http/Requests/IdentityAccess/EnableAdminTransactionCapabilityRequest.php`
+- `app/Adapters/In/Http/Requests/IdentityAccess/DisableAdminTransactionCapabilityRequest.php`
+- `app/Adapters/In/Http/Controllers/IdentityAccess/EnableAdminTransactionCapabilityController.php`
+- `app/Adapters/In/Http/Controllers/IdentityAccess/DisableAdminTransactionCapabilityController.php`
+- `app/Application/IdentityAccess/UseCases/EnableAdminTransactionCapabilityHandler.php`
+- `app/Application/IdentityAccess/UseCases/DisableAdminTransactionCapabilityHandler.php`
+
+Required fix:
+- Protect both toggle routes with authentication and admin/owner authorization middleware.
+- Do not accept `performed_by_actor_id` from request input.
+- Derive performer identity from the authenticated session.
+- Preserve audit integrity by recording only server-derived performer identity.
+- Keep use-case mutation behind an explicit capability-management authorization boundary.
+
+Patch status from report:
+A patch was reported under commit `eed085b` with route middleware changed to `['web', 'auth', 'admin.page']`, request validation adjusted to require an authenticated user, and controllers changed to derive performer identity from `$request->user()->getAuthIdentifier()`.
+
+Verification gap:
+This session has not independently verified the local repository diff or runtime behavior. Treat patch status as report-derived until `git status --short`, `git diff`, and relevant tests are provided.
