@@ -468,3 +468,7 @@ grep -R "type=\"application/json\"" -n resources/views
 This update strengthens #007 by confirming the same unsafe workspace JSON sink was reachable from product catalog labels, not only note/service fields.
 
 The root problem remains unsafe JSON embedding in an HTML script context. The correct fix is safe JSON rendering via @json, Js::from, or JSON_HEX_* flags, plus regression tests proving literal </script> cannot appear in rendered workspace config.
+
+## Related #024 - Reflected XSS in expense create JSON config
+
+#024 is related through the same unsafe JSON-in-script encoding pattern. #007 covers stored XSS in workspace JSON config, while #024 covers reflected XSS in the expense create page JSON config from query-string `category_id`.
