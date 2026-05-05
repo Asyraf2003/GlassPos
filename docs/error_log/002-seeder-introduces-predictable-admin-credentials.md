@@ -227,3 +227,78 @@ This is not the same root cause as #002.
 - #016 is about unauthenticated admin transaction capability toggle endpoints and client-spoofed performed_by_actor_id.
 
 Both findings affect admin/identity access risk, but #002 is credential/bootstrap risk while #016 is route authorization and audit integrity risk.
+
+## Update - Predictable seeded admin credentials introduced
+
+This report is classified as an update to #002, not a new error-log file.
+
+## Update Status
+
+Patched.
+
+## Summary
+
+The same seeded-admin credential vulnerability was reported again with additional evidence.
+
+`UserSeeder` previously used `updateOrCreate` for `admin@gmail.com` and set the password to:
+
+`Hash::make('12345678')`
+
+Because `updateOrCreate` updates an existing row, rerunning the seeder could reset an existing admin password back to the predictable public value.
+
+The default seeding path also grants the seeded account privileged access:
+
+- admin role through `actor_accesses`
+- active admin cashier-area access
+- active admin transaction capability
+
+If the seeder is run in production or an important deployed environment, this can create or reset a highly privileged admin account with known credentials.
+
+## Additional Evidence
+
+Reported files:
+
+- `database/seeders/DatabaseSeeder.php`
+- `database/seeders/UserSeeder.php`
+
+The report confirms that `DatabaseSeeder` calls `UserSeeder`, and `UserSeeder` assigns privileged role/capability state to the seeded admin account.
+
+## Patch Variant
+
+The reported patch changes admin seeding from:
+
+`updateOrCreate`
+
+to:
+
+`firstOrCreate`
+
+and replaces the hardcoded admin password:
+
+`12345678`
+
+with a generated UUID-derived value before hashing.
+
+This prevents rerunning the seeder from resetting an existing admin password to a predictable default.
+
+## Verification
+
+Reported successful checks:
+
+- `php -l database/seeders/UserSeeder.php`
+- `git diff -- database/seeders/UserSeeder.php`
+- `git commit -m "Fix seeded admin default credential overwrite"`
+
+## Residual Deployment Check
+
+Repository proof confirms the source-level vulnerability and patch.
+
+Deployment proof is still required to determine real-world exposure:
+
+- whether production or staging ever ran `DatabaseSeeder` / `UserSeeder`
+- whether `admin@gmail.com` exists in any deployed database
+- whether the account is active
+- whether the account password was reset after seeding
+- whether login throttling, MFA, or account disablement exists outside the inspected source
+
+No progress increase because this is the same root cause and same target file as #002.

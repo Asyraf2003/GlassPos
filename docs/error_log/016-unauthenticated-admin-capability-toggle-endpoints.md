@@ -290,3 +290,7 @@ Patch minimal sudah tepat untuk root cause langsung: route dilindungi auth + adm
 ## Related #020 - Admin note actions bypass transaction capability
 
 #020 is directly related to the identity/access capability authorization cluster. #016 covers unauthenticated capability toggle endpoints, while #020 covers admin note mutation routes that bypass the `transaction.entry` / `EnsureTransactionEntryAllowed` gate after an admin is authenticated.
+
+## Related #002 update - Predictable seeded admin credentials introduced
+
+The #002 update remains indirectly related to the identity/access cluster. #002 covers predictable seeded admin credentials and privileged role/capability seeding, while #016 covers unauthenticated admin capability toggle endpoints.
