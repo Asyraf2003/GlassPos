@@ -206,3 +206,24 @@ Laporan #002 valid sebagai High severity source-level security issue.
 Bug ini menciptakan risiko default admin credential karena UserSeeder menulis admin@gmail.com dengan password predictable 12345678 dan memakai updateOrCreate, sehingga reseed bisa mereset admin existing ke credential publik. Patch minimal sudah tepat untuk root cause langsung: firstOrCreate mencegah reset credential existing, dan Str::random(40) menghapus predictable admin password untuk admin baru.
 
 Namun patch source code tidak otomatis membersihkan database yang sudah pernah terkena seeder lama. Jika ada environment non-disposable yang pernah menjalankan seeder lama, password admin harus dirotasi manual.
+
+## Related Identity Access Finding From Error Log 016
+
+### Related Error Log
+
+- 016-unauthenticated-admin-capability-toggle-endpoints.md
+
+### Update
+
+Update 2.
+
+### Reason
+
+A later audit report found a separate High severity identity/access issue.
+
+This is not the same root cause as #002.
+
+- #002 is about predictable seeded admin credentials.
+- #016 is about unauthenticated admin transaction capability toggle endpoints and client-spoofed performed_by_actor_id.
+
+Both findings affect admin/identity access risk, but #002 is credential/bootstrap risk while #016 is route authorization and audit integrity risk.
