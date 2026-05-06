@@ -12,7 +12,7 @@ This document exists to make ADR-0020 execution rigid enough for CLI-based imple
 
 HyperPOS is a rigid finance-sensitive POS and operational system.
 
-This is not an MVP.
+This is not a prototype, demo, or reduced-scope system.
 
 ## Source Of Truth
 

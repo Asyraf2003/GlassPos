@@ -16,7 +16,7 @@ A finding is fixed only after characterization test, implementation proof, relev
 
 HyperPOS is a rigid finance-sensitive POS and operational system.
 
-This is not an MVP.
+This is not a prototype, demo, or reduced-scope system.
 
 The system handles operational finance, notes, payments, refunds, stock, supplier evidence, reports, and cashier/admin workflows. Therefore public output, private storage, attachment serving, and disclosure behavior must be treated as security boundaries.
 
