@@ -8,7 +8,7 @@ This document is not an implementation patch.
 
 This document does not mark any `docs/error_log/*.md` finding as fixed.
 
-This document exists to make ADR-0021 execution rigid enough for CLI-based implementation later.
+This document exists to make ADR-0022 execution rigid enough for CLI-based implementation later.
 
 HyperPOS is a rigid finance-sensitive POS and operational system.
 
@@ -16,7 +16,7 @@ This is not a prototype, demo, or reduced-scope system.
 
 ## Source Of Truth
 
-- docs/adr/0021-payment-allocation-concurrency-and-over-allocation-protection.md
+- docs/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
 - docs/error_log/010-revision-reallocation-can-lose-concurrent-payments.md
 - docs/error_log/026-concurrent-note-payments-can-over-allocate-balances.md
 - docs/audit/codex-security/2026-05-06-error-log-solution-and-adr-coverage-summary.md
@@ -37,18 +37,18 @@ Local proof from user command output:
 
 showed:
 
-    ?? docs/adr/0021-payment-allocation-concurrency-and-over-allocation-protection.md
+    ?? docs/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
 
 Meaning:
 
-- ADR-0021 file exists locally as untracked file.
-- ADR-0021 is not committed yet.
+- ADR-0022 file exists locally as untracked file.
+- ADR-0022 is not committed yet.
 - Implementation has not started yet.
 - No concurrency error log is fixed by this proof.
 
 ## Decision Boundary
 
-ADR-0021 owns same-note finance mutation concurrency and over-allocation protection.
+ADR-0022 owns same-note finance mutation concurrency and over-allocation protection.
 
 ADR-0018 owns finance lifecycle semantics:
 
@@ -64,9 +64,9 @@ ADR-0019 owns access and capability policy.
 
 ADR-0020 owns public surface, output, storage, attachment, and disclosure security.
 
-ADR-0021 must not silently redefine settlement semantics, access boundary, or public-surface policy.
+ADR-0022 must not silently redefine settlement semantics, access boundary, or public-surface policy.
 
-ADR-0021 enforces that concurrent writes cannot violate approved finance semantics.
+ADR-0022 enforces that concurrent writes cannot violate approved finance semantics.
 
 ## Explicit Scope
 
@@ -210,7 +210,7 @@ Server-side transaction correctness is mandatory.
 
 ## Error Log Coverage
 
-| Error Log | Covered By ADR-0021 | Coverage Notes |
+| Error Log | Covered By ADR-0022 | Coverage Notes |
 |---|---|---|
 | 010 revision reallocation can lose concurrent payments | Yes | Same-note revision/payment serialization and payment allocation atomicity |
 | 026 concurrent note payments can over-allocate balances | Yes | Same-note payment/payment serialization and post-lock outstanding validation |
@@ -352,7 +352,7 @@ Run route discovery:
 
 Run document snapshot:
 
-    sed -n '1,260p' docs/adr/0021-payment-allocation-concurrency-and-over-allocation-protection.md
+    sed -n '1,260p' docs/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
     sed -n '1,260p' docs/error_log/010-revision-reallocation-can-lose-concurrent-payments.md
     sed -n '1,260p' docs/error_log/026-concurrent-note-payments-can-over-allocate-balances.md
 
@@ -468,7 +468,7 @@ Required checks:
 The safest order:
 
 1. Start with local baseline proof.
-2. Read ADR-0021.
+2. Read ADR-0022.
 3. Read this blueprint.
 4. Read error_log 010 and 026.
 5. Inventory all same-note finance mutation paths.
@@ -528,9 +528,9 @@ Rules:
     git rev-parse --short HEAD
     git log --oneline -5
 
-### ADR-0021 Document Snapshot
+### ADR-0022 Document Snapshot
 
-    sed -n '1,260p' docs/adr/0021-payment-allocation-concurrency-and-over-allocation-protection.md
+    sed -n '1,260p' docs/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
     sed -n '1,320p' docs/blueprint/security/2026-05-06-payment-allocation-concurrency-and-over-allocation-blueprint.md
 
 ### Error Log Snapshot
@@ -565,15 +565,15 @@ Run only the relevant blast-radius suites for the slice.
 
     git status --short --untracked-files=all
     git diff --stat
-    git diff -- docs/adr/0021-payment-allocation-concurrency-and-over-allocation-protection.md docs/blueprint/security/2026-05-06-payment-allocation-concurrency-and-over-allocation-blueprint.md
+    git diff -- docs/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md docs/blueprint/security/2026-05-06-payment-allocation-concurrency-and-over-allocation-blueprint.md
     git diff -- app routes tests docs/error_log
 
 ## DoD For Planning
 
 Planning is complete only when:
 
-- ADR-0021 exists
-- ADR-0021 owner decisions are captured
+- ADR-0022 exists
+- ADR-0022 owner decisions are captured
 - error_log 010 and 026 are mapped
 - same-note serialization rule is defined
 - lock target is defined
@@ -629,7 +629,7 @@ Implementation is complete only when all relevant conditions for the selected sl
 - proof quality is stated explicitly
 - verification gap remains visible if concurrency proof is incomplete
 - ADR is not rewritten casually during implementation
-- any deviation from ADR-0021 is recorded with reason
+- any deviation from ADR-0022 is recorded with reason
 - any deviation from this blueprint is recorded with reason
 
 ### Git
@@ -640,9 +640,9 @@ Implementation is complete only when all relevant conditions for the selected sl
 - owner reviews proof before commit
 - no untracked unexpected file is left unreviewed
 
-## ADR-0021 Blast-Radius Suite
+## ADR-0022 Blast-Radius Suite
 
-After all ADR-0021 slices are complete, run the narrowest available blast-radius suite that covers:
+After all ADR-0022 slices are complete, run the narrowest available blast-radius suite that covers:
 
 - payment recording
 - payment allocation
@@ -701,7 +701,7 @@ Forbidden behavior:
 
 Stop immediately if any of these happen:
 
-- source code contradicts ADR-0021 owner decisions
+- source code contradicts ADR-0022 owner decisions
 - patch calculates final outstanding before acquiring lock
 - patch writes payment outside same transaction as allocation
 - patch leaves approved competing path unlocked
@@ -736,10 +736,10 @@ If session context becomes risky or implementation is paused, create handoff wit
 
 ## Recommended Execution Sequence After Planning
 
-After ADR-0021 and this blueprint are accepted, next implementation should start with:
+After ADR-0022 and this blueprint are accepted, next implementation should start with:
 
 1. local baseline proof
-2. read ADR-0021
+2. read ADR-0022
 3. read this blueprint
 4. read error_log 010 and 026
 5. source inventory for payment/revision/allocation mutation paths

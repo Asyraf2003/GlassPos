@@ -1,4 +1,4 @@
-# ADR-0021 — Payment Allocation Concurrency and Over-Allocation Protection
+# ADR-0022 — Payment Allocation Concurrency and Over-Allocation Protection
 
 ## Status
 
@@ -37,12 +37,12 @@ The final solution must be enforced in application/database transaction boundari
 
 ## Related Error Logs
 
-ADR-0021 covers:
+ADR-0022 covers:
 
 - `docs/error_log/010-revision-reallocation-can-lose-concurrent-payments.md`
 - `docs/error_log/026-concurrent-note-payments-can-over-allocate-balances.md`
 
-ADR-0021 may influence future implementation checks around:
+ADR-0022 may influence future implementation checks around:
 
 - payment recording
 - payment component allocation
@@ -267,7 +267,7 @@ until stronger behavior proof exists.
 
 ## Scope In
 
-ADR-0021 applies to:
+ADR-0022 applies to:
 
 - same-note payment recording
 - customer payment creation when tied to note settlement
@@ -283,7 +283,7 @@ ADR-0021 applies to:
 
 ## Scope Out
 
-ADR-0021 does not decide:
+ADR-0022 does not decide:
 
 - carry-forward settlement semantics
 - overpaid/kembalian storage model
@@ -313,9 +313,9 @@ ADR-0018 owns finance lifecycle semantics:
 - current projection
 - historical ledger
 
-ADR-0021 does not redefine these.
+ADR-0022 does not redefine these.
 
-ADR-0021 enforces that concurrent writes cannot violate whichever finance semantics ADR-0018 defines.
+ADR-0022 enforces that concurrent writes cannot violate whichever finance semantics ADR-0018 defines.
 
 ### ADR-0019
 
@@ -328,7 +328,7 @@ ADR-0019 owns access boundary:
 - route guard
 - capability audit
 
-ADR-0021 assumes the actor has already passed access checks when required.
+ADR-0022 assumes the actor has already passed access checks when required.
 
 Passing access does not permit violating concurrency or allocation invariants.
 
@@ -336,7 +336,7 @@ Passing access does not permit violating concurrency or allocation invariants.
 
 ADR-0020 owns output, URL, storage, attachment, and disclosure security.
 
-ADR-0021 does not modify public surface behavior.
+ADR-0022 does not modify public surface behavior.
 
 ## Required Same-Note Mutation Protocol
 
