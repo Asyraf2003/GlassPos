@@ -73,26 +73,25 @@ final class CreateNoteRevisionHandler
         $number = $this->current->nextRevisionNumber($root->id());
         $reason = (string) ($payload['reason'] ?? '');
         $replacement = $this->payloadNotes->build($root->id(), $payload);
+
+        $this->applier->apply($root, $replacement, $payload['items'] ?? []);
+
         $revision = $this->factory->createNextRevision(
             sprintf('%s-r%03d', $root->id(), $number),
             $current->id(),
             $number,
-            $replacement,
+            $root,
             $actorId,
             $this->clock->now(),
             $reason,
         );
 
-        $result = $this->committer->commit(
+        return $this->committer->commit(
             $root->id(),
             $current->id(),
             $actorId,
             $reason,
             $revision,
         );
-
-        $this->applier->apply($root, $replacement, $payload['items'] ?? []);
-
-        return $result;
     }
 }
