@@ -2,7 +2,7 @@
 
 ## Status
 
-Patched, with verification gap.
+Fixed and locally verified for minimum note-level payment serialization control.
 
 ## Keparahan
 
@@ -39,47 +39,70 @@ Proteksi over-allocation bergantung pada hasil read current allocated total, tet
 
 ## Patch summary
 
-`app/Application/Payment/Services/RecordAndAllocateNotePaymentOperation.php` diubah agar `execute()` melakukan note-level row lock sebelum membaca allocation dan menulis payment/allocation.
+`app/Application/Payment/Services/RecordAndAllocateNotePaymentOperation.php` now reads the target note through a lock-aware note reader before reading allocated totals, checking policy, writing payment/component allocations, auto-closing the note, and letting the handler write audit/projection changes inside the same transaction boundary.
+
+Changed production files:
+
+- `app/Ports/Out/Note/NoteReaderPort.php`
+- `app/Adapters/Out/Note/DatabaseNoteReaderAdapter.php`
+- `app/Application/Payment/Services/RecordAndAllocateNotePaymentOperation.php`
 
 Patch behavior:
 
-- normalize `noteId`
-- lock row `notes` dengan `lockForUpdate()`
-- reload note setelah lock
-- lanjutkan policy check dan allocation write di bawah lock yang sama
+- `NoteReaderPort` now exposes `getByIdForUpdate(string $id): ?Note`.
+- `DatabaseNoteReaderAdapter::getByIdForUpdate()` loads the note row using `lockForUpdate()`.
+- `DatabaseNoteReaderAdapter` reuses the same mapper/detail loading path for normal and lock-aware reads.
+- `RecordAndAllocateNotePaymentOperation::execute()` now calls `getByIdForUpdate()` before `getTotalAllocatedAmountByNoteId()`.
+- `RecordAndAllocateNotePaymentHandler::handle()` already wraps operation, audit, projection sync, and commit/rollback in one transaction boundary.
 
-Dengan lock per nota, dua request payment untuk nota yang sama harus berjalan serial, sehingga request kedua membaca allocated total terbaru setelah request pertama commit.
+With a note-level row lock inside the existing transaction, concurrent payment requests for the same note must serialize at the note read before allocated-total read and allocation write.
 
-## Verification
+## Verification proof
 
-Reported failed check:
+Syntax checks passed:
 
-`php artisan test tests/Feature/Note/RecordNotePaymentHttpFeatureTest.php`
+- `php -l app/Ports/Out/Note/NoteReaderPort.php`
+- `php -l app/Adapters/Out/Note/DatabaseNoteReaderAdapter.php`
+- `php -l app/Application/Payment/Services/RecordAndAllocateNotePaymentOperation.php`
 
-Failure reason:
+Lock proof anchors:
 
-`vendor/autoload.php` missing.
+- `app/Ports/Out/Note/NoteReaderPort.php` exposes `getByIdForUpdate()`.
+- `app/Adapters/Out/Note/DatabaseNoteReaderAdapter.php` implements `getByIdForUpdate()`.
+- `app/Adapters/Out/Note/DatabaseNoteReaderAdapter.php` uses `lockForUpdate()`.
+- `app/Application/Payment/Services/RecordAndAllocateNotePaymentOperation.php` calls `getByIdForUpdate()` before allocation total read.
+- `app/Application/Payment/UseCases/RecordAndAllocateNotePaymentHandler.php` begins a transaction before calling the operation and commits after audit/projection sync.
 
-## Verification gap
+Focused tests passed:
 
-Framework feature test belum terbukti pass karena dependency runtime tidak tersedia.
+- `php artisan test tests/Feature/Payment/RecordAndAllocateNotePaymentFeatureTest.php tests/Feature/Payment/AutoClosePaidNoteOnFullPaymentFeatureTest.php tests/Feature/Note/RecordNotePaymentHttpFeatureTest.php`
+- PASS: 6 passed, 30 assertions
 
-Future verification:
+Wider Note + Payment tests passed:
 
-- install dependencies
-- run `php artisan test tests/Feature/Note/RecordNotePaymentHttpFeatureTest.php`
-- tambahkan/cek concurrency test dengan dua request paralel untuk nota dan row yang sama
-- pastikan hanya satu request yang berhasil ketika combined amount akan melebihi total nota
-- pastikan request kedua membaca allocation terbaru setelah lock dilepas
-- pastikan lock berada di dalam transaction yang sama dengan allocation read dan write
+- `php artisan test tests/Feature/Note tests/Feature/Payment`
+- PASS: 162 passed, 955 assertions
+
+## Verification gaps / out of scope
+
+Not performed in this closure:
+
+- true parallel two-connection concurrency stress test
+- database-engine-specific lock wait/timeout assertion
+- idempotency token for duplicate form submission
+- full global suite
+- browser/manual UI QA
+- #001 final global verification claim
+
+The implemented control is source-level minimum serialization: note row lock before allocated-total read and allocation write, under the handler transaction boundary.
 
 ## Residual risk
 
-`lockForUpdate()` hanya efektif jika dijalankan di dalam database transaction yang sama dengan read allocation dan write allocation.
+`lockForUpdate()` is only effective while the locked read, allocated-total read, policy check, payment write, allocation write, auto-close, audit, projection sync, and commit/rollback remain in one database transaction boundary.
 
-Jika operation ini kelak dipanggil di luar transaction wrapper, lock tidak cukup sebagai proteksi concurrency. Contract operation harus tetap memastikan note lock, allocated-total read, policy check, payment write, allocation write, auto-close, dan audit berjalan dalam satu transaction boundary.
+If this operation is later called outside `RecordAndAllocateNotePaymentHandler` or outside an equivalent transaction wrapper, the lock will not protect the aggregate allocation invariant.
 
-Idempotency key untuk form submission masih dapat ditambahkan sebagai defense-in-depth, tetapi lock per nota adalah kontrol minimum untuk menjaga invariant allocation tidak melebihi total nota.
+Idempotency key support for form submission remains a valid defense-in-depth improvement, but the note-level lock is the minimum required control for serializing payment writes on the same note.
 
 ## Relations
 
