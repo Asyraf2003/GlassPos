@@ -2,11 +2,24 @@
 
 ## Status
 
-Patched, with residual risk and verification gap.
+Fixed with proof.
 
-Patch supplied for duplicate inventory reversal prevention.
+Fix verified pada local repo dan sudah dipush manual oleh owner.
 
-Test yang dilaporkan tidak dapat berjalan di environment patch karena vendor/autoload.php tidak ada.
+Verified HEAD:
+
+78456d17 (HEAD -> main, origin/main, origin/HEAD) commit 1706
+
+Scope fixed:
+
+- duplicate inventory reversal idempotency
+- stale refunded historical work item exclusion from current operational workspace rows
+- current revision row identity aligned with persisted replacement work_item IDs
+- selected refund planning rejects old historical refunded work item after revision while accepting the replacement row
+
+Important limitation:
+
+Reporting queries that read work_items directly were not part of this verification slice. They remain a separate audit target if reporting mismatch is suspected.
 
 ## Severity
 
@@ -54,6 +67,24 @@ Alasan update:
 - Stale store-stock lines dapat direversal berulang pada revision berikutnya.
 - Patch minimal diterapkan di reversal path agar idempotent per reverse source.
 - Verification masih gap karena feature test gagal dijalankan akibat missing vendor/autoload.php.
+
+### Update 2
+
+Status dinaikkan menjadi fixed with proof untuk scope Note/Payment/current operational projection.
+
+Alasan update:
+
+- Duplicate reversal idempotency guard sudah diuji green.
+- Root current-vs-historical leak sudah dibuat red melalui characterization test.
+- Workspace panel/current operational rows dipindahkan agar membaca current revision lines, bukan semua historical work_items.
+- Revision snapshot creation dipindahkan setelah replacement work_items dipersist, sehingga note_revision_lines.work_item_root_id memakai persisted current work_items.id, bukan transient UUID.
+- Targeted 004 verification dan broader Note/Payment verification sudah pass.
+
+Proof:
+
+- HEAD: 78456d17 (HEAD -> main, origin/main, origin/HEAD) commit 1706
+- Targeted 004 verification: 3 passed, 25 assertions
+- Broader Note/Payment verification: 159 passed, 940 assertions
 
 ## Ringkasan Indonesia
 
@@ -136,7 +167,11 @@ Root cause gabungan:
 
 ## Patch Summary
 
-Patch minimal diterapkan pada:
+Patch final terdiri dari dua lapis.
+
+### 1. Duplicate inventory reversal guard
+
+Patch diterapkan pada:
 
 app/Application/Inventory/Services/ReverseIssuedInventoryOperation.php
 
@@ -146,7 +181,7 @@ Perubahan:
 - sebelum reversal, service mengecek existing movement dengan:
   - source_type = normalizedReverseSourceType
   - source_id = normalizedSourceId
-- jika existing reversal sudah ada, method return [] lebih awal
+- jika existing positive reversal sudah ada, method return [] lebih awal
 - first-time reversal tetap berjalan seperti sebelumnya
 - created reverse movement memakai normalized reverse source type dan normalized source id
 
@@ -154,102 +189,157 @@ Test ditambahkan/diperluas pada:
 
 tests/Feature/Inventory/ReverseIssuedInventoryOperationFeatureTest.php
 
-Test coverage:
+Coverage:
 
 - first call membuat reversal seperti expected
 - second call untuk source yang sama return 0 reversal
 - inventory qty_on_hand tetap sama setelah second call
 - product_inventory_costing tetap sama setelah second call
 
+### 2. Current-vs-historical note boundary
+
+Patch diterapkan pada:
+
+app/Application/Note/Services/NoteWorkspacePanelDataBuilder.php
+app/Application/Note/UseCases/CreateNoteRevisionHandler.php
+tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php
+
+Perubahan:
+
+- NoteWorkspacePanelDataBuilder sekarang membangun current operational rows dari current revision lines.
+- Workspace panel tidak lagi memakai semua note->workItems() sebagai current rows.
+- CreateNoteRevisionHandler sekarang menerapkan replacement terlebih dahulu.
+- Revision snapshot dibuat setelah replacement work_items dipersist.
+- note_revision_lines.work_item_root_id sekarang mengacu ke persisted replacement work_items.id.
+- Historical refund-referenced work item tetap preserved sebagai ledger anchor.
+- Historical refunded work item tidak lagi muncul sebagai current operational workspace row dalam tested flow.
+- Selected refund planning menolak old historical refunded work item dan tetap menerima replacement work item.
+
 ## Scope In
 
 - Duplicate inventory reversal prevention.
 - Idempotency in ReverseIssuedInventoryOperation.
-- Inventory qty_on_hand inflation prevention.
+- Inventory qty_on_hand inflation prevention for repeated reversal calls.
 - Inventory costing/value inflation prevention for repeated reversal calls.
+- Current operational workspace rows must read current revision lines.
+- Historical refunded work item must remain preserved as ledger/payment/refund/inventory anchor.
+- Historical refunded work item must not be exposed as current operational row after revision.
+- Replacement work item must remain visible and valid as current operational row after revision.
+- Current revision line identity must align with persisted replacement work_items.id.
 
 ## Scope Out
 
-- Deletion strategy for refund-referenced work_items.
-- Active note reader filtering for stale historical/refunded work items.
-- Note total mismatch caused by old + new active rows.
+- Deleting refund-referenced historical work_items.
+- Rewriting payment/refund/inventory history.
+- Schema-level note_current_lines projection table.
 - Schema-level uniqueness constraint for reversal movements.
-- Full HTTP E2E for refund + revision.
-- Full Laravel test pass, because dependency/vendor was missing in patch environment.
+- Full Reporting suite verification.
+- Direct reporting query rewrite for reports that intentionally or accidentally read work_items directly.
+- Seeder/security issue 002.
+- Settlement issues outside the tested 004 current/historical boundary.
 
 ## Residual Risk
 
-Patch mencegah duplicate stock_in reversal untuk source yang sama, tetapi tidak membuktikan bahwa stale refunded work_items tidak lagi survive sebagai active note rows.
+Known residual risks after this fix:
 
-Residual risks that still need audit:
+1. Reporting queries that read work_items directly were not verified in this slice.
+2. If a report treats all historical work_items as current business rows, it may still need a separate current-vs-history reporting audit.
+3. DB-level uniqueness for reversal movements is still not added; idempotency is currently enforced in application service logic.
+4. Concurrent revision behavior was not separately stress-tested.
+5. Future code must not reintroduce note->workItems() as a current operational source for revision-aware UI/payment/refund flows without an explicit current boundary.
 
-1. Stale work item may still appear in note detail/read model.
-2. Active note may still contain old + new work_items while notes.total_rupiah reflects only replacement rows.
-3. Reports or UI that read work_items directly may still become inconsistent.
-4. Deletion/preservation model for refund-referenced work items may need explicit archived/historical state instead of leaving rows active.
-5. Idempotency in service code may need DB-level protection if concurrent revisions are possible.
+These residuals do not invalidate the fixed status for the tested 004 Note/Payment/current operational flow, but they remain follow-up audit candidates.
 
 ## Testing Reported
+
+### Earlier patch environment
 
 Command attempted:
 
 php artisan test tests/Feature/Inventory/ReverseIssuedInventoryOperationFeatureTest.php
 
+Earlier result:
+
+Failed in the patch environment because vendor/autoload.php was missing.
+
+### Verified local repo proof
+
+Verified HEAD:
+
+78456d17 (HEAD -> main, origin/main, origin/HEAD) commit 1706
+
+Targeted 004 verification:
+
+php artisan test tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php tests/Feature/Inventory/ReverseIssuedInventoryOperationFeatureTest.php
+
 Result:
 
-Failed in the patch environment.
+3 passed, 25 assertions
 
-Failure reason:
+Broader Note/Payment verification:
 
-vendor/autoload.php is missing / dependencies are not installed.
+php artisan test tests/Feature/Note tests/Feature/Payment
 
-Important note:
+Result:
 
-Test yang ditambahkan berguna, tetapi belum terbukti pass dari environment patch yang disediakan.
+159 passed, 940 assertions
 
 ## Files Changed By Patch
 
 app/Application/Inventory/Services/ReverseIssuedInventoryOperation.php
 tests/Feature/Inventory/ReverseIssuedInventoryOperationFeatureTest.php
+app/Application/Note/Services/NoteWorkspacePanelDataBuilder.php
+app/Application/Note/UseCases/CreateNoteRevisionHandler.php
+tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php
 
-Reported diff size:
+Verified commit context:
 
-+25
--3
-
-Reported commit context:
-
-Refunded work items survive revisions and inflate stock
+78456d17 commit 1706
 
 ## Recommended Follow-up
 
-Minimum required verification:
+Optional follow-up audit, not required to consider this 004 Note/Payment flow fixed:
 
-1. Restore/install Composer dependencies.
-2. Run the focused inventory reversal test.
-3. Add or run an E2E/feature test for refund-referenced work item + two revisions.
-4. Verify second revision does not create duplicate stock_in movement.
-5. Verify active note read model does not incorrectly expose stale refunded work_items as active editable rows.
-6. Consider DB-level uniqueness/idempotency guard for reverse movements:
+1. Run Reporting feature tests if available.
+2. Audit reporting queries that join work_items directly.
+3. Decide whether reporting must read current revision lines, historical ledger rows, or both depending on report semantics.
+4. Consider DB-level uniqueness/idempotency guard for reverse inventory movements:
    - source_type
    - source_id
    - movement_type
    - reverse semantic source
+5. Consider concurrency test for repeated revision requests targeting the same refunded store-stock source.
 
-Minimum commands expected later:
+Minimum commands if reporting scope is opened later:
 
-composer install
-php artisan test tests/Feature/Inventory/ReverseIssuedInventoryOperationFeatureTest.php
+php artisan test tests/Feature/Reporting
 
-If full payment/note revision tests exist, run them too before trusting this area.
+If reporting tests do not exist, inspect reporting query semantics before writing new tests. Jangan asal bikin test yang cuma menghibur ego CI.
 
 ## Kesimpulan
 
 Laporan #004 valid sebagai High severity inventory/financial integrity issue.
 
-Patch minimal di ReverseIssuedInventoryOperation tepat untuk menghentikan repeated inventory/costing inflation dari duplicate reversal. Namun patch ini belum sepenuhnya membuktikan penyelesaian terhadap akar workflow yang lebih luas: refund-referenced work_items masih dapat survive deletion dan mungkin tetap terlihat sebagai active note rows.
+Status sekarang fixed with proof untuk tested Note/Payment/current operational flow.
 
-Jadi status terbaik untuk saat ini adalah patched for duplicate reversal, not fully closed for stale work item lifecycle.
+Fix yang terbukti:
+
+- duplicate stock_in reversal untuk source yang sama dicegah oleh idempotency guard
+- stale refunded historical work item tetap preserved sebagai ledger anchor
+- stale refunded historical work item tidak lagi muncul sebagai current operational workspace row setelah revision
+- replacement work item tetap muncul sebagai current row
+- current revision line identity sekarang memakai persisted replacement work_items.id
+- broader Note/Payment suite pass
+
+Proof:
+
+- HEAD: 78456d17
+- Targeted 004 verification: 3 passed, 25 assertions
+- Broader Note/Payment verification: 159 passed, 940 assertions
+
+Catatan batas:
+
+Reporting yang membaca work_items langsung belum diverifikasi dalam scope ini. Jika ada mismatch laporan, buka audit/reporting scope terpisah, bukan reopen 004 tanpa proof baru.
 
 ## Related Note Revision Finding From Error Log 005
 
