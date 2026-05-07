@@ -102,6 +102,8 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
 
         DB::table('notes')->insert([
             'id' => 'note-legacy-paid-1',
+            'current_revision_id' => 'note-legacy-paid-1-r001',
+            'latest_revision_number' => 1,
             'customer_name' => 'Budi Legacy',
             'transaction_date' => $today,
             'note_state' => 'open',
@@ -124,6 +126,37 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
             'part_source' => ServiceDetail::PART_SOURCE_NONE,
         ]);
 
+        DB::table('note_revisions')->insert([
+            'id' => 'note-legacy-paid-1-r001',
+            'note_root_id' => 'note-legacy-paid-1',
+            'revision_number' => 1,
+            'parent_revision_id' => null,
+            'created_by_actor_id' => null,
+            'reason' => 'legacy paid selected row characterization',
+            'customer_name' => 'Budi Legacy',
+            'customer_phone' => null,
+            'transaction_date' => $today,
+            'grand_total_rupiah' => 50000,
+            'line_count' => 1,
+            'created_at' => now()->format('Y-m-d H:i:s'),
+            'updated_at' => null,
+        ]);
+
+        DB::table('note_revision_lines')->insert([
+            'id' => 'note-legacy-paid-1-r001-l001',
+            'note_revision_id' => 'note-legacy-paid-1-r001',
+            'work_item_root_id' => 'wi-legacy-paid-1',
+            'line_no' => 1,
+            'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+            'status' => WorkItem::STATUS_OPEN,
+            'service_label' => 'Servis Legacy Paid',
+            'service_price_rupiah' => 50000,
+            'subtotal_rupiah' => 50000,
+            'payload' => null,
+            'created_at' => now()->format('Y-m-d H:i:s'),
+            'updated_at' => null,
+        ]);
+
         DB::table('customer_payments')->insert([
             'id' => 'legacy-payment-1',
             'amount_rupiah' => 50000,
@@ -144,7 +177,9 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
             'amount_received' => 50000,
         ]);
 
-        $response->assertSessionHasErrors('payment');
+        $response->assertSessionHasErrors([
+            'payment' => 'Hanya billing row outstanding yang boleh dipilih untuk pembayaran.',
+        ]);
 
         $this->assertSame(1, DB::table('customer_payments')->count());
         $this->assertSame(0, DB::table('payment_component_allocations')->count());
