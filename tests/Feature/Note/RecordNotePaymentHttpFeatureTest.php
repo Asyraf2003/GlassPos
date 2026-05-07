@@ -33,6 +33,8 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
 
         DB::table('notes')->insert([
             'id' => 'note-1',
+            'current_revision_id' => 'note-1-r001',
+            'latest_revision_number' => 1,
             'customer_name' => 'Budi',
             'transaction_date' => $today,
             'note_state' => 'open',
@@ -47,6 +49,39 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
         DB::table('work_item_service_details')->insert([
             ['work_item_id' => 'wi-1', 'service_name' => 'Servis A', 'service_price_rupiah' => 50000, 'part_source' => ServiceDetail::PART_SOURCE_NONE],
             ['work_item_id' => 'wi-2', 'service_name' => 'Servis B', 'service_price_rupiah' => 100000, 'part_source' => ServiceDetail::PART_SOURCE_NONE],
+        ]);
+
+        DB::table('note_revisions')->insert([
+            'id' => 'note-1-r001',
+            'note_root_id' => 'note-1',
+            'revision_number' => 1,
+            'grand_total_rupiah' => 150000,
+            'line_count' => 2,
+        ]);
+
+        DB::table('note_revision_lines')->insert([
+            [
+                'id' => 'note-1-r001-l001',
+                'note_revision_id' => 'note-1-r001',
+                'work_item_root_id' => 'wi-1',
+                'line_no' => 1,
+                'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+                'status' => WorkItem::STATUS_OPEN,
+                'service_label' => 'Servis A',
+                'service_price_rupiah' => 50000,
+                'subtotal_rupiah' => 50000,
+            ],
+            [
+                'id' => 'note-1-r001-l002',
+                'note_revision_id' => 'note-1-r001',
+                'work_item_root_id' => 'wi-2',
+                'line_no' => 2,
+                'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+                'status' => WorkItem::STATUS_OPEN,
+                'service_label' => 'Servis B',
+                'service_price_rupiah' => 100000,
+                'subtotal_rupiah' => 100000,
+            ],
         ]);
 
         $response = $this->actingAs($user)->post('/cashier/notes/note-1/payments', [
