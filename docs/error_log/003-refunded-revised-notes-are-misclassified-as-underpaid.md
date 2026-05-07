@@ -2,11 +2,11 @@
 
 ## Status
 
-Patched, with verification gap.
+Fixed with proof.
 
-Patch supplied later under report title: Refunded revisions undercount paid totals.
+Final local verification supersedes the earlier verification gap.
 
-Focused feature test sudah ditambahkan, tetapi php artisan test tidak dapat berjalan di environment patch karena vendor/autoload.php tidak ada.
+Earlier gross-back reader patch notes are retained below as historical context, but the verified fix now uses explicit current-refund settlement semantics in `NotePaidStatusPolicy` / `CustomerRefundReaderPort` instead of treating all note-level refunds as the same settlement basis.
 
 ## Severity
 
@@ -454,3 +454,141 @@ Ini bukan root cause yang sama dengan #003.
 - #008 is about component-only billing projection ignoring legacy payment_allocations during selected-row payment validation.
 
 Keduanya harus dipertimbangkan ketika mengubah settlement readers/projections, karena kalkulasi component-only tidak aman ketika nota masih dapat memiliki legacy payment state.
+## Verified Fix Update
+
+### Update 6
+
+Final verified local patch completed for this error log.
+
+### Final Patch Scope
+
+Changed files:
+
+- `app/Ports/Out/Payment/CustomerRefundReaderPort.php`
+- `app/Adapters/Out/Payment/DatabaseCustomerRefundReaderAdapter.php`
+- `app/Application/Note/Policies/NotePaidStatusPolicy.php`
+- `tests/Unit/Application/Note/Policies/NotePaidStatusPolicyTest.php`
+
+### Final Patch Summary
+
+The verified fix does not rely on the earlier reader-level gross-back approach.
+
+The fix introduces an explicit current-refund settlement boundary:
+
+- `CustomerRefundReaderPort::getTotalCurrentRefundedAmountByNoteId()`
+- `DatabaseCustomerRefundReaderAdapter::getTotalCurrentRefundedAmountByNoteId()`
+- `NotePaidStatusPolicy::isPaid()` now subtracts current refund only, not every historical refund ledger row.
+
+This preserves the intended distinction between:
+
+1. active/current refund that still reduces current settlement, and
+2. historical refund already consumed by note replacement/revision replay.
+
+### Why This Fix Addresses #003
+
+`NoteReplacementPaymentAllocationReconciler::captureAllocatedAmounts()` captures carry-forward settlement by subtracting refund component allocations from previous payment component allocations.
+
+`NoteReplacementPaymentAllocationReconciler::rebuild()` then writes the replayed `payment_component_allocations` using that net carry-forward amount.
+
+Therefore, after revision:
+
+- rebuilt payment component allocation already represents current net settlement
+- historical `refund_component_allocations` remain as ledger/audit rows
+- paid-status classification must not subtract those historical refunds again
+
+The verified fix makes `NotePaidStatusPolicy` subtract only current refunds, preventing double subtraction for revised notes with historical refunds.
+
+### Characterization Test Added
+
+Added unit characterization in:
+
+`tests/Unit/Application/Note/Policies/NotePaidStatusPolicyTest.php`
+
+Focused test:
+
+`test_it_treats_carry_forward_current_settlement_as_paid_without_subtracting_historical_refund_again`
+
+Scenario:
+
+- current carry-forward settlement: 200.000
+- historical refund ledger: 100.000
+- revised note total: 200.000
+- expected paid status: true
+
+This reproduces the #003 failure shape where the old policy returned unpaid because it subtracted the historical refund again.
+
+### Regression Coverage For #001
+
+Existing unit behavior remains covered:
+
+`test_it_treats_note_as_not_paid_when_current_refund_reduces_settlement_below_total`
+
+Scenario:
+
+- current allocated settlement: 50.000
+- current refund: 20.000
+- note total: 50.000
+- expected paid status: false
+
+This guards against reopening #001-style behavior where active refunds are accidentally ignored and refunded notes remain classified as paid.
+
+### Local Verification Proof
+
+Targeted red proof before patch:
+
+`php artisan test --filter=NotePaidStatusPolicyTest`
+
+Result before patch:
+
+- `1 failed, 3 passed`
+- failing test: `test_it_treats_carry_forward_current_settlement_as_paid_without_subtracting_historical_refund_again`
+- failure: `Failed asserting that false is true.`
+
+Targeted proof after patch:
+
+`php artisan test --filter=NotePaidStatusPolicyTest`
+
+Result after patch:
+
+- `4 passed (4 assertions)`
+
+Limited related blast-radius proof:
+
+`php artisan test tests/Unit/Application/Note/Policies/NotePaidStatusPolicyTest.php tests/Unit/Application/Note/Policies tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php tests/Feature/Payment/DatabasePaymentAllocationReaderAdapterFeatureTest.php tests/Feature/Payment/RecordCustomerRefundFeatureTest.php`
+
+Result:
+
+- `10 passed (31 assertions)`
+
+Relevant Note + Payment blast-radius proof:
+
+`php artisan test tests/Feature/Note tests/Feature/Payment`
+
+Result:
+
+- `158 passed (934 assertions)`
+
+### Verification Status
+
+Fixed with proof.
+
+The earlier verification gap from missing `vendor/autoload.php` is no longer applicable to the final verified patch because local targeted and relevant blast-radius tests passed.
+
+### Residual Gaps
+
+This update fixes #003 settlement classification for revised notes with historical refunds at paid-status policy level.
+
+It does not close separate error logs:
+
+- `004-refunded-work-items-survive-revisions-and-inflate-stock.md`
+- `005-note-revision-silently-drops-overpaid-allocations.md`
+- `008-legacy-paid-notes-can-be-paid-again.md`
+- `017-workspace-edit-payments-ignore-existing-note-payments.md`
+
+Those remain separate lifecycle/payment replay/current-projection issues unless separately patched and verified.
+
+### Commit / Push
+
+Commit and push are intentionally outside this error-log update.
+
+Owner handles git commit/push manually.
