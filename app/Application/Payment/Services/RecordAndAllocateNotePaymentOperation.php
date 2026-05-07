@@ -12,7 +12,7 @@ use App\Core\Shared\Exceptions\DomainException;
 use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\Note\NoteReaderPort;
 use App\Ports\Out\Payment\CustomerPaymentWriterPort;
-use App\Ports\Out\Payment\PaymentComponentAllocationReaderPort;
+use App\Ports\Out\Payment\PaymentAllocationReaderPort;
 use App\Ports\Out\Payment\PaymentComponentAllocationWriterPort;
 use App\Ports\Out\UuidPort;
 
@@ -20,7 +20,7 @@ final class RecordAndAllocateNotePaymentOperation
 {
     public function __construct(
         private readonly CustomerPaymentWriterPort $payments,
-        private readonly PaymentComponentAllocationReaderPort $allocations,
+        private readonly PaymentAllocationReaderPort $allocations,
         private readonly PaymentComponentAllocationWriterPort $allocationWriter,
         private readonly NoteReaderPort $notes,
         private readonly PaymentAllocationPolicy $policy,
