@@ -143,6 +143,160 @@ trait SeedsMinimalNotePaymentFixture
         );
     }
 
+    private function seedServiceOnlyCurrentRevision(
+        string $noteId,
+        string $revisionId,
+        string $workItemId,
+        string $customerName,
+        string $transactionDate,
+        int $grandTotalRupiah,
+        string $serviceName,
+        int $servicePriceRupiah,
+        string $status = 'open',
+        ?string $customerPhone = null
+    ): void {
+        $this->seedCurrentRevision(
+            $noteId,
+            $revisionId,
+            $customerName,
+            $customerPhone,
+            $transactionDate,
+            $grandTotalRupiah,
+            [[
+                'id' => $revisionId . '-l001',
+                'work_item_root_id' => $workItemId,
+                'line_no' => 1,
+                'transaction_type' => 'service_only',
+                'status' => $status,
+                'service_label' => $serviceName,
+                'service_price_rupiah' => $servicePriceRupiah,
+                'subtotal_rupiah' => $grandTotalRupiah,
+                'payload' => [
+                    'work_item_root_id' => $workItemId,
+                    'transaction_type' => 'service_only',
+                    'status' => $status,
+                    'external_purchase_lines' => [],
+                    'store_stock_lines' => [],
+                    'service' => [
+                        'service_name' => $serviceName,
+                        'service_price_rupiah' => $servicePriceRupiah,
+                        'part_source' => 'none',
+                    ],
+                ],
+            ]],
+        );
+    }
+
+    private function seedServiceWithStoreStockCurrentRevision(
+        string $noteId,
+        string $revisionId,
+        string $workItemId,
+        string $customerName,
+        string $transactionDate,
+        int $grandTotalRupiah,
+        string $serviceName,
+        int $servicePriceRupiah,
+        string $storeStockLineId,
+        string $productId,
+        int $qty,
+        int $storeStockLineTotalRupiah,
+        string $status = 'open',
+        ?string $customerPhone = null
+    ): void {
+        $this->seedCurrentRevision(
+            $noteId,
+            $revisionId,
+            $customerName,
+            $customerPhone,
+            $transactionDate,
+            $grandTotalRupiah,
+            [[
+                'id' => $revisionId . '-l001',
+                'work_item_root_id' => $workItemId,
+                'line_no' => 1,
+                'transaction_type' => 'service_with_store_stock_part',
+                'status' => $status,
+                'service_label' => $serviceName,
+                'service_price_rupiah' => $servicePriceRupiah,
+                'subtotal_rupiah' => $grandTotalRupiah,
+                'payload' => [
+                    'work_item_root_id' => $workItemId,
+                    'transaction_type' => 'service_with_store_stock_part',
+                    'status' => $status,
+                    'external_purchase_lines' => [],
+                    'store_stock_lines' => [[
+                        'id' => $storeStockLineId,
+                        'product_id' => $productId,
+                        'qty' => $qty,
+                        'line_total_rupiah' => $storeStockLineTotalRupiah,
+                    ]],
+                    'service' => [
+                        'service_name' => $serviceName,
+                        'service_price_rupiah' => $servicePriceRupiah,
+                        'part_source' => 'store_stock',
+                    ],
+                ],
+            ]],
+        );
+    }
+
+    /**
+     * @param list<array<string, mixed>> $lines
+     */
+    private function seedCurrentRevision(
+        string $noteId,
+        string $revisionId,
+        string $customerName,
+        ?string $customerPhone,
+        string $transactionDate,
+        int $grandTotalRupiah,
+        array $lines
+    ): void {
+        DB::table('notes')
+            ->where('id', $noteId)
+            ->update([
+                'current_revision_id' => $revisionId,
+                'latest_revision_number' => 1,
+            ]);
+
+        DB::table('note_revisions')->updateOrInsert(
+            ['id' => $revisionId],
+            [
+                'note_root_id' => $noteId,
+                'revision_number' => 1,
+                'parent_revision_id' => null,
+                'created_by_actor_id' => null,
+                'reason' => 'minimal current revision fixture',
+                'customer_name' => $customerName,
+                'customer_phone' => $customerPhone,
+                'transaction_date' => $transactionDate,
+                'grand_total_rupiah' => $grandTotalRupiah,
+                'line_count' => count($lines),
+                'created_at' => now()->format('Y-m-d H:i:s'),
+                'updated_at' => null,
+            ]
+        );
+
+        foreach ($lines as $line) {
+            DB::table('note_revision_lines')->updateOrInsert(
+                ['id' => (string) $line['id']],
+                [
+                    'note_revision_id' => $revisionId,
+                    'work_item_root_id' => $line['work_item_root_id'],
+                    'line_no' => $line['line_no'],
+                    'transaction_type' => $line['transaction_type'],
+                    'status' => $line['status'],
+                    'service_label' => $line['service_label'],
+                    'service_price_rupiah' => $line['service_price_rupiah'],
+                    'subtotal_rupiah' => $line['subtotal_rupiah'],
+                    'payload' => json_encode($line['payload'], JSON_THROW_ON_ERROR),
+                    'created_at' => now()->format('Y-m-d H:i:s'),
+                    'updated_at' => null,
+                ]
+            );
+        }
+    }
+
     private function normalize(string $value): string
     {
         $value = preg_replace('/\s+/', ' ', trim($value)) ?? trim($value);

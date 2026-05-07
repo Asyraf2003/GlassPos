@@ -39,6 +39,17 @@ final class CashierClosedReplacementOutstandingPaymentFeatureTest extends TestCa
             'allocation_priority' => 20,
         ]);
 
+        $this->seedServiceOnlyCurrentRevision(
+            'note-1',
+            'note-1-r001',
+            'wi-1',
+            'Budi',
+            $today,
+            70000,
+            'Servis Mesin',
+            70000,
+        );
+
         $response = $this->actingAs($user)->post(
             route('cashier.notes.payments.store', ['noteId' => 'note-1']),
             [

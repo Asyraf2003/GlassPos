@@ -93,5 +93,21 @@ final class CashierHybridPaymentDpPresetFeatureTest extends TestCase
             'qty' => 1,
             'line_total_rupiah' => 20000,
         ]);
+
+        $this->seedServiceWithStoreStockCurrentRevision(
+            'note-1',
+            'note-1-r001',
+            'wi-1',
+            'Budi',
+            $today,
+            50000,
+            'Servis Campuran',
+            30000,
+            'ssl-1',
+            'prod-1',
+            1,
+            20000,
+        );
+
     }
 }
