@@ -59,7 +59,12 @@ final class SelectedNoteRowsPaymentAmountResolver
             );
         } else {
             $billingRowsById = $this->selectionExpander->indexById($billingRows);
+            $originalSelectedIds = $selectedIds;
             $selectedIds = $this->selectionExpander->expand($billingRows, $selectedIds);
+
+            if ($selectedIds === [] && $this->targetsOnlySettledRows($billingRows, $originalSelectedIds)) {
+                return Result::failure('Hanya billing row outstanding yang boleh dipilih untuk pembayaran.', ['payment' => ['INVALID_SELECTED_ROWS']]);
+            }
 
             $matchedIds = [];
             $selectedOutstandingTotal = 0;
@@ -84,6 +89,42 @@ final class SelectedNoteRowsPaymentAmountResolver
                 return Result::failure('Billing row yang dipilih tidak valid untuk nota ini.', ['payment' => ['INVALID_SELECTED_ROWS']]);
             }
         }
+
+    /**
+     * @param list<array<string, mixed>> $billingRows
+     * @param list<string> $selectedIds
+     */
+    private function targetsOnlySettledRows(array $billingRows, array $selectedIds): bool
+    {
+        if ($selectedIds === []) {
+            return false;
+        }
+
+        foreach ($selectedIds as $selectedId) {
+            $matched = false;
+
+            foreach ($billingRows as $row) {
+                $matchesRow = (string) ($row['id'] ?? '') === $selectedId
+                    || (string) ($row['work_item_id'] ?? '') === $selectedId;
+
+                if (! $matchesRow) {
+                    continue;
+                }
+
+                $matched = true;
+
+                if ((int) ($row['outstanding_rupiah'] ?? 0) > 0) {
+                    return false;
+                }
+            }
+
+            if (! $matched) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
         if ($selectedOutstandingTotal <= 0) {
             return Result::failure('Total outstanding billing row terpilih harus lebih besar dari 0.', ['payment' => ['INVALID_SELECTED_ROWS']]);
