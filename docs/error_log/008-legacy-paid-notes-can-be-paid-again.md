@@ -2,9 +2,9 @@
 
 ## Status
 
-Patched, with verification gap.
+Patched and locally verified.
 
-Patch supplied and regression test added, but tests could not run in the patch environment because phpunit/vendor dependencies were missing.
+Root characterization was strengthened to use a valid current-revision workspace row, then verified locally. Selected-row payment now rejects a legacy-paid row using legacy-aware workspace settlement, and the broader payment feature slice remains green.
 
 ## Severity
 
@@ -49,6 +49,18 @@ Alasan update:
 - Patch sudah diterapkan di SelectedNoteRowsPaymentAmountResolver.
 - Regression test ditambahkan untuk fully paid legacy note.
 - Verification masih gap karena test gagal dijalankan akibat missing dependencies.
+
+### Update 2
+
+Local root verification completed.
+
+Alasan update:
+
+- Source/local command output at HEAD ae090092 supersedes the earlier vendor-missing verification gap.
+- Strengthened characterization seeds a current revision and note revision line so the resolver reaches a valid workspace path.
+- The selected row ID was corrected to the actual current workspace row ID, wi-legacy-paid-1, because current revision row mapping uses workItemRootId().
+- Legacy allocation 50.000 on a single 50.000 service line yields outstanding 0 through the legacy-aware workspace settlement path.
+- Targeted and broader payment suites now pass.
 
 ## Ringkasan Indonesia
 
@@ -160,11 +172,12 @@ test_rejects_selected_row_payment_when_note_already_paid_via_legacy_allocation
 Test intent:
 
 - seed note dengan total 50.000
+- seed current revision dan note revision line untuk valid workspace path
 - seed work item service 50.000
 - seed customer_payments 50.000
 - seed legacy payment_allocations 50.000
-- submit cashier selected-row payment
-- expect session error payment
+- submit cashier selected-row payment memakai current workspace row id wi-legacy-paid-1
+- expect exact session error: Hanya billing row outstanding yang boleh dipilih untuk pembayaran.
 - expect customer_payments count tetap 1
 - expect payment_component_allocations count tetap 0
 
@@ -224,40 +237,68 @@ Result:
 
 Warning/failure because vendor/autoload.php not present.
 
-## Verification Gap
+## Verification Status
 
-Regression test sudah ditambahkan, tetapi belum pass di environment patch.
+Verified locally at HEAD ae090092.
 
-Missing proof:
+Targeted root characterization:
 
-- test_rejects_selected_row_payment_when_note_already_paid_via_legacy_allocation passes
-- selected-row payment is rejected for legacy-paid note
-- no extra customer_payments row created
-- no payment_component_allocations row created
-- normal component-backed payment flow still works
-- mixed legacy/component notes behave according to intended migration rules
+Command:
+
+php artisan test tests/Feature/Note/RecordNotePaymentHttpFeatureTest.php --filter=legacy_allocation
+
+Result:
+
+PASS, 1 passed, 4 assertions.
+
+Full HTTP payment feature proof:
+
+Command:
+
+php artisan test tests/Feature/Note/RecordNotePaymentHttpFeatureTest.php
+
+Result:
+
+PASS, 2 passed, 10 assertions.
+
+Broader payment slice proof:
+
+Command:
+
+php artisan test tests/Feature/Payment tests/Feature/Note/RecordNotePaymentHttpFeatureTest.php
+
+Result:
+
+PASS, 21 passed, 85 assertions.
+
+Verified behavior:
+
+- legacy-paid selected row is rejected through the row-specific outstanding validation path
+- no extra customer_payments row is created in the characterization test
+- no payment_component_allocations row is created in the characterization test
+- normal selected-row component allocation flow remains green after fixture upgrade to current revision workspace
+
+Residual follow-up:
+
+- legacy partially paid selected-row behavior still needs separate coverage unless already verified elsewhere
+- mixed legacy/component migration behavior still needs separate coverage unless already verified elsewhere
 
 ## Recommended Follow-up
 
-Minimum verification commands:
-
-composer install
-php artisan test --filter=RecordNotePaymentHttpFeatureTest
-
 Recommended additional tests:
 
-1. Legacy fully paid note:
-   - payment_allocations = total
-   - component allocations empty
-   - selected-row payment rejected
-
-2. Legacy partially paid note:
+1. Legacy partially paid note:
    - payment_allocations less than total
+   - component allocations empty
    - selected-row payment accepted only up to remaining outstanding
 
-3. Component-paid note:
+2. Component-paid note:
    - component allocations exist
    - existing component behavior unchanged
+
+3. Mixed legacy/component note:
+   - migration-edge settlement behavior follows intended migration rules
+   - no duplicate/excess payment is accepted
 
 4. Mixed legacy + component note:
    - define expected migration behavior before patching further
