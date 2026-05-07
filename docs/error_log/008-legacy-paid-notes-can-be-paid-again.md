@@ -2,9 +2,11 @@
 
 ## Status
 
-Patched and locally verified.
+Patched and locally verified for backend payment allocation/projection scope.
 
-Root characterization was strengthened to use a valid current-revision workspace row, then verified locally. Selected-row payment now rejects a legacy-paid row using legacy-aware workspace settlement, and the broader payment feature slice remains green.
+Root characterization was strengthened to use a valid current-revision workspace row, then verified locally. The later mixed legacy/component allocation regression was reproduced with a failing feature test, then fixed so selected-row payment uses combined legacy and component allocation totals for outstanding/guard behavior. Targeted, focused, and wider Note + Payment suites passed locally.
+
+Browser/manual UI QA, full global suite, full reporting suite, production migration/cutover, and explicit overpayment/customer-credit workflow remain outside this closure.
 
 ## Severity
 
@@ -61,6 +63,17 @@ Alasan update:
 - The selected row ID was corrected to the actual current workspace row ID, wi-legacy-paid-1, because current revision row mapping uses workItemRootId().
 - Legacy allocation 50.000 on a single 50.000 service line yields outstanding 0 through the legacy-aware workspace settlement path.
 - Targeted and broader payment suites now pass.
+
+### Update 3
+
+Mixed legacy/component allocation regression fixed and locally verified.
+
+Alasan update:
+
+- Red characterization proved selected-row payment in a mixed legacy/component state recorded 90.000 when true outstanding was 50.000.
+- Compatibility allocation reading now uses combined legacy + component totals where required by payment guard and current operational row projection.
+- Targeted #008, focused #008 regression, and wider Note + Payment suites passed locally.
+- Browser/manual UI QA, full global suite, full reporting suite, production migration/cutover, and explicit overpayment/customer-credit workflow remain out of scope.
 
 ## Ringkasan Indonesia
 
@@ -377,7 +390,7 @@ Laporan ini diklasifikasikan sebagai update #008, bukan file error-log baru.
 
 ## Update Status
 
-Open / regression risk.
+Covered by the later mixed allocation compatibility patch, with scoped verification gaps.
 
 ## Summary
 
@@ -449,7 +462,6 @@ Future verification must include a regression test for:
 - attempt to pay Rp100,000 must be rejected
 - combined legacy + component allocated total must never exceed note total unless an explicit overpayment workflow exists
 
-No progress increase because this is the same root cause cluster as #008.
 
 ## Update - Mixed payment allocations enable overpayment
 
@@ -457,92 +469,123 @@ Laporan ini diklasifikasikan sebagai update #008, bukan file error-log baru.
 
 ## Update Status
 
-Patched, with verification gap.
+Fixed and locally verified for backend allocation/projection scope.
 
 ## Summary
 
-A later report confirmed the same payment-allocation source-of-truth problem in a broader form.
+A later report confirmed the same payment-allocation source-of-truth problem in a broader mixed state.
 
-The system partially migrated payment recording from legacy `payment_allocations` to `payment_component_allocations`, but not all writers, readers, and reports were updated consistently.
+The system had both legacy note-level allocations and newer component allocations:
 
-Affected behavior:
+- legacy inline payment writes to `payment_allocations`
+- selected/component payment writes to `payment_component_allocations`
+- row settlement and final payment guard could read only one side
+- selected-row payment could therefore over-record a new payment when existing payment already existed in the other allocation table
 
-- `CreateTransactionWorkspaceInlinePaymentRecorder` still writes legacy `payment_allocations`.
-- `RecordAndAllocateNotePaymentHandler` validates against and writes `payment_component_allocations`.
-- `DatabasePaymentComponentAllocationReaderAdapter` previously read component totals only.
-- `DatabasePaymentAllocationReaderAdapter` previously returned component total when component total was greater than zero, hiding legacy allocation totals.
-- transaction summary reporting still read legacy `payment_allocations` only.
-- cash ledger reporting still read legacy `payment_allocations` only.
+The confirmed failing scenario:
 
-This allowed a note already paid through the legacy inline path to receive another payment through the component-allocation path.
+- note total 100.000
+- existing legacy payment allocation 40.000
+- existing component allocation 10.000
+- true outstanding 50.000
+- selected-row cash tender 90.000
+- expected new customer payment amount 50.000
+- actual red-test customer payment amount 90.000
 
-## Vulnerable Path
+This proved the selected-row flow still ignored mixed legacy/component allocation state and could over-record payment.
 
-Legacy inline payment is recorded
--> row exists in `payment_allocations`
--> selected/manual payment is submitted later
--> `RecordAndAllocateNotePaymentHandler` checks component allocations only
--> legacy payment is ignored
--> new `payment_component_allocations` are written
--> combined legacy + component allocations can exceed note total
--> compatibility reader and reports may hide one side of the data
--> financial records, outstanding display, reconciliation, and reports become inconsistent
+## Red Characterization
 
-## Patch Summary
+File:
 
-Patch yang dilaporkan menyatukan total allocation level nota di tabel legacy dan component.
+- `tests/Feature/Note/RecordNotePaymentHttpFeatureTest.php`
+
+Test:
+
+- `test_selected_row_payment_uses_combined_legacy_and_component_allocations`
+
+Red proof:
+
+- expected new payment amount: 50.000
+- actual new payment amount: 90.000
+
+## Production Fix
 
 Changed files:
 
-- `app/Adapters/Out/Payment/DatabasePaymentComponentAllocationReaderAdapter.php`
 - `app/Adapters/Out/Payment/DatabasePaymentAllocationReaderAdapter.php`
-- `app/Adapters/Out/Reporting/Queries/TransactionSummaryReportingQuery.php`
-- `app/Adapters/Out/Reporting/Queries/TransactionCashLedgerPaymentRowsQuery.php`
+- `app/Application/Payment/Services/RecordAndAllocateNotePaymentOperation.php`
+- `app/Application/Note/Services/NoteOperationalRowSettlementProjector.php`
+- `app/Application/Note/Services/CurrentRevision/CurrentRevisionRowSettlementProjector.php`
 
-Patch behavior:
+Fix summary:
 
-- component allocation reader now includes legacy `payment_allocations` in note-level allocated totals.
-- compatibility allocation reader now returns `componentTotal + legacyTotal`.
-- transaction summary cash-payment totals now include both legacy and component allocation rows.
-- cash ledger payment rows now union component allocation payment events with legacy allocation payment events.
+- `DatabasePaymentAllocationReaderAdapter::getTotalAllocatedAmountByNoteId()` now returns `componentTotal + legacyTotal` instead of component-first fallback.
+- `RecordAndAllocateNotePaymentOperation` now uses `PaymentAllocationReaderPort` for the final payment policy check, so the guard uses compatibility totals instead of component-only totals.
+- `NoteOperationalRowSettlementProjector` now reads compatibility note-level allocated/refunded totals and merges note-level remainders into component row settlement when component totals exist.
+- `CurrentRevisionRowSettlementProjector` applies the same mixed remainder behavior for current operational projection used by payment workspace/UI data.
 
-Reported commit:
+## Test Updates
 
-`73c7fa9 - Fix mixed payment allocation totals across readers and reports`
+Changed files:
 
-## Verification
+- `tests/Feature/Note/RecordNotePaymentHttpFeatureTest.php`
+- `tests/Unit/Application/Note/Services/NoteOperationalRowSettlementProjectorTest.php`
 
-Reported successful syntax checks:
+Test summary:
 
-- `php -l app/Adapters/Out/Payment/DatabasePaymentComponentAllocationReaderAdapter.php`
+- Added mixed legacy/component characterization test.
+- Updated component-only projector mocks so compatibility note-level totals are intentionally read even when component rows exist.
+
+## Verification Proof
+
+Syntax checks passed:
+
 - `php -l app/Adapters/Out/Payment/DatabasePaymentAllocationReaderAdapter.php`
-- `php -l app/Adapters/Out/Reporting/Queries/TransactionSummaryReportingQuery.php`
-- `php -l app/Adapters/Out/Reporting/Queries/TransactionCashLedgerPaymentRowsQuery.php`
+- `php -l app/Application/Payment/Services/RecordAndAllocateNotePaymentOperation.php`
+- `php -l app/Application/Note/Services/NoteOperationalRowSettlementProjector.php`
+- `php -l app/Application/Note/Services/CurrentRevision/CurrentRevisionRowSettlementProjector.php`
 
-## Verification Gap
+Targeted #008:
 
-No end-to-end Laravel feature test result was included.
+- `php artisan test tests/Feature/Note/RecordNotePaymentHttpFeatureTest.php --filter='selected_row_payment_uses_combined_legacy_and_component_allocations'`
+- PASS: 1 passed, 6 assertions
 
-Future verification must prove:
+Focused #008 regression:
 
-- note total Rp100,000
-- legacy inline payment Rp40,000
-- component payment attempt Rp100,000 is rejected
-- component payment attempt Rp60,000 is accepted only when outstanding is Rp60,000
-- compatibility reader returns legacy + component totals
-- transaction summary includes component-only payments
-- cash ledger includes component-only payment rows
-- no report double-counts the same payment when both allocation tables contain rows for the same note
+- `php artisan test tests/Feature/Note/RecordNotePaymentHttpFeatureTest.php tests/Unit/Application/Note/Services/NoteOperationalRowSettlementProjectorTest.php tests/Feature/Payment/DatabasePaymentAllocationReaderAdapterFeatureTest.php tests/Unit/Application/Payment/Services/AllocatePaymentAcrossComponentsTest.php`
+- PASS: 9 passed, 72 assertions
+
+Wider Note + Payment:
+
+- `php artisan test tests/Feature/Note tests/Feature/Payment`
+- PASS: 162 passed, 955 assertions
+
+## Verification Gaps / Out of Scope
+
+Not performed in this closure:
+
+- browser/manual UI QA
+- visual UI layout verification
+- full global suite
+- full reporting suite beyond touched/focused areas
+- production data cleanup
+- migration/cutover strategy for future backfilled component allocations
+- explicit customer credit/overpayment model
+- #001 final global verification claim
+- connector commit/push
+
+Patch affects UI data indirectly because row outstanding, allocated total, settlement label, and selected-row payment amount are backend-projected values consumed by cashier/admin UI.
+
+No Blade, JavaScript, or view file was changed.
 
 ## Residual Risk
 
-This patch intentionally sums legacy and component tables. That is safe only if the two tables represent distinct allocation records.
+`componentTotal + legacyTotal` is safe only while the two tables represent distinct allocation records.
 
-If a future migration backfills component allocations from legacy rows without marking migrated legacy rows or preventing duplicate semantic rows, summing both tables can double-count migrated payments.
+If a future migration backfills component allocations from legacy rows without marking migrated legacy rows, clearing legacy rows, or defining an idempotent compatibility strategy, summing both tables can double-count migrated payments.
 
-Any migration must define a clear cutover or idempotent compatibility strategy.
-
-No progress increase because this is the same root cause cluster as #008.
+Any future migration must define a clear cutover or idempotent compatibility strategy before production rollout.
 
 ## Related #026 - Concurrent note payments can over-allocate balances
 
