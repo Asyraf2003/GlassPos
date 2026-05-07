@@ -171,7 +171,7 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->post('/cashier/notes/note-legacy-paid-1/payments', [
-            'selected_row_ids' => ['wi-legacy-paid-1::service_fee::wi-legacy-paid-1'],
+            'selected_row_ids' => ['wi-legacy-paid-1'],
             'payment_method' => 'cash',
             'paid_at' => $today,
             'amount_received' => 50000,
