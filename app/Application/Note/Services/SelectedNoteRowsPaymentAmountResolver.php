@@ -90,6 +90,27 @@ final class SelectedNoteRowsPaymentAmountResolver
             }
         }
 
+        if ($selectedOutstandingTotal <= 0) {
+            return Result::failure('Total outstanding billing row terpilih harus lebih besar dari 0.', ['payment' => ['INVALID_SELECTED_ROWS']]);
+        }
+
+        $effectiveAmountRupiah = $requestedAmountRupiah > 0
+            ? $requestedAmountRupiah
+            : $selectedOutstandingTotal;
+
+        if ($effectiveAmountRupiah > $selectedOutstandingTotal) {
+            return Result::failure(
+                'Nominal pembayaran melebihi total outstanding billing row yang dipilih.',
+                ['payment' => ['INVALID_PAYMENT_AMOUNT']]
+            );
+        }
+
+        return Result::success([
+            'amount_rupiah' => $effectiveAmountRupiah,
+            'selected_outstanding_total_rupiah' => $selectedOutstandingTotal,
+        ]);
+    }
+
     /**
      * @param list<array<string, mixed>> $billingRows
      * @param list<string> $selectedIds
@@ -124,26 +145,5 @@ final class SelectedNoteRowsPaymentAmountResolver
         }
 
         return true;
-    }
-
-        if ($selectedOutstandingTotal <= 0) {
-            return Result::failure('Total outstanding billing row terpilih harus lebih besar dari 0.', ['payment' => ['INVALID_SELECTED_ROWS']]);
-        }
-
-        $effectiveAmountRupiah = $requestedAmountRupiah > 0
-            ? $requestedAmountRupiah
-            : $selectedOutstandingTotal;
-
-        if ($effectiveAmountRupiah > $selectedOutstandingTotal) {
-            return Result::failure(
-                'Nominal pembayaran melebihi total outstanding billing row yang dipilih.',
-                ['payment' => ['INVALID_PAYMENT_AMOUNT']]
-            );
-        }
-
-        return Result::success([
-            'amount_rupiah' => $effectiveAmountRupiah,
-            'selected_outstanding_total_rupiah' => $selectedOutstandingTotal,
-        ]);
     }
 }
