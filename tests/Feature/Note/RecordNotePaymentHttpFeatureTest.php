@@ -78,6 +78,8 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
                 'service_label' => 'Servis A',
                 'service_price_rupiah' => 50000,
                 'subtotal_rupiah' => 50000,
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'id' => 'note-1-r001-l002',
@@ -89,6 +91,8 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
                 'service_label' => 'Servis B',
                 'service_price_rupiah' => 100000,
                 'subtotal_rupiah' => 100000,
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
         ]);
 

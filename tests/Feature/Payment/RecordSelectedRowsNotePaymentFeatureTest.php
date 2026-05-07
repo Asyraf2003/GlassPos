@@ -62,6 +62,8 @@ final class RecordSelectedRowsNotePaymentFeatureTest extends TestCase
                 'service_label' => 'Servis A',
                 'service_price_rupiah' => 50000,
                 'subtotal_rupiah' => 50000,
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'id' => 'note-1-r001-l002',
@@ -73,6 +75,8 @@ final class RecordSelectedRowsNotePaymentFeatureTest extends TestCase
                 'service_label' => 'Servis B',
                 'service_price_rupiah' => 50000,
                 'subtotal_rupiah' => 50000,
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
         ]);
 
