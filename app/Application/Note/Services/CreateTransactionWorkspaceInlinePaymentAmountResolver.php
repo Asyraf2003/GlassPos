@@ -6,27 +6,43 @@ namespace App\Application\Note\Services;
 
 use App\Core\Note\Note\Note;
 use App\Core\Shared\Exceptions\DomainException;
+use App\Ports\Out\Payment\PaymentAllocationReaderPort;
 
 final class CreateTransactionWorkspaceInlinePaymentAmountResolver
 {
+    public function __construct(
+        private readonly PaymentAllocationReaderPort $allocations,
+    ) {
+    }
+
     /**
      * @param array<string, mixed> $payment
      */
     public function resolve(Note $note, array $payment): int
     {
         $decision = (string) ($payment['decision'] ?? 'skip');
+        $outstandingAmount = $this->outstandingAmount($note);
 
         return match ($decision) {
-            'pay_full' => $note->totalRupiah()->amount(),
-            'pay_partial' => $this->resolvePartial($note, $payment),
+            'pay_full' => $this->resolveFull($outstandingAmount),
+            'pay_partial' => $this->resolvePartial($payment, $outstandingAmount),
             default => throw new DomainException('Keputusan pembayaran workspace tidak valid.'),
         };
+    }
+
+    private function resolveFull(int $outstandingAmount): int
+    {
+        if ($outstandingAmount <= 0) {
+            throw new DomainException('Nota sudah tidak memiliki sisa tagihan.');
+        }
+
+        return $outstandingAmount;
     }
 
     /**
      * @param array<string, mixed> $payment
      */
-    private function resolvePartial(Note $note, array $payment): int
+    private function resolvePartial(array $payment, int $outstandingAmount): int
     {
         $amount = (int) ($payment['amount_paid_rupiah'] ?? 0);
 
@@ -34,10 +50,23 @@ final class CreateTransactionWorkspaceInlinePaymentAmountResolver
             throw new DomainException('Nominal pembayaran sebagian wajib lebih dari 0.');
         }
 
-        if ($amount >= $note->totalRupiah()->amount()) {
-            throw new DomainException('Nominal pembayaran sebagian harus lebih kecil dari grand total nota.');
+        if ($outstandingAmount <= 0) {
+            throw new DomainException('Nota sudah tidak memiliki sisa tagihan.');
+        }
+
+        if ($amount >= $outstandingAmount) {
+            throw new DomainException('Nominal pembayaran sebagian harus lebih kecil dari sisa tagihan.');
         }
 
         return $amount;
+    }
+
+    private function outstandingAmount(Note $note): int
+    {
+        $existingAllocated = $this->allocations
+            ->getTotalAllocatedAmountByNoteId($note->id())
+            ->amount();
+
+        return max($note->totalRupiah()->amount() - $existingAllocated, 0);
     }
 }

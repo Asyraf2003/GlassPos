@@ -13,6 +13,7 @@ use App\Core\Payment\Policies\PaymentAllocationPolicy;
 use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\AuditLogPort;
 use App\Ports\Out\Payment\CustomerPaymentWriterPort;
+use App\Ports\Out\Payment\PaymentAllocationReaderPort;
 use App\Ports\Out\Payment\PaymentComponentAllocationWriterPort;
 use App\Ports\Out\UuidPort;
 
@@ -21,6 +22,7 @@ final class CreateTransactionWorkspaceInlinePaymentRecorder
     public function __construct(
         private readonly CustomerPaymentWriterPort $payments,
         private readonly PaymentComponentAllocationWriterPort $componentAllocations,
+        private readonly PaymentAllocationReaderPort $paymentAllocations,
         private readonly PaymentAllocationPolicy $policy,
         private readonly UuidPort $uuid,
         private readonly AuditLogPort $audit,
@@ -54,12 +56,14 @@ final class CreateTransactionWorkspaceInlinePaymentRecorder
             PaymentDateParser::parseYmd($payment['paid_at'], 'Tanggal bayar wajib valid dengan format Y-m-d.'),
         );
 
+        $existingAllocated = $this->paymentAllocations->getTotalAllocatedAmountByNoteId($note->id());
+
         $this->policy->assertAllocatable(
             $money,
             $customerPayment->amountRupiah(),
             Money::zero(),
             $note->totalRupiah(),
-            Money::zero(),
+            $existingAllocated,
         );
 
         $allocations = $this->allocator->allocate(
