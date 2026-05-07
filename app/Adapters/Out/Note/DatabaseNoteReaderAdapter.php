@@ -19,7 +19,23 @@ final class DatabaseNoteReaderAdapter implements NoteReaderPort
 
     public function getById(string $id): ?Note
     {
-        $noteRow = DB::table('notes')->where('id', trim($id))->first();
+        return $this->loadById($id, false);
+    }
+
+    public function getByIdForUpdate(string $id): ?Note
+    {
+        return $this->loadById($id, true);
+    }
+
+    private function loadById(string $id, bool $forUpdate): ?Note
+    {
+        $query = DB::table('notes')->where('id', trim($id));
+
+        if ($forUpdate) {
+            $query->lockForUpdate();
+        }
+
+        $noteRow = $query->first();
 
         if (!$noteRow) {
             return null;

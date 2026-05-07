@@ -43,7 +43,7 @@ final class RecordAndAllocateNotePaymentOperation
         string $paymentMethod = CustomerPayment::METHOD_UNKNOWN,
         ?int $amountReceivedRupiah = null,
     ): RecordedNotePayment {
-        $note = $this->notes->getById(trim($noteId))
+        $note = $this->notes->getByIdForUpdate(trim($noteId))
             ?? throw new DomainException('Target payment allocation tidak ditemukan.');
 
         $amount = Money::fromInt($amountRupiah);

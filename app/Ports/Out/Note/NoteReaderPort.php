@@ -10,5 +10,7 @@ interface NoteReaderPort
 {
     public function getById(string $id): ?Note;
 
+    public function getByIdForUpdate(string $id): ?Note;
+
     public function countAll(): int;
 }
