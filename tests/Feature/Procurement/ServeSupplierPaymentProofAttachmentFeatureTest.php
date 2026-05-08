@@ -65,6 +65,37 @@ final class ServeSupplierPaymentProofAttachmentFeatureTest extends TestCase
         self::assertStringContainsString('attachment', (string) $response->headers->get('content-disposition'));
     }
 
+
+    public function test_supplier_payment_proof_attachment_does_not_serve_client_controlled_html_mime_inline(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('supplier-payment-proofs/payment-1/client-controlled.pdf', 'not-a-real-pdf');
+
+        $this->seedPaymentFixture('payment-1');
+        $this->seedAttachment(
+            'attachment-html-mime',
+            'payment-1',
+            'supplier-payment-proofs/payment-1/client-controlled.pdf',
+            'client-controlled.pdf',
+            'text/html',
+        );
+
+        $response = $this->actingAs($this->user('admin'))
+            ->get(route('admin.procurement.supplier-payment-proof-attachments.show', [
+                'attachmentId' => 'attachment-html-mime',
+            ]));
+
+        $response->assertOk();
+
+        $contentType = strtolower((string) $response->headers->get('content-type'));
+        $contentDisposition = strtolower((string) $response->headers->get('content-disposition'));
+
+        self::assertStringNotContainsString('text/html', $contentType);
+        self::assertStringContainsString('application/octet-stream', $contentType);
+        self::assertSame('nosniff', strtolower((string) $response->headers->get('x-content-type-options')));
+        self::assertStringContainsString('attachment', $contentDisposition);
+    }
+
     private function user(string $role): User
     {
         $user = User::query()->create([
