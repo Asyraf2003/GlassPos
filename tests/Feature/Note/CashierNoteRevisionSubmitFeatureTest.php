@@ -69,6 +69,16 @@ final class CashierNoteRevisionSubmitFeatureTest extends TestCase
     {
         $user = $this->seedKasir();
         $this->seedOpenServiceOnlyNote();
+        $this->seedServiceOnlyCurrentRevision(
+            'note-1',
+            'note-1-r001',
+            'wi-1',
+            'Budi',
+            date('Y-m-d'),
+            50000,
+            'Servis Lama',
+            50000,
+        );
         $this->seedCustomerPaymentBase('payment-1', 50000, date('Y-m-d'));
         $this->seedPaymentAllocationBase('allocation-1', 'payment-1', 'note-1', 50000);
 
