@@ -115,161 +115,165 @@ Current regression test anchors pada HEAD `77770796`:
 
 Command:
 
-~~~bash
-php -l tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php
+    php -l tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php
 
-php artisan test tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php
+    php artisan test tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php
 
 Output penting:
 
-No syntax errors detected in tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php
+    No syntax errors detected in tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php
 
-FAIL  Tests\Feature\Note\CreateTransactionWorkspaceDefaultCustomerNameFeatureTest
-⨯ workspace create does not expose global note count…
+    FAIL  Tests\Feature\Note\CreateTransactionWorkspaceDefaultCustomerNameFeatureTest
+    ⨯ workspace create does not expose global note count…
 
-Expected: <!DOCTYPE html>
-...
-Not to contain: Pelanggan no 2
+    Expected: <!DOCTYPE html>
+    ...
+    Not to contain: Pelanggan no 2
 
-at tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php:69
+    at tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php:69
 
-Tests: 1 failed (4 assertions)
+    Tests: 1 failed (4 assertions)
 
 Kesimpulan RED:
 
-Halaman create kasir masih merender Pelanggan no 2, sehingga disclosure global note count terbukti melalui HTTP feature test.
+Halaman create kasir masih merender `Pelanggan no 2`, sehingga disclosure global note count terbukti melalui HTTP feature test.
 
-Proof - GREEN targeted
+## Proof - GREEN targeted
 
 Command:
 
-php -l app/Application/Note/Services/CreateTransactionWorkspacePageDataBuilder.php
-php -l tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php
+    php -l app/Application/Note/Services/CreateTransactionWorkspacePageDataBuilder.php
+    php -l tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php
 
-php artisan test tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php
+    php artisan test tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php
 
 Output:
 
-No syntax errors detected in app/Application/Note/Services/CreateTransactionWorkspacePageDataBuilder.php
-No syntax errors detected in tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php
+    No syntax errors detected in app/Application/Note/Services/CreateTransactionWorkspacePageDataBuilder.php
+    No syntax errors detected in tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php
 
-PASS  Tests\Feature\Note\CreateTransactionWorkspaceDefaultCustomerNameFeatureTest
-✓ workspace create does not expose global note count…
+    PASS  Tests\Feature\Note\CreateTransactionWorkspaceDefaultCustomerNameFeatureTest
+    ✓ workspace create does not expose global note count…
 
-Tests: 1 passed (6 assertions)
+    Tests: 1 passed (6 assertions)
 
 Additional source grep after patch:
 
-=== COUNTALL REFERENCES AFTER PATCH ===
-app/Adapters/Out/Note/DatabaseNoteReaderAdapter.php:64:    public function countAll(): int
+    === COUNTALL REFERENCES AFTER PATCH ===
+    app/Adapters/Out/Note/DatabaseNoteReaderAdapter.php:64:    public function countAll(): int
 
 Kesimpulan GREEN targeted:
 
-Create workspace page tidak lagi membocorkan Pelanggan no 2 dan memakai label netral Pelanggan baru.
+Create workspace page tidak lagi membocorkan `Pelanggan no 2` dan memakai label netral `Pelanggan baru`.
 
-Proof - focused blast radius
+## Proof - focused blast radius
 
 Command:
 
-php artisan test \
-  tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php \
-  tests/Feature/Note/CreateTransactionWorkspaceTemplateContractFeatureTest.php \
-  tests/Feature/Note/CreateTransactionWorkspaceSkipFeatureTest.php \
-  tests/Feature/Note/CreateTransactionWorkspaceFullCashFeatureTest.php \
-  tests/Feature/Note/CreateTransactionWorkspacePartialTransferFeatureTest.php
+    php artisan test \
+      tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php \
+      tests/Feature/Note/CreateTransactionWorkspaceTemplateContractFeatureTest.php \
+      tests/Feature/Note/CreateTransactionWorkspaceSkipFeatureTest.php \
+      tests/Feature/Note/CreateTransactionWorkspaceFullCashFeatureTest.php \
+      tests/Feature/Note/CreateTransactionWorkspacePartialTransferFeatureTest.php
 
 Output:
 
-PASS  Tests\Feature\Note\CreateTransactionWorkspaceDefaultCustomerNameFeatureTest
-✓ workspace create does not expose global note count…
+    PASS  Tests\Feature\Note\CreateTransactionWorkspaceDefaultCustomerNameFeatureTest
+    ✓ workspace create does not expose global note count…
 
-PASS  Tests\Feature\Note\CreateTransactionWorkspaceTemplateContractFeatureTest
-✓ workspace create page embeds explicit service part source values
+    PASS  Tests\Feature\Note\CreateTransactionWorkspaceTemplateContractFeatureTest
+    ✓ workspace create page embeds explicit service part source values
 
-PASS  Tests\Feature\Note\CreateTransactionWorkspaceSkipFeatureTest
-✓ cashier can store workspace and redirect to history when skipping payment
+    PASS  Tests\Feature\Note\CreateTransactionWorkspaceSkipFeatureTest
+    ✓ cashier can store workspace and redirect to history when skipping payment
 
-PASS  Tests\Feature\Note\CreateTransactionWorkspaceFullCashFeatureTest
-✓ cashier can store workspace with full cash payment
+    PASS  Tests\Feature\Note\CreateTransactionWorkspaceFullCashFeatureTest
+    ✓ cashier can store workspace with full cash payment
 
-PASS  Tests\Feature\Note\CreateTransactionWorkspacePartialTransferFeatureTest
-✓ cashier can store workspace with selected partial transfer payment
+    PASS  Tests\Feature\Note\CreateTransactionWorkspacePartialTransferFeatureTest
+    ✓ cashier can store workspace with selected partial transfer payment
 
-Tests: 5 passed (22 assertions)
-Proof - HEAD/source verification
+    Tests: 5 passed (22 assertions)
+
+## Proof - HEAD/source verification
 
 Command:
 
-git status --short --untracked-files=all
-git rev-parse --abbrev-ref HEAD
-git rev-parse --short HEAD
-git log --oneline -5
-git show --stat --oneline --decorate -1
+    git status --short --untracked-files=all
+    git rev-parse --abbrev-ref HEAD
+    git rev-parse --short HEAD
+    git log --oneline -5
+    git show --stat --oneline --decorate -1
 
-git show HEAD:app/Application/Note/Services/CreateTransactionWorkspacePageDataBuilder.php | grep -nE "Pelanggan baru|countAll|NoteReaderPort" || true
+    git show HEAD:app/Application/Note/Services/CreateTransactionWorkspacePageDataBuilder.php | grep -nE "Pelanggan baru|countAll|NoteReaderPort" || true
 
-git show HEAD:tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php | grep -nE "does_not_expose|Pelanggan no 2|Pelanggan baru|assertDontSee" || true
+    git show HEAD:tests/Feature/Note/CreateTransactionWorkspaceDefaultCustomerNameFeatureTest.php | grep -nE "does_not_expose|Pelanggan no 2|Pelanggan baru|assertDontSee" || true
 
 Output penting:
 
-main
-77770796
-77770796 (HEAD -> main, origin/main, origin/HEAD) commit 1767
-d2071c86 commit 1766
-cebe7789 commit 1765
-0beadefa commit 1764
-f4675bc4 commit 1763
+    main
+    77770796
+    77770796 (HEAD -> main, origin/main, origin/HEAD) commit 1767
+    d2071c86 commit 1766
+    cebe7789 commit 1765
+    0beadefa commit 1764
+    f4675bc4 commit 1763
 
-77770796 (HEAD -> main, origin/main, origin/HEAD) commit 1767
-...CreateTransactionWorkspacePageDataBuilder.php | 9 +--------
-1 file changed, 1 insertion(+), 8 deletions(-)
+    77770796 (HEAD -> main, origin/main, origin/HEAD) commit 1767
+    ...CreateTransactionWorkspacePageDataBuilder.php | 9 +--------
+    1 file changed, 1 insertion(+), 8 deletions(-)
 
-=== HEAD BUILDER ANCHORS ===
-15:            'defaultCustomerName' => 'Pelanggan baru',
+    === HEAD BUILDER ANCHORS ===
+    15:            'defaultCustomerName' => 'Pelanggan baru',
 
-=== HEAD TEST ANCHORS ===
-16:    public function test_workspace_create_does_not_expose_global_note_count_as_default_customer_name(): void
-69:        $createResponse->assertDontSee('Pelanggan no 2', false);
-70:        $createResponse->assertSee('value="Pelanggan baru"', false);
-71:        $createResponse->assertSee('placeholder="Contoh: Pelanggan baru"', false);
+    === HEAD TEST ANCHORS ===
+    16:    public function test_workspace_create_does_not_expose_global_note_count_as_default_customer_name(): void
+    69:        $createResponse->assertDontSee('Pelanggan no 2', false);
+    70:        $createResponse->assertSee('value="Pelanggan baru"', false);
+    71:        $createResponse->assertSee('placeholder="Contoh: Pelanggan baru"', false);
 
 Kesimpulan HEAD verification:
 
-Source/test patch #029 ada di HEAD lokal 77770796, dan branch lokal sejajar dengan origin/main berdasarkan output HEAD -> main, origin/main, origin/HEAD.
+Source/test patch #029 ada di HEAD lokal `77770796`, dan branch lokal sejajar dengan `origin/main` berdasarkan output `HEAD -> main, origin/main, origin/HEAD`.
 
-Proof - countAll reference after patch
+## Proof - countAll reference after patch
 
 Command:
 
-grep -RInE "countAll\(|function countAll" app tests || true
+    grep -RInE "countAll\(|function countAll" app tests || true
 
 Output:
 
-app/Adapters/Out/Note/DatabaseNoteReaderAdapter.php:64:    public function countAll(): int
-app/Ports/Out/Note/NoteReaderPort.php:15:    public function countAll(): int;
+    app/Adapters/Out/Note/DatabaseNoteReaderAdapter.php:64:    public function countAll(): int
+    app/Ports/Out/Note/NoteReaderPort.php:15:    public function countAll(): int;
 
 Kesimpulan:
 
-countAll() masih ada di port/adapter, tetapi jalur create workspace kasir tidak lagi memanggilnya. Untuk scope #029, jalur disclosure visible di halaman create sudah diputus.
+`countAll()` masih ada di port/adapter, tetapi jalur create workspace kasir tidak lagi memanggilnya. Untuk scope #029, jalur disclosure visible di halaman create sudah diputus.
 
-Residual gaps
-Full global suite belum hijau untuk sesi ini.
-make verify sudah dijalankan, tetapi gagal pada PHPStan issue di file #028, bukan pada source #029:
-Line tests/Feature/Procurement/SupplierPaymentProofFileStorageAdapterFeatureTest.php
-41 Call to an undefined method Illuminate\Contracts\Filesystem\Filesystem::assertExists().
-[ERROR] Found 1 error
-make: *** [mk/hexagonal.mk:7: lint] Error 1
-Karena make verify gagal, full DoD/global verification belum boleh diklaim.
-Browser/manual QA untuk halaman create kasir tidak dijalankan.
-NoteReaderPort::countAll() dan DatabaseNoteReaderAdapter::countAll() masih ada sebagai unused/dead API surface setelah patch ini. Tidak dihapus dalam scope #029 agar blast radius tetap kecil. Cleanup kontrak bisa dilakukan terpisah jika diperlukan.
-Patch ini memakai placeholder netral statis. Jika nanti bisnis membutuhkan nomor sementara yang human-friendly, harus memakai sequence yang tidak membocorkan count global lifetime.
-Docs closure ini tidak membuktikan ulang full HTTP suite setelah docs-only edit.
-Status akhir
+## Residual gaps
+
+- Full global suite belum hijau untuk sesi ini.
+- `make verify` sudah dijalankan, tetapi gagal pada PHPStan issue di file #028, bukan pada source #029:
+
+    Line tests/Feature/Procurement/SupplierPaymentProofFileStorageAdapterFeatureTest.php
+    41 Call to an undefined method Illuminate\Contracts\Filesystem\Filesystem::assertExists().
+    [ERROR] Found 1 error
+    make: *** [mk/hexagonal.mk:7: lint] Error 1
+
+- Karena `make verify` gagal, full DoD/global verification belum boleh diklaim.
+- Browser/manual QA untuk halaman create kasir tidak dijalankan.
+- `NoteReaderPort::countAll()` dan `DatabaseNoteReaderAdapter::countAll()` masih ada sebagai unused/dead API surface setelah patch ini. Tidak dihapus dalam scope #029 agar blast radius tetap kecil. Cleanup kontrak bisa dilakukan terpisah jika diperlukan.
+- Patch ini memakai placeholder netral statis. Jika nanti bisnis membutuhkan nomor sementara yang human-friendly, harus memakai sequence yang tidak membocorkan count global lifetime.
+- Docs closure ini tidak membuktikan ulang full HTTP suite setelah docs-only edit.
+
+## Status akhir
 
 Fixed untuk disclosure #029 pada jalur create workspace kasir.
 
-Targeted proof menunjukkan halaman create tidak lagi menampilkan Pelanggan no 2 dan memakai Pelanggan baru.
+Targeted proof menunjukkan halaman create tidak lagi menampilkan `Pelanggan no 2` dan memakai `Pelanggan baru`.
 
-Focused blast-radius proof untuk create workspace utama lulus 5 passed (22 assertions).
+Focused blast-radius proof untuk create workspace utama lulus `5 passed (22 assertions)`.
 
-Full make verify belum hijau karena PHPStan blocker terpisah di test procurement #028.
+Full `make verify` belum hijau karena PHPStan blocker terpisah di test procurement #028.
