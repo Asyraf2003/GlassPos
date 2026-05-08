@@ -2,9 +2,9 @@
 
 ## Status
 
-Patched, with verification gap.
+Fixed with proof.
 
-Patch supplied and regression test updated, but the focused test could not run in the patch environment because vendor/autoload.php was missing.
+Cashier closed-note workspace PATCH mutation is now routed through the mutation guard, and the local targeted plus focused blast-radius tests pass.
 
 ## Severity
 
@@ -53,7 +53,23 @@ Alasan update:
 - Laporan menunjukkan cashier dapat rewrite closed paid notes lewat PATCH workspace update.
 - Patch sudah diterapkan di EnsureCashierNoteAccess.
 - Regression test diubah agar closed-note PATCH forbidden dan state tetap unchanged.
-- Verification masih gap karena test gagal dijalankan akibat missing vendor/autoload.php.
+- Initial patch-session verification was incomplete in the earlier environment.
+
+### Update 6
+
+Local verification completed on main at HEAD e7fe4c41.
+
+Alasan update:
+
+- Current HEAD before #009 patch was 86049acd.
+- Source was still vulnerable before patch because cashier.notes.workspace.update was classified inside the view-only ensureCanView() branch.
+- RED characterization proved the vulnerability: expected response status code [403] but received 302.
+- Minimal patch removed cashier.notes.workspace.update from the ensureCanView() branch.
+- cashier.notes.workspace.update now falls through to ensureCanMutateOpenNote().
+- Syntax verification passed for app/Adapters/In/Http/Middleware/Note/EnsureCashierNoteAccess.php.
+- Targeted GREEN verification passed: 1 passed (7 assertions).
+- Focused blast-radius verification passed: 7 passed (48 assertions).
+- Repository state after source patch was main at e7fe4c41, aligned with origin/main.
 
 ## Ringkasan Indonesia
 
@@ -183,69 +199,102 @@ Test intent setelah patch:
 - Payment replay correctness from #005.
 - Price floor correctness from #006.
 - Stored XSS rendering issue from #007.
-- Full Laravel test pass, because dependencies were missing.
+- Full global suite / make verify full green remains out of scope for #009 closure because audit-lines is deferred.
 
 ## Proof Dari Patch Session
 
-User reported:
-
-- patch removes cashier.notes.workspace.update from view-only branch
-- PATCH workspace updates now go through assertCanMutateOpenNote()
-- assertCanMutateOpenNote() blocks closed notes
-- regression feature test updated
-- committed on branch work with commit:
-  ba200c4
-
-Changed files:
+Source patch:
 
 app/Adapters/In/Http/Middleware/Note/EnsureCashierNoteAccess.php
-tests/Feature/Note/CashierClosedNoteWorkspaceReplacementSubmitFeatureTest.php
 
-Reported diff size:
+Minimal source change:
 
-+10
--24
+- cashier.notes.workspace.update removed from the view-only ensureCanView() branch.
+- PATCH workspace update now falls through to ensureCanMutateOpenNote().
+- Closed notes are rejected by the mutation guard and return 403 through the middleware.
 
-Testing reported:
+Characterization RED proof:
+
+Command:
 
 php artisan test --filter=CashierClosedNoteWorkspaceReplacementSubmitFeatureTest
 
 Result:
 
-Failed in patch environment.
+Expected response status code [403] but received 302.
 
-Failure reason:
+Meaning:
 
-vendor/autoload.php is missing; dependencies are not installed.
+- Closed-note PATCH still reached the successful redirect path before the fix.
+- The route was still treated as view-only access instead of mutation access.
+
+Syntax proof:
+
+Command:
+
+php -l app/Adapters/In/Http/Middleware/Note/EnsureCashierNoteAccess.php
+
+Result:
+
+No syntax errors detected.
+
+Targeted GREEN proof:
+
+Command:
+
+php artisan test --filter=CashierClosedNoteWorkspaceReplacementSubmitFeatureTest
+
+Result:
+
+PASS: 1 passed (7 assertions).
+
+Focused blast-radius proof:
+
+Command:
+
+php artisan test tests/Feature/Note/CashierClosedNoteWorkspaceReplacementSubmitFeatureTest.php tests/Feature/Note/CashierNoteRevisionSubmitFeatureTest.php tests/Feature/Note/CashierEditPageUsesCurrentRevisionFeatureTest.php tests/Feature/Note/CashierNoteDetailBillingUsesCurrentRevisionFeatureTest.php tests/Feature/Note/CashierNoteDetailUsesCurrentRevisionLinesFeatureTest.php tests/Feature/Note/UpdateTransactionWorkspaceFeatureTest.php
+
+Result:
+
+PASS: 7 passed (48 assertions).
+
+Passing focused coverage:
+
+- CashierClosedNoteWorkspaceReplacementSubmitFeatureTest.
+- CashierNoteRevisionSubmitFeatureTest.
+- CashierEditPageUsesCurrentRevisionFeatureTest.
+- CashierNoteDetailBillingUsesCurrentRevisionFeatureTest.
+- CashierNoteDetailUsesCurrentRevisionLinesFeatureTest.
+- UpdateTransactionWorkspaceFeatureTest.
+
+Repository proof:
+
+- Branch: main.
+- HEAD after source patch: e7fe4c41.
+- origin/main aligned with e7fe4c41.
+- Source diff at e7fe4c41: EnsureCashierNoteAccess.php changed by 1 deletion.
 
 ## Verification Gap
 
-Regression test sudah diupdate, tetapi belum pass di environment patch.
+Targeted and focused cashier workspace behavior is verified locally.
 
-Missing proof:
+Remaining gaps:
 
-- closed-note PATCH returns 403
-- no note header/total change
-- no work item replacement
-- no payment allocation rebuild
-- no new note revision
-- cashier open-note mutation still works if intended
-- cashier view/edit page access still follows date-window policy
+- Full global suite not reported.
+- Browser/manual QA not reported.
+- make verify full green not claimed because audit-lines remains deferred.
+- Related issues #011, #015, #018, #019, #020, #022, #027, and #029 remain separate and are not fixed by #009.
+- Admin correction/reopen policy was not evaluated in this slice.
 
 ## Recommended Follow-up
 
-Minimum verification command:
+After docs update:
 
-composer install
-php artisan test --filter=CashierClosedNoteWorkspaceReplacementSubmitFeatureTest
+1. Run markdown/document sanity checks.
+2. Review the #009 docs diff.
+3. Owner commits and pushes manually.
 
-Recommended additional tests:
-
-1. Cashier can view closed note inside allowed date window.
-2. Cashier cannot PATCH closed note workspace update.
-3. Cashier can PATCH open note workspace update when allowed.
-4. Admin correction/reopen flow remains the explicit path for closed paid note mutation.
-5. No inventory/payment side effects occur after forbidden cashier PATCH.
+Do not expand this slice into #011, #018, #020, or UI visibility work without separate proof and scope.
 
 ## Kesimpulan
 
@@ -253,7 +302,7 @@ Laporan #009 valid sebagai High severity authorization regression.
 
 Bug sebelumnya memasukkan route PATCH cashier.notes.workspace.update ke branch assertCanView(), padahal route itu melakukan mutation besar pada active note. Akibatnya cashier dapat rewrite closed paid notes tanpa reopen/correction flow.
 
-Patch minimal sudah benar untuk root cause langsung: route mutation dikembalikan ke assertCanMutateOpenNote(). Namun test belum terbukti pass karena dependency environment tidak tersedia, jadi status tetap patched with verification gap.
+Patch minimal sudah benar dan sekarang locally verified: route mutation dikembalikan ke ensureCanMutateOpenNote(), RED characterization membuktikan bypass lama dengan expected 403 tetapi actual 302, lalu targeted dan focused blast-radius tests pass.
 
 ## Related Workspace Revision Concurrency Finding From Error Log 010
 
