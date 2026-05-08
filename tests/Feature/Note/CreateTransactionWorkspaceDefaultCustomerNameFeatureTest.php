@@ -13,7 +13,7 @@ final class CreateTransactionWorkspaceDefaultCustomerNameFeatureTest extends Tes
 {
     use RefreshDatabase;
 
-    public function test_workspace_create_uses_next_default_customer_name_after_one_note_exists(): void
+    public function test_workspace_create_does_not_expose_global_note_count_as_default_customer_name(): void
     {
         $this->loginAsKasir();
 
@@ -66,6 +66,8 @@ final class CreateTransactionWorkspaceDefaultCustomerNameFeatureTest extends Tes
         $createResponse = $this->actingAs($user)->get(route('cashier.notes.workspace.create'));
 
         $createResponse->assertOk();
-        $createResponse->assertSee('value="Pelanggan no 2"', false);
+        $createResponse->assertDontSee('Pelanggan no 2', false);
+        $createResponse->assertSee('value="Pelanggan baru"', false);
+        $createResponse->assertSee('placeholder="Contoh: Pelanggan baru"', false);
     }
 }
