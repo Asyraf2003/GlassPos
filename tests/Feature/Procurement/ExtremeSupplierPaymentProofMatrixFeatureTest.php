@@ -105,8 +105,8 @@ final class ExtremeSupplierPaymentProofMatrixFeatureTest extends TestCase
     public function test_admin_can_preview_inline_and_download_existing_attachment(): void
     {
         Storage::fake('local');
-        Storage::disk('local')->put('supplier-payment-proofs/payment-1/proof.pdf', 'dummy-pdf');
-        Storage::disk('local')->put('supplier-payment-proofs/payment-1/proof.jpg', 'dummy-image');
+        $this->storePdfFixture('supplier-payment-proofs/payment-1/proof.pdf');
+        $this->storeJpegFixture('supplier-payment-proofs/payment-1/proof.jpg');
 
         $this->seedPaymentFixture('payment-1', 'invoice-1', 'uploaded');
         $this->seedAttachment('attachment-1', 'payment-1', 'supplier-payment-proofs/payment-1/proof.pdf', 'proof.pdf', 'application/pdf');
@@ -131,4 +131,23 @@ final class ExtremeSupplierPaymentProofMatrixFeatureTest extends TestCase
         self::assertStringContainsString('image/jpeg', (string) $download->headers->get('content-type'));
         self::assertStringContainsString('attachment', (string) $download->headers->get('content-disposition'));
     }
+
+    private function storePdfFixture(string $path): void
+    {
+        Storage::disk('local')->put(
+            $path,
+            "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF\n",
+        );
+    }
+
+    private function storeJpegFixture(string $path): void
+    {
+        $jpeg = base64_decode(
+            '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAH/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAEFAqf/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/ASP/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/ASP/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAY/Ag//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/IV//2gAMAwEAAgADAAAAEP/EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQMBAT8QH//EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQIBAT8QH//EABQQAQAAAAAAAAAAAAAAAAAAABD/2gAIAQEAAT8QH//Z',
+            true,
+        );
+
+        Storage::disk('local')->put($path, is_string($jpeg) ? $jpeg : '');
+    }
+
 }
