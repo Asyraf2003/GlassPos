@@ -11,14 +11,6 @@ use Throwable;
 
 final class LaravelSupplierPaymentProofFileStorageAdapter implements SupplierPaymentProofFileStoragePort
 {
-    /**
-     * @var array<string, true>
-     */
-    private const ALLOWED_MIME_TYPES = [
-        'application/pdf' => true,
-        'image/jpeg' => true,
-        'image/png' => true,
-    ];
     public function storeMany(string $supplierPaymentId, array $files): array
     {
         $storedFiles = [];
@@ -51,7 +43,7 @@ final class LaravelSupplierPaymentProofFileStorageAdapter implements SupplierPay
                 $storedFiles[] = [
                     'storage_path' => $storedPath,
                     'original_filename' => trim((string) ($file['original_filename'] ?? '')),
-                    'mime_type' => $this->safeMimeType($sourcePath),
+                    'mime_type' => SupplierPaymentProofMimeTypeDetector::safe($sourcePath),
                     'file_size_bytes' => (int) ($file['file_size_bytes'] ?? 0),
                 ];
             }
@@ -87,28 +79,6 @@ final class LaravelSupplierPaymentProofFileStorageAdapter implements SupplierPay
         }
 
         return is_string($content) ? $content : null;
-    }
-
-
-    private function safeMimeType(string $path): string
-    {
-        $detectedMimeType = $this->detectMimeType($path);
-
-        return isset(self::ALLOWED_MIME_TYPES[$detectedMimeType])
-            ? $detectedMimeType
-            : 'application/octet-stream';
-    }
-
-    private function detectMimeType(string $path): string
-    {
-        $fileInfo = new \finfo(FILEINFO_MIME_TYPE);
-        $detectedMimeType = $fileInfo->file($path);
-
-        if (! is_string($detectedMimeType)) {
-            return 'application/octet-stream';
-        }
-
-        return strtolower(trim($detectedMimeType));
     }
 
     private function directory(string $supplierPaymentId): string
