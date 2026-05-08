@@ -572,6 +572,109 @@ final class CashierProductReplacementBackdatedPriceFinanceFeatureTest extends Te
     }
 
 
+
+    public function test_product_replacement_price_floor_rejection_rolls_back_without_issuing_inventory(): void
+    {
+        $user = $this->loginAsAuthorizedAdmin();
+        $oldDate = date('Y-m-d', strtotime('-4 days'));
+        $today = date('Y-m-d');
+
+        $this->seedPaidProductOnlyNote($oldDate);
+
+        $this->actingAs($user)
+            ->get(route('admin.notes.show', ['noteId' => 'note-1']))
+            ->assertOk();
+
+        $this->actingAs($user)
+            ->get(route('admin.notes.workspace.edit', ['noteId' => 'note-1']))
+            ->assertOk();
+
+        $response = $this->actingAs($user)
+            ->from(route('admin.notes.workspace.edit', ['noteId' => 'note-1']))
+            ->patch(
+                route('admin.notes.workspace.update', ['noteId' => 'note-1']),
+                [
+                    'note' => [
+                        'customer_name' => 'Budi Underpriced Revision Snapshot',
+                        'customer_phone' => '08123456789',
+                        'transaction_date' => $today,
+                    ],
+                    'items' => [
+                        [
+                            'entry_mode' => 'product',
+                            'description' => null,
+                            'part_source' => 'store_stock',
+                            'service' => [
+                                'name' => null,
+                                'price_rupiah' => null,
+                                'notes' => null,
+                            ],
+                            'product_lines' => [
+                                [
+                                    'product_id' => 'product-1',
+                                    'qty' => 1,
+                                    'unit_price_rupiah' => 1,
+                                    'price_basis' => 'revision_snapshot',
+                                ],
+                            ],
+                            'external_purchase_lines' => [],
+                        ],
+                    ],
+                    'inline_payment' => [
+                        'decision' => 'skip',
+                        'payment_method' => null,
+                        'paid_at' => null,
+                        'amount_paid_rupiah' => null,
+                        'amount_received_rupiah' => null,
+                    ],
+                ],
+            );
+
+        $response->assertRedirect(route('admin.notes.workspace.edit', ['noteId' => 'note-1']));
+        $response->assertSessionHasErrors([
+            'revision' => 'Harga jual pada store stock line tidak boleh di bawah harga jual minimum.',
+        ]);
+
+        $this->assertDatabaseHas('notes', [
+            'id' => 'note-1',
+            'customer_name' => 'Budi Product Lama',
+            'transaction_date' => $oldDate,
+            'total_rupiah' => 300000,
+        ]);
+
+        $this->assertDatabaseMissing('note_revisions', [
+            'note_root_id' => 'note-1',
+            'revision_number' => 2,
+        ]);
+
+        $this->assertSame(
+            1,
+            DB::table('work_items')
+                ->where('note_id', 'note-1')
+                ->count()
+        );
+
+        $this->assertSame(
+            1,
+            DB::table('work_item_store_stock_lines')
+                ->where('product_id', 'product-1')
+                ->count()
+        );
+
+        $this->assertSame(
+            1,
+            DB::table('inventory_movements')
+                ->where('product_id', 'product-1')
+                ->count()
+        );
+
+        $this->assertDatabaseHas('product_inventory', [
+            'product_id' => 'product-1',
+            'qty_on_hand' => 7,
+        ]);
+    }
+
+
     private function seedPaidProductOnlyNote(string $oldDate): void
     {
         $this->seedNoteBase('note-1', 'Budi Product Lama', $oldDate, 300000, 'closed');

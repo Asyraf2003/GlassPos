@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Application\Note\UseCases;
 
 use App\Application\Note\Services\CreateTransactionWorkspaceWorkItemPayloadMapper;
+use App\Application\Note\Services\RevisionWorkspace\RevisionSnapshotStoreStockLineTrustMarker;
 use App\Application\Note\Services\WorkItemFactory;
 use App\Core\Note\Note\Note;
+use App\Core\Note\Revision\NoteRevision;
 use App\Core\Note\WorkItem\WorkItem;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Core\Shared\ValueObjects\Money;
@@ -16,6 +18,7 @@ final class CreateNoteRevisionPayloadNoteBuilder
     public function __construct(
         private readonly CreateTransactionWorkspaceWorkItemPayloadMapper $mapper,
         private readonly WorkItemFactory $factory,
+        private readonly RevisionSnapshotStoreStockLineTrustMarker $snapshotTrust,
     ) {
     }
 
@@ -27,13 +30,14 @@ final class CreateNoteRevisionPayloadNoteBuilder
      *   inline_payment?: array<string, mixed>
      * } $payload
      */
-    public function build(string $noteRootId, array $payload): Note
+    public function build(string $noteRootId, array $payload, ?NoteRevision $currentRevision = null): Note
     {
         $noteData = (array) ($payload['note'] ?? []);
-        $workItems = $this->buildWorkItems(
-            $noteRootId,
+        $items = $this->snapshotTrust->mark(
             array_values((array) ($payload['items'] ?? [])),
+            $currentRevision,
         );
+        $workItems = $this->buildWorkItems($noteRootId, $items);
 
         if ($workItems === []) {
             throw new DomainException('Minimal satu item valid wajib ada untuk membuat revisi.');

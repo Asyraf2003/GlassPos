@@ -23,6 +23,7 @@ final class CreateTransactionWorkspaceStoreStockLineMapper
             'qty' => $qty,
             'line_total_rupiah' => $qty * $unitPrice,
             'price_basis' => $this->priceBasis($line['price_basis'] ?? null),
+            '_server_trusted_revision_snapshot' => ($line['_server_trusted_revision_snapshot'] ?? false) === true,
         ];
     }
 
