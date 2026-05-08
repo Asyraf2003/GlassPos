@@ -8,6 +8,8 @@ use App\Application\Note\Services\CreateTransactionWorkspaceExternalPurchaseLine
 use App\Application\Note\Services\CreateTransactionWorkspaceServiceWorkItemVariantResolver;
 use App\Application\Note\Services\CreateTransactionWorkspaceStoreStockLineMapper;
 use App\Application\Note\Services\CreateTransactionWorkspaceWorkItemPayloadMapper;
+use App\Application\Note\Services\RevisionWorkspace\RevisionSnapshotStoreStockLineKeyer;
+use App\Application\Note\Services\RevisionWorkspace\RevisionSnapshotStoreStockLineTrustInventory;
 use App\Application\Note\Services\RevisionWorkspace\RevisionSnapshotStoreStockLineTrustMarker;
 use App\Application\Note\Services\WorkItemFactory;
 use App\Application\Note\UseCases\CreateNoteRevisionPayloadNoteBuilder;
@@ -163,7 +165,18 @@ final class CreateNoteRevisionPayloadNoteBuilderTest extends TestCase
                 $products,
                 new MinSellingPricePolicy()
             ),
-            new RevisionSnapshotStoreStockLineTrustMarker(),
+            $this->trustMarker(),
+        );
+    }
+
+
+    private function trustMarker(): RevisionSnapshotStoreStockLineTrustMarker
+    {
+        $keyer = new RevisionSnapshotStoreStockLineKeyer();
+
+        return new RevisionSnapshotStoreStockLineTrustMarker(
+            new RevisionSnapshotStoreStockLineTrustInventory($keyer),
+            $keyer,
         );
     }
 }

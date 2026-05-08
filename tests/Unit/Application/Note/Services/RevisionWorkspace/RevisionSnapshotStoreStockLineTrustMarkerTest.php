@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Application\Note\Services\RevisionWorkspace;
 
+use App\Application\Note\Services\RevisionWorkspace\RevisionSnapshotStoreStockLineKeyer;
+use App\Application\Note\Services\RevisionWorkspace\RevisionSnapshotStoreStockLineTrustInventory;
 use App\Application\Note\Services\RevisionWorkspace\RevisionSnapshotStoreStockLineTrustMarker;
 use App\Core\Note\WorkItem\StoreStockLine;
 use App\Core\Note\WorkItem\WorkItem;
@@ -14,7 +16,7 @@ final class RevisionSnapshotStoreStockLineTrustMarkerTest extends TestCase
 {
     public function test_it_marks_revision_snapshot_line_as_trusted_when_it_matches_current_server_work_item(): void
     {
-        $marker = new RevisionSnapshotStoreStockLineTrustMarker();
+        $marker = $this->marker();
 
         $items = [[
             'entry_mode' => 'product',
@@ -49,7 +51,7 @@ final class RevisionSnapshotStoreStockLineTrustMarkerTest extends TestCase
 
     public function test_it_does_not_mark_forged_revision_snapshot_line_when_amount_does_not_match_current_server_work_item(): void
     {
-        $marker = new RevisionSnapshotStoreStockLineTrustMarker();
+        $marker = $this->marker();
 
         $items = [[
             'entry_mode' => 'product',
@@ -80,5 +82,16 @@ final class RevisionSnapshotStoreStockLineTrustMarkerTest extends TestCase
         $marked = $marker->mark($items, null, $workItems);
 
         $this->assertFalse($marked[0]['product_lines'][0]['_server_trusted_revision_snapshot']);
+    }
+
+
+    private function marker(): RevisionSnapshotStoreStockLineTrustMarker
+    {
+        $keyer = new RevisionSnapshotStoreStockLineKeyer();
+
+        return new RevisionSnapshotStoreStockLineTrustMarker(
+            new RevisionSnapshotStoreStockLineTrustInventory($keyer),
+            $keyer,
+        );
     }
 }
