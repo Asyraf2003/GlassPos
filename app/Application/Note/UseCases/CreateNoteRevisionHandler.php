@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Note\UseCases;
 
 use App\Application\Note\Services\ApplyNoteRevisionAsActiveReplacement;
+use App\Application\Note\Services\EditableWorkspaceNoteGuard;
 use App\Application\Note\Services\NoteCurrentRevisionResolver;
 use App\Application\Note\Services\NoteRevisionBootstrapFactory;
 use App\Core\Shared\Exceptions\DomainException;
@@ -22,6 +23,7 @@ final class CreateNoteRevisionHandler
         private readonly CreateNoteRevisionPayloadNoteBuilder $payloadNotes,
         private readonly CreateNoteRevisionCommitter $committer,
         private readonly ApplyNoteRevisionAsActiveReplacement $applier,
+        private readonly EditableWorkspaceNoteGuard $guard,
         private readonly ClockPort $clock,
         private readonly TransactionManagerPort $transactions,
     ) {
@@ -68,6 +70,8 @@ final class CreateNoteRevisionHandler
         if ($root === null) {
             return CreateNoteRevisionResult::failure('Root note tidak ditemukan.');
         }
+
+        $this->guard->assertEditable($root->id());
 
         $current = $this->current->resolveOrFail($root->id());
         $number = $this->current->nextRevisionNumber($root->id());
