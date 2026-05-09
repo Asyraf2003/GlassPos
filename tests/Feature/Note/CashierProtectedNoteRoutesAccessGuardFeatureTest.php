@@ -76,6 +76,32 @@ final class CashierProtectedNoteRoutesAccessGuardFeatureTest extends TestCase
         ]);
     }
 
+    public function test_cashier_cannot_open_workspace_edit_for_refunded_note(): void
+    {
+        $user = $this->seedKasir();
+        $this->seedServiceOnlyNote('note-refunded-edit', date('Y-m-d'), 'refunded');
+
+        $this->actingAs($user)
+            ->get(route('cashier.notes.workspace.edit', ['noteId' => 'note-refunded-edit']))
+            ->assertForbidden();
+    }
+
+    public function test_cashier_cannot_patch_workspace_update_for_refunded_note(): void
+    {
+        $user = $this->seedKasir();
+        $this->seedServiceOnlyNote('note-refunded-update', date('Y-m-d'), 'refunded');
+
+        $this->actingAs($user)
+            ->patch(route('cashier.notes.workspace.update', ['noteId' => 'note-refunded-update']), [])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('notes', [
+            'id' => 'note-refunded-update',
+            'note_state' => 'refunded',
+            'total_rupiah' => 50000,
+        ]);
+    }
+
     public function test_cashier_cannot_post_payment_for_open_note_older_than_two_days(): void
     {
         $user = $this->seedKasir();
