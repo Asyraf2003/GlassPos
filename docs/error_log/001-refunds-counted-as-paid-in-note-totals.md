@@ -2,7 +2,7 @@
 
 ## Status
 
-Patched.
+Fixed with characterization proof and explicit residual global/browser gaps.
 
 ## Severity
 
@@ -207,3 +207,98 @@ Future verification must prove both:
 2. historical refunds on revised notes are not double-subtracted
 
 Jika keduanya tidak dites, fix hanya mungkin memindahkan bug settlement antara #001 dan #003.
+
+## Update 2026-05-09 - Characterization closure after #001/#003 settlement conflict review
+
+Current source/test review confirmed that the earlier `Patched` document status needed explicit verification before closure because #001 and #003 share the same settlement arithmetic boundary.
+
+The #001 historical failure mode was:
+
+- active refund component rows were counted as allocated payment at note level;
+- the same refund rows were also counted by the refund reader;
+- downstream settlement used `allocated - refunded`;
+- active refund therefore became neutral instead of reducing net paid/outstanding.
+
+Current source reality:
+
+- `app/Adapters/Out/Payment/DatabasePaymentAllocationReaderAdapter.php`
+  - `getTotalAllocatedAmountByNoteId()` now sums `payment_component_allocations.allocated_amount_rupiah` plus legacy `payment_allocations.amount_rupiah`.
+  - It does not include `refund_component_allocations.refunded_amount_rupiah` in note-level allocated total.
+- `app/Adapters/Out/Payment/DatabaseCustomerRefundReaderAdapter.php`
+  - `getTotalCurrentRefundedAmountByNoteId()` counts current component refunds only when a matching payment component still exists.
+  - Historical refund components without a current matching payment component are excluded from current refund settlement.
+- `app/Application/Note/Policies/NotePaidStatusPolicy.php`
+  - paid status uses note-level allocated amount minus current refunded amount.
+- `app/Application/Note/Services/NoteOutstandingPaymentAmountResolver.php`
+  - outstanding resolution uses note-level allocated amount minus total refunded amount for full-note outstanding calculation.
+
+No production source patch was made in this #001 closure session. The source had already been patched before this verification pass, so a current-source RED failure was not available without artificially reverting production behavior. This closure therefore uses characterization/regression proof for the historical failure mode and explicitly records that RED-before-patch is not applicable to this session.
+
+Test files added/updated for characterization:
+
+- `tests/Feature/Payment/DatabasePaymentAllocationReaderAdapterFeatureTest.php`
+- `tests/Feature/Note/NoteOutstandingPaymentAmountResolverFeatureTest.php`
+
+Characterization proof:
+
+- `DatabasePaymentAllocationReaderAdapterFeatureTest::test_note_level_allocated_total_excludes_active_component_refunds`
+  - note total: 50.000
+  - payment component allocation: 50.000
+  - active refund component allocation: 10.000
+  - expected note-level allocated total: 50.000
+  - this locks the #001 historical failure mode so refund components cannot re-enter note-level allocated payment totals.
+- `NoteOutstandingPaymentAmountResolverFeatureTest::test_active_refund_reopens_outstanding_amount_for_normal_note`
+  - note total: 50.000
+  - payment component allocation: 50.000
+  - active refund component allocation: 10.000
+  - expected net paid: 40.000
+  - expected outstanding: 10.000
+  - this proves an active refund on a normal note reopens outstanding balance instead of leaving the note effectively paid.
+
+Focused/blast-radius proof:
+
+`php artisan test tests/Feature/Payment/DatabasePaymentAllocationReaderAdapterFeatureTest.php tests/Feature/Note/NoteOutstandingPaymentAmountResolverFeatureTest.php tests/Unit/Application/Note/Policies/NotePaidStatusPolicyTest.php tests/Unit/Application/Note/Services/NoteOperationalStatusResolverTest.php tests/Feature/Payment/RecordCustomerRefundFeatureTest.php tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php tests/Feature/Note/CashierClosedReplacementOutstandingPaymentFeatureTest.php`
+
+Result:
+
+- 16 passed
+- 66 assertions
+
+Settlement matrix covered:
+
+- active refund normal note reduces net paid/outstanding correctly;
+- note-level allocated amount excludes active refund components;
+- current refund paid status semantics remain correct;
+- revised historical refund is not subtracted again from carry-forward current settlement;
+- refund component recording remains compatible with pair allocation limits;
+- revision-after-refund historical anchor behavior remains protected;
+- closed replacement outstanding payment remains payable after replacement.
+
+UI/Blade decision:
+
+No UI/Blade file was changed for #001. The closure is settlement arithmetic and backend characterization only.
+
+Native JS decision:
+
+No native JavaScript file was changed for #001.
+
+Security decision:
+
+No authorization, authentication, or route guard was changed for #001. The security-relevant boundary remains server-side settlement calculation; UI hiding is not part of this closure.
+
+Audit/log/redaction decision:
+
+No new audit writer, log path, or sensitive logging surface was introduced. The patch is test/documentation characterization only and does not add a new successful financial mutation path.
+
+Residual gaps:
+
+- Full Note + Payment suite was not rerun in this #001 closure session.
+- Full global suite was not run in this #001 closure session.
+- Browser/manual QA was not run.
+- Reporting/export paths were not re-audited by this #001 closure.
+- Seeder remediation remains future scope and is not part of this workflow closure.
+- True parallel concurrency stress belongs to the later concurrency slice, not this #001 settlement characterization closure.
+
+Verification status:
+
+Fixed with characterization proof for #001 active refund settlement and #003 historical refund compatibility boundaries, with residual global/browser/reporting gaps explicitly recorded.
