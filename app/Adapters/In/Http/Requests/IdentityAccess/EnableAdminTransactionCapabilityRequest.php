@@ -20,7 +20,6 @@ final class EnableAdminTransactionCapabilityRequest extends FormRequest
     {
         return [
             'target_actor_id' => ['required', 'string'],
-            'performed_by_actor_id' => ['required', 'string'],
         ];
     }
 }

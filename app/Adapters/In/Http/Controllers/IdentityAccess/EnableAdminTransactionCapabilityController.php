@@ -17,10 +17,11 @@ final class EnableAdminTransactionCapabilityController
         JsonPresenter $presenter,
     ): JsonResponse {
         $data = $request->validated();
+        $performedByActorId = (string) $request->user()->getAuthIdentifier();
 
         $result = $useCase->handle(
             (string) $data['target_actor_id'],
-            (string) $data['performed_by_actor_id'],
+            $performedByActorId,
         );
 
         if ($result->isFailure()) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\IdentityAccess;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -12,32 +13,89 @@ final class EnableAdminTransactionCapabilityFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_enable_capability_endpoint_updates_state_and_writes_audit_log(): void
+    public function test_guest_cannot_enable_admin_transaction_capability(): void
     {
-        DB::table('actor_accesses')->insert([
-            'actor_id' => 'admin-1',
-            'role' => 'admin',
+        $this->seedTargetAdmin('target-admin-1');
+
+        $response = $this->postJson(route('identity-access.admin-transaction-capability.enable'), [
+            'target_actor_id' => 'target-admin-1',
+            'performed_by_actor_id' => 'spoofed-actor',
         ]);
 
-        $response = $this->postJson('/identity-access/admin-transaction-capability/enable', [
-            'target_actor_id' => 'admin-1',
-            'performed_by_actor_id' => 'owner-1',
+        $response->assertStatus(401);
+        $this->assertDatabaseMissing('admin_transaction_capability_states', [
+            'actor_id' => 'target-admin-1',
+        ]);
+        $this->assertDatabaseCount('audit_logs', 0);
+    }
+
+    public function test_kasir_cannot_enable_admin_transaction_capability(): void
+    {
+        $this->seedTargetAdmin('target-admin-1');
+        $kasir = $this->createUserWithRole('kasir-toggle-enable@example.test', 'kasir');
+
+        $response = $this->actingAs($kasir)->postJson(route('identity-access.admin-transaction-capability.enable'), [
+            'target_actor_id' => 'target-admin-1',
+            'performed_by_actor_id' => 'spoofed-actor',
+        ]);
+
+        $response->assertRedirect(route('cashier.dashboard'));
+        $this->assertDatabaseMissing('admin_transaction_capability_states', [
+            'actor_id' => 'target-admin-1',
+        ]);
+        $this->assertDatabaseCount('audit_logs', 0);
+    }
+
+    public function test_admin_enable_uses_authenticated_actor_for_audit_not_payload(): void
+    {
+        $this->seedTargetAdmin('target-admin-1');
+        $admin = $this->createUserWithRole('admin-toggle-enable@example.test', 'admin');
+
+        $response = $this->actingAs($admin)->postJson(route('identity-access.admin-transaction-capability.enable'), [
+            'target_actor_id' => 'target-admin-1',
+            'performed_by_actor_id' => 'spoofed-actor',
         ]);
 
         $response->assertOk();
 
         $this->assertDatabaseHas('admin_transaction_capability_states', [
-            'actor_id' => 'admin-1',
+            'actor_id' => 'target-admin-1',
             'active' => 1,
         ]);
 
-        $this->assertDatabaseHas('audit_logs', [
-            'event' => 'admin_transaction_capability_enabled',
-            'context' => json_encode([
-                'target_actor_id' => 'admin-1',
-                'performed_by_actor_id' => 'owner-1',
-                'capability' => 'admin_transaction_entry',
-            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+        $audit = DB::table('audit_logs')
+            ->where('event', 'admin_transaction_capability_enabled')
+            ->first();
+
+        self::assertNotNull($audit);
+        $context = json_decode((string) $audit->context, true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame('target-admin-1', $context['target_actor_id']);
+        self::assertSame((string) $admin->getAuthIdentifier(), $context['performed_by_actor_id']);
+        self::assertNotSame('spoofed-actor', $context['performed_by_actor_id']);
+    }
+
+    private function seedTargetAdmin(string $actorId): void
+    {
+        DB::table('actor_accesses')->insert([
+            'actor_id' => $actorId,
+            'role' => 'admin',
         ]);
+    }
+
+    private function createUserWithRole(string $email, string $role): User
+    {
+        $user = User::query()->create([
+            'name' => $email,
+            'email' => $email,
+            'password' => 'password',
+        ]);
+
+        DB::table('actor_accesses')->insert([
+            'actor_id' => (string) $user->getAuthIdentifier(),
+            'role' => $role,
+        ]);
+
+        return $user;
     }
 }

@@ -2,9 +2,9 @@
 
 ## Status
 
-Patched, with verification gap.
+Fixed with proof and explicit residual global/browser gaps.
 
-Patch supplied and feature tests updated, but tests could not run in the patch environment because vendor/autoload.php / dependencies were missing.
+Local source contradicted the previous patched-with-gap document status: the route still used only `web` middleware, requests still accepted `performed_by_actor_id`, and controllers still trusted the client-supplied performer. The vulnerability was reproduced with RED tests, fixed with route/auth/audit performer hardening, then verified with targeted and focused auth/access tests.
 
 ## Severity
 
@@ -342,3 +342,136 @@ A patch was reported under commit `eed085b` with route middleware changed to `['
 
 Verification gap:
 This session has not independently verified the local repository diff or runtime behavior. Treat patch status as report-derived until `git status --short`, `git diff`, and relevant tests are provided.
+
+## Update 2026-05-09 - Local verification closure after source contradiction
+
+Current local source contradicted the previous `Patched, with verification gap` document status.
+
+Source before this closure still showed the vulnerable behavior:
+
+- `routes/web/identity_access.php`
+  - both admin transaction capability toggle routes were still inside `Route::middleware('web')`;
+  - `auth` and `admin.page` were not applied.
+- `app/Adapters/In/Http/Requests/IdentityAccess/EnableAdminTransactionCapabilityRequest.php`
+  - request validation still accepted `performed_by_actor_id`.
+- `app/Adapters/In/Http/Requests/IdentityAccess/DisableAdminTransactionCapabilityRequest.php`
+  - request validation still accepted `performed_by_actor_id`.
+- `app/Adapters/In/Http/Controllers/IdentityAccess/EnableAdminTransactionCapabilityController.php`
+  - controller still passed client-supplied `performed_by_actor_id` into the use case.
+- `app/Adapters/In/Http/Controllers/IdentityAccess/DisableAdminTransactionCapabilityController.php`
+  - controller still passed client-supplied `performed_by_actor_id` into the use case.
+- Existing feature tests still proved the unsafe behavior by posting without authentication and expecting success.
+
+Therefore #016 was not only a verification-gap item. The privileged capability toggle endpoint was still vulnerable locally before this closure.
+
+RED proof before patch:
+
+`php artisan test tests/Feature/IdentityAccess/EnableAdminTransactionCapabilityFeatureTest.php tests/Feature/IdentityAccess/DisableAdminTransactionCapabilityFeatureTest.php`
+
+Result:
+
+- 6 failed
+- 14 assertions
+
+Failure shape:
+
+- guest enable expected 401 but received 200;
+- kasir enable expected rejection but received 200;
+- admin enable audit expected authenticated actor but received `spoofed-actor`;
+- guest disable expected 401 but received 200;
+- kasir disable expected rejection but received 200;
+- admin disable audit expected authenticated actor but received `spoofed-actor`.
+
+Production patch:
+
+- `routes/web/identity_access.php`
+  - admin transaction capability enable/disable routes now use `['web', 'auth', 'admin.page']`.
+- `app/Adapters/In/Http/Requests/IdentityAccess/EnableAdminTransactionCapabilityRequest.php`
+  - removed client-controlled `performed_by_actor_id` from validation.
+- `app/Adapters/In/Http/Requests/IdentityAccess/DisableAdminTransactionCapabilityRequest.php`
+  - removed client-controlled `performed_by_actor_id` from validation.
+- `app/Adapters/In/Http/Controllers/IdentityAccess/EnableAdminTransactionCapabilityController.php`
+  - derives performer from `$request->user()->getAuthIdentifier()`.
+- `app/Adapters/In/Http/Controllers/IdentityAccess/DisableAdminTransactionCapabilityController.php`
+  - derives performer from `$request->user()->getAuthIdentifier()`.
+
+Test files updated:
+
+- `tests/Feature/IdentityAccess/EnableAdminTransactionCapabilityFeatureTest.php`
+- `tests/Feature/IdentityAccess/DisableAdminTransactionCapabilityFeatureTest.php`
+
+Route proof after patch:
+
+`php artisan route:list --path=identity-access -v`
+
+Both routes showed:
+
+- `web`
+- `auth`
+- `admin.page`
+
+Targeted GREEN proof:
+
+`php artisan test tests/Feature/IdentityAccess/EnableAdminTransactionCapabilityFeatureTest.php tests/Feature/IdentityAccess/DisableAdminTransactionCapabilityFeatureTest.php`
+
+Result:
+
+- 6 passed
+- 26 assertions
+
+Covered behavior:
+
+- guest cannot enable admin transaction capability;
+- guest cannot disable admin transaction capability;
+- kasir cannot enable admin transaction capability and is redirected by the existing `admin.page` middleware contract;
+- kasir cannot disable admin transaction capability and is redirected by the existing `admin.page` middleware contract;
+- admin can enable capability;
+- admin can disable capability;
+- spoofed `performed_by_actor_id` payload is ignored;
+- audit context uses the authenticated admin actor ID.
+
+Focused/blast-radius proof:
+
+`php artisan test tests/Feature/IdentityAccess/EnableAdminTransactionCapabilityFeatureTest.php tests/Feature/IdentityAccess/DisableAdminTransactionCapabilityFeatureTest.php tests/Feature/IdentityAccess/TransactionEntryMiddlewareFeatureTest.php tests/Feature/Auth/WebPageAccessFeatureTest.php tests/Feature/Auth/WebAuthenticationFeatureTest.php`
+
+Result:
+
+- 21 passed
+- 89 assertions
+
+Source anchor proof:
+
+- `routes/web/identity_access.php` uses `Route::middleware(['web', 'auth', 'admin.page'])`.
+- enable/disable request validation contains `target_actor_id` only.
+- enable/disable controllers derive `$performedByActorId` from `$request->user()->getAuthIdentifier()`.
+- route exposure search found the toggle controllers only in `routes/web/identity_access.php`.
+
+UI/Blade decision:
+
+No UI/Blade file was changed for #016. The closure is route/controller/request/test hardening for a privileged identity-access mutation endpoint.
+
+Native JS decision:
+
+No native JavaScript file was changed for #016.
+
+Security decision:
+
+The security boundary is server-side route middleware plus server-derived audit performer identity. CSRF/session alone is not treated as authentication. The route now requires an authenticated admin-page actor before the capability state can be changed.
+
+Audit/log/redaction decision:
+
+The patch restores audit integrity by deriving `performed_by_actor_id` from the authenticated session instead of client input. No new logging surface was added, and no sensitive value is introduced into logs by this closure.
+
+Residual gaps:
+
+- Full global suite was not run in this #016 closure session.
+- Browser/manual QA was not run.
+- Owner-only approval workflow for capability changes remains out of scope.
+- Actor ID enumeration hardening remains out of scope.
+- Existing audit log cleanup for any historical spoofed entries remains out of scope.
+- Seeder credential issue #002 remains separate future scope.
+- #020 and #027 still require their own capability enforcement checkpoint/closure.
+
+Verification status:
+
+Fixed with proof for unauthenticated/admin capability toggle authorization and audit performer integrity, with residual global/browser/governance gaps explicitly recorded.
