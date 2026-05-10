@@ -126,6 +126,24 @@ final class ProductCreatePageFeatureTest extends TestCase
         $this->assertStringContainsString('href="' . route('admin.products.index') . '"', $html);
     }
 
+    public function test_admin_product_create_page_allows_procurement_return_url(): void
+    {
+        $user = $this->createUserWithRole('admin-product-return-url-allowed@example.test', 'admin');
+        $returnTo = route('admin.procurement.supplier-invoices.create');
+
+        $response = $this
+            ->actingAs($user)
+            ->get(route('admin.products.create', [
+                'return_to' => $returnTo,
+                'return_label' => 'Kembali ke Nota Pemasok',
+            ]));
+
+        $response->assertOk();
+        $response->assertSee('Mode kembali ke nota aktif');
+        $response->assertSee('href="' . $returnTo . '"', false);
+        $response->assertSee('Kembali ke Nota Pemasok');
+    }
+
     private function createUserWithRole(string $email, string $role): User
     {
         $user = User::query()->create([
