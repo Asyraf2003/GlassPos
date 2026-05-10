@@ -170,6 +170,11 @@ final class ExtremeProcurementDuplicateAndIsolationMatrixFeatureTest extends Tes
             'role' => 'admin',
         ]);
 
+        DB::table('admin_transaction_capability_states')->insert([
+            'actor_id' => (string) $u->getAuthIdentifier(),
+            'active' => true,
+        ]);
+
         return $u;
     }
 }

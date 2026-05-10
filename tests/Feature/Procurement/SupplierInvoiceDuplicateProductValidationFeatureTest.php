@@ -190,6 +190,13 @@ final class SupplierInvoiceDuplicateProductValidationFeatureTest extends TestCas
             'role' => $role,
         ]);
 
+        if ($role === 'admin') {
+            DB::table('admin_transaction_capability_states')->insert([
+                'actor_id' => (string) $user->getAuthIdentifier(),
+                'active' => true,
+            ]);
+        }
+
         return $user;
     }
 }
