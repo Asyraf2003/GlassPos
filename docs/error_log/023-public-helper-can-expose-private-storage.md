@@ -2,7 +2,7 @@
 
 ## Status
 
-Patched.
+Fixed and locally verified for repository-tracked public helper exposure.
 
 ## Severity
 
@@ -73,6 +73,28 @@ Working tree clean after commit.
 ## Verification Notes
 
 Patch berupa penghapusan file public helper. Ini cukup untuk menutup endpoint langsung selama deploy benar-benar memakai commit yang sudah menghapus file tersebut dan tidak ada copy helper tersisa di document root/server.
+
+## Local Verification Update - 2026-05-10
+
+Current source reality supersedes the earlier reported proof.
+
+Repository proof:
+
+- HEAD: `04382df9`
+- `public/a.php` absent in HEAD
+- `public/a.php` absent in worktree
+- `public/storage` absent in HEAD
+- local worktree `public/storage` symlink target observed as `/home/asyraf/Code/laravel/bengkel2/app/storage/app/public`
+- no local proof showed `public/storage` pointing to private storage
+- working tree clean after source deletion landed in HEAD/origin
+
+Classification:
+
+Fixed for repository-tracked public helper exposure.
+
+Remaining boundary:
+
+Deployment/runtime cleanup is not proven by repository proof alone and remains a deployment verification gap until production/staging document root proof is provided.
 
 ## Residual / Deployment Check
 
