@@ -2,9 +2,11 @@
 
 ## Status
 
-Patched for auto-finalization, with verification gap and residual validation risk.
+Fixed and locally verified for selected-row refund auto-finalization guard.
 
-Patch supplied and syntax/status/commit were reported, but no focused behavior test was reported as passing.
+RED/GREEN proof confirms a forged selected-row refund against an open unpaid note no longer auto-finalizes the note as refunded when no refund allocation exists.
+
+Focused regression proof confirms legitimate selected-row refunds with recorded allocations still work.
 
 ## Severity
 
@@ -55,6 +57,31 @@ Alasan update:
 - Laporan menunjukkan forged selected-row refund dapat mengubah unpaid note menjadi refunded.
 - Patch menambahkan guard agar finalization hanya berjalan jika refund processing benar-benar menghasilkan allocation.
 - Verification masih gap karena hanya php -l, git status, dan commit yang dilaporkan.
+
+### Update 5
+
+Fixed and locally verified in current Slice 5 remediation.
+
+Reason:
+
+- Current source contradicted the older patch summary.
+- `RecordSelectedRowsRefundPlanTransaction` still called `FinalizeRefundedNoteFromActiveRows::execute()` unconditionally.
+- RED characterization proved a forged selected-row refund on an open unpaid note changed `note_state` to `refunded` without customer refund or refund component allocation.
+- Production patch now gates finalization behind `(int) $processed['allocation_count'] > 0`.
+- Targeted GREEN and focused regression proof passed.
+
+Proof:
+
+- RED:
+  - `php artisan test tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php --filter=test_forged_unpaid_selected_row_refund_does_not_auto_finalize_open_unpaid_note`
+  - Failed as expected.
+  - Failure: expected `notes.note_state = open`, actual `notes.note_state = refunded`.
+- GREEN:
+  - Same targeted test passed.
+  - 1 test, 5 assertions.
+- Focused regression:
+  - `php artisan test tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php`
+  - 6 tests, 32 assertions passed.
 
 ## Ringkasan Indonesia
 
@@ -122,16 +149,22 @@ app/Application/Payment/Services/RecordSelectedRowsRefundPlanTransaction.php
 
 Perubahan:
 
-- finalization tidak lagi dipanggil default setelah row cancellation.
-- `$finalized` default diisi `Result::success(['finalized' => false])`.
+- `$finalized` sekarang default `Result::success(['finalized' => false])`.
 - `FinalizeRefundedNoteFromActiveRows::execute()` hanya dipanggil jika:
-  allocation_count > 0
-- jika allocation_count = 0, transaction tetap sync projection dan audit, tetapi tidak auto-finalize note menjadi refunded.
-- behavior legitimate refund tetap dijaga: jika allocation ada, finalizer tetap jalan dan failure path tetap throw DomainException.
+  - `(int) $processed['allocation_count'] > 0`
+- Jika `allocation_count = 0`, transaction tetap:
+  - memproses bucket kosong
+  - membatalkan selected rows sesuai flow saat ini
+  - sync projection
+  - record audit
+  - tidak auto-finalize note menjadi refunded
+- Behavior legitimate refund tetap dijaga:
+  - jika allocation ada, finalizer tetap berjalan
+  - jika finalizer gagal, transaction tetap rollback melalui `DomainException`
 
 Efek patch:
 
-- zero-refund unpaid-row cancellation flow tidak lagi otomatis mengubah note menjadi refunded.
+- zero-allocation forged unpaid selected-row refund tidak lagi mengubah open unpaid note menjadi refunded.
 - note finalization sekarang membutuhkan bukti minimal bahwa refund allocation benar-benar terjadi.
 
 ## Scope In
@@ -167,44 +200,67 @@ This is the sort of bug where the finalizer stopped signing the forged document,
 
 ## Proof Dari Patch Session
 
-User reported:
+Current Slice 5 proof:
 
-- vulnerability path still present at HEAD
-- minimal guard implemented in selected-row refund transaction flow
-- note finalization is not attempted by default
-- finalization only runs when refund processing produced at least one allocation
-- legitimate paid/refundable selected-row refunds still run finalization
-- commit created with message:
-  Guard note finalization behind recorded refund allocations
+Source anchor:
 
-Testing reported:
+- `app/Application/Payment/Services/RecordSelectedRowsRefundPlanTransaction.php`
+- `$finalized = Result::success(...)`
+- `if ((int) $processed['allocation_count'] > 0)`
+- `$this->finalizeRefunded->execute(...)` berada di dalam gate allocation_count.
 
-- php -l app/Application/Payment/Services/RecordSelectedRowsRefundPlanTransaction.php
-- git status --short
-- git commit -m "Guard note finalization behind recorded refund allocations"
+RED proof:
 
-Changed file:
+- Command:
+  - `php artisan test tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php --filter=test_forged_unpaid_selected_row_refund_does_not_auto_finalize_open_unpaid_note`
+- Result:
+  - 1 failed
+- Failure:
+  - expected row in `notes` with `id = note-unpaid-refund` and `note_state = open`
+  - actual similar row had `note_state = refunded`
+- Interpretation:
+  - exploit path was active before patch.
 
-app/Application/Payment/Services/RecordSelectedRowsRefundPlanTransaction.php
+GREEN proof:
 
-Reported diff size:
+- Command:
+  - `php artisan test tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php --filter=test_forged_unpaid_selected_row_refund_does_not_auto_finalize_open_unpaid_note`
+- Result:
+  - 1 passed, 5 assertions
 
-+10
--3
+Focused regression proof:
+
+- Command:
+  - `php artisan test tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php`
+- Result:
+  - 6 passed, 32 assertions
+
+Changed production file:
+
+- app/Application/Payment/Services/RecordSelectedRowsRefundPlanTransaction.php
+
+Changed test file:
+
+- tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php
 
 ## Verification Gap
 
-Hanya validasi syntax PHP dan alur commit yang dilaporkan.
-
-Missing proof:
+Closed by current proof:
 
 - forged unpaid selected-row refund no longer finalizes note as refunded
-- allocation_count = 0 results in finalized=false
-- no customer refund/refund allocation is created for unpaid rows
-- legitimate selected-row refund with allocation_count > 0 still finalizes when appropriate
-- finalization failure still rolls back transaction
-- audit record clearly distinguishes finalized=false
-- projection state remains consistent after zero-allocation cancellation
+- no customer refund is created for unpaid selected rows in the RED/GREEN scenario
+- no refund component allocation is created for unpaid selected rows in the RED/GREEN scenario
+- legitimate selected-row refund with allocation still works in focused regression
+
+Remaining gaps:
+
+- unpaid selected-row refund may still cancel unpaid rows and reduce active note total
+- resolver-level rejection of unpaid/open rows is not implemented in #013 scope
+- audit payload currently records `final_note_state` as null for zero-allocation non-finalized path
+- browser/manual QA not run
+- full global `make verify` not run in this step
+
+The remaining unpaid-row cancellation gap belongs to #014 unless the workflow explicitly merges #014 into #013.
 
 ## Recommended Follow-up
 
@@ -246,9 +302,12 @@ grep -R "unpaidRowIds" -n app
 
 Laporan #013 valid sebagai High severity financial-integrity issue.
 
-Bug sebelumnya memungkinkan forged selected-row refund terhadap unpaid rows membuat active total menjadi nol, lalu finalizer otomatis mengubah note menjadi refunded tanpa customer refund atau refund allocation.
+RED proof confirmed the exploit: a forged selected-row refund against an open unpaid note could auto-finalize the note as refunded without customer refund or refund component allocation.
 
-Patch minimal sudah tepat untuk root cause langsung dari auto-finalization: finalizer hanya dipanggil jika refund processing benar-benar menghasilkan allocation. Namun masih ada residual validation risk pada selected-row resolver/cancellation flow, karena unpaid rows mungkin masih bisa dicancel lewat refund endpoint.
+The current fix closes the #013 auto-finalization root consequence by requiring `allocation_count > 0` before `FinalizeRefundedNoteFromActiveRows::execute()` runs.
+
+This does not claim full refund lifecycle closure. Resolver-level parent note eligibility, unpaid/open row rejection, cashier access guard, refunded terminal-state enforcement, and refunded UI/edit entry remain covered by other Slice 5 issues.
+
 
 ## Related Resolver Precondition Fix From Error Log 014
 
