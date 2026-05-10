@@ -58,6 +58,10 @@ final class SelectedNoteRowsRefundPlanResolver
             if ($this->isAlreadyInactive($itemsById[$rowId], $settlements[$rowId] ?? [])) {
                 return Result::failure('Line yang sudah batal/refund tidak boleh dipilih lagi.', ['refund' => ['INVALID_SELECTED_ROWS']]);
             }
+
+            if (!$this->isOperationallyClose($itemsById[$rowId], $settlements[$rowId] ?? [])) {
+                return Result::failure('Line open/belum lunas tidak boleh direfund.', ['refund' => ['INVALID_SELECTED_ROWS']]);
+            }
         }
 
         $paymentBuckets = $this->buckets->build(
@@ -90,5 +94,13 @@ final class SelectedNoteRowsRefundPlanResolver
         $outstanding = (int) ($settlement['outstanding_rupiah'] ?? $item->subtotalRupiah()->amount());
 
         return $this->statuses->resolve($outstanding, $refunded) === WorkItemOperationalStatusResolver::STATUS_REFUND;
+    }
+
+    private function isOperationallyClose(WorkItem $item, array $settlement): bool
+    {
+        $refunded = (int) ($settlement['refunded_rupiah'] ?? 0);
+        $outstanding = (int) ($settlement['outstanding_rupiah'] ?? $item->subtotalRupiah()->amount());
+
+        return $this->statuses->resolve($outstanding, $refunded) === WorkItemOperationalStatusResolver::STATUS_CLOSE;
     }
 }
