@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Note;
 
 use App\Adapters\Out\Note\Queries\CashierNoteHistoryTableQuery;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -75,6 +76,48 @@ final class CashierNoteHistoryTableClosurePolicyFeatureTest extends TestCase
         $this->assertContains('note-today-open', $noteIds);
         $this->assertContains('note-yesterday-open', $noteIds);
         $this->assertNotContains('note-historical-closed', $noteIds);
+    }
+
+    public function test_cashier_table_endpoint_ignores_client_supplied_historical_date(): void
+    {
+        $today = date('Y-m-d');
+        $yesterday = date('Y-m-d', strtotime('-1 day'));
+        $historicalDate = '2025-01-15';
+
+        $this->seedNote('note-today-open', $today, 'open', 10000);
+        $this->seedNote('note-yesterday-open', $yesterday, 'open', 11000);
+        $this->seedNote('note-historical-closed', $historicalDate, 'closed', 12000);
+
+        $this->syncNoteProjectionForTest('note-today-open');
+        $this->syncNoteProjectionForTest('note-yesterday-open');
+        $this->syncNoteProjectionForTest('note-historical-closed');
+
+        $response = $this->actingAs($this->cashierUser())->getJson(route('cashier.notes.table', [
+            'date' => $historicalDate,
+        ]));
+
+        $response->assertOk();
+        $response->assertJsonPath('success', true);
+        $response->assertJsonPath('data.filters.date', $today);
+        $response->assertJsonFragment(['note_id' => 'note-today-open']);
+        $response->assertJsonFragment(['note_id' => 'note-yesterday-open']);
+        $response->assertJsonMissing(['note_id' => 'note-historical-closed']);
+    }
+
+    private function cashierUser(): User
+    {
+        $user = User::query()->create([
+            'name' => 'Kasir Riwayat JSON',
+            'email' => 'cashier-note-history-019@example.test',
+            'password' => 'password123',
+        ]);
+
+        DB::table('actor_accesses')->insert([
+            'actor_id' => (string) $user->getAuthIdentifier(),
+            'role' => 'kasir',
+        ]);
+
+        return $user;
     }
 
     private function seedNote(string $noteId, string $transactionDate, string $noteState, int $totalRupiah): void

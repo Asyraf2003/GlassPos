@@ -18,19 +18,22 @@ final class CashierNoteHistoryTableFeatureTest extends TestCase
         $this->loginAsKasir();
         $user = $this->cashierUser();
 
+        $today = date('Y-m-d');
+        $yesterday = date('Y-m-d', strtotime('-1 day'));
+
         DB::table('notes')->insert([
             [
                 'id' => 'NOTE-TODAY-1',
                 'customer_name' => 'Budi Santoso',
                 'customer_phone' => '08123456789',
-                'transaction_date' => '2026-03-15',
+                'transaction_date' => $today,
                 'total_rupiah' => 150000,
             ],
             [
                 'id' => 'NOTE-YESTERDAY-OPEN',
                 'customer_name' => 'Andi Saputra',
                 'customer_phone' => null,
-                'transaction_date' => '2026-03-14',
+                'transaction_date' => $yesterday,
                 'total_rupiah' => 200000,
             ],
         ]);
@@ -71,7 +74,7 @@ final class CashierNoteHistoryTableFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertJsonPath('success', true);
-        $response->assertJsonPath('data.filters.date', '2026-03-15');
+        $response->assertJsonPath('data.filters.date', $today);
         $response->assertJsonPath('data.pagination.total', 2);
         $response->assertJsonPath('data.items.0.note_number', 'NOTE-TODAY-1');
         $response->assertJsonPath('data.items.0.payment_status_label', 'Belum Dibayar');
