@@ -2,7 +2,7 @@
 
 ## Status
 
-Patched, with verification gap.
+Fixed and locally verified.
 
 ## Keparahan
 
@@ -71,21 +71,73 @@ Patch commit yang dilaporkan:
 
 ## Verification
 
-Reported successful checks:
+Local verification from #027 remediation:
 
+Source reality intake:
+
+- `routes/web/admin_procurement.php` initially contradicted this document's previous `Patched` status.
+- The store route still lacked `transaction.entry` before the local #027 remediation patch.
+- Therefore this issue was treated as source-not-patched and RED proof was required before patching.
+
+RED proof:
+
+- `php -l tests/Feature/Procurement/AdminSupplierInvoiceTransactionCapabilityFeatureTest.php`
+  - PASS: no syntax errors.
+- `php artisan test tests/Feature/Procurement/AdminSupplierInvoiceTransactionCapabilityFeatureTest.php`
+  - RED: 1 failed, 2 passed, 16 assertions.
+  - Failure: admin without transaction capability expected `403`, actual `302`.
+  - Read procurement pages still passed.
+  - Active authorized admin create still passed.
+
+Patch proof:
+
+- `routes/web/admin_procurement.php`
+  - Added `->middleware('transaction.entry')` only to `admin.procurement.supplier-invoices.store`.
 - `php -l routes/web/admin_procurement.php`
-- `git diff -- routes/web/admin_procurement.php`
+  - PASS: no syntax errors.
+
+GREEN proof:
+
+- `php artisan test tests/Feature/Procurement/AdminSupplierInvoiceTransactionCapabilityFeatureTest.php`
+  - PASS: 3 tests, 27 assertions.
+  - Proves admin without transaction capability is rejected from supplier invoice creation.
+  - Proves no supplier, supplier invoice, invoice line, invoice version, supplier payment, supplier receipt, receipt line, inventory movement, product inventory, or product costing row is created on denied request.
+  - Proves admin read pages remain available.
+  - Proves active authorized admin can still create supplier invoice and stock-in inventory movement.
+
+Focused proof:
+
+- `php artisan route:list --path=admin/procurement/supplier-invoices -v`
+  - Proves `admin.procurement.supplier-invoices.store` has `transaction.entry`.
+- Focused procurement regression:
+  - `php artisan test tests/Feature/Procurement/AdminSupplierInvoiceTransactionCapabilityFeatureTest.php tests/Feature/Procurement/CreateSupplierInvoiceFeatureTest.php tests/Feature/Procurement/CreateSupplierInvoicePageFeatureTest.php tests/Feature/Procurement/ProcurementInvoiceIndexPageFeatureTest.php tests/Feature/Procurement/ProcurementInvoiceTableDataAccessFeatureTest.php`
+  - PASS: 17 tests, 166 assertions.
 
 ## Verification gap
 
-Belum ada route-list atau feature test yang membuktikan behavior authorization secara runtime.
+Not globally verified:
 
-Future verification:
+- Full `make verify` was not rerun for #027 closure.
+- Browser/manual QA was not run.
+- Adjacent procurement mutation routes remain outside this #027 patch scope unless separately proven and scoped:
+  - `admin.procurement.supplier-invoices.receive`
+  - `admin.procurement.supplier-invoices.payments.store`
+  - `admin.procurement.supplier-receipts.reverse.store`
+  - `admin.procurement.supplier-invoices.void`
+  - `admin.procurement.supplier-payments.reverse.store`
+  - `admin.procurement.supplier-payments.proof.store`
+  - `admin.procurement.supplier-invoices.update`
+- This #027 closure covers supplier invoice creation only.
 
-- `php artisan route:list --path=admin/procurement/supplier-invoices`
-- feature test admin role dengan transaction-entry inactive ditolak saat POST supplier invoice
-- feature test admin role dengan transaction-entry active tetap bisa membuat supplier invoice
-- pastikan route read-only procurement tetap tidak ikut diblokir tanpa alasan
+## Update - 2026-05-10 local verification
+
+The previous `Patched, with verification gap` status is promoted to `Fixed and locally verified` based on RED/GREEN targeted proof, route-list middleware proof, and focused procurement regression proof.
+
+The implemented boundary remains intentionally narrow:
+
+- Gate `admin.procurement.supplier-invoices.store` with `transaction.entry`.
+- Keep procurement read routes available to authorized admin users.
+- Do not silently include adjacent procurement mutation routes in #027.
 
 ## Relations
 
