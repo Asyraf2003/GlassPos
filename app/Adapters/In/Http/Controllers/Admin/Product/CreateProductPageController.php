@@ -13,9 +13,32 @@ final class CreateProductPageController extends Controller
     public function __invoke(Request $request): View
     {
         return view('admin.products.create', [
-            'returnTo' => $this->resolveNullableString($request->query('return_to')),
+            'returnTo' => $this->resolveReturnTo($request->query('return_to')),
             'returnLabel' => $this->resolveNullableString($request->query('return_label')) ?? 'Kembali',
         ]);
+    }
+
+
+    private function resolveReturnTo(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+
+        if ($trimmed === '') {
+            return null;
+        }
+
+        $allowedAbsolute = route('admin.procurement.supplier-invoices.create');
+        $allowedRelative = route('admin.procurement.supplier-invoices.create', [], false);
+
+        if (str_starts_with($trimmed, $allowedAbsolute) || str_starts_with($trimmed, $allowedRelative)) {
+            return $trimmed;
+        }
+
+        return null;
     }
 
     private function resolveNullableString(mixed $value): ?string
