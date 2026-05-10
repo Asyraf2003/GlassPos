@@ -46,6 +46,37 @@ final class CashierNoteHistoryTableClosurePolicyFeatureTest extends TestCase
         $this->assertNotContains('note-older-open', $noteIds);
     }
 
+    public function test_it_ignores_client_supplied_historical_date_when_building_cashier_window(): void
+    {
+        $today = date('Y-m-d');
+        $yesterday = date('Y-m-d', strtotime('-1 day'));
+        $historicalDate = '2025-01-15';
+
+        $this->seedNote('note-today-open', $today, 'open', 10000);
+        $this->seedNote('note-yesterday-open', $yesterday, 'open', 11000);
+        $this->seedNote('note-historical-closed', $historicalDate, 'closed', 12000);
+
+        $this->syncNoteProjectionForTest('note-today-open');
+        $this->syncNoteProjectionForTest('note-yesterday-open');
+        $this->syncNoteProjectionForTest('note-historical-closed');
+
+        $result = app(CashierNoteHistoryTableQuery::class)->get([
+            'date' => $historicalDate,
+            'search' => '',
+            'payment_status' => '',
+            'work_status' => '',
+            'page' => 1,
+        ]);
+
+        $items = $result['items'];
+        $noteIds = array_map(static fn (array $item): string => (string) $item['note_id'], $items);
+
+        $this->assertSame($today, $result['filters']['date']);
+        $this->assertContains('note-today-open', $noteIds);
+        $this->assertContains('note-yesterday-open', $noteIds);
+        $this->assertNotContains('note-historical-closed', $noteIds);
+    }
+
     private function seedNote(string $noteId, string $transactionDate, string $noteState, int $totalRupiah): void
     {
         DB::table('notes')->insert([
