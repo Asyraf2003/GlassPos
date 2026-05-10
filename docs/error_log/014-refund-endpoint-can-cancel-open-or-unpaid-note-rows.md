@@ -2,9 +2,11 @@
 
 ## Status
 
-Patched, with verification gap.
+Fixed and locally verified for selected-row refund operationally-close precondition.
 
-Patch supplied and feature tests updated, but tests could not run in the patch environment because vendor/autoload.php / dependencies were missing.
+RED/GREEN proof confirms unpaid selected rows can no longer be canceled through the refund endpoint.
+
+Focused regression proof confirms operationally open/partially-paid rows are rejected, while legitimate closed/fully paid selected-row refunds still work.
 
 ## Severity
 
@@ -52,6 +54,38 @@ Alasan update:
 - Patch menambahkan strict operationally close precondition pada SelectedNoteRowsRefundPlanResolver.
 - Open/unpaid rows sekarang fail-fast dengan refund validation error.
 - Verification masih gap karena test gagal dijalankan akibat missing dependencies.
+
+### Update 3
+
+Fixed and locally verified in current Slice 5 remediation.
+
+Reason:
+
+- Current source contradicted the older patch claim.
+- `SelectedNoteRowsRefundPlanResolver` still accepted selected rows that were valid and not inactive/refunded, then built plans containing `unpaidRowIds`.
+- RED characterization proved a forged unpaid selected-row refund changed the selected work item from `open` to `canceled`.
+- Production patch now requires selected rows to be operationally close before they enter selected-row refund plan creation.
+- Partial-paid/open-line regression was corrected to reject the refund path.
+- Controller regression was updated so open/partially-paid row refund is rejected while closed eligible rows still refund successfully.
+
+Proof:
+
+- RED:
+  - `php artisan test tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php --filter=test_unpaid_selected_row_refund_is_rejected_without_canceling_row_or_changing_note_total`
+  - Failed as expected.
+  - Failure: expected `work_items.status = open`, actual `work_items.status = canceled`.
+- Targeted GREEN:
+  - Same targeted test passed.
+  - 1 test, 5 assertions.
+- Partial-paid/open-line GREEN:
+  - `php artisan test tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php`
+  - 1 test, 4 assertions passed.
+- Controller regression GREEN:
+  - `php artisan test tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php`
+  - 5 tests, 34 assertions passed.
+- Focused regression GREEN:
+  - `php artisan test tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php`
+  - 12 tests, 71 assertions passed.
 
 ## Ringkasan Indonesia
 
@@ -135,29 +169,32 @@ app/Application/Note/Services/SelectedNoteRowsRefundPlanResolver.php
 
 Perubahan:
 
-- menambahkan helper:
-  isOperationallyClose(WorkItem $item, array $settlement): bool
+- selected row tetap wajib valid dan belum inactive/refunded
+- setelah itu selected row juga wajib operationally close
+- helper `isOperationallyClose(WorkItem $item, array $settlement): bool` ditambahkan
 - helper menghitung:
-  - refunded_rupiah
-  - outstanding_rupiah
-  - operational status via WorkItemOperationalStatusResolver
-- selected row sekarang wajib menghasilkan status CLOSE
-- jika tidak operationally close, resolver return failure:
-  Line open/belum lunas tidak boleh direfund.
-- existing inactive/refunded check tetap dipertahankan
+  - `refunded_rupiah`
+  - `outstanding_rupiah`
+  - operational status melalui `WorkItemOperationalStatusResolver`
+- selected row hanya boleh lanjut jika status resolver menghasilkan `STATUS_CLOSE`
+- jika row masih open/belum lunas, resolver return failure:
+  - `Line open/belum lunas tidak boleh direfund.`
 - downstream plan/bucket behavior tetap dipertahankan untuk row yang legitimate refundable
 
 Test diubah pada:
 
-tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php
 tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php
+tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php
+tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php
 
 Test intent:
 
-- refund operationally open line harus ditolak
-- no refund allocations created
+- unpaid selected row refund harus ditolak sebelum row cancellation
+- partial-paid/open selected row refund harus ditolak
+- no refund allocations created untuk rejected rows
 - row status tetap open
 - note total tetap unchanged
+- legitimate closed/fully paid selected-row refund tetap sukses
 
 ## Scope In
 
@@ -179,55 +216,82 @@ Test intent:
 
 ## Proof Dari Patch Session
 
-User reported:
+Current Slice 5 proof:
 
-- vulnerability still present in HEAD
-- minimal remediation implemented in existing refund-plan path
-- strict operationally close precondition restored for each selected row
-- open/unpaid rows fail fast with validation-style refund error
-- helper isOperationallyClose() added
-- existing inactivity/refunded checks preserved
-- committed on current branch:
-  5dd4e7b
-- PR metadata created with title:
-  Fix cashier refund flow to reject open/unpaid selected rows
+Source anchor:
 
-Changed files:
+- `app/Application/Note/Services/SelectedNoteRowsRefundPlanResolver.php`
+- selected row validation calls `isOperationallyClose(...)`
+- failure message: `Line open/belum lunas tidak boleh direfund.`
+- helper returns true only when `WorkItemOperationalStatusResolver::STATUS_CLOSE`
 
-app/Application/Note/Services/SelectedNoteRowsRefundPlanResolver.php
-tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php
-tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php
+RED proof:
 
-Reported diff size:
+- Command:
+  - `php artisan test tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php --filter=test_unpaid_selected_row_refund_is_rejected_without_canceling_row_or_changing_note_total`
+- Result:
+  - 1 failed
+- Failure:
+  - expected row in `work_items` with `id = wi-unpaid-row-reject-1` and `status = open`
+  - actual similar row had `status = canceled`
+- Interpretation:
+  - refund endpoint was still acting as a row cancellation path for unpaid selected rows.
 
-+22
--23
+Targeted GREEN proof:
 
-Testing attempted:
+- Command:
+  - `php artisan test tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php --filter=test_unpaid_selected_row_refund_is_rejected_without_canceling_row_or_changing_note_total`
+- Result:
+  - 1 passed, 5 assertions
 
-php artisan test --filter='CashierRefundRejectsOpenLineFeatureTest|RecordSelectedRowsClosedNoteRefundHttpFeatureTest|RecordClosedNoteRefundControllerFeatureTest'
+Partial-paid/open-line GREEN proof:
 
-Result:
+- Command:
+  - `php artisan test tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php`
+- Result:
+  - 1 passed, 4 assertions
 
-Failed due to environment limitation.
+Controller regression GREEN proof:
 
-Failure reason:
+- Command:
+  - `php artisan test tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php`
+- Result:
+  - 5 passed, 34 assertions
 
-vendor/autoload.php / dependencies not installed.
+Focused regression proof:
+
+- Command:
+  - `php artisan test tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php`
+- Result:
+  - 12 passed, 71 assertions
+
+Changed production file:
+
+- app/Application/Note/Services/SelectedNoteRowsRefundPlanResolver.php
+
+Changed test files:
+
+- tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php
+- tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php
+- tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php
 
 ## Verification Gap
 
-Test sudah diupdate, tetapi belum pass di environment patch.
+Closed by current proof:
 
-Missing proof:
-
-- open unpaid row refund request is rejected
+- open unpaid row refund request is rejected before row cancellation
 - partially paid but operationally open row refund request is rejected
-- no refund_component_allocations created
-- row status remains OPEN
-- note total remains unchanged
-- legitimate operationally close selected row refund still succeeds
-- interaction with #013 finalization guard remains correct
+- no refund component allocation is created for rejected open/unpaid rows
+- row status remains open for rejected open/unpaid rows
+- note total remains unchanged for rejected open/unpaid rows
+- legitimate operationally close selected-row refund still succeeds
+- interaction with #013 finalization guard remains covered by focused regression
+
+Remaining gaps:
+
+- browser/manual QA not run
+- full global `make verify` not run in this step
+- production data cleanup for rows already canceled through old vulnerable flow is out of scope
 
 ## Recommended Follow-up
 
@@ -260,9 +324,12 @@ Recommended extra tests:
 
 Laporan #014 valid sebagai High severity financial/work-item integrity issue.
 
-Bug sebelumnya membuat refund endpoint menerima open/unpaid rows dan membatalkannya, sehingga active note total bisa turun tanpa refund yang valid. Patch #013 hanya menahan auto-finalization, tetapi belum menutup akar validasi row refund.
+RED proof confirmed the bug: refund endpoint accepted an unpaid selected row and canceled the work item.
 
-Patch #014 mengarah benar karena mengembalikan invariant: hanya row operationally close yang boleh masuk selected-row refund flow. Namun test belum terbukti pass karena dependency environment belum tersedia.
+The current fix closes the #014 resolver precondition gap by requiring selected rows to be operationally close before selected-row refund plan creation. Open/unpaid and partial-paid/open selected rows are now rejected before refund bucket processing and before row cancellation.
+
+This does not claim full refund lifecycle closure. Parent note eligibility, cashier route access, refunded terminal state, and refunded UI/edit entry remain covered by other Slice 5 issues.
+
 
 ## Related Refunded-State Terminal Guard Finding From Error Log 018
 
