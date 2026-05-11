@@ -8,6 +8,9 @@ use Database\Seeders\Product\ProductScenarioRecreatedSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Psr\Log\AbstractLogger;
+use Psr\Log\LogLevel;
+use Stringable;
 use Tests\TestCase;
 
 final class ProductSeederIdempotencyFeatureTest extends TestCase
@@ -16,7 +19,22 @@ final class ProductSeederIdempotencyFeatureTest extends TestCase
 
     public function test_recreated_product_scenario_can_be_rerun_without_warning_or_state_growth(): void
     {
-        Log::spy();
+        $logger = new class extends AbstractLogger {
+            public int $warningCount = 0;
+
+            /**
+             * @param mixed $level
+             * @param array<string, mixed> $context
+             */
+            public function log($level, string|Stringable $message, array $context = []): void
+            {
+                if ($level === LogLevel::WARNING) {
+                    $this->warningCount++;
+                }
+            }
+        };
+
+        Log::swap($logger);
 
         $this->seed(ProductScenarioRecreatedSeeder::class);
 
@@ -26,7 +44,7 @@ final class ProductSeederIdempotencyFeatureTest extends TestCase
 
         $this->assertRecreatedScenarioState();
 
-        Log::shouldNotHaveReceived('warning');
+        self::assertSame(0, $logger->warningCount);
     }
 
     private function assertRecreatedScenarioState(): void
