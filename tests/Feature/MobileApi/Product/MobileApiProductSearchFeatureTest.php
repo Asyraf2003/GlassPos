@@ -112,17 +112,6 @@ final class MobileApiProductSearchFeatureTest extends TestCase
             'data' => [
                 'rows' => [
                     [
-                        'id' => 'product-ban-luar',
-                        'label' => 'Ban Luar — Federal — 80 (KB-001)',
-                        'kode_barang' => 'KB-001',
-                        'nama_barang' => 'Ban Luar',
-                        'merek' => 'Federal',
-                        'ukuran' => 80,
-                        'available_stock' => 7,
-                        'default_unit_price_rupiah' => 15000,
-                        'minimum_unit_price_rupiah' => 15000,
-                    ],
-                    [
                         'id' => 'product-ban-dalam-zero',
                         'label' => 'Ban Dalam — Federal — 80 (KB-002)',
                         'kode_barang' => 'KB-002',
@@ -132,6 +121,17 @@ final class MobileApiProductSearchFeatureTest extends TestCase
                         'available_stock' => 0,
                         'default_unit_price_rupiah' => 12000,
                         'minimum_unit_price_rupiah' => 12000,
+                    ],
+                    [
+                        'id' => 'product-ban-luar',
+                        'label' => 'Ban Luar — Federal — 80 (KB-001)',
+                        'kode_barang' => 'KB-001',
+                        'nama_barang' => 'Ban Luar',
+                        'merek' => 'Federal',
+                        'ukuran' => 80,
+                        'available_stock' => 7,
+                        'default_unit_price_rupiah' => 15000,
+                        'minimum_unit_price_rupiah' => 15000,
                     ],
                 ],
             ],
