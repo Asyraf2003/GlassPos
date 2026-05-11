@@ -48,7 +48,7 @@ final class UploadMobileApiSupplierPaymentProofController extends Controller
         }
 
         $uploadedFiles = $this->uploadedFiles($request->file('proof_files', []));
-        $result = $this->proofs->handle($supplierPaymentId, $uploadedFiles, $actor->actorId);
+        $result = $this->proofs->handle($supplierPaymentId, $uploadedFiles, $actor->id);
 
         if ($result->isFailure()) {
             return response()->json([
