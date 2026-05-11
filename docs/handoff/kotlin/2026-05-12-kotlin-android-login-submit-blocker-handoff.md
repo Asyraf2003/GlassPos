@@ -522,3 +522,45 @@ Current session decision:
 - `/api/v1/me` using stored token is still not proven.
 - Product search Android flow is still not started.
 
+## Android current-session /me stored-token proof
+
+Status: Fixed and locally verified for stored-token `/api/v1/me` runtime proof.
+
+Proof date: 2026-05-12.
+
+Kotlin files changed for proof:
+
+- `/home/asyraf/Code/laravel/bengkel2/kotlin/app/src/main/java/id/hyperpos/mobile/application/auth/CurrentSessionResult.kt`
+- `/home/asyraf/Code/laravel/bengkel2/kotlin/app/src/main/java/id/hyperpos/mobile/application/auth/CurrentSessionUseCase.kt`
+- `/home/asyraf/Code/laravel/bengkel2/kotlin/app/src/main/java/id/hyperpos/mobile/application/ports/AuthApiPort.kt`
+- `/home/asyraf/Code/laravel/bengkel2/kotlin/app/src/main/java/id/hyperpos/mobile/adapters/http/OkHttpAuthApiClient.kt`
+- `/home/asyraf/Code/laravel/bengkel2/kotlin/app/src/androidTest/java/id/hyperpos/mobile/adapters/http/OkHttpAuthApiClientCurrentSessionInstrumentedTest.kt`
+
+Runtime proof:
+
+- Android test class: `id.hyperpos.mobile.adapters.http.OkHttpAuthApiClientCurrentSessionInstrumentedTest`
+- Test device: `23053RN02A - 15`
+- Test count: 1 test
+- Compile proof: `:app:assembleDebugAndroidTest` returned `BUILD SUCCESSFUL`
+- Runtime proof: `:app:connectedDebugAndroidTest` returned `BUILD SUCCESSFUL in 29s`
+
+Verified behavior:
+
+- Android login uses `mobile-android-smoke@example.test`.
+- Android login stores the backend token through `AndroidKeystoreSessionTokenStore`.
+- Android reads the stored token back from encrypted local storage.
+- Android calls `GET /api/v1/me` through `OkHttpAuthApiClient.currentSession()`.
+- `/api/v1/me` succeeds using `Authorization: Bearer <stored token>`.
+- Returned actor is `Mobile Android Smoke` with email `mobile-android-smoke@example.test` and role `kasir`.
+
+Security note:
+
+- No raw backend API token was printed.
+- Runtime proof validates the stored-token path without exposing the token value.
+
+Current session decision:
+
+- Android token read-back from `AndroidKeystoreSessionTokenStore` is proven.
+- Android `/api/v1/me` using stored token is proven.
+- Login integration unblock scope is closed.
+- Product search Android flow is still not started.
