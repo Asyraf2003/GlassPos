@@ -295,7 +295,49 @@ Current blocker:
 
 Android UI fields are filled, app does not crash, but pressing Login does not create a backend mobile_api_tokens row.
 
-This means Android success-login is not proven and must not be claimed.
+This means Android success-login is now proven by manual-input UI success, app PID/foreground proof, and backend token row proof.
+
+## Update 2026-05-12 - Android manual login success proof
+
+Status:
+
+Android login submit blocker is closed by manual-input proof.
+
+Important interpretation:
+
+The previous ADB-driven submit failure was caused by unreliable ADB text input for the smoke password, most likely the special `!` character in `MobileSmoke123!`.
+
+Do not treat the ADB invalid-credential response as a Kotlin login source bug.
+
+Manual login proof:
+
+- Email input: `mobile-android-smoke@example.test`.
+- Password input was entered manually on the physical device.
+- Device name: `android-device-success-smoke`.
+- UI status after tap: `Login berhasil: Mobile Android Smoke (kasir)`.
+- App PID after manual login: `17335`.
+- Foreground activity after manual login: `id.hyperpos.mobile/id.hyperpos.mobile.features.login.MainActivity`.
+- Backend token row proof:
+  - `android_success_token_row_found=yes`.
+  - `row id=4 user_id=3 device_name=android-device-success-smoke has_expires_at=yes revoked_at=null created_at=2026-05-11 18:56:37`.
+
+Verified conclusion:
+
+- Login button submit path works.
+- Kotlin request path works.
+- Backend `/api/v1/auth/login` accepts the Android request when credentials are entered correctly.
+- Kotlin parses `data.token` successfully enough for the login flow to return success.
+- Backend creates `mobile_api_tokens` row for the Android device.
+- App stays alive after successful login.
+- No raw token was printed in proof.
+
+Remaining gaps:
+
+- Android token read-back from encrypted token store is not separately proven.
+- `/api/v1/me` from Android using the stored token is not proven.
+- Product search Android flow is not started.
+- Full Android automated input remains unreliable for this password and should not be used as final login proof without a safer input mechanism.
+
 
 ## Current interpretation
 
@@ -303,7 +345,7 @@ Backend is green for valid host login.
 
 Android app is green for install, launch, foreground activity, PID, and no scoped crash or leak after login tap.
 
-Android success-login is blocked at the UI submit or request path.
+Android success-login submit path is no longer blocked. The remaining issue was ADB text input reliability for the smoke password, not the Kotlin login source.
 
 Most likely areas to inspect next:
 
@@ -329,7 +371,7 @@ Missing proof:
 - No proof that LoginUseCase was invoked.
 - No proof that OkHttpAuthApiClient sent a request.
 - No proof of Android-side HTTP status for the submit attempt.
-- No backend token row for android-device-success-smoke.
+- Backend token row for android-device-success-smoke is now proven. Remaining gap: Android token read-back from encrypted storage is not separately proven.
 - No UI success status after Android login.
 - No source inspection in this session after the submit blocker appeared.
 
@@ -367,7 +409,7 @@ Expected next decision branches:
 
 ## Do not do
 
-- Do not claim Android success-login.
+- Android success-login may be claimed only for the manual-input proof scope recorded in this handoff.
 - Do not claim token persistence.
 - Do not claim Mobile API v1 login is complete end-to-end.
 - Do not create Kotlin files inside Laravel app repo.
@@ -380,27 +422,27 @@ Expected next decision branches:
 
 Final Goal Progress:
 
-5 percent.
+8 percent.
 
 Reason:
 
-Backend login blocker is fixed and Android app install or launch is proven, but Android success-login is not green.
+Backend login blocker is fixed, Android app install and launch are proven, and Android manual login success is proven. Product search and admin flows are not started.
 
 Main Process Progress:
 
-55 percent for login integration unblock.
+80 percent for login integration unblock.
 
 Reason:
 
-Backend host login contract is green. Android runtime shell is green. Android submit path is not green.
+Backend host login contract is green. Android runtime shell is green. Android manual submit path is green. Remaining login-adjacent gap is token read-back proof.
 
 Sub-step Progress:
 
-65 percent for Android success-login smoke.
+95 percent for Android success-login smoke.
 
 Reason:
 
-Form fill is proven, app stays alive, and no scoped crash or leak is proven. Backend token row is still missing.
+Manual form input, UI success, app PID/foreground, and backend token row are proven. Remaining gap is separate encrypted token store read-back proof.
 
 ## Latest proof summary
 
@@ -438,7 +480,7 @@ docs/handoff/kotlin/2026-05-12-kotlin-android-login-submit-blocker-handoff.md
 
 Current proven state:
 
-Backend mobile_api_tokens migration is fixed. Host valid login returns http_code=200, success=true, and token path data.token. Android app installs, launches, has PID, and foregrounds id.hyperpos.mobile.features.login.MainActivity. ADB filled the login form and tapped LOGIN. App did not crash and app-scoped crash or leak proof was empty. But backend still has no mobile_api_tokens row for android-device-success-smoke, so Android success-login is not proven.
+Backend mobile_api_tokens migration is fixed. Host valid login returns http_code=200, success=true, and token path data.token. Android app installs, launches, has PID, and foregrounds id.hyperpos.mobile.features.login.MainActivity. ADB submit reached backend but failed due to invalid credential caused by unreliable ADB password input. Manual input on the physical device succeeded: UI showed Login berhasil, app PID/foreground stayed alive, and backend created a mobile_api_tokens row for android-device-success-smoke. Android success-login manual-input scope is proven.
 
 One active step only:
 
