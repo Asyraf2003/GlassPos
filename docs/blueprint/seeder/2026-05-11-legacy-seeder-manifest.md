@@ -2,9 +2,11 @@
 
 ## Status
 
-Initial classification manifest.
+Source inspection manifest with `UserSeeder` ADR-0023 credential boundary locally verified.
 
-This document is based on local file inventory and path/name-level classification only.
+This document is still a legacy-to-clean migration manifest, not a clean seeder completion certificate.
+
+This document is based on local file inventory, source inspection, and the documented `UserSeeder` credential-boundary proof.
 
 This document does not prove source-level behavior.
 
@@ -334,3 +336,75 @@ Do not edit runtime seeders until the owner chooses between:
 1. immediate ADR-0023 credential guard
 2. document-only legacy marking first
 3. clean seeder namespace/folder split planning
+
+## Source Inspection Update 2 - UserSeeder ADR-0023 Credential Boundary Closure
+
+Date: 2026-05-11.
+
+Scope:
+
+- `database/seeders/UserSeeder.php`
+- `tests/Feature/Seeder/UserSeederCredentialBoundaryFeatureTest.php`
+- `docs/error_log/002-seeder-introduces-predictable-admin-credentials.md`
+- `docs/blueprint/seeder/2026-05-11-legacy-seeder-manifest.md`
+
+Status:
+
+`UserSeeder` now has a locally verified ADR-0023 environment boundary for predictable seeded credentials.
+
+This does not convert `UserSeeder` into a final clean seeder. It remains a legacy compatibility surface until the clean seeder contract and staging/production bootstrap path are implemented and verified.
+
+Updated source behavior:
+
+- `UserSeeder::run()` fails closed outside `local` and `testing`.
+- `local` and `testing` keep predictable convenience users for developer/test workflows.
+- `staging` and unknown/custom environments are blocked before seeded user creation.
+- the guard error is `Predictable seeded users are only allowed in local/testing environments.`
+- no Makefile target was renamed.
+- no seeder class was renamed.
+- no broad legacy seeder refactor was performed.
+
+Files changed in the runtime implementation slice:
+
+- `database/seeders/UserSeeder.php`
+- `tests/Feature/Seeder/UserSeederCredentialBoundaryFeatureTest.php`
+
+Proof recorded for the implementation slice:
+
+- RED characterization: 2 failed, 2 passed, 6 assertions.
+- syntax proof: `php -l database/seeders/UserSeeder.php` passed.
+- syntax proof: `php -l tests/Feature/Seeder/UserSeederCredentialBoundaryFeatureTest.php` passed.
+- targeted GREEN: 4 passed, 12 assertions.
+- blast-radius GREEN: 34 passed, 136 assertions.
+- local closure snapshot: branch `main`, HEAD `28b27745`, remote aligned with `origin/main`.
+
+Classification impact:
+
+- `database/seeders/UserSeeder.php` remains `LEGACY_COMPATIBILITY`.
+- initial category remains `CREDENTIAL`.
+- clean target remains `CLEAN_IDENTITY_ACCESS_SEED`.
+- risk remains `HIGH` at migration level because staging bootstrap, deployed database rotation, and full clean seeder split are not complete.
+- immediate ADR-0023 predictable credential boundary is fixed for source/test scope.
+
+Superseded manifest statement:
+
+The previous Source Inspection Update 1 statement that no environment guard was observed is now historical. It was true before the ADR-0023 implementation slice. Current source behavior has a non-local/non-testing fail-closed guard.
+
+Remaining gaps:
+
+- staging bootstrap is not implemented.
+- full `make verify` was not run for the closure.
+- production/staging deployed database credential rotation is not proven.
+- old seeded credentials require manual rotation if an old seeder ever ran in a non-local database.
+- default seed levels still route through legacy entrypoints.
+- clean deterministic seeder namespace/folder contract is not implemented.
+- broader source inspection for product, supplier, finance, load, and scenario seeders remains pending.
+
+Next step after docs closure:
+
+Choose one active slice only:
+
+1. design explicit staging bootstrap with env/config credential input, fail-closed missing values, no fallback to `12345678`, no password logging, and no automatic wiring into default `DatabaseSeeder` or existing seed levels; or
+2. continue source inspection for `ProductSeeder`, `SupplierSeeder`, and product scenario seeders for idempotency and clean scenario mapping.
+
+Do not start both in the same step.

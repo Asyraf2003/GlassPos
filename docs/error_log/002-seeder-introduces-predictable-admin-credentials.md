@@ -2,7 +2,9 @@
 
 ## Status
 
-Patched.
+Fixed for ADR-0023 UserSeeder predictable credential boundary.
+
+Residual deployment and staging bootstrap gaps remain open.
 
 ## Severity
 
@@ -347,3 +349,89 @@ Patch mencegah credential reset berulang untuk akun existing, tetapi pembuatan a
 
 Gap verifikasi:
 Sesi ini belum memverifikasi diff repository lokal atau behavior runtime secara independen. Perlakukan status patch sebagai berbasis laporan sampai `git status --short`, `git diff`, dan output test relevan disediakan.
+
+## Update - ADR-0023 UserSeeder credential boundary closure
+
+Date: 2026-05-11.
+
+Status: Fixed and locally verified for the minimum ADR-0023 `UserSeeder` predictable credential environment boundary.
+
+This update supersedes the earlier partial patch state for the environment-boundary portion of this finding. The current fix does not claim full clean seeder migration, deployed database safety, staging bootstrap completion, or production credential rotation.
+
+Runtime files changed in the implementation slice:
+
+- `database/seeders/UserSeeder.php`
+- `tests/Feature/Seeder/UserSeederCredentialBoundaryFeatureTest.php`
+
+Docs files changed in the closure slice:
+
+- `docs/error_log/002-seeder-introduces-predictable-admin-credentials.md`
+- `docs/blueprint/seeder/2026-05-11-legacy-seeder-manifest.md`
+
+Runtime behavior now documented for this slice:
+
+- `local` environment allows predictable local convenience users.
+- `testing` environment allows predictable local convenience users.
+- `staging` environment is blocked before seeded users, roles, and capability state are created.
+- unknown/custom environment is blocked before seeded users, roles, and capability state are created.
+- guard failure message is: `Predictable seeded users are only allowed in local/testing environments.`
+
+Source behavior after patch:
+
+- `UserSeeder::run()` fails closed before user creation when the application environment is not `local` or `testing`.
+- local/testing still seed `admin@gmail.com` and `kasir@gmail.com` with local password `12345678`.
+- predictable seeded credentials remain explicitly scoped to disposable local/testing convenience usage.
+- staging and unknown environments must not use this hardcoded credential path.
+
+RED proof before patch:
+
+- command: `php artisan test tests/Feature/Seeder/UserSeederCredentialBoundaryFeatureTest.php`
+- result: 2 failed, 2 passed, 6 assertions.
+- failure meaning: staging and unknown/custom environments still created predictable seeded users before the guard.
+
+Syntax proof after patch:
+
+- `php -l database/seeders/UserSeeder.php` passed.
+- `php -l tests/Feature/Seeder/UserSeederCredentialBoundaryFeatureTest.php` passed.
+
+Targeted GREEN proof:
+
+- command: `php artisan test tests/Feature/Seeder/UserSeederCredentialBoundaryFeatureTest.php`
+- result: 4 passed, 12 assertions.
+
+Blast-radius GREEN proof:
+
+- command group: `tests/Feature/Auth`, `tests/Feature/IdentityAccess`, `tests/Unit/Adapters/In/Http/Middleware/IdentityAccess`, `tests/Unit/Application/IdentityAccess`
+- result: 34 passed, 136 assertions.
+
+Closure snapshot proof:
+
+- local branch: `main`
+- local HEAD: `28b27745`
+- remote alignment: local `main`, `origin/main`, and `origin/HEAD` point to `28b27745`
+- working tree before docs closure was clean
+- handoff file exists at `docs/handoff/seeder/2026-05-11-userseeder-credential-boundary-handoff.md`
+
+Residual gaps:
+
+- staging bootstrap is not implemented.
+- full `make verify` was not run for this closure.
+- production/staging deployed database credential rotation is not proven.
+- old seeded credentials require manual rotation if an old seeder ever ran in a non-local database.
+- current legacy seeder migration is not complete.
+- current default seeded local/testing credential path is still legacy compatibility surface.
+- `UserSeeder` is not reclassified as clean final seeder contract.
+- `DatabaseSeeder`, `SeedLevel1Seeder`, `SeedLevel2Seeder`, and `SeedLevel3Seeder` are not renamed or refactored by this slice.
+
+Do not claim:
+
+- full clean seeder migration complete.
+- staging bootstrap done.
+- production database safe.
+- all legacy seeders clean.
+- full DoD complete.
+- full `make verify` green.
+
+Conclusion:
+
+Error log #002 is fixed for the minimum ADR-0023 `UserSeeder` predictable seeded credential environment boundary. The remaining work is a separate staging/production bootstrap and clean seeder migration path, not a blocker for closing this specific source/test boundary.
