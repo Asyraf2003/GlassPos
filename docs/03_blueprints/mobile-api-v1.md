@@ -1,6 +1,6 @@
 # HyperPOS Mobile API v1 Blueprint
 
-Status: Draft 0 - pending owner answers
+Status: Draft 1 - owner decisions locked; Mobile API auth foundation implemented and locally verified
 Scope: Companion mobile app for cashier product lookup and admin supplier invoice/payment proof workflow
 Date: 2026-05-11
 
@@ -107,6 +107,22 @@ Any dependency must be justified by:
 - amount of code it avoids
 - replacement difficulty
 
+
+## 3.4 Workspace Layout
+
+Locked workspace layout:
+
+- Laravel API/domain source: `/home/asyraf/Code/laravel/bengkel2/app`
+- Kotlin Android app source: `/home/asyraf/Code/laravel/bengkel2/kotlin`
+
+Rules:
+
+- Android/Kotlin project files must not be created inside the Laravel app repo.
+- Laravel API work is executed from `/home/asyraf/Code/laravel/bengkel2/app`.
+- Kotlin Android work is executed from `/home/asyraf/Code/laravel/bengkel2/kotlin`.
+- Laravel remains the source of truth for auth, role, permissions, product data, supplier invoices, proof attachments, and audit decisions.
+- Kotlin remains a client only.
+
 ## 4. Role Scope
 
 ### 4.1 Cashier
@@ -160,6 +176,28 @@ Request draft:
 POST /api/v1/auth/logout
 
 GET /api/v1/me
+
+
+### 5.1.1 Auth Implementation Decision
+
+Decision: raw custom bearer token, not Sanctum/JWT/session cookie.
+
+Reason:
+
+- HyperPOS Mobile API v1 is a first-party companion app, not a public third-party API platform.
+- Current Laravel app does not use Sanctum.
+- Raw custom token keeps dependency footprint low.
+- Token lifecycle can follow HyperPOS auditability and redaction requirements from the first version.
+
+Implemented foundation:
+
+- `POST /api/v1/auth/login`
+- `GET /api/v1/me`
+- `POST /api/v1/auth/logout`
+- `mobile_api_tokens` table stores only `token_hash`, never plaintext token.
+- Plain token is returned only once in the login response.
+- Revoked/expired/missing token returns a redacted JSON error payload.
+- Actor role is resolved server-side from existing identity access source.
 
 ### 5.2 Cashier Product Search
 
@@ -643,23 +681,66 @@ Decision: A
 Reason: simplest controlled internal production path for early rollout.
 ## 14. Current Gaps
 
-- API auth mechanism is not finalized.
-- Kotlin UI toolkit is not finalized.
-- HTTP client is not finalized.
-- Token storage method is not finalized.
-- Product zero-stock behavior is not finalized.
-- Invoice search fields are not finalized.
-- Payment proof workflow may be upload-only or create-payment-plus-upload.
-- Notification mechanism is not finalized.
-- Production distribution method is not finalized.
+- Product search API is not implemented yet.
+- Supplier invoice search/detail API is not implemented yet.
+- Supplier payment proof upload/view API is not implemented yet.
+- Due invoice list API is not implemented yet.
+- Kotlin Android project is not created yet.
+- Android encrypted token storage is not implemented yet.
+- Full global Laravel test suite has not been run for the Mobile API auth foundation.
+- Browser/manual QA has not been run for the Mobile API auth foundation.
+- Notification remains phase 2.
 
 ## 15. Next Step
 
-Owner answers Q1-Q15.
+Next active implementation step:
 
-After answers:
-1. Lock API contract v1.
-2. Create Laravel API route blueprint.
-3. Implement auth API first.
-4. Implement product search API.
-5. Implement Kotlin skeleton installable on physical Redmi 12.
+1. Implement cashier product search API under `/api/v1/products/search`.
+2. Reuse existing product lookup/application behavior where safe.
+3. Keep cashier-only access for v1 per Q2.
+4. Preserve Laravel as source of truth for product, stock, and price.
+5. After product search API is locally verified, start Kotlin skeleton in `/home/asyraf/Code/laravel/bengkel2/kotlin`.
+
+## 16. Implementation Proof Log
+
+### 2026-05-11 - Mobile API Auth Foundation
+
+Status: Implemented and locally verified.
+
+Commit proof:
+
+- `be57014e (HEAD -> main, origin/main, origin/HEAD) commit 1854`
+
+Implemented route proof:
+
+- `POST api/v1/auth/login`
+- `POST api/v1/auth/logout`
+- `GET|HEAD api/v1/me`
+
+Verification proof:
+
+- Syntax check passed for all new/modified Mobile API auth files.
+- Targeted Mobile API auth test: `7 passed (25 assertions)`.
+- Focused web auth + identity access blast-radius: `15 passed (63 assertions)`.
+- `git diff --check` produced no output.
+- Raw token inspection anchors show `mobile_api_tokens.token_hash` storage and no plaintext token persistence in the database adapter.
+
+Verified scope:
+
+- Mobile API login success for admin and kasir.
+- Invalid credential rejection.
+- User without actor access rejection.
+- `/api/v1/me` requires bearer token.
+- `/api/v1/me` returns current actor for valid token.
+- Logout revokes current token.
+- Revoked token is rejected after logout.
+- Existing web auth and identity access middleware remain green in focused tests.
+
+Not verified in this proof:
+
+- Full global test suite.
+- Product search API.
+- Supplier invoice API.
+- Payment proof upload API.
+- Kotlin Android client.
+- Browser/manual QA.
