@@ -198,6 +198,71 @@ final class MobileApiSupplierPaymentProofFeatureTest extends TestCase
         self::assertSame('nosniff', strtolower((string) $response->headers->get('x-content-type-options')));
     }
 
+
+    public function test_admin_can_upload_supplier_invoice_payment_proof_and_auto_lunas(): void
+    {
+        Storage::fake('local');
+        $this->seedUnpaidInvoiceForMobileAutoLunasProof();
+
+        $token = $this->loginMobileToken(
+            email: 'mobile-admin-invoice-proof-auto-lunas@example.test',
+            role: 'admin',
+        );
+
+        $response = $this
+            ->withHeader('Authorization', 'Bearer '.$token)
+            ->post('/api/v1/supplier-invoices/invoice-mobile-auto-lunas-proof-1/payment-proof', [
+                'proof_files' => [
+                    UploadedFile::fake()->create('proof-mobile-auto-lunas.pdf', 120, 'application/pdf'),
+                ],
+            ], [
+                'Accept' => 'application/json',
+            ]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+            'data' => [
+                'supplier_invoice_id' => 'invoice-mobile-auto-lunas-proof-1',
+                'amount_rupiah' => 100000,
+                'outstanding_rupiah' => 0,
+                'proof_status' => 'uploaded',
+                'attachment_count' => 1,
+            ],
+            'message' => 'Bukti pembayaran supplier berhasil diunggah.',
+            'errors' => null,
+        ]);
+
+        $payment = DB::table('supplier_payments')
+            ->where('supplier_invoice_id', 'invoice-mobile-auto-lunas-proof-1')
+            ->first();
+
+        self::assertNotNull($payment);
+        self::assertSame(100000, (int) $payment->amount_rupiah);
+        self::assertSame('uploaded', (string) $payment->proof_status);
+        self::assertNull($payment->proof_storage_path);
+
+        $attachments = DB::table('supplier_payment_proof_attachments')
+            ->where('supplier_payment_id', (string) $payment->id)
+            ->get();
+
+        self::assertCount(1, $attachments);
+
+        $storedPath = (string) $attachments->first()->storage_path;
+        self::assertNotSame('', $storedPath);
+        self::assertTrue(Storage::disk('local')->exists($storedPath));
+
+        $projection = DB::table('supplier_invoice_list_projection')
+            ->where('supplier_invoice_id', 'invoice-mobile-auto-lunas-proof-1')
+            ->first();
+
+        self::assertNotNull($projection);
+        self::assertSame(100000, (int) $projection->total_paid_rupiah);
+        self::assertSame(0, (int) $projection->outstanding_rupiah);
+        self::assertSame('paid', (string) $projection->payment_status);
+        self::assertSame(1, (int) $projection->proof_attachment_count);
+    }
+
     private function loginMobileToken(string $email, string $role): string
     {
         $this->createUserWithRole($email, $role);
@@ -227,6 +292,47 @@ final class MobileApiSupplierPaymentProofFeatureTest extends TestCase
         ]);
 
         return $user;
+    }
+
+
+    private function seedUnpaidInvoiceForMobileAutoLunasProof(): void
+    {
+        $this->seedMinimalSupplier(
+            'supplier-mobile-auto-lunas-proof-1',
+            'PT Supplier Auto Lunas',
+            'pt supplier auto lunas'
+        );
+
+        $this->seedMinimalProduct(
+            'product-mobile-auto-lunas-proof-1',
+            'KB-AUTO-001',
+            'Ban Auto Lunas',
+            'Federal',
+            100,
+            75000
+        );
+
+        $this->seedMinimalSupplierInvoice(
+            'invoice-mobile-auto-lunas-proof-1',
+            'supplier-mobile-auto-lunas-proof-1',
+            '2026-05-11',
+            '2026-05-21',
+            100000,
+            'PT Supplier Auto Lunas'
+        );
+
+        $this->seedMinimalSupplierInvoiceLine(
+            'invoice-line-mobile-auto-lunas-proof-1',
+            'invoice-mobile-auto-lunas-proof-1',
+            'product-mobile-auto-lunas-proof-1',
+            2,
+            100000,
+            50000,
+            'KB-AUTO-001',
+            'Ban Auto Lunas',
+            'Federal',
+            100
+        );
     }
 
     private function seedPaymentFixture(string $paymentId): void
