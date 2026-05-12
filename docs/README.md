@@ -14,8 +14,8 @@ Run:
 
 Then read:
 
-    docs/AI_USAGE_GUIDE.md
-    docs/AI_RULES/00_INDEX.md
+    docs/01_standards/AI_USAGE_GUIDE.md
+    docs/01_standards/00_INDEX.md
     The active blueprint for the current scope
     The latest relevant handoff
     The latest local command output from the operator
@@ -25,7 +25,7 @@ Then read:
 Use this order when documents conflict:
 
 1. Local command output from the operator
-2. docs/AI_RULES
+2. docs/01_standards
 3. docs/adr
 4. Active blueprint
 5. Latest relevant handoff
@@ -36,7 +36,7 @@ If local output conflicts with GitHub, local output wins.
 
 ## Directory Map
 
-### docs/AI_RULES
+### docs/01_standards
 
 Mandatory operating rules for AI work in this repo.
 
@@ -129,7 +129,7 @@ Historical superseded pointer:
 
 ### Handoff template
 
-Canonical template: docs/AI_RULES/04_HANDOFF_TEMPLATE.md
+Canonical template: docs/01_standards/04_HANDOFF_TEMPLATE.md
 Legacy template: docs/handoff/handoff_template.md
 
 Recommended cleanup: Convert the legacy template into a pointer or archive it

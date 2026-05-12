@@ -15,7 +15,7 @@ Use handoff files to recover context, then verify current state with local comma
 Use this priority when a handoff conflicts with other docs or the repo:
 
 1. Current local command output
-2. docs/AI_RULES
+2. docs/01_standards
 3. docs/adr
 4. Active blueprint for the current scope
 5. Latest relevant handoff
@@ -44,7 +44,7 @@ Permanent decisions must be promoted into `docs/adr`.
 
 Active implementation contracts should be promoted into `docs/blueprint`.
 
-Mandatory AI/session rules belong in `docs/AI_RULES`.
+Mandatory AI/session rules belong in `docs/01_standards`.
 
 ## Folder map
 
@@ -102,7 +102,7 @@ Legacy path:
 
 Canonical template:
 
-- docs/AI_RULES/04_HANDOFF_TEMPLATE.md
+- docs/01_standards/04_HANDOFF_TEMPLATE.md
 
 Use the canonical template for new handoffs.
 
@@ -124,8 +124,8 @@ For work that depends on handoff history, read:
 
 1. docs/README.md
 2. docs/DOCS_HELP.md
-3. docs/AI_USAGE_GUIDE.md
-4. docs/AI_RULES/00_INDEX.md
+3. docs/01_standards/AI_USAGE_GUIDE.md
+4. docs/01_standards/00_INDEX.md
 5. docs/handoff/README.md
 6. The latest relevant handoff for the current scope
 7. The latest local command output from the operator

@@ -6,7 +6,7 @@ This file is kept only for old links and historical references.
 
 Canonical handoff template:
 
-- docs/AI_RULES/04_HANDOFF_TEMPLATE.md
+- docs/01_standards/04_HANDOFF_TEMPLATE.md
 
 Rules:
 
@@ -17,9 +17,9 @@ Rules:
 
 Use this instead:
 
-- Read docs/AI_RULES/04_HANDOFF_TEMPLATE.md
-- Follow docs/AI_RULES/00_INDEX.md
-- Follow docs/AI_RULES/01_DECISION_POLICY.md
+- Read docs/01_standards/04_HANDOFF_TEMPLATE.md
+- Follow docs/01_standards/00_INDEX.md
+- Follow docs/01_standards/01_DECISION_POLICY.md
 
 Historical note:
 

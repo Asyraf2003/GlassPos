@@ -12,8 +12,8 @@ Use ADRs when you need to know the accepted decision behind a domain or architec
 
 Start with:
 
-1. docs/AI_RULES/00_INDEX.md
-2. docs/AI_RULES/01_DECISION_POLICY.md
+1. docs/01_standards/00_INDEX.md
+2. docs/01_standards/01_DECISION_POLICY.md
 3. docs/adr/README.md
 4. the ADR relevant to the current scope
 

@@ -6,8 +6,8 @@ Run make docs-help to see where to start without reading every docs file.
 
 Start here for every AI or human session:
 1. docs/README.md
-2. docs/AI_USAGE_GUIDE.md
-3. docs/AI_RULES/00_INDEX.md
+2. docs/01_standards/AI_USAGE_GUIDE.md
+3. docs/01_standards/00_INDEX.md
 4. The active blueprint for the current scope
 5. The latest handoff for the current scope
 6. The latest local command output from the operator
@@ -21,7 +21,7 @@ Priority of truth:
 6. Older handoff or archive notes
 
 Doc categories:
-- docs/AI_RULES
+- docs/01_standards
   Mandatory repo rules for all AI sessions.
   Contains decision policy, workflow policy, output policy, architecture rules, domain map, stack rules, and handoff template.
 
@@ -53,7 +53,7 @@ Doc categories:
 
 Known cleanup warnings:
 - ADR 0014 is now a superseded pointer to ADR 0015. ADR 0015 is the canonical decision record.
-- docs/handoff/handoff_template.md is legacy compared with docs/AI_RULES/04_HANDOFF_TEMPLATE.md.
+- docs/handoff/handoff_template.md is legacy compared with docs/01_standards/04_HANDOFF_TEMPLATE.md.
 - docs/blueprint/v2/feature-continuation/00-blueprint.md is more like a control ledger than a normal blueprint.
 - Some docs reference stale paths such as docs/setting_control. Treat them as historical unless proven active.
 - Do not move docs before grep backlink audit.
@@ -72,7 +72,7 @@ For humans:
 
 - Then open:
   docs/README.md
-  docs/AI_USAGE_GUIDE.md
+  docs/01_standards/AI_USAGE_GUIDE.md
 
 Session rule:
 If context risk is 80 percent or higher, create a handoff before continuing large work.
