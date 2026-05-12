@@ -1,5 +1,7 @@
-
 # Handoff AI_RULES Modular
+
+Historical Notice:
+This file is a historical handoff from the original AI_RULES modularization. Paths that mention root AI_RULES reflect the state at that time. The current canonical standards root is docs/01_standards unless newer proof says otherwise.
 
 
 

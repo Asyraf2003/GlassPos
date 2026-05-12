@@ -1,3 +1,12 @@
+# AI Standards Changelog
+
+## 2026-05-12 - standards path normalization
+
+- Clarified docs/01_standards as the canonical standards root.
+- Aligned bootstrap and usage guide references away from legacy root AI_RULES paths.
+- Kept historical handoff content historical instead of rewriting old proof.
+- Deferred file and folder rename until backlink audit.
+
 ## 2026-04-26 - Session Capacity Policy
 
 - Added `20_WORKFLOW/24_SESSION_CAPACITY_POLICY.md`.
@@ -5,8 +14,6 @@
 - Added below-80% threshold rule to stop large implementation and prepare handoff.
 - Clarified that new sessions reset active chat clutter but do not imply perfect 100% capability.
 - Updated index, session start protocol, and handoff policy references.
-
-# AI_RULES Changelog
 
 ## 2026-03-26
 - Membuat struktur awal AI_RULES modular.

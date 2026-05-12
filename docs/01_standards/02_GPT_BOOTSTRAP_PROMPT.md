@@ -15,16 +15,16 @@ Bootstrap ini wajib mencegah AI:
 
 Sebelum mulai bekerja pada sesi baru, GPT wajib membaca minimal:
 
-1. `AI_RULES/00_INDEX.md`
-2. `AI_RULES/01_DECISION_POLICY.md`
-3. `AI_RULES/03_SESSION_START_PROTOCOL.md`
-4. `AI_RULES/10_CORE/10_SCOPE_AND_FACTS.md`
-5. `AI_RULES/10_CORE/11_BLUEPRINT_FIRST.md`
-6. `AI_RULES/10_CORE/12_STEP_BY_STEP_EXECUTION.md`
-7. `AI_RULES/10_CORE/13_PROOF_AND_PROGRESS.md`
-8. `AI_RULES/20_WORKFLOW/21_ACTIVE_STEP_POLICY.md`
-9. `AI_RULES/30_OUTPUT/33_TERMINAL_COMMAND_DELIVERY.md`
-10. relevant blueprint / ADR / handoff explicitly named by user
+1. `docs/01_standards/00_INDEX.md`
+2. `docs/01_standards/01_DECISION_POLICY.md`
+3. `docs/01_standards/03_SESSION_START_PROTOCOL.md`
+4. `docs/01_standards/10_CORE/10_SCOPE_AND_FACTS.md`
+5. `docs/01_standards/10_CORE/11_BLUEPRINT_FIRST.md`
+6. `docs/01_standards/10_CORE/12_STEP_BY_STEP_EXECUTION.md`
+7. `docs/01_standards/10_CORE/13_PROOF_AND_PROGRESS.md`
+8. `docs/01_standards/20_WORKFLOW/21_ACTIVE_STEP_POLICY.md`
+9. `docs/01_standards/30_OUTPUT/33_TERMINAL_COMMAND_DELIVERY.md`
+10. relevant blueprint, ADR, handoff, error log, branch, commit, or command output explicitly named by user
 
 If the user names a specific blueprint, ADR, handoff, error log, branch, commit, command output, or active step, those references define the active scope until the user changes it.
 
@@ -71,7 +71,7 @@ Jika pertanyaan sederhana, jawab langsung. Jangan membuat format berat untuk hal
 
 ## Rule Prioritas
 
-- Ikuti `AI_RULES/01_DECISION_POLICY.md`.
+- Ikuti `docs/01_standards/01_DECISION_POLICY.md`.
 - AI_RULES mengalahkan perilaku default model.
 - P0 mengalahkan P1/P2.
 - Aturan yang lebih spesifik mengalahkan aturan umum.

@@ -34,7 +34,7 @@ Use for project-level defaults that should apply in most repo sessions.
 Put here:
 - This is a Laravel kasir/bengkel project.
 - Local command output from the operator is the highest source of truth.
-- Read AI_RULES before technical implementation.
+- Read docs/01_standards before technical implementation.
 - Do not change locked domain terms without conflict and evidence.
 - Handoff is session recovery, not permanent decision.
 - Progress only increases with proof.
@@ -44,7 +44,7 @@ Do not put here:
 
 Project instructions should point to the correct docs, not duplicate the docs.
 
-## Layer 3: docs/AI_RULES
+## Layer 3: docs/01_standards
 
 Use for mandatory rules that apply to all AI work in this repo.
 
@@ -59,7 +59,7 @@ Do not put here:
 - daily work summary, feature todo list, active bug dump
 - temporary UI notes, latest branch or commit, one-day local state
 
-AI_RULES is the constitution, not the diary.
+docs/01_standards is the canonical standards root for AI_RULES, not the diary.
 
 ## Layer 4: docs/adr
 
@@ -85,7 +85,7 @@ Put here:
 - required tests, definition of done, known gaps, next active step
 
 Do not put here:
-- permanent global rules that belong in AI_RULES
+- permanent global rules that belong in docs/01_standards
 - final accepted decisions that should be ADR
 - daily command logs unless needed as evidence
 
@@ -120,9 +120,9 @@ Use to start a new AI session. A good session prompt should include only pointer
     Kita lanjut repo Laravel kasir/bengkel.
 
     Wajib baca:
-    1. docs/AI_RULES/00_INDEX.md
-    2. docs/AI_RULES/01_DECISION_POLICY.md
-    3. docs/AI_USAGE_GUIDE.md
+    1. docs/01_standards/00_INDEX.md
+    2. docs/01_standards/01_DECISION_POLICY.md
+    3. docs/01_standards/AI_USAGE_GUIDE.md
     4. path blueprint aktif
     5. path handoff terakhir
 
@@ -148,7 +148,7 @@ Do not paste the entire docs tree unless the task is docs audit.
 |--------------------------------------|--------------------------------------------------|
 | Personal response preference         | ChatGPT memory or personalization                |
 | Project-level operating default      | Project custom instructions                      |
-| Mandatory AI rule                    | docs/AI_RULES                                    |
+| Mandatory AI rule                    | docs/01_standards                                    |
 | Permanent decision                   | docs/adr                                         |
 | Active scope design                  | docs/blueprint                                  |
 | Daily work recovery                  | handoff                                          |
@@ -156,7 +156,7 @@ Do not paste the entire docs tree unless the task is docs audit.
 | Test output                          | handoff or proof note                            |
 | Commit hash                          | handoff                                          |
 | Bug found in live local              | handoff or docs/handoff/ui                             |
-| Final source of truth domain map     | docs/AI_RULES and ADR when needed                |
+| Final source of truth domain map     | docs/01_standards and ADR when needed                |
 
 ## Promotion From Handoff To ADR
 
