@@ -108,6 +108,7 @@ final class BuildCreateNoteRevisionSettlementTest extends TestCase
         return new class($amount) implements PaymentAllocationReaderPort {
             public function __construct(private readonly int $amount) {}
             public function getTotalAllocatedAmountByNoteId(string $noteId): Money { return Money::fromInt($this->amount); }
+            public function getTotalAllocatedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money { return Money::zero(); }
         };
     }
 
