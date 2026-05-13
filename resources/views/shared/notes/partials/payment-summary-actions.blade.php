@@ -29,6 +29,68 @@
       <div class="fw-bold text-uppercase text-body">{{ $note['payment_status_label'] ?? '-' }}</div>
     </div>
 
+    @if (($note['surplus_disposition']['has_pending_refund_due_action'] ?? false) && ! empty($note['surplus_disposition']['pending_items'] ?? []))
+      <div class="border rounded p-3 bg-body mb-3">
+        <div class="small text-muted mb-1">Surplus Nota</div>
+        <div class="fw-semibold text-body mb-2">Tandai Refund Due</div>
+        <p class="small text-muted mb-3">
+          Surplus pending dapat ditandai sebagai Refund Due. Ini belum berarti uang sudah keluar.
+        </p>
+
+        <div class="d-grid gap-3">
+          @foreach (($note['surplus_disposition']['pending_items'] ?? []) as $pendingRefundDueItem)
+            <form
+              method="POST"
+              action="{{ route('admin.notes.revision-settlements.refund-due.store', ['settlementId' => $pendingRefundDueItem['note_revision_settlement_id']]) }}"
+              class="border rounded p-3"
+            >
+              @csrf
+
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted">Pending Refund Due</span>
+                <strong class="text-body">
+                  {{ number_format((int) ($pendingRefundDueItem['unresolved_pending_rupiah'] ?? 0), 0, ',', '.') }}
+                </strong>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label small text-muted" for="refund-due-amount-{{ $pendingRefundDueItem['note_revision_settlement_id'] }}">
+                  Nominal Refund Due
+                </label>
+                <input
+                  id="refund-due-amount-{{ $pendingRefundDueItem['note_revision_settlement_id'] }}"
+                  type="number"
+                  min="1"
+                  step="1"
+                  name="amount_rupiah"
+                  value="{{ (int) ($pendingRefundDueItem['amount_default_rupiah'] ?? 0) }}"
+                  class="form-control"
+                  required
+                >
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label small text-muted" for="refund-due-reason-{{ $pendingRefundDueItem['note_revision_settlement_id'] }}">
+                  Alasan
+                </label>
+                <textarea
+                  id="refund-due-reason-{{ $pendingRefundDueItem['note_revision_settlement_id'] }}"
+                  name="reason"
+                  class="form-control"
+                  rows="3"
+                  required
+                ></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-outline-primary w-100">
+                Tandai Refund Due
+              </button>
+            </form>
+          @endforeach
+        </div>
+      </div>
+    @endif
+
     @if ($note['can_show_payment_form'] ?? false)
       <div class="d-grid gap-2">
         @if ($note['can_show_partial_payment_action'] ?? false)
