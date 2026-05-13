@@ -170,6 +170,29 @@ final class TransactionCashLedgerReportingQueryFeatureTest extends TestCase
     }
 
 
+    public function test_cash_ledger_includes_surplus_refund_paid_as_separate_outflow(): void
+    {
+        $this->seedNote('note-surplus-paid-ledger', 'Budi Surplus Ledger', '2026-04-04', 100000);
+        $this->seedRefundDueDisposition('disp-surplus-paid-ledger', 'note-surplus-paid-ledger', 'rev-surplus-paid-ledger', 'settlement-surplus-paid-ledger', 7000);
+        $this->seedSurplusRefundPayment('surplus-payment-ledger', 'disp-surplus-paid-ledger', 'note-surplus-paid-ledger', 'rev-surplus-paid-ledger', 'settlement-surplus-paid-ledger', 3000, '2026-04-05');
+
+        $query = app(TransactionCashLedgerReportingQuery::class);
+        $rows = $query->rows('2026-04-01', '2026-04-30');
+        $recon = $query->reconciliation('2026-04-01', '2026-04-30');
+
+        $this->assertCount(1, $rows);
+        $this->assertSame('note-surplus-paid-ledger', $rows[0]['note_id']);
+        $this->assertSame('2026-04-05', $rows[0]['event_date']);
+        $this->assertSame('surplus_refund_paid', $rows[0]['event_type']);
+        $this->assertSame('out', $rows[0]['direction']);
+        $this->assertSame(3000, $rows[0]['event_amount_rupiah']);
+        $this->assertNull($rows[0]['customer_payment_id']);
+        $this->assertNull($rows[0]['refund_id']);
+
+        $this->assertSame(0, $recon['total_in_rupiah']);
+        $this->assertSame(3000, $recon['total_out_rupiah']);
+    }
+
     private function seedNote(string $id, string $customerName, string $transactionDate, int $totalRupiah): void
     {
         DB::table('notes')->insert([
@@ -219,3 +242,117 @@ final class TransactionCashLedgerReportingQueryFeatureTest extends TestCase
         ]);
     }
 }
+\n    private function seedRefundDueDisposition(
+        string $id,
+        string $noteId,
+        string $revisionId,
+        string $settlementId,
+        int $amountRupiah,
+    ): void {
+        DB::table('note_revisions')->insert([
+            'id' => $revisionId,
+            'note_root_id' => $noteId,
+            'revision_number' => 1,
+            'parent_revision_id' => null,
+            'created_by_actor_id' => null,
+            'reason' => 'Cash ledger refund due fixture',
+            'customer_name' => 'Cash Ledger Customer',
+            'customer_phone' => null,
+            'transaction_date' => '2026-04-04',
+            'grand_total_rupiah' => 100000,
+            'line_count' => 0,
+            'created_at' => '2026-04-04 09:00:00',
+            'updated_at' => null,
+        ]);
+
+        DB::table('note_revision_settlements')->insert([
+            'id' => $settlementId,
+            'note_revision_id' => $revisionId,
+            'note_root_id' => $noteId,
+            'gross_total_rupiah' => 100000,
+            'carry_forward_paid_rupiah' => 107000,
+            'carry_forward_refunded_rupiah' => 0,
+            'net_paid_rupiah' => 107000,
+            'outstanding_rupiah' => 0,
+            'surplus_rupiah' => $amountRupiah,
+            'settlement_status' => 'overpaid_pending',
+            'created_at' => '2026-04-04 09:00:00',
+            'updated_at' => null,
+        ]);
+
+        DB::table('audit_events')->insert([
+            'id' => 'audit-' . $id,
+            'bounded_context' => 'note',
+            'aggregate_type' => 'note_revision_surplus_disposition',
+            'aggregate_id' => $id,
+            'event_name' => 'note_revision_surplus_refund_due_created',
+            'actor_id' => 'admin-1',
+            'actor_role' => 'admin',
+            'reason' => 'Cash ledger refund due fixture',
+            'source_channel' => 'test',
+            'request_id' => null,
+            'correlation_id' => null,
+            'occurred_at' => '2026-04-04 09:30:00',
+            'metadata_json' => null,
+        ]);
+
+        DB::table('note_revision_surplus_dispositions')->insert([
+            'id' => $id,
+            'note_revision_settlement_id' => $settlementId,
+            'note_root_id' => $noteId,
+            'note_revision_id' => $revisionId,
+            'disposition_type' => 'refund_due',
+            'amount_rupiah' => $amountRupiah,
+            'before_pending_rupiah' => $amountRupiah,
+            'after_pending_rupiah' => 0,
+            'status' => 'active',
+            'occurred_at' => '2026-04-04 09:30:00',
+            'created_at' => '2026-04-04 09:30:00',
+            'updated_at' => null,
+            'audit_event_id' => 'audit-' . $id,
+        ]);
+    }
+
+    private function seedSurplusRefundPayment(
+        string $id,
+        string $dispositionId,
+        string $noteId,
+        string $revisionId,
+        string $settlementId,
+        int $amountRupiah,
+        string $effectiveDate,
+    ): void {
+        DB::table('audit_events')->insert([
+            'id' => 'audit-' . $id,
+            'bounded_context' => 'note',
+            'aggregate_type' => 'note_revision_surplus_refund_payment',
+            'aggregate_id' => $id,
+            'event_name' => 'note_revision_surplus_refund_paid_recorded',
+            'actor_id' => 'admin-1',
+            'actor_role' => 'admin',
+            'reason' => 'Cash ledger surplus refund paid fixture',
+            'source_channel' => 'test',
+            'request_id' => null,
+            'correlation_id' => null,
+            'occurred_at' => $effectiveDate . ' 10:00:00',
+            'metadata_json' => null,
+        ]);
+
+        DB::table('note_revision_surplus_refund_payments')->insert([
+            'id' => $id,
+            'note_revision_surplus_disposition_id' => $dispositionId,
+            'note_revision_settlement_id' => $settlementId,
+            'note_root_id' => $noteId,
+            'note_revision_id' => $revisionId,
+            'amount_rupiah' => $amountRupiah,
+            'effective_date' => $effectiveDate,
+            'occurred_at' => $effectiveDate . ' 10:00:00',
+            'status' => 'active',
+            'idempotency_key' => 'idem-' . $id,
+            'audit_event_id' => 'audit-' . $id,
+            'created_at' => $effectiveDate . ' 10:00:00',
+            'updated_at' => null,
+        ]);
+    }
+
+}\n

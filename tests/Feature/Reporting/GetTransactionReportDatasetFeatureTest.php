@@ -174,6 +174,39 @@ final class GetTransactionReportDatasetFeatureTest extends TestCase
         );
     }
 
+    public function test_transaction_report_dataset_distinguishes_refund_due_surplus_refund_paid_and_remaining_refund_due(): void
+    {
+        $this->seedNote('note-surplus-paid-report', 'Budi Surplus Paid', '2030-01-10', 100000);
+        $this->seedWorkItem('wi-surplus-paid-report', 'note-surplus-paid-report', 1, 100000);
+
+        $this->seedCustomerPayment('payment-surplus-paid-report', 100000, '2030-01-10');
+        $this->seedPaymentAllocation('allocation-surplus-paid-report', 'payment-surplus-paid-report', 'note-surplus-paid-report', 100000);
+        $this->seedCustomerRefund('refund-customer-report', 'payment-surplus-paid-report', 'note-surplus-paid-report', 9000, '2030-01-10', 'Customer refund');
+
+        $this->seedRefundDueDisposition('disp-surplus-paid-report', 'note-surplus-paid-report', 'rev-surplus-paid-report', 'settlement-surplus-paid-report', 7000);
+        $this->seedSurplusRefundPayment('surplus-payment-report', 'disp-surplus-paid-report', 'note-surplus-paid-report', 'rev-surplus-paid-report', 'settlement-surplus-paid-report', 3000, '2030-01-10');
+
+        $result = app(GetTransactionReportDatasetHandler::class)
+            ->handle('2030-01-01', '2030-01-31');
+
+        $this->assertTrue($result->isSuccess());
+
+        $data = $result->data();
+        $summary = $data['summary'];
+
+        $this->assertSame(9000, $summary['refunded_rupiah']);
+        $this->assertSame(7000, $summary['refund_due_rupiah']);
+        $this->assertSame(3000, $summary['surplus_refund_paid_rupiah']);
+        $this->assertSame(4000, $summary['remaining_refund_due_rupiah']);
+
+        $row = $data['rows'][0];
+
+        $this->assertSame(9000, $row['refunded_rupiah']);
+        $this->assertSame(7000, $row['refund_due_rupiah']);
+        $this->assertSame(3000, $row['surplus_refund_paid_rupiah']);
+        $this->assertSame(4000, $row['remaining_refund_due_rupiah']);
+    }
+
     private function seedNote(string $id, string $customerName, string $transactionDate, int $totalRupiah): void
     {
         DB::table('notes')->insert([
@@ -303,3 +336,46 @@ final class GetTransactionReportDatasetFeatureTest extends TestCase
         ]);
     }
 }
+\n    private function seedSurplusRefundPayment(
+        string $id,
+        string $dispositionId,
+        string $noteId,
+        string $revisionId,
+        string $settlementId,
+        int $amountRupiah,
+        string $effectiveDate,
+    ): void {
+        DB::table('audit_events')->insert([
+            'id' => 'audit-' . $id,
+            'bounded_context' => 'note',
+            'aggregate_type' => 'note_revision_surplus_refund_payment',
+            'aggregate_id' => $id,
+            'event_name' => 'note_revision_surplus_refund_paid_recorded',
+            'actor_id' => 'admin-1',
+            'actor_role' => 'admin',
+            'reason' => 'Report surplus refund paid fixture',
+            'source_channel' => 'test',
+            'request_id' => null,
+            'correlation_id' => null,
+            'occurred_at' => $effectiveDate . ' 10:00:00',
+            'metadata_json' => null,
+        ]);
+
+        DB::table('note_revision_surplus_refund_payments')->insert([
+            'id' => $id,
+            'note_revision_surplus_disposition_id' => $dispositionId,
+            'note_revision_settlement_id' => $settlementId,
+            'note_root_id' => $noteId,
+            'note_revision_id' => $revisionId,
+            'amount_rupiah' => $amountRupiah,
+            'effective_date' => $effectiveDate,
+            'occurred_at' => $effectiveDate . ' 10:00:00',
+            'status' => 'active',
+            'idempotency_key' => 'idem-' . $id,
+            'audit_event_id' => 'audit-' . $id,
+            'created_at' => $effectiveDate . ' 10:00:00',
+            'updated_at' => null,
+        ]);
+    }
+
+}\n
