@@ -248,4 +248,88 @@ final class AdminNoteSurplusRefundDueAuditTimelineUiFeatureTest extends TestCase
             'audit_event_id' => $auditEventId,
         ]);
     }
+    private function seedRefundPaidAuditTimeline(
+    string $paymentId,
+    string $dispositionId,
+    string $auditEventId,
+    string $settlementId,
+    string $noteId,
+    string $revisionId,
+    int $amountRupiah,
+    int $refundDueRupiah,
+    int $activeRefundPaidBeforeRupiah,
+    int $activeRefundPaidAfterRupiah,
+    int $remainingBeforeRupiah,
+    int $remainingAfterRupiah,
+    string $reason,
+): void {
+    DB::table('audit_events')->insert([
+        'id' => $auditEventId,
+        'bounded_context' => 'note',
+        'aggregate_type' => 'note_revision_surplus_refund_payment',
+        'aggregate_id' => $paymentId,
+        'event_name' => 'note_revision_surplus_refund_paid_recorded',
+        'actor_id' => 'admin-1',
+        'actor_role' => 'admin',
+        'reason' => $reason,
+        'source_channel' => 'test',
+        'request_id' => null,
+        'correlation_id' => null,
+        'occurred_at' => '2026-05-13 11:00:00',
+        'metadata_json' => json_encode([
+            'note_root_id' => $noteId,
+            'note_revision_id' => $revisionId,
+            'note_revision_settlement_id' => $settlementId,
+            'note_revision_surplus_disposition_id' => $dispositionId,
+            'note_revision_surplus_refund_payment_id' => $paymentId,
+            'amount_rupiah' => $amountRupiah,
+            'effective_date' => '2026-05-13',
+            'disposition_type' => 'refund_due',
+            'idempotency_key' => 'idem-surplus-paid-audit-ui-001',
+        ], JSON_THROW_ON_ERROR),
+    ]);
+
+    DB::table('audit_event_snapshots')->insert([
+        [
+            'id' => $auditEventId . '-before',
+            'audit_event_id' => $auditEventId,
+            'snapshot_kind' => 'before',
+            'payload_json' => json_encode([
+                'refund_due_rupiah' => $refundDueRupiah,
+                'active_refund_paid_rupiah' => $activeRefundPaidBeforeRupiah,
+                'remaining_refund_due_rupiah' => $remainingBeforeRupiah,
+            ], JSON_THROW_ON_ERROR),
+            'created_at' => '2026-05-13 11:00:00',
+        ],
+        [
+            'id' => $auditEventId . '-after',
+            'audit_event_id' => $auditEventId,
+            'snapshot_kind' => 'after',
+            'payload_json' => json_encode([
+                'refund_due_rupiah' => $refundDueRupiah,
+                'active_refund_paid_rupiah' => $activeRefundPaidAfterRupiah,
+                'remaining_refund_due_rupiah' => $remainingAfterRupiah,
+            ], JSON_THROW_ON_ERROR),
+            'created_at' => '2026-05-13 11:00:00',
+        ],
+    ]);
+
+    DB::table('note_revision_surplus_refund_payments')->insert([
+        'id' => $paymentId,
+        'note_revision_surplus_disposition_id' => $dispositionId,
+        'note_revision_settlement_id' => $settlementId,
+        'note_root_id' => $noteId,
+        'note_revision_id' => $revisionId,
+        'amount_rupiah' => $amountRupiah,
+        'effective_date' => '2026-05-13',
+        'occurred_at' => '2026-05-13 11:00:00',
+        'status' => 'active',
+        'idempotency_key' => 'idem-surplus-paid-audit-ui-001',
+        'audit_event_id' => $auditEventId,
+        'created_at' => '2026-05-13 11:00:00',
+        'updated_at' => null,
+    ]);
+}
+
+
 }
