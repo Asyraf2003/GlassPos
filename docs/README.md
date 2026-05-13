@@ -14,8 +14,8 @@ Run:
 
 Then read:
 
-    docs/01_standards/AI_USAGE_GUIDE.md
-    docs/01_standards/00_INDEX.md
+    docs/01-standards/ai-usage-guide.md
+    docs/01-standards/00-index.md
     The active blueprint for the current scope
     The latest relevant handoff
     The latest local command output from the operator
@@ -25,7 +25,7 @@ Then read:
 Use this order when documents conflict:
 
 1. Local command output from the operator
-2. docs/01_standards
+2. docs/01-standards
 3. docs/adr
 4. Active blueprint
 5. Latest relevant handoff
@@ -36,7 +36,7 @@ If local output conflicts with GitHub, local output wins.
 
 ## Directory Map
 
-### docs/01_standards
+### docs/01-standards
 
 Mandatory operating rules for AI work in this repo.
 
@@ -88,7 +88,7 @@ latest branch and HEAD, next safe step, opening prompt for the next session.
 
 Do not treat an old handoff as permanent truth unless its decision was promoted into ADR or active blueprint.
 
-### docs/blueprint/v2 or docs/handoff/v2
+### docs/03-blueprints/v2 or docs/99-archive/handoff/v2
 
 V2 continuation lane.
 
@@ -97,7 +97,7 @@ live local gaps, UI continuation handoffs, V2 session recovery.
 
 This folder is not automatically more authoritative than ADR or AI_RULES.
 
-### docs/handoff/ui
+### docs/99-archive/handoff/ui
 
 Error and audit notes. Use for: investigation notes, error-specific documentation, bug trail.
 
@@ -121,25 +121,25 @@ ADR 0014 is now a superseded pointer to ADR 0015.
 
 Canonical decision record:
 
-    docs/adr/0015-note-operational-status-open-close-editable-partial-payment.md
+    docs/02-architecture/adr/0015-note-operational-status-open-close-editable-partial-payment.md
 
 Historical superseded pointer:
 
-    docs/adr/0014-note-operational-status-open-close-editable-partial-payment.md
+    docs/02-architecture/adr/0014-note-operational-status-open-close-editable-partial-payment.md
 
 ### Handoff template
 
-Canonical template: docs/01_standards/04_HANDOFF_TEMPLATE.md
-Legacy template: docs/handoff/handoff_template.md
+Canonical template: docs/01-standards/04-handoff-template.md
+Legacy template: docs/99-archive/handoff/handoff_template.md
 
 Recommended cleanup: Convert the legacy template into a pointer or archive it
 after confirming no active workflow depends on it.
 
-### docs/blueprint/v2/feature-continuation
+### docs/03-blueprints/v2/feature-continuation
 
 This path contains a feature control ledger:
 
-    docs/blueprint/v2/feature-continuation/00-blueprint.md
+    docs/03-blueprints/v2/feature-continuation/00-blueprint.md
 
 Recommended cleanup: Keep it, but document that it is a V2 continuation control ledger, not a permanent ADR.
 
@@ -154,10 +154,10 @@ These paths are historical unless proven active.
 
 ## Naming Rules
 
-ADR preferred:       docs/adr/0016-short-decision-name.md
-Blueprint preferred: docs/blueprint/v2/scope/YYYY-MM-DD-scope-name.md
-Handoff preferred:   docs/handoff/v2/scope/YYYY-MM-DD-short-session-name.md
-Audit preferred:     docs/handoff/ui/YYYY-MM-DD-short-error-name.md
+ADR preferred:       docs/02-architecture/adr/0016-short-decision-name.md
+Blueprint preferred: docs/03-blueprints/v2/scope/YYYY-MM-DD-scope-name.md
+Handoff preferred:   docs/99-archive/handoff/v2/scope/YYYY-MM-DD-short-session-name.md
+Audit preferred:     docs/99-archive/handoff/ui/YYYY-MM-DD-short-error-name.md
 
 ## Promotion Rule
 
