@@ -5,7 +5,7 @@ Canonical DoD.
 This file is not an implementation patch and does not mark any error log as fixed.
 
 ## Source
-- `docs/03-blueprints/security/adr-0023-seeder-safety.md`
+- `docs/03_blueprints/security/adr-0023-seeder-safety.md`
 
 
 ## DoD For Planning
@@ -100,7 +100,7 @@ Suggested final proof should include:
 
 ## Error Log Update Rule
 
-Do not update `docs/04-lifecycle/error-log/*.md` before implementation proof.
+Do not update `docs/04_lifecycle/error_log/*.md` before implementation proof.
 
 When updating error_log 002, include:
 
@@ -154,5 +154,5 @@ Stop immediately if any of these happen:
 
 ## Related Documents
 
-- Blueprint: docs/03-blueprints/security/adr-0023-seeder-safety.md
-- Workflow: docs/03-blueprints/security/adr-0023-seeder-safety-workflow.md
+- Blueprint: docs/03_blueprints/security/adr-0023-seeder-safety.md
+- Workflow: docs/03_blueprints/security/adr-0023-seeder-safety-workflow.md

@@ -10,8 +10,8 @@ Tujuan index ini: memudahkan manusia atau AI agent menemukan dokumen yang tepat 
 
 Baca dalam urutan ini:
 
-    docs/01-standards/ai-usage-guide.md
-    docs/01-standards/00-index.md
+    docs/01_standards/ai-usage-guide.md
+    docs/01_standards/00-index.md
     Blueprint aktif untuk scope saat ini
     Output lokal terbaru dari operator
 
@@ -20,16 +20,16 @@ Baca dalam urutan ini:
 Gunakan urutan ini ketika dokumen saling bertentangan:
 
 1. Output lokal dari operator (tertinggi)
-2. `docs/01-standards`
-3. `docs/02-architecture/adr`
-4. Blueprint aktif di `docs/03-blueprints`
-5. Handoff terbaru di `docs/04-lifecycle/handoff`
-6. Archive di `docs/99-archive`
+2. `docs/01_standards`
+3. `docs/02_architecture/adr`
+4. Blueprint aktif di `docs/03_blueprints`
+5. Handoff terbaru di `docs/04_lifecycle/handoff`
+6. Archive di `docs/99_archive`
 7. General model knowledge (terendah)
 
 ## Directory Map
 
-### `docs/01-standards`
+### `docs/01_standards`
 
 Aturan wajib untuk semua sesi kerja AI di repo ini.
 
@@ -39,7 +39,7 @@ public contract protection, redaction rule, final domain map, stack rules.
 
 Tidak untuk: bug notes, feature status, commit hash, temporary local state.
 
-### `docs/02-architecture/adr`
+### `docs/02_architecture/adr`
 
 Permanent decision records. Sequential numbered `NNNN-kebab-title.md`.
 
@@ -48,7 +48,7 @@ reporting boundary, data representation.
 
 Jika keputusan berubah: buat ADR baru yang supersede, jangan edit ADR lama.
 
-### `docs/03-blueprints`
+### `docs/03_blueprints`
 
 Design blueprints + DoD + Workflow per topik. Diorganisir dalam subfolder:
 
@@ -62,18 +62,18 @@ Design blueprints + DoD + Workflow per topik. Diorganisir dalam subfolder:
 
 Naming: `topic-name.md` (blueprint), `topic-name-dod.md` (DoD), `topic-name-workflow.md` (Workflow).
 
-### `docs/04-lifecycle`
+### `docs/04_lifecycle`
 
 Runtime records.
 
 - `error-log/` — individual bug/security findings, numbered `NNN-kebab-title.md`
 - `handoff/` — session recovery notes untuk sesi aktif/terbaru
 
-### `docs/05-audits`
+### `docs/05_audits`
 
 Formal audit records dengan date prefix `YYYY-MM-DD-topic.md`.
 
-### `docs/99-archive`
+### `docs/99_archive`
 
 Semua dokumen legacy, superseded, dan historical. Copy penuh, tidak dimodifikasi.
 
@@ -93,7 +93,7 @@ Semua dokumen legacy, superseded, dan historical. Copy penuh, tidak dimodifikasi
 | Error log | `NNN-kebab-title.md` | `009-cashiers-can-rewrite.md` |
 | Audit record | `YYYY-MM-DD-topic.md` | `2026-05-06-error-log-coverage.md` |
 | Handoff aktif | `YYYY-MM-DD-topic-handoff.md` | `2026-05-12-kotlin-skeleton-handoff.md` |
-| Folder | `kebab-case` | `error-log/`, `01-standards/` |
+| Folder | `kebab-case` | `error-log/`, `01_standards/` |
 
 ## Promotion Rule
 

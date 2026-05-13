@@ -13,4 +13,4 @@ Dokumen operasional untuk proses remediasi seluruh error log.
 
 ## Catatan
 
-Error log individual ada di `docs/04-lifecycle/error-log/`.
+Error log individual ada di `docs/04_lifecycle/error_log/`.

@@ -16,11 +16,11 @@ This document does not mark any seeder as clean, fixed, safe, idempotent, or pro
 
 ## Source Of Truth
 
-- docs/03-blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
-- docs/02-architecture/adr/0023-seeder-credential-and-environment-safety.md
-- docs/03-blueprints/security/adr-0023-seeder-safety.md
-- docs/99-archive/handoff/v2/seedernew/2026-04-26-seedernew-finance-blueprint-adr.md
-- docs/99-archive/handoff/v2/seedernew/2026-04-26-seedernew-scenario-matrix.md
+- docs/03_blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
+- docs/02_architecture/adr/0023-seeder-credential-and-environment-safety.md
+- docs/03_blueprints/security/adr-0023-seeder-safety.md
+- docs/99_archive/handoff/v2/seedernew/2026-04-26-seedernew-finance-blueprint-adr.md
+- docs/99_archive/handoff/v2/seedernew/2026-04-26-seedernew-scenario-matrix.md
 - local command output from 2026-05-11 inventory
 
 ## Classification Rule
@@ -345,8 +345,8 @@ Scope:
 
 - `database/seeders/UserSeeder.php`
 - `tests/Feature/Seeder/UserSeederCredentialBoundaryFeatureTest.php`
-- `docs/04-lifecycle/error-log/002-seeder-introduces-predictable-admin-credentials.md`
-- `docs/03-blueprints/seeder/2026-05-11-legacy-seeder-manifest.md`
+- `docs/04_lifecycle/error_log/002-seeder-introduces-predictable-admin-credentials.md`
+- `docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md`
 
 Status:
 
@@ -418,8 +418,8 @@ Scope:
 - `database/seeders/Product/ProductScenarioRecreatedSeeder.php`
 - `tests/Feature/Seeder/ProductSeederIdempotencyFeatureTest.php`
 - `tests/Feature/Seeder/UserSeederCredentialBoundaryFeatureTest.php`
-- `docs/03-blueprints/seeder/2026-05-11-legacy-seeder-manifest.md`
-- `docs/04-lifecycle/handoff/seeder/2026-05-11-product-recreated-seeder-idempotency-handoff.md`
+- `docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md`
+- `docs/04_lifecycle/handoff/seeder/2026-05-11-product-recreated-seeder-idempotency-handoff.md`
 
 Status:
 

@@ -365,8 +365,8 @@ Runtime files changed in the implementation slice:
 
 Docs files changed in the closure slice:
 
-- `docs/04-lifecycle/error-log/002-seeder-introduces-predictable-admin-credentials.md`
-- `docs/03-blueprints/seeder/2026-05-11-legacy-seeder-manifest.md`
+- `docs/04_lifecycle/error_log/002-seeder-introduces-predictable-admin-credentials.md`
+- `docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md`
 
 Runtime behavior now documented for this slice:
 
@@ -410,7 +410,7 @@ Closure snapshot proof:
 - local HEAD: `28b27745`
 - remote alignment: local `main`, `origin/main`, and `origin/HEAD` point to `28b27745`
 - working tree before docs closure was clean
-- handoff file exists at `docs/99-archive/handoff/seeder/2026-05-11-userseeder-credential-boundary-handoff.md`
+- handoff file exists at `docs/99_archive/handoff/seeder/2026-05-11-userseeder-credential-boundary-handoff.md`
 
 Residual gaps:
 

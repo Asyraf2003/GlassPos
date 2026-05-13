@@ -52,9 +52,9 @@ Do not touch stash.
 Expected files:
 
 ~~~text
-docs/blueprint/v2/note-finance/2026-04-29-note-finance-current-projection-addendum.md
+docs/blueprint/v2/note_finance/2026-04-29-note-finance-current-projection-addendum.md
 docs/adr/2026-04-29-note-current-projection-and-current-only-refund.md
-docs/handoff/v2/note-finance/2026-04-29-current-projection-refund-edit-handoff.md
+docs/handoff/v2/note_finance/2026-04-29-current-projection-refund-edit-handoff.md
 ~~~
 
 ## Parent Blueprint
@@ -62,7 +62,7 @@ docs/handoff/v2/note-finance/2026-04-29-current-projection-refund-edit-handoff.m
 Read first:
 
 ~~~text
-docs/blueprint/v2/note-finance/2026-04-29-note-finance-stabilization-blueprint.md
+docs/blueprint/v2/note_finance/2026-04-29-note-finance-stabilization-blueprint.md
 ~~~
 
 ## Current Root Bug
@@ -171,9 +171,9 @@ Already done:
 Create and commit:
 
 ~~~text
-docs/blueprint/v2/note-finance/2026-04-29-note-finance-current-projection-addendum.md
+docs/blueprint/v2/note_finance/2026-04-29-note-finance-current-projection-addendum.md
 docs/adr/2026-04-29-note-current-projection-and-current-only-refund.md
-docs/handoff/v2/note-finance/2026-04-29-current-projection-refund-edit-handoff.md
+docs/handoff/v2/note_finance/2026-04-29-current-projection-refund-edit-handoff.md
 tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php
 ~~~
 
@@ -301,9 +301,9 @@ Recommended command:
 ~~~bash
 git status --short
 git add \
-  docs/blueprint/v2/note-finance/2026-04-29-note-finance-current-projection-addendum.md \
+  docs/blueprint/v2/note_finance/2026-04-29-note-finance-current-projection-addendum.md \
   docs/adr/2026-04-29-note-current-projection-and-current-only-refund.md \
-  docs/handoff/v2/note-finance/2026-04-29-current-projection-refund-edit-handoff.md \
+  docs/handoff/v2/note_finance/2026-04-29-current-projection-refund-edit-handoff.md \
   tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php
 git diff --cached --name-only
 git diff --cached --stat
@@ -322,10 +322,10 @@ Kita lanjut dari repo Laravel kasir/bengkel branch audit-1461-selective-patch.
 Baca dulu:
 docs/AI_RULES/00_INDEX.md
 docs/AI_RULES/01_DECISION_POLICY.md
-docs/blueprint/v2/note-finance/2026-04-29-note-finance-stabilization-blueprint.md
-docs/blueprint/v2/note-finance/2026-04-29-note-finance-current-projection-addendum.md
+docs/blueprint/v2/note_finance/2026-04-29-note-finance-stabilization-blueprint.md
+docs/blueprint/v2/note_finance/2026-04-29-note-finance-current-projection-addendum.md
 docs/adr/2026-04-29-note-current-projection-and-current-only-refund.md
-docs/handoff/v2/note-finance/2026-04-29-current-projection-refund-edit-handoff.md
+docs/handoff/v2/note_finance/2026-04-29-current-projection-refund-edit-handoff.md
 
 Locked decision:
 Hybrid C+ current projection.

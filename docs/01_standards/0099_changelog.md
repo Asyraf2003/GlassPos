@@ -2,7 +2,7 @@
 
 ## 2026-05-12 - standards path normalization
 
-- Clarified docs/01-standards as the canonical standards root.
+- Clarified docs/01_standards as the canonical standards root.
 - Aligned bootstrap and usage guide references away from legacy root AI_RULES paths.
 - Kept historical handoff content historical instead of rewriting old proof.
 - Deferred file and folder rename until backlink audit.

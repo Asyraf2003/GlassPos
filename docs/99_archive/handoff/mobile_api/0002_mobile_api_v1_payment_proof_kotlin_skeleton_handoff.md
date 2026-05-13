@@ -315,7 +315,7 @@ git branch --show-current
 git log -1 --oneline
 
 sed -n '1,940p' docs/03_blueprints/mobile-api-v1.md
-sed -n '1,260p' docs/04_lifecycle/handoff/mobile-api/2026-05-12-mobile-api-v1-payment-proof-kotlin-skeleton-handoff.md
+sed -n '1,260p' docs/04_lifecycle/handoff/mobile_api/2026-05-12-mobile-api-v1-payment-proof-kotlin-skeleton-handoff.md
 
 php artisan route:list --path=api/v1
 
@@ -375,7 +375,7 @@ Repo/workspace:
 Read first:
 
 - `docs/03_blueprints/mobile-api-v1.md`
-- `docs/04_lifecycle/handoff/mobile-api/2026-05-12-mobile-api-v1-payment-proof-kotlin-skeleton-handoff.md`
+- `docs/04_lifecycle/handoff/mobile_api/2026-05-12-mobile-api-v1-payment-proof-kotlin-skeleton-handoff.md`
 
 Latest proven backend state:
 

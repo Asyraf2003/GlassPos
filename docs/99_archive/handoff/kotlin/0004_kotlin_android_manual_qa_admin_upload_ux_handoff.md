@@ -69,7 +69,7 @@ Explicitly out of scope:
 Read these first if context is lost:
 
 - `docs/03_blueprints/mobile-api-v1.md`
-- `docs/04_lifecycle/handoff/mobile-api/2026-05-12-mobile-api-v1-payment-proof-kotlin-skeleton-handoff.md`
+- `docs/04_lifecycle/handoff/mobile_api/2026-05-12-mobile-api-v1-payment-proof-kotlin-skeleton-handoff.md`
 - `docs/handoff/kotlin/2026-05-12-kotlin-android-skeleton-handoff.md`
 - Any newer handoff in `docs/handoff/kotlin/`
 

@@ -1,4 +1,4 @@
-# 02-architecture
+# 02_architecture
 
 Keputusan arsitektur permanen sistem Hyperpos.
 

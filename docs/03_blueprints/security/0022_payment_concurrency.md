@@ -6,7 +6,7 @@ Planning blueprint.
 
 This document is not an implementation patch.
 
-This document does not mark any `docs/04-lifecycle/error-log/*.md` finding as fixed.
+This document does not mark any `docs/04_lifecycle/error_log/*.md` finding as fixed.
 
 This document exists to make ADR-0022 execution rigid enough for CLI-based implementation later.
 
@@ -16,15 +16,15 @@ This is not a prototype, demo, or reduced-scope system.
 
 ## Source Of Truth
 
-- docs/02-architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
-- docs/04-lifecycle/error-log/010-revision-reallocation-can-lose-concurrent-payments.md
-- docs/04-lifecycle/error-log/026-concurrent-note-payments-can-over-allocate-balances.md
-- docs/05-audits/codex-security/2026-05-06-error-log-solution-and-adr-coverage-summary.md
-- docs/02-architecture/adr/0018-note-revision-settlement-external-product-lifecycle.md
-- docs/02-architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
-- docs/02-architecture/adr/0020-public-surface-output-storage-attachment-security.md
-- docs/03-blueprints/security/adr-0019-access-boundary.md
-- docs/03-blueprints/security/adr-0020-public-surface.md
+- docs/02_architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
+- docs/04_lifecycle/error_log/010-revision-reallocation-can-lose-concurrent-payments.md
+- docs/04_lifecycle/error_log/026-concurrent-note-payments-can-over-allocate-balances.md
+- docs/05_audits/codex_security/2026-05-06-error-log-solution-and-adr-coverage-summary.md
+- docs/02_architecture/adr/0018-note-revision-settlement-external-product-lifecycle.md
+- docs/02_architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
+- docs/02_architecture/adr/0020-public-surface-output-storage-attachment-security.md
+- docs/03_blueprints/security/adr-0019-access-boundary.md
+- docs/03_blueprints/security/adr-0020-public-surface.md
 - User owner decisions in planning session
 - User command output from local repository
 - Current source code at execution time
@@ -37,7 +37,7 @@ Local proof from user command output:
 
 showed:
 
-    ?? docs/02-architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
+    ?? docs/02_architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
 
 Meaning:
 
@@ -322,5 +322,5 @@ Forbidden protocol:
 
 ## Related Documents
 
-- DoD: docs/03-blueprints/security/adr-0022-payment-concurrency-dod.md
-- Workflow: docs/03-blueprints/security/adr-0022-payment-concurrency-workflow.md
+- DoD: docs/03_blueprints/security/adr-0022-payment-concurrency-dod.md
+- Workflow: docs/03_blueprints/security/adr-0022-payment-concurrency-workflow.md

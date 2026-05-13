@@ -17,4 +17,4 @@ Blueprint, DoD, dan Workflow untuk domain finance.
 
 ## ADR Terkait
 
-`docs/02-architecture/adr/0018-...`, `0024-...`, `0025-...`
+`docs/02_architecture/adr/0018-...`, `0024-...`, `0025-...`

@@ -70,8 +70,8 @@ This issue is an output URL-context vulnerability, not a product mutation author
 
 #### ADR / Rule Compatibility
 
-- docs/02-architecture/adr/0020-public-surface-output-storage-attachment-security.md: forbids javascript:, data:, external full URL, protocol-relative URL, and raw unvalidated URL from request.
-- docs/02-architecture/adr/0020-public-surface-output-storage-attachment-security.md: invalid return URL must fall back to a safe default route.
+- docs/02_architecture/adr/0020-public-surface-output-storage-attachment-security.md: forbids javascript:, data:, external full URL, protocol-relative URL, and raw unvalidated URL from request.
+- docs/02_architecture/adr/0020-public-surface-output-storage-attachment-security.md: invalid return URL must fall back to a safe default route.
 - Conflict: none found for this #025 local closure scope.
 
 #### RED Proof

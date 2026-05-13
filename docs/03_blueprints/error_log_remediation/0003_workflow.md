@@ -1,11 +1,11 @@
 # Error Log Remediation Workflow
 
 - **Status:** Planning workflow.
-- **Scope:** workflow eksekusi perbaikan docs/04-lifecycle/error-log/.
+- **Scope:** workflow eksekusi perbaikan docs/04_lifecycle/error_log/.
 - **Non-goal:** dokumen ini bukan patch source, bukan klaim fix, dan bukan instruksi membuat seeder.
 ## Tujuan
 
-- Workflow ini menjadi prosedur rigid untuk memproses seluruh masalah di docs/04-lifecycle/error-log/ sebagai satu rangkaian masalah yang saling bergantung, bukan daftar issue independen.
+- Workflow ini menjadi prosedur rigid untuk memproses seluruh masalah di docs/04_lifecycle/error_log/ sebagai satu rangkaian masalah yang saling bergantung, bukan daftar issue independen.
 **Tujuan utamanya:**
 - memastikan setiap klaim berbasis dokumen, source, dan command proof
 - memisahkan status dokumen dari status sebenarnya di source
@@ -19,7 +19,7 @@
 - membuat atau mengubah seeder
 - menjalankan perubahan production source
 - menganggap status Patched, Fixed, atau Fixed with proof sebagai benar tanpa verifikasi silang
-- mengklaim semua docs/04-lifecycle/error-log/ selesai
+- mengklaim semua docs/04_lifecycle/error_log/ selesai
 - melakukan commit atau push
 - memakai UI hiding sebagai security boundary
 - menutup issue tanpa RED proof, focused proof, dan docs alignment yang sesuai scope
@@ -27,25 +27,25 @@
 ## Source Priority
 
 **Keputusan harus mengikuti urutan prioritas ini:**
-- docs/04-lifecycle/error-log/
+- docs/04_lifecycle/error_log/
 - sumber utama daftar masalah
 - petakan issue, status, scope, proof, gap, risiko, dan relasi
 - status dokumen tidak otomatis dipercaya
-- docs/03-blueprints/security/
+- docs/03_blueprints/security/
 - batasan security, auditability, redaction, authorization, upload/proof, access control, hardening
 - blueprint 2026-05-06 ADR-0019 dipakai untuk access boundary
 - blueprint 2026-05-06 ADR-0020 dipakai untuk output, URL, storage, attachment, dan disclosure
 - Dokumen bertanggal 2026-05-05 dan 2026-05-06
 - cari patch notes, workflow, owner decision, dan blueprint yang relevan
 - dokumen tanggal baru punya bobot lebih kuat bila lebih spesifik
-- docs/02-architecture/adr/
+- docs/02_architecture/adr/
 - ADR terbaru menang atas ADR lama jika konflik
 - jika ADR lama dan baru konflik, tulis konflik, path dokumen, dan keputusan yang dipakai
 - jika ada dokumen lebih spesifik daripada ADR umum, dokumen spesifik dapat menang untuk slice itu
-- docs/03-blueprints/
+- docs/03_blueprints/
 **workflow baru harus selaras dengan:**
-- docs/03-blueprints/error-log-remediation/strict-closure-protocol.md
-- docs/03-blueprints/finance/finance-residual-workflow.md
+- docs/03_blueprints/error_log_remediation/strict-closure-protocol.md
+- docs/03_blueprints/finance/finance-residual-workflow.md
 - workflow ADR/security yang relevan
 - source dan local command output tetap menang atas workflow lama jika ada konflik
 ## Evidence Labels
@@ -83,7 +83,7 @@
 **FACT yang harus dikumpulkan:**
 - branch dan HEAD saat eksekusi
 - git status --short --untracked-files=all
-- daftar seluruh docs/04-lifecycle/error-log/*.md
+- daftar seluruh docs/04_lifecycle/error_log/*.md
 - jumlah error log aktual
 - daftar dokumen blueprint/security/ADR/workflow relevan
 - status dokumen per issue
@@ -366,7 +366,7 @@
 - final docs menghapus gap tanpa proof
 ### Step 13 - Documentation Update Gate
 
-- Update docs/04-lifecycle/error-log/ hanya setelah proof.
+- Update docs/04_lifecycle/error_log/ hanya setelah proof.
 **Error log closure harus mencatat:**
 - status baru dengan format konsisten
 - root cause final
@@ -438,15 +438,15 @@
 - source/test proof yang menang
 - keputusan workflow
 **Known conflict yang harus dijaga:**
-- docs/04-lifecycle/error-log/001-refunds-counted-as-paid-in-note-totals.md vs docs/04-lifecycle/error-log/003-refunded-revised-notes-are-misclassified-as-underpaid.md
+- docs/04_lifecycle/error_log/001-refunds-counted-as-paid-in-note-totals.md vs docs/04_lifecycle/error_log/003-refunded-revised-notes-are-misclassified-as-underpaid.md
 - #001 butuh active refund mengurangi settlement
 - #003 butuh historical refund tidak double-subtracted
 - fix valid harus membuktikan keduanya
-- docs/04-lifecycle/error-log/021-refunds-can-be-recorded-on-open-notes.md vs docs/04-lifecycle/error-log/022-cashier-refund-route-bypasses-note-access-guard.md
+- docs/04_lifecycle/error_log/021-refunds-can-be-recorded-on-open-notes.md vs docs/04_lifecycle/error_log/022-cashier-refund-route-bypasses-note-access-guard.md
 - #021 mengklaim controller menolak parent note open
 - #022 menyatakan open-note refund behavior tidak berubah dan current test masih membolehkan open-note refund
 - source/test proof saat eksekusi harus menang
-- docs/04-lifecycle/error-log/011-cashier-revision-path-mutates-settled-note-state.md
+- docs/04_lifecycle/error_log/011-cashier-revision-path-mutates-settled-note-state.md
 - guard cashier settled-note harus tetap aktif
 - admin official correction/revision route tidak boleh diblokir global
 - route-scoped decision terbaru harus menang

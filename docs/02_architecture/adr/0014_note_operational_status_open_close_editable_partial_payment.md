@@ -2,7 +2,7 @@
 
 - Status: Superseded
 - Date: 2026-04-15
-- Superseded by: docs/02-architecture/adr/0015-note-operational-status-open-close-editable-partial-payment.md
+- Superseded by: docs/02_architecture/adr/0015-note-operational-status-open-close-editable-partial-payment.md
 - Scope: Core Domain / Note / Payment / Refund / Cashier UI / Audit
 
 ## Reason
@@ -23,7 +23,7 @@ ADR-0015 is kept as the canonical decision record because it already uses the pr
 
 Read this file instead:
 
-- docs/02-architecture/adr/0015-note-operational-status-open-close-editable-partial-payment.md
+- docs/02_architecture/adr/0015-note-operational-status-open-close-editable-partial-payment.md
 
 ## Historical Note
 

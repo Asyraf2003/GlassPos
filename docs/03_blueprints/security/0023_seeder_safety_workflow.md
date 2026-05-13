@@ -5,7 +5,7 @@ Canonical Workflow.
 This file is not an implementation patch and does not mark any error log as fixed.
 
 ## Source
-- `docs/03-blueprints/security/adr-0023-seeder-safety.md`
+- `docs/03_blueprints/security/adr-0023-seeder-safety.md`
 
 
 ## Source Inventory Requirements
@@ -20,7 +20,7 @@ Before implementation, identify:
 - env checks inside seeders
 - artisan commands related to seed/bootstrap
 - tests that depend on seeded credentials
-- docs/99-archive/handoff/runbook that mention local credentials
+- docs/99_archive/handoff/runbook that mention local credentials
 - CI/test setup that runs seeders
 
 ## Suggested Discovery Commands
@@ -39,8 +39,8 @@ Run artisan seed references:
 
 Run document snapshot:
 
-    sed -n '1,260p' docs/02-architecture/adr/0023-seeder-credential-and-environment-safety.md
-    sed -n '1,260p' docs/04-lifecycle/error-log/002-seeder-introduces-predictable-admin-credentials.md
+    sed -n '1,260p' docs/02_architecture/adr/0023-seeder-credential-and-environment-safety.md
+    sed -n '1,260p' docs/04_lifecycle/error_log/002-seeder-introduces-predictable-admin-credentials.md
 
 ## Characterization Test Matrix
 
@@ -193,12 +193,12 @@ Rules:
 
 ### ADR-0023 Document Snapshot
 
-    sed -n '1,260p' docs/02-architecture/adr/0023-seeder-credential-and-environment-safety.md
-    sed -n '1,320p' docs/03-blueprints/security/adr-0023-seeder-safety.md
+    sed -n '1,260p' docs/02_architecture/adr/0023-seeder-credential-and-environment-safety.md
+    sed -n '1,320p' docs/03_blueprints/security/adr-0023-seeder-safety.md
 
 ### Error Log Snapshot
 
-    sed -n '1,260p' docs/04-lifecycle/error-log/002-seeder-introduces-predictable-admin-credentials.md
+    sed -n '1,260p' docs/04_lifecycle/error_log/002-seeder-introduces-predictable-admin-credentials.md
 
 ### Source Discovery
 
@@ -231,7 +231,7 @@ Run only relevant suites for the slice.
 
     git status --short --untracked-files=all
     git diff --stat
-    git diff -- docs/02-architecture/adr/0023-seeder-credential-and-environment-safety.md docs/03-blueprints/security/adr-0023-seeder-safety.md
+    git diff -- docs/02_architecture/adr/0023-seeder-credential-and-environment-safety.md docs/03_blueprints/security/adr-0023-seeder-safety.md
     git diff -- database app config tests docs/error_log docs
 
 ## Handoff Rule
@@ -272,5 +272,5 @@ Do not start with full seeder refactor before immediate predictable credential r
 
 ## Related Documents
 
-- Blueprint: docs/03-blueprints/security/adr-0023-seeder-safety.md
-- DoD: docs/03-blueprints/security/adr-0023-seeder-safety-dod.md
+- Blueprint: docs/03_blueprints/security/adr-0023-seeder-safety.md
+- DoD: docs/03_blueprints/security/adr-0023-seeder-safety-dod.md

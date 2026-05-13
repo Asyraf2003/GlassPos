@@ -288,7 +288,7 @@ Immediate follow-up:
 
 Recommended next residual target after #006 docs closure:
 
-- `#009` via `docs/03-blueprints/security/adr-0019-access-boundary-workflow.md`, unless owner chooses otherwise.
+- `#009` via `docs/03_blueprints/security/adr-0019-access-boundary-workflow.md`, unless owner chooses otherwise.
 
 Do not proceed to #009 before #006 docs closure is committed/pushed if the workflow requires clean residual-log bookkeeping.
 

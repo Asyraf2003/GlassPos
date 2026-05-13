@@ -8,7 +8,7 @@ Implementation status: not implemented yet.
 
 This ADR records owner-approved security direction for public surface, output context, storage boundary, attachment serving, unsafe URL handling, and disclosure policy.
 
-This ADR does not mark any `docs/04-lifecycle/error-log/*.md` finding as fixed.
+This ADR does not mark any `docs/04_lifecycle/error_log/*.md` finding as fixed.
 
 A finding is fixed only after characterization test, implementation proof, relevant blast-radius verification, owner review, and accepted diff.
 
@@ -644,7 +644,7 @@ Implementation proof must include relevant tests for:
 
 ## Documentation Rule
 
-`docs/04-lifecycle/error-log/*.md` may be updated only after implementation proof exists.
+`docs/04_lifecycle/error_log/*.md` may be updated only after implementation proof exists.
 
 ADR and blueprint may be created before implementation.
 
@@ -677,16 +677,16 @@ Stop immediately if:
 
 ## Related Documents
 
-- docs/05-audits/codex-security/2026-05-06-error-log-solution-and-adr-coverage-summary.md
-- docs/03-blueprints/security/adr-0019-access-boundary.md
-- docs/02-architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
-- docs/02-architecture/adr/0018-note-revision-settlement-external-product-lifecycle.md
-- docs/04-lifecycle/error-log/007-admin-note-edit-page-exposes-stored-xss.md
-- docs/04-lifecycle/error-log/023-public-helper-can-expose-private-storage.md
-- docs/04-lifecycle/error-log/024-reflected-xss-in-expense-create-json-config.md
-- docs/04-lifecycle/error-log/025-reflected-javascript-url-in-product-return-link.md
-- docs/04-lifecycle/error-log/028-di-fix-exposes-unsafe-proof-attachment-content-type.md
-- docs/04-lifecycle/error-log/029-cashier-create-page-leaks-total-note-count.md
+- docs/05_audits/codex_security/2026-05-06-error-log-solution-and-adr-coverage-summary.md
+- docs/03_blueprints/security/adr-0019-access-boundary.md
+- docs/02_architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
+- docs/02_architecture/adr/0018-note-revision-settlement-external-product-lifecycle.md
+- docs/04_lifecycle/error_log/007-admin-note-edit-page-exposes-stored-xss.md
+- docs/04_lifecycle/error_log/023-public-helper-can-expose-private-storage.md
+- docs/04_lifecycle/error_log/024-reflected-xss-in-expense-create-json-config.md
+- docs/04_lifecycle/error_log/025-reflected-javascript-url-in-product-return-link.md
+- docs/04_lifecycle/error_log/028-di-fix-exposes-unsafe-proof-attachment-content-type.md
+- docs/04_lifecycle/error_log/029-cashier-create-page-leaks-total-note-count.md
 
 ## Final Rule
 

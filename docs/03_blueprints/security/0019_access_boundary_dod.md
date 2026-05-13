@@ -5,7 +5,7 @@ Canonical DoD.
 This file is not an implementation patch and does not mark any error log as fixed.
 
 ## Source
-- `docs/03-blueprints/security/adr-0019-access-boundary.md`
+- `docs/03_blueprints/security/adr-0019-access-boundary.md`
 
 
 ## DoD For Planning
@@ -107,5 +107,5 @@ Meaning:
 
 ## Related Documents
 
-- Blueprint: docs/03-blueprints/security/adr-0019-access-boundary.md
-- Workflow: docs/03-blueprints/security/adr-0019-access-boundary-workflow.md
+- Blueprint: docs/03_blueprints/security/adr-0019-access-boundary.md
+- Workflow: docs/03_blueprints/security/adr-0019-access-boundary-workflow.md

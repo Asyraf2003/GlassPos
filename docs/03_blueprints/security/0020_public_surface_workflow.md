@@ -5,7 +5,7 @@ Canonical Workflow.
 This file is not an implementation patch and does not mark any error log as fixed.
 
 ## Source
-- `docs/03-blueprints/security/adr-0020-public-surface.md`
+- `docs/03_blueprints/security/adr-0020-public-surface.md`
 
 
 ## Characterization Test Matrix
@@ -176,7 +176,7 @@ Recommended slice order:
 5. Slice 5 attachment MIME/content-disposition
 6. Slice 6 count/stat disclosure
 7. ADR-0020 blast-radius verification
-8. final handoff update in docs/04-lifecycle/handoff
+8. final handoff update in docs/04_lifecycle/handoff
 
 ## CLI Workflow
 
@@ -211,19 +211,19 @@ Run before any implementation slice:
 
 Run before selecting a slice:
 
-    sed -n '1,260p' docs/02-architecture/adr/0020-public-surface-output-storage-attachment-security.md
-    sed -n '1,320p' docs/03-blueprints/security/adr-0020-public-surface.md
+    sed -n '1,260p' docs/02_architecture/adr/0020-public-surface-output-storage-attachment-security.md
+    sed -n '1,320p' docs/03_blueprints/security/adr-0020-public-surface.md
 
 ### Error Log Snapshot
 
 Run before selecting ADR-0020 slice:
 
-    sed -n '1,220p' docs/04-lifecycle/error-log/007-admin-note-edit-page-exposes-stored-xss.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/023-public-helper-can-expose-private-storage.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/024-reflected-xss-in-expense-create-json-config.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/025-reflected-javascript-url-in-product-return-link.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/028-di-fix-exposes-unsafe-proof-attachment-content-type.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/029-cashier-create-page-leaks-total-note-count.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/007-admin-note-edit-page-exposes-stored-xss.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/023-public-helper-can-expose-private-storage.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/024-reflected-xss-in-expense-create-json-config.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/025-reflected-javascript-url-in-product-return-link.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/028-di-fix-exposes-unsafe-proof-attachment-content-type.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/029-cashier-create-page-leaks-total-note-count.md
 
 ### Surface Discovery
 
@@ -265,7 +265,7 @@ Before docs/error_log update or commit:
 
     git status --short
     git diff --stat
-    git diff -- docs/02-architecture/adr/0020-public-surface-output-storage-attachment-security.md docs/03-blueprints/security/adr-0020-public-surface.md
+    git diff -- docs/02_architecture/adr/0020-public-surface-output-storage-attachment-security.md docs/03_blueprints/security/adr-0020-public-surface.md
     git diff -- app routes resources tests docs/error_log
 
 ## Handoff Rule
@@ -306,5 +306,5 @@ Do not start with storage/attachment or disclosure until output context slice is
 
 ## Related Documents
 
-- Blueprint: docs/03-blueprints/security/adr-0020-public-surface.md
-- DoD: docs/03-blueprints/security/adr-0020-public-surface-dod.md
+- Blueprint: docs/03_blueprints/security/adr-0020-public-surface.md
+- DoD: docs/03_blueprints/security/adr-0020-public-surface-dod.md

@@ -31,12 +31,12 @@ If source and docs conflict, source wins until docs are updated.
 
 Read these first for this initiative:
 
-docs/03_blueprints/v2/note-finance/2026-05-12-note-revision-refund-ledger-blueprint.md
-docs/03_blueprints/v2/note-finance/2026-05-12-note-revision-refund-ledger-workflow.md
-docs/03_blueprints/v2/note-finance/2026-05-12-note-revision-refund-ledger-dod.md
+docs/03_blueprints/v2/note_finance/2026-05-12-note-revision-refund-ledger-blueprint.md
+docs/03_blueprints/v2/note_finance/2026-05-12-note-revision-refund-ledger-workflow.md
+docs/03_blueprints/v2/note_finance/2026-05-12-note-revision-refund-ledger-dod.md
 docs/02_architecture/adr/0018-note-revision-settlement-external-product-lifecycle.md
 docs/02_architecture/adr/2026-05-04-note-revision-carry-forward-settlement.md
-docs/03_blueprints/v2/note-finance/2026-05-06-error-log-finance-residual-implementation-blueprint.md
+docs/03_blueprints/v2/note_finance/2026-05-06-error-log-finance-residual-implementation-blueprint.md
 docs/04_lifecycle/error_log/005-note-revision-silently-drops-overpaid-allocations.md
 docs/02_architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
 docs/02_architecture/adr/0021-note-detail-hybrid-versioning-billing-refund.md

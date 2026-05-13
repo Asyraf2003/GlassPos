@@ -5,7 +5,7 @@ Canonical Workflow.
 This file is not an implementation patch and does not mark any error log as fixed.
 
 ## Source
-- `docs/03-blueprints/security/adr-0019-access-boundary.md`
+- `docs/03_blueprints/security/adr-0019-access-boundary.md`
 
 
 ## Characterization Test Matrix
@@ -183,16 +183,16 @@ Run when route behavior is involved:
 
 Run before selecting a slice:
 
-    sed -n '1,260p' docs/02-architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/009-cashiers-can-rewrite-closed-paid-notes-via-workspace-update.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/015-refunded-notes-expose-edit-workspace.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/016-unauthenticated-admin-capability-toggle-endpoints.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/018-refunded-notes-bypass-cashier-closed-note-guards.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/019-cashiers-can-list-historical-closed-notes-by-date.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/020-admin-note-actions-bypass-transaction-capability.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/022-cashier-refund-route-bypasses-note-access-guard.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/027-admin-invoice-creation-bypasses-transaction-entry-gate.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/029-cashier-create-page-leaks-total-note-count.md
+    sed -n '1,260p' docs/02_architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/009-cashiers-can-rewrite-closed-paid-notes-via-workspace-update.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/015-refunded-notes-expose-edit-workspace.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/016-unauthenticated-admin-capability-toggle-endpoints.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/018-refunded-notes-bypass-cashier-closed-note-guards.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/019-cashiers-can-list-historical-closed-notes-by-date.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/020-admin-note-actions-bypass-transaction-capability.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/022-cashier-refund-route-bypasses-note-access-guard.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/027-admin-invoice-creation-bypasses-transaction-entry-gate.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/029-cashier-create-page-leaks-total-note-count.md
 
 ### Exact Class Discovery
 
@@ -220,5 +220,5 @@ After ADR-0019 blueprint is accepted, continue with:
 
 ## Related Documents
 
-- Blueprint: docs/03-blueprints/security/adr-0019-access-boundary.md
-- DoD: docs/03-blueprints/security/adr-0019-access-boundary-dod.md
+- Blueprint: docs/03_blueprints/security/adr-0019-access-boundary.md
+- DoD: docs/03_blueprints/security/adr-0019-access-boundary-dod.md

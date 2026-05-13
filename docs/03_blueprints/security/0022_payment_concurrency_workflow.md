@@ -5,7 +5,7 @@ Canonical Workflow.
 This file is not an implementation patch and does not mark any error log as fixed.
 
 ## Source
-- `docs/03-blueprints/security/adr-0022-payment-concurrency.md`
+- `docs/03_blueprints/security/adr-0022-payment-concurrency.md`
 
 
 ## Source Inventory Requirements
@@ -43,9 +43,9 @@ Run route discovery:
 
 Run document snapshot:
 
-    sed -n '1,260p' docs/02-architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
-    sed -n '1,260p' docs/04-lifecycle/error-log/010-revision-reallocation-can-lose-concurrent-payments.md
-    sed -n '1,260p' docs/04-lifecycle/error-log/026-concurrent-note-payments-can-over-allocate-balances.md
+    sed -n '1,260p' docs/02_architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
+    sed -n '1,260p' docs/04_lifecycle/error_log/010-revision-reallocation-can-lose-concurrent-payments.md
+    sed -n '1,260p' docs/04_lifecycle/error_log/026-concurrent-note-payments-can-over-allocate-balances.md
 
 ## Characterization Test Matrix
 
@@ -221,13 +221,13 @@ Rules:
 
 ### ADR-0022 Document Snapshot
 
-    sed -n '1,260p' docs/02-architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
-    sed -n '1,320p' docs/03-blueprints/security/adr-0022-payment-concurrency.md
+    sed -n '1,260p' docs/02_architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
+    sed -n '1,320p' docs/03_blueprints/security/adr-0022-payment-concurrency.md
 
 ### Error Log Snapshot
 
-    sed -n '1,260p' docs/04-lifecycle/error-log/010-revision-reallocation-can-lose-concurrent-payments.md
-    sed -n '1,260p' docs/04-lifecycle/error-log/026-concurrent-note-payments-can-over-allocate-balances.md
+    sed -n '1,260p' docs/04_lifecycle/error_log/010-revision-reallocation-can-lose-concurrent-payments.md
+    sed -n '1,260p' docs/04_lifecycle/error_log/026-concurrent-note-payments-can-over-allocate-balances.md
 
 ### Source Discovery
 
@@ -256,7 +256,7 @@ Run only the relevant blast-radius suites for the slice.
 
     git status --short --untracked-files=all
     git diff --stat
-    git diff -- docs/02-architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md docs/03-blueprints/security/adr-0022-payment-concurrency.md
+    git diff -- docs/02_architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md docs/03_blueprints/security/adr-0022-payment-concurrency.md
     git diff -- app routes tests docs/error_log
 
 ## Handoff Rule
@@ -298,5 +298,5 @@ Do not begin with DB constraints or idempotency storage unless owner explicitly 
 
 ## Related Documents
 
-- Blueprint: docs/03-blueprints/security/adr-0022-payment-concurrency.md
-- DoD: docs/03-blueprints/security/adr-0022-payment-concurrency-dod.md
+- Blueprint: docs/03_blueprints/security/adr-0022-payment-concurrency.md
+- DoD: docs/03_blueprints/security/adr-0022-payment-concurrency-dod.md

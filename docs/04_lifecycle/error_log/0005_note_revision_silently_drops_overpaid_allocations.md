@@ -198,7 +198,7 @@ Efek patch:
 - tests/Feature/Note/NoteReplacementOverpaidAllocationReplayFeatureTest.php
 - tests/Feature/Note/CashierProductReplacementBackdatedPriceFinanceFeatureTest.php
 - tests/Feature/Note/CashierServiceStoreStockReplacementBackdatedPriceFinanceFeatureTest.php
-- docs/04-lifecycle/error-log/005-note-revision-silently-drops-overpaid-allocations.md
+- docs/04_lifecycle/error_log/005-note-revision-silently-drops-overpaid-allocations.md
 
 ## Proof Dari Patch Session
 

@@ -5,7 +5,7 @@ Canonical Workflow.
 This file is not an implementation patch and does not mark any error log as fixed.
 
 ## Source
-- `docs/03-blueprints/finance/finance-residual.md`
+- `docs/03_blueprints/finance/finance-residual.md`
 
 
 ## Preferred Implementation Slices
@@ -225,25 +225,25 @@ Run route discovery:
 
 Run document snapshot:
 
-    sed -n '1,260p' docs/02-architecture/adr/0018-note-revision-settlement-external-product-lifecycle.md
-    sed -n '1,260p' docs/02-architecture/adr/0025-note-revision-carry-forward-settlement.md
-    sed -n '1,260p' docs/03-blueprints/v2/note-finance/2026-04-29-note-finance-stabilization-blueprint.md
-    sed -n '1,260p' docs/03-blueprints/v2/note-finance/2026-04-29-note-finance-current-projection-addendum.md
+    sed -n '1,260p' docs/02_architecture/adr/0018-note-revision-settlement-external-product-lifecycle.md
+    sed -n '1,260p' docs/02_architecture/adr/0025-note-revision-carry-forward-settlement.md
+    sed -n '1,260p' docs/03_blueprints/v2/note_finance/2026-04-29-note-finance-stabilization-blueprint.md
+    sed -n '1,260p' docs/03_blueprints/v2/note_finance/2026-04-29-note-finance-current-projection-addendum.md
 
 Run error log snapshot:
 
-    sed -n '1,220p' docs/04-lifecycle/error-log/001-refunds-counted-as-paid-in-note-totals.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/003-refunded-revised-notes-are-misclassified-as-underpaid.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/004-refunded-work-items-survive-revisions-and-inflate-stock.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/005-note-revision-silently-drops-overpaid-allocations.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/006-client-controlled-price-basis-bypasses-minimum-price-checks.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/008-legacy-paid-notes-can-be-paid-again.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/011-cashier-revision-path-mutates-settled-note-state.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/012-canceled-note-rows-re-enter-payment-flows.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/013-forged-row-refund-can-auto-finalize-unpaid-notes.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/014-refund-endpoint-can-cancel-open-or-unpaid-note-rows.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/017-workspace-edit-payments-ignore-existing-note-payments.md
-    sed -n '1,220p' docs/04-lifecycle/error-log/021-refunds-can-be-recorded-on-open-notes.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/001-refunds-counted-as-paid-in-note-totals.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/003-refunded-revised-notes-are-misclassified-as-underpaid.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/004-refunded-work-items-survive-revisions-and-inflate-stock.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/005-note-revision-silently-drops-overpaid-allocations.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/006-client-controlled-price-basis-bypasses-minimum-price-checks.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/008-legacy-paid-notes-can-be-paid-again.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/011-cashier-revision-path-mutates-settled-note-state.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/012-canceled-note-rows-re-enter-payment-flows.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/013-forged-row-refund-can-auto-finalize-unpaid-notes.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/014-refund-endpoint-can-cancel-open-or-unpaid-note-rows.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/017-workspace-edit-payments-ignore-existing-note-payments.md
+    sed -n '1,220p' docs/04_lifecycle/error_log/021-refunds-can-be-recorded-on-open-notes.md
 
 ## Characterization Test Rules
 
@@ -287,7 +287,7 @@ Rules:
 
 ### Blueprint Snapshot
 
-    sed -n '1,320p' docs/03-blueprints/finance/finance-residual.md
+    sed -n '1,320p' docs/03_blueprints/finance/finance-residual.md
 
 ### Test Pattern
 
@@ -309,8 +309,8 @@ Run only relevant suites for the selected slice and source changes.
 
     git status --short --untracked-files=all
     git diff --stat
-    git diff -- docs/03-blueprints/finance/finance-residual.md
-    git diff -- app routes tests docs/04-lifecycle/error-log docs/02-architecture/adr docs/03-blueprints
+    git diff -- docs/03_blueprints/finance/finance-residual.md
+    git diff -- app routes tests docs/04_lifecycle/error-log docs/02_architecture/adr docs/03_blueprints
 
 ## Handoff Rule
 
@@ -353,5 +353,5 @@ Do not begin with generic reader gross-back patch unless consumer semantics are 
 
 ## Related Documents
 
-- Blueprint: docs/03-blueprints/finance/finance-residual.md
-- DoD: docs/03-blueprints/finance/finance-residual-dod.md
+- Blueprint: docs/03_blueprints/finance/finance-residual.md
+- DoD: docs/03_blueprints/finance/finance-residual-dod.md

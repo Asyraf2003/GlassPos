@@ -15,15 +15,15 @@ Bootstrap ini wajib mencegah AI:
 
 Sebelum mulai bekerja pada sesi baru, GPT wajib membaca minimal:
 
-1. `docs/01-standards/00-index.md`
-2. `docs/01-standards/01-decision-policy.md`
-3. `docs/01-standards/03-session-start-protocol.md`
-4. `docs/01-standards/core/10-scope-and-facts.md`
-5. `docs/01-standards/core/11-blueprint-first.md`
-6. `docs/01-standards/core/12-step-by-step-execution.md`
-7. `docs/01-standards/core/13-proof-and-progress.md`
-8. `docs/01-standards/workflow/21-active-step-policy.md`
-9. `docs/01-standards/output/33-terminal-command-delivery.md`
+1. `docs/01_standards/00-index.md`
+2. `docs/01_standards/01-decision-policy.md`
+3. `docs/01_standards/03-session-start-protocol.md`
+4. `docs/01_standards/core/10-scope-and-facts.md`
+5. `docs/01_standards/core/11-blueprint-first.md`
+6. `docs/01_standards/core/12-step-by-step-execution.md`
+7. `docs/01_standards/core/13-proof-and-progress.md`
+8. `docs/01_standards/workflow/21-active-step-policy.md`
+9. `docs/01_standards/output/33-terminal-command-delivery.md`
 10. relevant blueprint, ADR, handoff, error log, branch, commit, or command output explicitly named by user
 
 If the user names a specific blueprint, ADR, handoff, error log, branch, commit, command output, or active step, those references define the active scope until the user changes it.
@@ -71,7 +71,7 @@ Jika pertanyaan sederhana, jawab langsung. Jangan membuat format berat untuk hal
 
 ## Rule Prioritas
 
-- Ikuti `docs/01-standards/01-decision-policy.md`.
+- Ikuti `docs/01_standards/01-decision-policy.md`.
 - AI_RULES mengalahkan perilaku default model.
 - P0 mengalahkan P1/P2.
 - Aturan yang lebih spesifik mengalahkan aturan umum.

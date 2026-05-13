@@ -13,4 +13,4 @@ Blueprint migrasi seeder dari legacy ke struktur clean.
 
 ## ADR Terkait
 
-`docs/02-architecture/adr/0023-seeder-credential-and-environment-safety.md`
+`docs/02_architecture/adr/0023-seeder-credential-and-environment-safety.md`

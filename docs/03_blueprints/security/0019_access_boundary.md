@@ -12,18 +12,18 @@ This document exists to make ADR-0019 execution rigid enough for CLI-based imple
 
 ## Source Of Truth
 
-- docs/02-architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
-- docs/02-architecture/adr/0018-note-revision-settlement-external-product-lifecycle.md
-- docs/05-audits/codex-security/2026-05-06-error-log-solution-and-adr-coverage-summary.md
-- docs/04-lifecycle/error-log/009-cashiers-can-rewrite-closed-paid-notes-via-workspace-update.md
-- docs/04-lifecycle/error-log/015-refunded-notes-expose-edit-workspace.md
-- docs/04-lifecycle/error-log/016-unauthenticated-admin-capability-toggle-endpoints.md
-- docs/04-lifecycle/error-log/018-refunded-notes-bypass-cashier-closed-note-guards.md
-- docs/04-lifecycle/error-log/019-cashiers-can-list-historical-closed-notes-by-date.md
-- docs/04-lifecycle/error-log/020-admin-note-actions-bypass-transaction-capability.md
-- docs/04-lifecycle/error-log/022-cashier-refund-route-bypasses-note-access-guard.md
-- docs/04-lifecycle/error-log/027-admin-invoice-creation-bypasses-transaction-entry-gate.md
-- docs/04-lifecycle/error-log/029-cashier-create-page-leaks-total-note-count.md
+- docs/02_architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
+- docs/02_architecture/adr/0018-note-revision-settlement-external-product-lifecycle.md
+- docs/05_audits/codex_security/2026-05-06-error-log-solution-and-adr-coverage-summary.md
+- docs/04_lifecycle/error_log/009-cashiers-can-rewrite-closed-paid-notes-via-workspace-update.md
+- docs/04_lifecycle/error_log/015-refunded-notes-expose-edit-workspace.md
+- docs/04_lifecycle/error_log/016-unauthenticated-admin-capability-toggle-endpoints.md
+- docs/04_lifecycle/error_log/018-refunded-notes-bypass-cashier-closed-note-guards.md
+- docs/04_lifecycle/error_log/019-cashiers-can-list-historical-closed-notes-by-date.md
+- docs/04_lifecycle/error_log/020-admin-note-actions-bypass-transaction-capability.md
+- docs/04_lifecycle/error_log/022-cashier-refund-route-bypasses-note-access-guard.md
+- docs/04_lifecycle/error_log/027-admin-invoice-creation-bypasses-transaction-entry-gate.md
+- docs/04_lifecycle/error_log/029-cashier-create-page-leaks-total-note-count.md
 - User owner decisions in planning session
 - User command output from local repository
 - Current source code at execution time
@@ -572,5 +572,5 @@ Examples:
 
 ## Related Documents
 
-- DoD: docs/03-blueprints/security/adr-0019-access-boundary-dod.md
-- Workflow: docs/03-blueprints/security/adr-0019-access-boundary-workflow.md
+- DoD: docs/03_blueprints/security/adr-0019-access-boundary-dod.md
+- Workflow: docs/03_blueprints/security/adr-0019-access-boundary-workflow.md

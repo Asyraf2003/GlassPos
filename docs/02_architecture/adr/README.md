@@ -12,9 +12,9 @@ Use ADRs when you need to know the accepted decision behind a domain or architec
 
 Start with:
 
-1. docs/01-standards/00-index.md
-2. docs/01-standards/01-decision-policy.md
-3. docs/02-architecture/adr/README.md
+1. docs/01_standards/00-index.md
+2. docs/01_standards/01-decision-policy.md
+3. docs/02_architecture/adr/README.md
 4. the ADR relevant to the current scope
 
 ## ADR Status Values
@@ -43,7 +43,7 @@ Superseded.
 
 Canonical replacement:
 
-- docs/02-architecture/adr/0015-note-operational-status-open-close-editable-partial-payment.md
+- docs/02_architecture/adr/0015-note-operational-status-open-close-editable-partial-payment.md
 
 Reason:
 
@@ -63,7 +63,7 @@ Note operational status uses open and close with editable partial payment.
 
 Current file:
 
-- docs/02-architecture/adr/0024-note-current-projection-and-current-only-refund.md
+- docs/02_architecture/adr/0024-note-current-projection-and-current-only-refund.md
 
 Status:
 
@@ -75,9 +75,9 @@ This file is accepted, but its filename does not follow the numbered ADR convent
 
 Backlink audit result:
 
-- docs/02-architecture/adr/README.md
-- docs/03-blueprints/v2/note-finance/2026-04-29-note-finance-current-projection-addendum.md
-- docs/99-archive/handoff/v2/note-finance/2026-04-29-current-projection-refund-edit-handoff.md
+- docs/02_architecture/adr/README.md
+- docs/03_blueprints/v2/note_finance/2026-04-29-note-finance-current-projection-addendum.md
+- docs/99_archive/handoff/v2/note_finance/2026-04-29-current-projection-refund-edit-handoff.md
 
 Decision:
 
@@ -89,7 +89,7 @@ Do not rename it only for visual cleanup.
 
 Preferred ADR filename:
 
-- docs/02-architecture/adr/0016-short-decision-name.md
+- docs/02_architecture/adr/0016-short-decision-name.md
 
 Date belongs inside the file metadata, not as the primary ADR identity.
 

@@ -1,3 +1,5 @@
+Date: 2026-05-04
+
 # Audit — Refunded revisions undercount paid totals
 
 ## Status
@@ -38,9 +40,9 @@ Repo local baseline:
 Binding docs:
 
 - docs/AI_RULES/00-index.md
-- docs/03-blueprints/v2/note-finance/2026-04-29-note-finance-stabilization-blueprint.md
-- docs/03-blueprints/v2/note-finance/2026-04-29-note-finance-current-projection-addendum.md
-- docs/99-archive/handoff/v2/note-finance/2026-04-30-adr-0016-completion-handoff.md
+- docs/03_blueprints/v2/note_finance/2026-04-29-note-finance-stabilization-blueprint.md
+- docs/03_blueprints/v2/note_finance/2026-04-29-note-finance-current-projection-addendum.md
+- docs/99_archive/handoff/v2/note_finance/2026-04-30-adr-0016-completion-handoff.md
 
 ## Locked project/domain rules
 

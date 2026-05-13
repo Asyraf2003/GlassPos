@@ -5,9 +5,9 @@
 - Tanggal: 2026-04-29
 - Scope: Note Finance Stabilization
 - Status: ACTIVE ADDENDUM
-- Parent blueprint: docs/03-blueprints/v2/note-finance/2026-04-29-note-finance-stabilization-blueprint.md
-- Related ADR: docs/02-architecture/adr/0024-note-current-projection-and-current-only-refund.md
-- Related handoff: docs/99-archive/handoff/v2/note-finance/2026-04-29-current-projection-refund-edit-handoff.md
+- Parent blueprint: docs/03_blueprints/v2/note_finance/2026-04-29-note-finance-stabilization-blueprint.md
+- Related ADR: docs/02_architecture/adr/0024-note-current-projection-and-current-only-refund.md
+- Related handoff: docs/99_archive/handoff/v2/note_finance/2026-04-29-current-projection-refund-edit-handoff.md
 
 ---
 

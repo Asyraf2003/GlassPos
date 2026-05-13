@@ -1,3 +1,5 @@
+Date: 2026-05-06
+
 # Error Log Solution, Option, and ADR Coverage Summary
 
 ## Status
@@ -6,7 +8,7 @@ Draft for owner review.
 
 ## Purpose
 
-This document summarizes the solution direction for all `docs/04-lifecycle/error-log/*.md` findings.
+This document summarizes the solution direction for all `docs/04_lifecycle/error_log/*.md` findings.
 
 The purpose is not to decide final fixes.
 
@@ -54,8 +56,8 @@ A finding is only final when the owner accepts the decision and verification pro
 
 ## Source Of Truth
 
-- Local repository files under `docs/04-lifecycle/error-log/*.md`
-- Existing ADR and blueprint documents in `docs/02-architecture/adr/` and `docs/03-blueprints/`
+- Local repository files under `docs/04_lifecycle/error_log/*.md`
+- Existing ADR and blueprint documents in `docs/02_architecture/adr/` and `docs/03_blueprints/`
 - Existing project rules under `docs/AI_RULES/`
 - User command output
 - Source code current state when implementation starts

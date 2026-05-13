@@ -10,18 +10,18 @@ This document does not mark any seeder, error log, or make seed level as fixed.
 
 ## Source Of Truth
 
-- docs/01-standards/00-index.md
-- docs/01-standards/01-decision-policy.md
-- docs/01-standards/core/10-scope-and-facts.md
-- docs/01-standards/core/11-blueprint-first.md
-- docs/01-standards/core/12-step-by-step-execution.md
-- docs/01-standards/core/13-proof-and-progress.md
-- docs/02-architecture/adr/0023-seeder-credential-and-environment-safety.md
-- docs/03-blueprints/security/adr-0023-seeder-safety.md
-- docs/99-archive/handoff/v2/seedernew/2026-04-26-seedernew-finance-blueprint-adr.md
-- docs/99-archive/handoff/v2/seedernew/2026-04-26-seedernew-scenario-matrix.md
-- docs/99-archive/handoff/v2/seedernew/2026-04-26-seedernew-audit-command-proof.md
-- docs/99-archive/handoff/v2/seedernew/2026-04-26-seedernew-make2-idempotency-proof.md
+- docs/01_standards/00-index.md
+- docs/01_standards/01-decision-policy.md
+- docs/01_standards/core/10-scope-and-facts.md
+- docs/01_standards/core/11-blueprint-first.md
+- docs/01_standards/core/12-step-by-step-execution.md
+- docs/01_standards/core/13-proof-and-progress.md
+- docs/02_architecture/adr/0023-seeder-credential-and-environment-safety.md
+- docs/03_blueprints/security/adr-0023-seeder-safety.md
+- docs/99_archive/handoff/v2/seedernew/2026-04-26-seedernew-finance-blueprint-adr.md
+- docs/99_archive/handoff/v2/seedernew/2026-04-26-seedernew-scenario-matrix.md
+- docs/99_archive/handoff/v2/seedernew/2026-04-26-seedernew-audit-command-proof.md
+- docs/99_archive/handoff/v2/seedernew/2026-04-26-seedernew-make2-idempotency-proof.md
 - current local command output at execution time
 
 ## Problem Statement
@@ -235,7 +235,7 @@ Allowed future file-level marker format:
      * @deprecated Legacy compatibility seeder.
      *
      * Do not extend this path for new clean scenarios.
-     * See docs/03-blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md.
+     * See docs/03_blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md.
      */
 
 File-level marker must not be added to generated/support helpers blindly if the helper remains part of clean flow.
@@ -268,7 +268,7 @@ Create a manifest that maps each seeder to:
 
 Recommended path:
 
-- docs/03-blueprints/seeder/2026-05-11-legacy-seeder-manifest.md
+- docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md
 
 ### Step 3: Clean Contract Lock
 

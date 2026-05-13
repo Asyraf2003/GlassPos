@@ -68,7 +68,7 @@ This issue is an output-context/rendering vulnerability, not a mutation authoriz
 
 #### ADR / Rule Compatibility
 
-- docs/02-architecture/adr/0020-public-surface-output-storage-attachment-security.md: requires safe JavaScript config encoding, context-aware output, no raw user-controlled HTML, and no final fixed claim from patch existence alone.
+- docs/02_architecture/adr/0020-public-surface-output-storage-attachment-security.md: requires safe JavaScript config encoding, context-aware output, no raw user-controlled HTML, and no final fixed claim from patch existence alone.
 - Conflict: none found for this #024 local closure scope.
 
 #### RED Proof

@@ -28,7 +28,7 @@ Urutan wajib:
 6. Run focused tests.
 7. Run `make verify`.
 8. Commit kecil.
-9. Buat handoff kasus di `docs/99-archive/handoff/v2/feature-continuation/`.
+9. Buat handoff kasus di `docs/99_archive/handoff/v2/feature_continuation/`.
 10. Update status ledger di file ini.
 
 Jangan menaikkan progress tanpa proof command output.
@@ -59,7 +59,7 @@ P2 tidak boleh mengganggu P0/P1.
 
 | ID | Priority | Case | Status | Last Proof | Handoff |
 |---|---:|---|---|---|---|
-| FC-000 | P0 | System ambiguity inventory after abandoned feature work | CLOSED | Repo snapshot mapped cash change, dashboard, supplier payable notification, PDF, and UI stash ambiguity | `docs/99-archive/handoff/v2/feature-continuation/01-system-ambiguity-inventory.md` |
+| FC-000 | P0 | System ambiguity inventory after abandoned feature work | CLOSED | Repo snapshot mapped cash change, dashboard, supplier payable notification, PDF, and UI stash ambiguity | `docs/99_archive/handoff/v2/feature_continuation/01-system-ambiguity-inventory.md` |
 | FC-001 | P0 | Supplier payable push notification H-5 sampai lunas | OPEN | Snapshot menemukan supplier payable report dan push infra, belum ada supplier payable push handler/command | Pending |
 | FC-002 | P1 | Dashboard potensi uang kembalian di Kinerja Operasional Bulan Ini | OPEN | Snapshot menemukan `change_rupiah`, belum ada dashboard field/metric terkait | Pending |
 | FC-003 | P1 | Kalkulator pecahan uang kembalian | OPEN/PARTIAL | Cash change persisted, belum ada denomination calculator proof | Pending |
@@ -319,7 +319,7 @@ Jangan pop sebelum ada keputusan UI wording dan update test terkait.
 
 Setiap selesai satu kasus, buat file:
 
-`docs/99-archive/handoff/v2/feature-continuation/YYYY-MM-DD-FC-XXX-short-name.md`
+`docs/99_archive/handoff/v2/feature_continuation/YYYY-MM-DD-FC-XXX-short-name.md`
 
 Template:
 

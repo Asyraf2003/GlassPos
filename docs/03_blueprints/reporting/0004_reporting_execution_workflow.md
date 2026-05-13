@@ -16,7 +16,7 @@ Workflow ini dibuat agar tim tidak:
 
 Dokumen ini adalah workflow pelaksanaan dari blueprint:
 
-- `docs/99-archive/handoff/v2/report/00-reporting-blueprint-handoff.md`
+- `docs/99_archive/handoff/v2/report/00-reporting-blueprint-handoff.md`
 
 ---
 

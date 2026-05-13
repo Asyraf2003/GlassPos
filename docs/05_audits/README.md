@@ -1,4 +1,4 @@
-# 05-audits
+# 05_audits
 
 Formal audit records — proof of work yang berdiri sendiri.
 

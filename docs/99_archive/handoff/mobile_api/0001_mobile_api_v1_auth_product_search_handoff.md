@@ -247,7 +247,7 @@ pwd
 git status --short
 git branch --show-current
 git log -1 --oneline
-sed -n '1,260p' docs/04_lifecycle/handoff/mobile-api/2026-05-12-mobile-api-v1-auth-product-search-handoff.md
+sed -n '1,260p' docs/04_lifecycle/handoff/mobile_api/2026-05-12-mobile-api-v1-auth-product-search-handoff.md
 grep -n "Mobile API Auth Foundation\|products/search\|Product search\|Implementation Proof Log\|Next Step" docs/03_blueprints/mobile-api-v1.md | sed -n '1,220p'
 php artisan route:list --path=api/v1
 
@@ -279,7 +279,7 @@ Repo/workspace:
 - Do not create Android files inside /app
 
 Read first:
-- docs/04_lifecycle/handoff/mobile-api/2026-05-12-mobile-api-v1-auth-product-search-handoff.md
+- docs/04_lifecycle/handoff/mobile_api/2026-05-12-mobile-api-v1-auth-product-search-handoff.md
 - docs/03_blueprints/mobile-api-v1.md
 - relevant rules under docs/01_standards
 

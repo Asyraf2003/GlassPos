@@ -19,12 +19,12 @@ Future work must migrate it toward a clean, deterministic, auditable seeder syst
 Before editing any seeder file, read:
 
 1. database/seeders/README.md
-2. docs/03-blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
-3. docs/03-blueprints/seeder/2026-05-11-legacy-seeder-manifest.md
-4. docs/02-architecture/adr/0023-seeder-credential-and-environment-safety.md
-5. docs/03-blueprints/security/adr-0023-seeder-safety.md
-6. docs/99-archive/handoff/v2/seedernew/2026-04-26-seedernew-finance-blueprint-adr.md
-7. docs/99-archive/handoff/v2/seedernew/2026-04-26-seedernew-scenario-matrix.md
+2. docs/03_blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
+3. docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md
+4. docs/02_architecture/adr/0023-seeder-credential-and-environment-safety.md
+5. docs/03_blueprints/security/adr-0023-seeder-safety.md
+6. docs/99_archive/handoff/v2/seedernew/2026-04-26-seedernew-finance-blueprint-adr.md
+7. docs/99_archive/handoff/v2/seedernew/2026-04-26-seedernew-scenario-matrix.md
 
 ## Workflow Rule
 

@@ -13,4 +13,4 @@ Blueprint dan DoD untuk fitur reporting dan export.
 
 ## ADR Terkait
 
-`docs/02-architecture/adr/0009-reporting-as-read-model.md`
+`docs/02_architecture/adr/0009-reporting-as-read-model.md`

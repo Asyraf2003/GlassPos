@@ -1,4 +1,4 @@
-# 01-standards
+# 01_standards
 
 Aturan wajib untuk semua sesi kerja AI di repo ini. Semua file di sini bersifat permanen dan tidak berubah kecuali ada keputusan eksplisit dari owner.
 
@@ -24,4 +24,4 @@ Aturan wajib untuk semua sesi kerja AI di repo ini. Semua file di sini bersifat 
 ## Aturan
 
 Jangan tambahkan file baru ke sini kecuali itu adalah mandatory AI rule yang berlaku untuk semua sesi.
-DoD, workflow, dan blueprint per topik ada di `docs/03-blueprints/`.
+DoD, workflow, dan blueprint per topik ada di `docs/03_blueprints/`.

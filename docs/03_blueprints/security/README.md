@@ -13,5 +13,5 @@ Blueprint, DoD, dan Workflow untuk 4 ADR keamanan sistem.
 
 ## ADR Canonical
 
-ADR teksnya ada di `docs/02-architecture/adr/0019-...` s/d `0023-...`.
+ADR teksnya ada di `docs/02_architecture/adr/0019-...` s/d `0023-...`.
 File di folder ini adalah eksekusi (blueprint design + DoD + workflow), bukan keputusan permanen.

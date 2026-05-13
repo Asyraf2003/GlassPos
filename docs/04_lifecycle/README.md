@@ -1,4 +1,4 @@
-# 04-lifecycle
+# 04_lifecycle
 
 Runtime records — rekam jejak operasional sistem yang terus bertambah.
 
@@ -12,4 +12,4 @@ Runtime records — rekam jejak operasional sistem yang terus bertambah.
 ## Aturan
 
 - `error-log/` tidak boleh dihapus atau diubah statusnya tanpa proof dan owner acceptance.
-- `handoff/` adalah untuk sesi terbaru saja — setelah selesai, pindah ke `docs/99-archive/handoff/`.
+- `handoff/` adalah untuk sesi terbaru saja — setelah selesai, pindah ke `docs/99_archive/handoff/`.

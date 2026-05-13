@@ -5,7 +5,7 @@ Canonical DoD.
 This file is not an implementation patch and does not mark any error log as fixed.
 
 ## Source
-- `docs/03-blueprints/finance/finance-residual.md`
+- `docs/03_blueprints/finance/finance-residual.md`
 
 
 ## DoD For Planning
@@ -107,7 +107,7 @@ Suggested final proof should include:
 
 ## Error Log Update Rule
 
-Do not update `docs/04-lifecycle/error-log/*.md` before implementation proof.
+Do not update `docs/04_lifecycle/error_log/*.md` before implementation proof.
 
 When updating a finance error log, include:
 
@@ -165,5 +165,5 @@ Stop immediately if:
 
 ## Related Documents
 
-- Blueprint: docs/03-blueprints/finance/finance-residual.md
-- Workflow: docs/03-blueprints/finance/finance-residual-workflow.md
+- Blueprint: docs/03_blueprints/finance/finance-residual.md
+- Workflow: docs/03_blueprints/finance/finance-residual-workflow.md

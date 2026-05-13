@@ -6,7 +6,7 @@ Planning blueprint.
 
 This document is not an implementation patch.
 
-This document does not mark any `docs/04-lifecycle/error-log/*.md` finding as fixed.
+This document does not mark any `docs/04_lifecycle/error_log/*.md` finding as fixed.
 
 This document exists to make ADR-0020 execution rigid enough for CLI-based implementation later.
 
@@ -16,17 +16,17 @@ This is not a prototype, demo, or reduced-scope system.
 
 ## Source Of Truth
 
-- docs/02-architecture/adr/0020-public-surface-output-storage-attachment-security.md
-- docs/05-audits/codex-security/2026-05-06-error-log-solution-and-adr-coverage-summary.md
-- docs/03-blueprints/security/adr-0019-access-boundary.md
-- docs/02-architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
-- docs/02-architecture/adr/0018-note-revision-settlement-external-product-lifecycle.md
-- docs/04-lifecycle/error-log/007-admin-note-edit-page-exposes-stored-xss.md
-- docs/04-lifecycle/error-log/023-public-helper-can-expose-private-storage.md
-- docs/04-lifecycle/error-log/024-reflected-xss-in-expense-create-json-config.md
-- docs/04-lifecycle/error-log/025-reflected-javascript-url-in-product-return-link.md
-- docs/04-lifecycle/error-log/028-di-fix-exposes-unsafe-proof-attachment-content-type.md
-- docs/04-lifecycle/error-log/029-cashier-create-page-leaks-total-note-count.md
+- docs/02_architecture/adr/0020-public-surface-output-storage-attachment-security.md
+- docs/05_audits/codex_security/2026-05-06-error-log-solution-and-adr-coverage-summary.md
+- docs/03_blueprints/security/adr-0019-access-boundary.md
+- docs/02_architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
+- docs/02_architecture/adr/0018-note-revision-settlement-external-product-lifecycle.md
+- docs/04_lifecycle/error_log/007-admin-note-edit-page-exposes-stored-xss.md
+- docs/04_lifecycle/error_log/023-public-helper-can-expose-private-storage.md
+- docs/04_lifecycle/error_log/024-reflected-xss-in-expense-create-json-config.md
+- docs/04_lifecycle/error_log/025-reflected-javascript-url-in-product-return-link.md
+- docs/04_lifecycle/error_log/028-di-fix-exposes-unsafe-proof-attachment-content-type.md
+- docs/04_lifecycle/error_log/029-cashier-create-page-leaks-total-note-count.md
 - User owner decisions in planning session
 - User command output from local repository
 - Current source code at execution time
@@ -39,7 +39,7 @@ Local proof from user command output:
 
 showed:
 
-    ?? docs/02-architecture/adr/0020-public-surface-output-storage-attachment-security.md
+    ?? docs/02_architecture/adr/0020-public-surface-output-storage-attachment-security.md
 
 Meaning:
 
@@ -512,5 +512,5 @@ Output:
 
 ## Related Documents
 
-- DoD: docs/03-blueprints/security/adr-0020-public-surface-dod.md
-- Workflow: docs/03-blueprints/security/adr-0020-public-surface-workflow.md
+- DoD: docs/03_blueprints/security/adr-0020-public-surface-dod.md
+- Workflow: docs/03_blueprints/security/adr-0020-public-surface-workflow.md

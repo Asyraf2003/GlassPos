@@ -7,10 +7,10 @@
 - Status: ACTIVE BLUEPRINT
 - Pemilik keputusan: project owner / engineer
 - Sumber aturan kerja:
-  - docs/01-standards/00-index.md
-  - docs/01-standards/01-decision-policy.md
-  - docs/01-standards/architecture/
-  - docs/01-standards/domain/
+  - docs/01_standards/00-index.md
+  - docs/01_standards/01-decision-policy.md
+  - docs/01_standards/architecture/
+  - docs/01_standards/domain/
 - Scope besar:
   - note revision
   - payment allocation
@@ -380,7 +380,7 @@ Scope ini belum boleh disebut selesai sebelum semua item berikut terpenuhi.
 
 ### 9.1 Documentation DoD
 
-- Blueprint ini ada di docs/03-blueprints/v2/note-finance/.
+- Blueprint ini ada di docs/03_blueprints/v2/note_finance/.
 - Setiap keputusan domain baru dicatat di blueprint atau ADR/handoff terkait.
 - Jika AI_RULES perlu pointer baru, changelog harus ditambah.
 - Tidak semua detail scope dimasukkan ke AI_RULES; AI_RULES tetap constitution kerja, blueprint ini menjadi contract scope.
@@ -440,9 +440,9 @@ Manual test minimal:
 
 Saat membuka sesi baru untuk scope ini, AI wajib membaca:
 
-1. docs/01-standards/00-index.md
-2. docs/01-standards/01-decision-policy.md
-3. docs/03-blueprints/v2/note-finance/2026-04-29-note-finance-stabilization-blueprint.md
+1. docs/01_standards/00-index.md
+2. docs/01_standards/01-decision-policy.md
+3. docs/03_blueprints/v2/note_finance/2026-04-29-note-finance-stabilization-blueprint.md
 4. handoff terakhir yang relevan
 5. command output lokal terbaru dari user
 

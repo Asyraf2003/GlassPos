@@ -8,7 +8,7 @@ Implementation status: not implemented yet.
 
 This ADR records owner-approved direction for same-note payment allocation concurrency, revision/payment serialization, and over-allocation protection.
 
-This ADR does not mark any `docs/04-lifecycle/error-log/*.md` finding as fixed.
+This ADR does not mark any `docs/04_lifecycle/error_log/*.md` finding as fixed.
 
 A finding is fixed only after characterization test, implementation proof, relevant blast-radius verification, owner review, and accepted diff.
 
@@ -39,8 +39,8 @@ The final solution must be enforced in application/database transaction boundari
 
 ADR-0022 covers:
 
-- `docs/04-lifecycle/error-log/010-revision-reallocation-can-lose-concurrent-payments.md`
-- `docs/04-lifecycle/error-log/026-concurrent-note-payments-can-over-allocate-balances.md`
+- `docs/04_lifecycle/error_log/010-revision-reallocation-can-lose-concurrent-payments.md`
+- `docs/04_lifecycle/error_log/026-concurrent-note-payments-can-over-allocate-balances.md`
 
 ADR-0022 may influence future implementation checks around:
 
@@ -694,7 +694,7 @@ Implementation proof must include relevant checks for:
 
 ## Documentation Rule
 
-`docs/04-lifecycle/error-log/*.md` may be updated only after implementation proof exists.
+`docs/04_lifecycle/error_log/*.md` may be updated only after implementation proof exists.
 
 For concurrency findings, documentation must be extra explicit about proof quality.
 
@@ -730,14 +730,14 @@ Stop immediately if:
 
 ## Related Documents
 
-- docs/04-lifecycle/error-log/010-revision-reallocation-can-lose-concurrent-payments.md
-- docs/04-lifecycle/error-log/026-concurrent-note-payments-can-over-allocate-balances.md
-- docs/05-audits/codex-security/2026-05-06-error-log-solution-and-adr-coverage-summary.md
-- docs/02-architecture/adr/0018-note-revision-settlement-external-product-lifecycle.md
-- docs/02-architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
-- docs/02-architecture/adr/0020-public-surface-output-storage-attachment-security.md
-- docs/03-blueprints/security/adr-0019-access-boundary.md
-- docs/03-blueprints/security/adr-0020-public-surface.md
+- docs/04_lifecycle/error_log/010-revision-reallocation-can-lose-concurrent-payments.md
+- docs/04_lifecycle/error_log/026-concurrent-note-payments-can-over-allocate-balances.md
+- docs/05_audits/codex_security/2026-05-06-error-log-solution-and-adr-coverage-summary.md
+- docs/02_architecture/adr/0018-note-revision-settlement-external-product-lifecycle.md
+- docs/02_architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
+- docs/02_architecture/adr/0020-public-surface-output-storage-attachment-security.md
+- docs/03_blueprints/security/adr-0019-access-boundary.md
+- docs/03_blueprints/security/adr-0020-public-surface.md
 
 ## Final Rule
 

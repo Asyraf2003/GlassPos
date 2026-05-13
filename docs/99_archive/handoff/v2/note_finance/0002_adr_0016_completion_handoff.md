@@ -284,7 +284,7 @@ ADR-0016 implementation is completed for the current stabilization slice.
 
 Completion handoff:
 
-docs/handoff/v2/note-finance/2026-04-30-adr-0016-completion-handoff.md
+docs/handoff/v2/note_finance/2026-04-30-adr-0016-completion-handoff.md
 
 Completed commits:
 
@@ -342,4 +342,4 @@ sed -n '1,18p' docs/adr/0016-post-close-note-correction-and-refund-flexibility.m
 
 echo
 echo "== HANDOFF PREVIEW =="
-sed -n '1,80p' docs/handoff/v2/note-finance/2026-04-30-adr-0016-completion-handoff.md
+sed -n '1,80p' docs/handoff/v2/note_finance/2026-04-30-adr-0016-completion-handoff.md

@@ -103,7 +103,7 @@ This issue is an output-context/rendering vulnerability, not a server-side autho
 
 #### ADR / Rule Compatibility
 
-- `docs/02-architecture/adr/0020-public-surface-output-storage-attachment-security.md`: requires context-aware output, safe JavaScript config encoding, no raw user-controlled HTML, and no final fixed claim from patch existence alone.
+- `docs/02_architecture/adr/0020-public-surface-output-storage-attachment-security.md`: requires context-aware output, safe JavaScript config encoding, no raw user-controlled HTML, and no final fixed claim from patch existence alone.
 - Conflict: none found for this #007 local closure scope.
 
 #### RED Proof

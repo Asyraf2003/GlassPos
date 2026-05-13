@@ -8,7 +8,7 @@ Implementation status: not implemented yet.
 
 This ADR records owner-approved direction for seeder credential safety, environment boundary, and predictable credential prevention.
 
-This ADR does not mark any `docs/04-lifecycle/error-log/*.md` finding as fixed.
+This ADR does not mark any `docs/04_lifecycle/error_log/*.md` finding as fixed.
 
 A finding is fixed only after characterization test, implementation proof, relevant verification, owner review, and accepted diff.
 
@@ -30,7 +30,7 @@ A seeder that works safely in local can become a security issue if it can run in
 
 ADR-0023 covers:
 
-- `docs/04-lifecycle/error-log/002-seeder-introduces-predictable-admin-credentials.md`
+- `docs/04_lifecycle/error_log/002-seeder-introduces-predictable-admin-credentials.md`
 
 ## Problem Statement
 
@@ -440,7 +440,7 @@ Implementation proof must include:
 
 ## Documentation Rule
 
-`docs/04-lifecycle/error-log/002-seeder-introduces-predictable-admin-credentials.md` may be updated only after proof exists.
+`docs/04_lifecycle/error_log/002-seeder-introduces-predictable-admin-credentials.md` may be updated only after proof exists.
 
 The update must include:
 
@@ -471,11 +471,11 @@ Stop immediately if:
 
 ## Related Documents
 
-- docs/04-lifecycle/error-log/002-seeder-introduces-predictable-admin-credentials.md
-- docs/05-audits/codex-security/2026-05-06-error-log-solution-and-adr-coverage-summary.md
-- docs/02-architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
-- docs/02-architecture/adr/0020-public-surface-output-storage-attachment-security.md
-- docs/02-architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
+- docs/04_lifecycle/error_log/002-seeder-introduces-predictable-admin-credentials.md
+- docs/05_audits/codex_security/2026-05-06-error-log-solution-and-adr-coverage-summary.md
+- docs/02_architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
+- docs/02_architecture/adr/0020-public-surface-output-storage-attachment-security.md
+- docs/02_architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
 
 ## Final Rule
 

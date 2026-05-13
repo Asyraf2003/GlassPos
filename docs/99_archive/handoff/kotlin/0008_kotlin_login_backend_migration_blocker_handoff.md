@@ -27,7 +27,7 @@ Read these before technical work:
 
 - docs/handoff/kotlin/2026-05-12-kotlin-android-skeleton-handoff.md
 - docs/03_blueprints/mobile-api-v1.md
-- docs/04_lifecycle/handoff/mobile-api/2026-05-12-mobile-api-v1-payment-proof-kotlin-skeleton-handoff.md
+- docs/04_lifecycle/handoff/mobile_api/2026-05-12-mobile-api-v1-payment-proof-kotlin-skeleton-handoff.md
 - docs/handof/kotlin/2026-05-12-kotlin-login-backend-migration-blocker-handoff.md
 
 Command output from the user remains the highest source of truth.

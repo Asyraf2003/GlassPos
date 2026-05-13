@@ -155,7 +155,7 @@ Blueprint updated locally:
 
 Handoff updated locally:
 
-- docs/04_lifecycle/handoff/mobile-api/2026-05-12-mobile-api-v1-payment-proof-kotlin-skeleton-handoff.md
+- docs/04_lifecycle/handoff/mobile_api/2026-05-12-mobile-api-v1-payment-proof-kotlin-skeleton-handoff.md
 
 New Kotlin handoff file:
 
@@ -315,7 +315,7 @@ git diff --stat
 git log -1 --oneline
 
 echo "--- docs anchors proof ---"
-grep -n "Draft 5\|Kotlin Android Skeleton Build and Device Install\|installed app-debug.apk\|Kotlin workspace is not inside" docs/03_blueprints/mobile-api-v1.md docs/04_lifecycle/handoff/mobile-api/2026-05-12-mobile-api-v1-payment-proof-kotlin-skeleton-handoff.md docs/handoff/kotlin/2026-05-12-kotlin-android-skeleton-handoff.md | sed -n '1,320p'
+grep -n "Draft 5\|Kotlin Android Skeleton Build and Device Install\|installed app-debug.apk\|Kotlin workspace is not inside" docs/03_blueprints/mobile-api-v1.md docs/04_lifecycle/handoff/mobile_api/2026-05-12-mobile-api-v1-payment-proof-kotlin-skeleton-handoff.md docs/handoff/kotlin/2026-05-12-kotlin-android-skeleton-handoff.md | sed -n '1,320p'
 
 echo "--- kotlin smoke proof ---"
 cd /home/asyraf/Code/laravel/bengkel2/kotlin

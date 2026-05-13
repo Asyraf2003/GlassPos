@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document is the canonical workflow for promoting `docs/04-lifecycle/error-log/*.md` items from patched-or-better status into strict fixed status.
+This document is the canonical workflow for promoting `docs/04_lifecycle/error_log/*.md` items from patched-or-better status into strict fixed status.
 
 This file exists because prose status, stale docs, and partial UI-only patches are not proof.
 
@@ -165,13 +165,13 @@ If an ADR conflict exists, stop and record the conflict. Do not patch around it 
 
 Common note/refund/workspace ADRs:
 
-- docs/02-architecture/adr/0015-note-operational-status-open-close-editable-partial-payment.md
-- docs/02-architecture/adr/0016-post-close-note-correction-and-refund-flexibility.md
-- docs/02-architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
-- docs/02-architecture/adr/0021-note-detail-hybrid-versioning-billing-refund.md
-- docs/02-architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
-- docs/02-architecture/adr/0024-note-current-projection-and-current-only-refund.md
-- docs/02-architecture/adr/0025-note-revision-carry-forward-settlement.md
+- docs/02_architecture/adr/0015-note-operational-status-open-close-editable-partial-payment.md
+- docs/02_architecture/adr/0016-post-close-note-correction-and-refund-flexibility.md
+- docs/02_architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
+- docs/02_architecture/adr/0021-note-detail-hybrid-versioning-billing-refund.md
+- docs/02_architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
+- docs/02_architecture/adr/0024-note-current-projection-and-current-only-refund.md
+- docs/02_architecture/adr/0025-note-revision-carry-forward-settlement.md
 
 ### Gate 8 - Docs Alignment
 

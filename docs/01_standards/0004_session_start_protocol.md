@@ -135,7 +135,7 @@ Saat ada konflik, gunakan urutan ini:
 7. Docs/error_log status.
 8. Assistant recommendation.
 
-Status naratif di `docs/04-lifecycle/error-log/*.md` tidak boleh mengalahkan source code atau command output.
+Status naratif di `docs/04_lifecycle/error_log/*.md` tidak boleh mengalahkan source code atau command output.
 
 ## Wrong-Scope Recovery
 

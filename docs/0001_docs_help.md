@@ -6,8 +6,8 @@ Run make docs-help to see where to start without reading every docs file.
 
 Start here for every AI or human session:
 1. docs/README.md
-2. docs/01-standards/ai-usage-guide.md
-3. docs/01-standards/00-index.md
+2. docs/01_standards/ai-usage-guide.md
+3. docs/01_standards/00-index.md
 4. The active blueprint for the current scope
 5. The latest handoff for the current scope
 6. The latest local command output from the operator
@@ -21,40 +21,40 @@ Priority of truth:
 6. Older handoff or archive notes
 
 Doc categories:
-- docs/01-standards
+- docs/01_standards
   Mandatory repo rules for all AI sessions.
   Contains decision policy, workflow policy, output policy, architecture rules, domain map, stack rules, and handoff template.
 
-- docs/02-architecture/adr
+- docs/02_architecture/adr
   Permanent accepted decisions.
   Use for long-lived architecture, domain, lifecycle, and reporting decisions.
 
-- docs/03-blueprints
+- docs/03_blueprints
   Active or recent design contracts for a scope.
   Use before implementation.
 
-- docs/04-lifecycle
+- docs/04_lifecycle
   Roadmap and process flow.
   Some tests still reference this folder, so do not rename it casually.
 
-- docs/03-blueprints (topic-name-dod.md)
+- docs/03_blueprints (topic-name-dod.md)
   Definition of done.
 
-- docs/04-lifecycle/handoff
+- docs/04_lifecycle/handoff
   Historical session logs and recovery notes.
   Do not treat old handoffs as permanent decisions unless promoted into ADR or active blueprint.
 
-- docs/03-blueprints/v2 or docs/99-archive/handoff/v2
+- docs/03_blueprints/v2 or docs/99_archive/handoff/v2
   V2 continuation lane.
   This is for app-running-while-improving work, feature continuation, live local gaps, and UI/session recovery notes.
 
-- docs/99-archive/handoff/ui
+- docs/99_archive/handoff/ui
   Error and audit notes.
 
 Known cleanup warnings:
 - ADR 0014 is now a superseded pointer to ADR 0015. ADR 0015 is the canonical decision record.
-- docs/99-archive/handoff/handoff_template.md is legacy compared with docs/01-standards/04-handoff-template.md.
-- docs/03-blueprints/v2/feature-continuation/00-blueprint.md is more like a control ledger than a normal blueprint.
+- docs/99_archive/handoff/handoff_template.md is legacy compared with docs/01_standards/04-handoff-template.md.
+- docs/03_blueprints/v2/feature_continuation/00-blueprint.md is more like a control ledger than a normal blueprint.
 - Some docs reference stale paths such as docs/setting_control. Treat them as historical unless proven active.
 - Do not move docs before grep backlink audit.
 
@@ -72,7 +72,7 @@ For humans:
 
 - Then open:
   docs/README.md
-  docs/01-standards/ai-usage-guide.md
+  docs/01_standards/ai-usage-guide.md
 
 Session rule:
 If context risk is 80 percent or higher, create a handoff before continuing large work.

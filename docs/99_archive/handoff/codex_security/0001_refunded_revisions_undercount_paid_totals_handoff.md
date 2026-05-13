@@ -20,7 +20,7 @@ Known `git status --short` after cleanup:
 ~~~text
 ?? docs/adr/2026-05-04-note-revision-carry-forward-settlement.mdAudit doc exists on disk:
 
-docs/audit/codex-security/2026-05-04-refunded-revisions-undercount-paid-totals-audit.md
+docs/audit/codex_security/2026-05-04-refunded-revisions-undercount-paid-totals-audit.md
 
 ADR draft exists on disk:
 
@@ -51,9 +51,9 @@ When a note with previous payment/refund is revised, active allocation can repre
 
 Binding docs:
 
-docs/blueprint/v2/note-finance/2026-04-29-note-finance-stabilization-blueprint.md
-docs/blueprint/v2/note-finance/2026-04-29-note-finance-current-projection-addendum.md
-docs/handoff/v2/note-finance/2026-04-30-adr-0016-completion-handoff.md
+docs/blueprint/v2/note_finance/2026-04-29-note-finance-stabilization-blueprint.md
+docs/blueprint/v2/note_finance/2026-04-29-note-finance-current-projection-addendum.md
+docs/handoff/v2/note_finance/2026-04-30-adr-0016-completion-handoff.md
 
 Key constraints:
 
@@ -98,7 +98,7 @@ Record the owner decision and prevent accidental reader-level patching without s
 
 File:
 
-docs/audit/codex-security/2026-05-04-refunded-revisions-undercount-paid-totals-audit.md
+docs/audit/codex_security/2026-05-04-refunded-revisions-undercount-paid-totals-audit.md
 
 Purpose:
 
@@ -140,7 +140,7 @@ git rev-parse --short HEAD
 git branch --show-current
 
 sed -n '1,260p' docs/adr/2026-05-04-note-revision-carry-forward-settlement.md
-sed -n '1,260p' docs/audit/codex-security/2026-05-04-refunded-revisions-undercount-paid-totals-audit.md
+sed -n '1,260p' docs/audit/codex_security/2026-05-04-refunded-revisions-undercount-paid-totals-audit.md
 
 Then ask owner to approve the ADR wording before writing production tests.
 

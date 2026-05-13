@@ -40,4 +40,4 @@
 
 - Status file hanya boleh diupdate setelah ada proof.
 - Allowed status: Reported, Planned, Patched with verification gap, Fixed with proof, Deferred with owner acceptance.
-- Blueprint remediasi ada di `docs/03-blueprints/error-log-remediation/`.
+- Blueprint remediasi ada di `docs/03_blueprints/error_log_remediation/`.

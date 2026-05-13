@@ -3,7 +3,7 @@
 ## Status
 Dokumen ini adalah entrypoint wajib untuk setiap GPT/AI assistant yang akan bekerja pada project ini.
 
-AI_RULES adalah nama paket aturan kerja AI untuk repo ini. Lokasi canonical paket standards saat ini adalah docs/01-standards.
+AI_RULES adalah nama paket aturan kerja AI untuk repo ini. Lokasi canonical paket standards saat ini adalah docs/01_standards.
 
 ## Tujuan
 AI_RULES mengunci cara kerja AI agar:
@@ -101,7 +101,7 @@ Sebelum menjawab, GPT wajib memastikan:
 
 ## Package Content Classification
 
-`docs/01-standards` berisi canonical AI_RULES standards package saja.
+`docs/01_standards` berisi canonical AI_RULES standards package saja.
 
 Canonical standards:
 - 00-index.md
@@ -119,8 +119,8 @@ Canonical standards:
 - stack/
 - 99-changelog.md
 
-DoD, workflow, dan blueprint per topik ada di `docs/03-blueprints/`.
-Legacy dan historical ada di `docs/99-archive/`.
+DoD, workflow, dan blueprint per topik ada di `docs/03_blueprints/`.
+Legacy dan historical ada di `docs/99_archive/`.
 
 ## Non-Negotiable Behavior
 - Dilarang mengarang fakta.
