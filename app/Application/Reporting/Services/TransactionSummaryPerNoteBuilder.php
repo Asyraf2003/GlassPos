@@ -35,7 +35,7 @@ final class TransactionSummaryPerNoteBuilder
                 $row['gross_transaction_rupiah'],
                 $row['allocated_payment_rupiah'],
                 $row['refunded_rupiah'],
-                $row['refund_due_rupiah'] ?? 0,
+                $row['refund_due_rupiah'],
                 $this->statusLabels->resolve(
                     $row['gross_transaction_rupiah'],
                     $row['allocated_payment_rupiah'],

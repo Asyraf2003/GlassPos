@@ -77,6 +77,7 @@ final class TransactionReportPdfExportFeatureTest extends TestCase
                 ['label' => 'Total Transaksi', 'value' => 'Rp 150.000'],
                 ['label' => 'Total Dibayar', 'value' => 'Rp 149.999'],
                 ['label' => 'Total Refund', 'value' => 'Rp 9.000'],
+                ['label' => 'Refund Due', 'value' => 'Rp 0'],
                 ['label' => 'Net Dibayar', 'value' => 'Rp 140.999'],
                 ['label' => 'Sisa Piutang', 'value' => 'Rp 9.001'],
             ],
@@ -88,6 +89,7 @@ final class TransactionReportPdfExportFeatureTest extends TestCase
                     'total' => 'Rp 100.000',
                     'paid' => 'Rp 99.999',
                     'refund' => 'Rp 9.000',
+                    'refund_due' => 'Rp 0',
                     'net_paid' => 'Rp 90.999',
                     'outstanding' => 'Rp 9.001',
                     'status' => 'Ada Refund',
@@ -98,6 +100,7 @@ final class TransactionReportPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Laporan Transaksi', $html);
         $this->assertStringContainsString('Jumlah Nota', $html);
         $this->assertStringContainsString('Total Refund', $html);
+        $this->assertStringContainsString('Refund Due', $html);
         $this->assertStringContainsString('Sisa Piutang', $html);
         $this->assertStringContainsString('Ada Refund', $html);
     }

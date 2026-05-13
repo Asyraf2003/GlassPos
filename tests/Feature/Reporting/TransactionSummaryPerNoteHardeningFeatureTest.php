@@ -72,6 +72,7 @@ final class TransactionSummaryPerNoteHardeningFeatureTest extends TestCase
             'gross_transaction_rupiah' => 100000,
             'allocated_payment_rupiah' => 99999,
             'refunded_rupiah' => 9000,
+            'refund_due_rupiah' => 0,
             'net_cash_collected_rupiah' => 90999,
             'outstanding_rupiah' => 9001,
         ], $daily);
