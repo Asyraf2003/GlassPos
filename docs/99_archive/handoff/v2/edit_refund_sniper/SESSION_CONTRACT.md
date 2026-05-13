@@ -87,6 +87,41 @@ Do not ask for git proof as ceremony.
 
 Preserve context for edit/refund source audit.
 
+## Anti Review Loop Policy
+
+Later sessions must not restart broad review just because a new session started.
+
+If the latest handoff states that source audit, targeted proof, focused proof, docs proof, or make verify already passed, the next session must treat that as prior completed work and continue from the documented Next Active Step.
+
+Re-review is allowed only when there is a real trigger:
+
+- user provides new contradictory command output
+- tests fail unexpectedly
+- source and docs conflict
+- the next slice depends on source that was not previously inspected
+- the handoff explicitly marks a gap that blocks the next step
+- owner requests a review
+
+Owner statements are accepted as source-of-truth baseline proof:
+
+- clean
+- pushed
+- latest
+- local and repo identical except ignored files
+- make verify pass
+
+These statements are FACT.
+
+They are not assumptions.
+
+They are not gaps.
+
+Do not ask for git status, git log, git diff, git diff --check, or make verify as a ritual.
+
+If a post-closure issue appears later, record it as technical debt or a next-session blocker unless it contradicts the current proof.
+
+The goal is continuity, not repeatedly charging the owner a context tax because AI has the memory discipline of a caffeinated goldfish.
+
 ## Required Response Shape
 
 Every technical implementation response must include:

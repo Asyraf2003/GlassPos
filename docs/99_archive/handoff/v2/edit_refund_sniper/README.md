@@ -22,7 +22,7 @@ Folder ini tidak mengganti ADR, blueprint, workflow, atau DoD.
 
 Baca file terbaru di folder ini setelah AI_RULES:
 
-- docs/99_archive/handoff/v2/edit_refund_sniper/0003_downward_surplus_revision_commit_handoff.md
+- docs/99_archive/handoff/v2/edit_refund_sniper/0004_baseline_policy_hardening_handoff.md
 
 Jika ada handoff baru, tambahkan file bernomor berikutnya:
 
@@ -101,19 +101,38 @@ Do not start from controller.
 
 Do not start from generic query patch.
 
-## Required Local Baseline Command
+## Conditional Local Baseline Tools
 
-Before any implementation:
+Baseline git and verify commands are conditional tools, not session-entry requirements.
 
-    git status --short --untracked-files=all
-    git rev-parse --abbrev-ref HEAD
-    git rev-parse --short HEAD
-    git log --oneline -5
-    git diff --stat
+Owner workflow is accepted as source-of-truth baseline proof when owner states clean, pushed, latest, or make verify pass.
 
-If verification state matters:
+The following must be treated as FACT, not GAP and not ASSUMPTION:
 
-    make verify
+- owner keeps local and repo identical after push, except ignored files
+- owner handles commit and push manually
+- owner runs make verify at final safe-state closure or when explicitly needed
+- owner statement clean, pushed, latest, or make verify pass is accepted as baseline proof
+
+Do not request these as ceremony:
+
+- git status
+- git log
+- git diff
+- git diff --check
+- make verify
+
+Use git or verify commands only when there is a real trigger:
+
+- dirty state is suspected
+- changed-file inventory is critical to the active slice
+- source and docs conflict
+- local command output contradicts GitHub or docs
+- test failure indicates unexpected local drift
+- final closure lacks owner clean, pushed, latest, or make verify pass statement
+- owner explicitly asks for verification
+
+If a later issue appears after owner-declared closure, record it as technical debt or next-session blocker unless it contradicts current proof.
 
 ## Required Response Shape
 
