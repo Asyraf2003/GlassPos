@@ -44,6 +44,13 @@ final class AdminNoteSurplusRefundDueUiFeatureTest extends TestCase
         ]), false);
         $response->assertSee('name="amount_rupiah"', false);
         $response->assertSee('value="122000"', false);
+        $response->assertSee('max="122000"', false);
+        $response->assertSee('data-refund-due-form', false);
+        $response->assertSee('data-refund-due-max-rupiah="122000"', false);
+        $response->assertSee('data-refund-due-amount', false);
+        $response->assertSee('data-refund-due-submit', false);
+        $response->assertSee('data-loading-text="Menyimpan Refund Due..."', false);
+        $response->assertSee('assets/static/js/pages/note-surplus-refund-due.js', false);
         $response->assertSee('name="reason"', false);
         $response->assertDontSee('refund_paid');
         $response->assertDontSee('customer_credit');
@@ -65,6 +72,7 @@ final class AdminNoteSurplusRefundDueUiFeatureTest extends TestCase
         $response->assertOk();
         $response->assertDontSee('Tandai Refund Due');
         $response->assertDontSee('/admin/notes/revision-settlements/settlement-surplus-ui-002/refund-due', false);
+        $response->assertDontSee('data-refund-due-form', false);
         $response->assertDontSee('refund_paid');
         $response->assertDontSee('customer_credit');
     }

@@ -47,4 +47,5 @@
 <script src="{{ asset('assets/static/js/pages/cashier-note-payment.js') }}?v={{ filemtime(public_path('assets/static/js/pages/cashier-note-payment.js')) }}"></script>
 <script src="{{ asset('assets/static/js/pages/cashier-note-refund.js') }}?v={{ filemtime(public_path('assets/static/js/pages/cashier-note-refund.js')) }}"></script>
 <script src="{{ asset('assets/static/js/pages/note-line-actions.js') }}?v={{ filemtime(public_path('assets/static/js/pages/note-line-actions.js')) }}"></script>
+<script src="{{ asset('assets/static/js/pages/note-surplus-refund-due.js') }}?v={{ filemtime(public_path('assets/static/js/pages/note-surplus-refund-due.js')) }}"></script>
 @endpush

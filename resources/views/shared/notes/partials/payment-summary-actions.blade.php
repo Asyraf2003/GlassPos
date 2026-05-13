@@ -43,6 +43,8 @@
               method="POST"
               action="{{ route('admin.notes.revision-settlements.refund-due.store', ['settlementId' => $pendingRefundDueItem['note_revision_settlement_id']]) }}"
               class="border rounded p-3"
+              data-refund-due-form
+              data-refund-due-max-rupiah="{{ (int) ($pendingRefundDueItem['unresolved_pending_rupiah'] ?? 0) }}"
             >
               @csrf
 
@@ -61,10 +63,12 @@
                   id="refund-due-amount-{{ $pendingRefundDueItem['note_revision_settlement_id'] }}"
                   type="number"
                   min="1"
+                  max="{{ (int) ($pendingRefundDueItem['unresolved_pending_rupiah'] ?? 0) }}"
                   step="1"
                   name="amount_rupiah"
                   value="{{ (int) ($pendingRefundDueItem['amount_default_rupiah'] ?? 0) }}"
                   class="form-control"
+                  data-refund-due-amount
                   required
                 >
               </div>
@@ -82,7 +86,12 @@
                 ></textarea>
               </div>
 
-              <button type="submit" class="btn btn-outline-primary w-100">
+              <button
+                type="submit"
+                class="btn btn-outline-primary w-100"
+                data-refund-due-submit
+                data-loading-text="Menyimpan Refund Due..."
+              >
                 Tandai Refund Due
               </button>
             </form>
