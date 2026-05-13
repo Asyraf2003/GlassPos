@@ -68,7 +68,7 @@ final class NoteReplacementOverpaidAllocationReplayFeatureTest extends TestCase
         $this->assertDatabaseHas('notes', [
             'id' => 'note-1',
             'customer_name' => 'Budi Capped Downward Revision',
-            'total_rupiah' => 200000,
+            'grand_total_rupiah' => 200000,
         ]);
 
         $this->assertSame(
@@ -153,7 +153,7 @@ final class NoteReplacementOverpaidAllocationReplayFeatureTest extends TestCase
             'note_root_id' => 'note-1',
             'revision_number' => 2,
             'customer_name' => 'Budi Downward Surplus Revision',
-            'total_rupiah' => 200000,
+            'grand_total_rupiah' => 200000,
         ]);
 
         $this->assertDatabaseHas('note_revision_settlements', [
