@@ -7,15 +7,15 @@
 - Scope: backend report and cash ledger read model for surplus_refund_paid from refund_due
 - Previous handoff: docs/99_archive/handoff/v2/edit_refund_sniper/0016_refund_paid_audit_timeline_read_model_handoff.md
 - Owner workflow: owner handles commit and push manually
-- Closure state: targeted GREEN reached, focused proof pending
+- Closure state: final make verify passed and owner reported push completed
 
 ## Status
 
-Targeted GREEN reached for the first backend report/cash ledger read model slice.
+Closed and pushed by owner.
 
-This slice started from source audit only, then added RED tests, then applied the minimum read model patch.
+This slice started from source audit only, then added RED tests, then applied the minimum read model patch, then reached final make verify green.
 
-This slice is not final closed yet because focused report/cash-ledger proof has not been run.
+The backend report and cash ledger read model now distinguish surplus_refund_paid from customer_refunds and refund_due.
 
 ## Locked Decisions
 
@@ -363,3 +363,74 @@ New latest handoff filename:
 84 percent.
 
 Handoff required before continuing large work.
+
+## Final Closure Update
+
+After the initial targeted GREEN proof, focused/final verification found exact-array drift in existing reporting tests because the report payload now includes two new zero-default fields:
+
+- surplus_refund_paid_rupiah
+- remaining_refund_due_rupiah
+
+The expected arrays were updated only where the new fields were now present in payloads or summaries.
+
+One PHPStan duplicate-key blocker appeared in:
+
+- tests/Feature/Reporting/GetTransactionSummaryPerNoteFeatureTest.php
+
+That blocker was caused by duplicate expected array keys introduced during the exact-array update. It was fixed by removing the duplicate key pair only.
+
+Final proof reported by owner:
+
+    make verify
+    Tests: 1011 passed / 5412 assertions
+
+Owner reported make push and verify are safe.
+
+## Final Verification Proof
+
+Final make verify proof:
+
+    PASS
+    Tests: 1011 passed / 5412 assertions
+
+Owner reported push completed.
+
+## Final Closure State
+
+Closed and pushed by owner.
+
+Backend report/cash ledger read model contract is now implemented and verified for this slice.
+
+What is now proven:
+
+- transaction report dataset exposes refunded_rupiah from customer_refunds
+- transaction report dataset exposes refund_due_rupiah from note_revision_surplus_dispositions
+- transaction report dataset exposes surplus_refund_paid_rupiah from note_revision_surplus_refund_payments
+- transaction report dataset exposes remaining_refund_due_rupiah as refund_due minus surplus_refund_paid
+- transaction cash ledger includes surplus_refund_paid as a separate outflow
+- final make verify passed
+
+Still not implemented:
+
+- report UI label polish for new fields
+- PDF export parity
+- Excel export parity
+- dashboard/operational profit integration
+- refund_paid submit UI/controller/route
+- reversal/cancel flow
+
+## Next Safe Step After Closure
+
+Start the next slice from backend dataset consumer decision, not from blind UI polish.
+
+Recommended next scope options:
+
+1. Report screen visibility for surplus_refund_paid and remaining_refund_due.
+2. Export parity for transaction report after screen dataset labels are locked.
+3. Cash ledger source metadata hardening if owner wants ADR 0029 source_table/source_id/source_disposition_id semantics before UI/export.
+
+Recommended default:
+
+Start with report screen visibility contract for the new backend fields, then export parity.
+
+Do not start dashboard wiring before report screen/export parity is settled.
