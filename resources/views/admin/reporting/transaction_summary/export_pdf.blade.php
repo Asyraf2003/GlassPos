@@ -96,8 +96,9 @@
                 <th>Total</th>
                 <th>Dibayar</th>
                 <th>Refund</th>
-                <th>Net Dibayar</th>
-                <th>Piutang</th>
+                <th>Refund Due</th>
+                <th>Kas Bersih</th>
+                <th>Sisa Tagihan</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -111,13 +112,14 @@
                     <td class="number">{{ $row['total'] }}</td>
                     <td class="number">{{ $row['paid'] }}</td>
                     <td class="number">{{ $row['refund'] }}</td>
+                    <td class="number">{{ $row['refund_due'] }}</td>
                     <td class="number">{{ $row['net_paid'] }}</td>
                     <td class="number">{{ $row['outstanding'] }}</td>
                     <td>{{ $row['status'] }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="10" class="muted">Tidak ada data transaksi pada periode ini.</td>
+                    <td colspan="11" class="muted">Tidak ada data transaksi pada periode ini.</td>
                 </tr>
             @endforelse
         </tbody>

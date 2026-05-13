@@ -35,12 +35,13 @@ final class TransactionReportPdfViewDataBuilder
     private function summaryItems(array $summary): array
     {
         return [
-            ['label' => 'Jumlah Nota', 'value' => $this->integerValue($summary['total_notes'] ?? 0)],
-            ['label' => 'Total Transaksi', 'value' => $this->rupiah($summary['gross_revenue_rupiah'] ?? 0)],
-            ['label' => 'Total Dibayar', 'value' => $this->rupiah($summary['paid_rupiah'] ?? 0)],
-            ['label' => 'Total Refund', 'value' => $this->rupiah($summary['refund_rupiah'] ?? 0)],
-            ['label' => 'Net Dibayar', 'value' => $this->rupiah($summary['net_paid_rupiah'] ?? 0)],
-            ['label' => 'Sisa Piutang', 'value' => $this->rupiah($summary['outstanding_rupiah'] ?? 0)],
+            ['label' => 'Jumlah Nota', 'value' => $this->integerValue($summary['total_rows'] ?? 0)],
+            ['label' => 'Nilai Bruto Transaksi', 'value' => $this->rupiah($summary['gross_transaction_rupiah'] ?? 0)],
+            ['label' => 'Pembayaran Dialokasikan', 'value' => $this->rupiah($summary['allocated_payment_rupiah'] ?? 0)],
+            ['label' => 'Dana Dikembalikan', 'value' => $this->rupiah($summary['refunded_rupiah'] ?? 0)],
+            ['label' => 'Refund Due', 'value' => $this->rupiah($summary['refund_due_rupiah'] ?? 0)],
+            ['label' => 'Kas Bersih', 'value' => $this->rupiah($summary['net_cash_collected_rupiah'] ?? 0)],
+            ['label' => 'Sisa Tagihan', 'value' => $this->rupiah($summary['outstanding_rupiah'] ?? 0)],
         ];
     }
 
@@ -50,10 +51,11 @@ final class TransactionReportPdfViewDataBuilder
             'date' => $this->formatDate($this->stringValue($row['transaction_date'] ?? '')),
             'note_id' => $this->stringValue($row['note_id'] ?? ''),
             'customer_name' => $this->stringValue($row['customer_name'] ?? ''),
-            'total' => $this->rupiah($row['total_rupiah'] ?? 0),
-            'paid' => $this->rupiah($row['paid_rupiah'] ?? 0),
-            'refund' => $this->rupiah($row['refund_rupiah'] ?? 0),
-            'net_paid' => $this->rupiah($row['net_paid_rupiah'] ?? 0),
+            'total' => $this->rupiah($row['gross_transaction_rupiah'] ?? 0),
+            'paid' => $this->rupiah($row['allocated_payment_rupiah'] ?? 0),
+            'refund' => $this->rupiah($row['refunded_rupiah'] ?? 0),
+            'refund_due' => $this->rupiah($row['refund_due_rupiah'] ?? 0),
+            'net_paid' => $this->rupiah($row['net_cash_collected_rupiah'] ?? 0),
             'outstanding' => $this->rupiah($row['outstanding_rupiah'] ?? 0),
             'status' => $this->stringValue($row['payment_status_label'] ?? ''),
         ];
