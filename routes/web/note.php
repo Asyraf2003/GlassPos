@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Adapters\In\Http\Controllers\Admin\Note\NoteDetailPageController as AdminNoteDetailPageController;
 use App\Adapters\In\Http\Controllers\Admin\Note\NoteHistoryPageController as AdminNoteHistoryPageController;
 use App\Adapters\In\Http\Controllers\Admin\Note\NoteHistoryTableDataController as AdminNoteHistoryTableDataController;
+use App\Adapters\In\Http\Controllers\Admin\Note\CreateNoteRevisionSurplusRefundDueController as AdminCreateNoteRevisionSurplusRefundDueController;
 use App\Adapters\In\Http\Controllers\Admin\Note\ReopenClosedNoteController as AdminReopenClosedNoteController;
 use App\Adapters\In\Http\Controllers\Cashier\Note\CreateTransactionWorkspacePageController;
 use App\Adapters\In\Http\Controllers\Cashier\Note\EditTransactionWorkspacePageController;
@@ -44,6 +45,10 @@ Route::middleware(['auth', EnsureAdminPageAccess::class, 'app.shell'])
         Route::get('/products/lookup', ProductLookupController::class)->name('products.lookup');
         Route::get('/workspace/draft', GetTransactionWorkspaceDraftController::class)->name('workspace.draft.show');
         Route::post('/workspace/draft', SaveTransactionWorkspaceDraftController::class)->name('workspace.draft.save');
+        Route::post(
+            '/revision-settlements/{settlementId}/refund-due',
+            AdminCreateNoteRevisionSurplusRefundDueController::class
+        )->name('revision-settlements.refund-due.store');
         Route::get('/{noteId}/workspace/edit', EditTransactionWorkspacePageController::class)->name('workspace.edit');
         Route::get('/{noteId}', AdminNoteDetailPageController::class)->name('show');
 
@@ -67,6 +72,10 @@ Route::middleware(['auth', EnsureCashierAreaAccess::class, EnsureTransactionEntr
         Route::get('/products/lookup', ProductLookupController::class)->name('products.lookup');
         Route::get('/workspace/draft', GetTransactionWorkspaceDraftController::class)->name('workspace.draft.show');
         Route::post('/workspace/draft', SaveTransactionWorkspaceDraftController::class)->name('workspace.draft.save');
+        Route::post(
+            '/revision-settlements/{settlementId}/refund-due',
+            AdminCreateNoteRevisionSurplusRefundDueController::class
+        )->name('revision-settlements.refund-due.store');
         Route::get('/workspace/create', CreateTransactionWorkspacePageController::class)->name('workspace.create');
 
         Route::middleware(EnsureCashierNoteAccess::class)->group(function (): void {
