@@ -22,7 +22,7 @@ Folder ini tidak mengganti ADR, blueprint, workflow, atau DoD.
 
 Baca file terbaru di folder ini setelah AI_RULES:
 
-- docs/99_archive/handoff/v2/edit_refund_sniper/0016_refund_paid_audit_timeline_read_model_handoff.md
+- docs/99_archive/handoff/v2/edit_refund_sniper/0017_surplus_refund_paid_report_cash_ledger_read_model_handoff.md
 
 Jika ada handoff baru, tambahkan file bernomor berikutnya:
 
