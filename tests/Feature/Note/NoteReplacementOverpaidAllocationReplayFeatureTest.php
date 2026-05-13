@@ -254,5 +254,37 @@ final class NoteReplacementOverpaidAllocationReplayFeatureTest extends TestCase
             'allocated_amount_rupiah' => 300000,
             'allocation_priority' => 1,
         ]);
+
+        $this->seedCurrentRevision(
+            'note-1',
+            'note-1-r001',
+            'Budi Product Lama',
+            '08123456789',
+            $oldDate,
+            300000,
+            [[
+                'id' => 'note-1-r001-l001',
+                'work_item_root_id' => 'wi-old-1',
+                'line_no' => 1,
+                'transaction_type' => WorkItem::TYPE_STORE_STOCK_SALE_ONLY,
+                'status' => WorkItem::STATUS_OPEN,
+                'service_label' => null,
+                'service_price_rupiah' => 0,
+                'subtotal_rupiah' => 300000,
+                'payload' => [
+                    'work_item_root_id' => 'wi-old-1',
+                    'transaction_type' => WorkItem::TYPE_STORE_STOCK_SALE_ONLY,
+                    'status' => WorkItem::STATUS_OPEN,
+                    'external_purchase_lines' => [],
+                    'store_stock_lines' => [[
+                        'id' => 'ssl-old-1',
+                        'product_id' => 'product-1',
+                        'qty' => 3,
+                        'line_total_rupiah' => 300000,
+                    ]],
+                    'service' => null,
+                ],
+            ]],
+        );
     }
 }
