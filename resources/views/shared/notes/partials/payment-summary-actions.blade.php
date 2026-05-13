@@ -113,7 +113,7 @@
                   <div class="fw-semibold text-body">{{ $auditItem['label'] ?? 'Refund Due Ditandai' }}</div>
                   <div class="small text-muted">
                     Amount {{ number_format((int) ($auditItem['amount_rupiah'] ?? 0), 0, ',', '.') }} ·
-                    Sisa pending {{ number_format((int) ($auditItem['after_pending_rupiah'] ?? 0), 0, ',', '.') }}
+                    {{ $auditItem['remaining_label'] ?? 'Sisa pending' }} {{ number_format((int) ($auditItem['remaining_rupiah'] ?? ($auditItem['after_pending_rupiah'] ?? 0)), 0, ',', '.') }}
                   </div>
                   @if (! empty($auditItem['reason']))
                     <div class="small text-muted fst-italic mt-1">Reason: {{ $auditItem['reason'] }}</div>
