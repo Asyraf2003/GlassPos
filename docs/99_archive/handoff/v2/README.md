@@ -9,7 +9,7 @@ Feature continuation lane handoffs — semua sesi kerja di atas aplikasi yang su
 | `audit/` | Audit log unified reader proof |
 | `cashier/` | Note detail hybrid rebuild |
 | `dashboard/` | Dashboard performance, stock visual severity, filter drawer |
-| `feature-continuation/` | System ambiguity inventory, reporting-dashboard-refund fixes, ADR-0016 |
+| `feature_continuation/` | System ambiguity inventory, reporting-dashboard-refund fixes, ADR-0016 |
 | `note-finance/` | Current projection refund edit, ADR-0016 completion, revision-refund AI reading map |
 | `report/` | Reporting blueprint handoff, reporting v2 step 1–8 |
 | `reporting/` | Report export completion proof |

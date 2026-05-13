@@ -8,9 +8,9 @@ Setiap subfolder topik berisi tiga jenis file yang berdampingan:
 
 | Suffix | Jenis | Isi |
 |---|---|---|
-| `topic-name.md` | Blueprint | Owner decisions, scope, access model, policy design |
-| `topic-name-dod.md` | DoD | Kriteria selesai — planning dan implementation |
-| `topic-name-workflow.md` | Workflow | Test matrix, implementation order, CLI workflow, commands |
+| `NNNN_topic_name.md` | Blueprint | Owner decisions, scope, access model, policy design |
+| `NNNN_topic_name_dod.md` | DoD | Kriteria selesai — planning dan implementation |
+| `NNNN_topic_name_workflow.md` | Workflow | Test matrix, implementation order, CLI workflow, commands |
 
 ## Subfolder
 
@@ -21,5 +21,5 @@ Setiap subfolder topik berisi tiga jenis file yang berdampingan:
 | `reporting/` | Report export, reporting execution workflow |
 | `seeder/` | Legacy-to-clean seeder migration |
 | `mobile/` | Mobile API v1 |
-| `error-log-remediation/` | Proses remediasi error log |
-| `feature-continuation/` | Feature continuation scope blueprint |
+| `error_log_remediation/` | Proses remediasi error log |
+| `feature_continuation/` | Feature continuation scope blueprint |

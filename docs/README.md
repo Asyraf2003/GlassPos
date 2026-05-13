@@ -41,7 +41,7 @@ Tidak untuk: bug notes, feature status, commit hash, temporary local state.
 
 ### `docs/02_architecture/adr`
 
-Permanent decision records. Sequential numbered `NNNN-kebab-title.md`.
+Permanent decision records. Sequential numbered `NNNN_snake_title.md`.
 
 Gunakan untuk: keputusan arsitektur, keputusan domain, lifecycle decisions,
 reporting boundary, data representation.
@@ -57,16 +57,16 @@ Design blueprints + DoD + Workflow per topik. Diorganisir dalam subfolder:
 - `reporting/` — report export, reporting execution
 - `seeder/` — legacy-to-clean
 - `mobile/` — mobile API
-- `error-log-remediation/` — error log remediation docs
-- `feature-continuation/` — feature continuation blueprint
+- `error_log_remediation/` — error log remediation docs
+- `feature_continuation/` — feature continuation blueprint
 
-Naming: `topic-name.md` (blueprint), `topic-name-dod.md` (DoD), `topic-name-workflow.md` (Workflow).
+Naming: `NNNN_topic_name.md` (blueprint), `NNNN_topic_name_dod.md` (DoD), `NNNN_topic_name_workflow.md` (Workflow).
 
 ### `docs/04_lifecycle`
 
 Runtime records.
 
-- `error-log/` — individual bug/security findings, numbered `NNN-kebab-title.md`
+- `error-log/` — individual bug/security findings, numbered `NNNN_snake_title.md`
 - `handoff/` — session recovery notes untuk sesi aktif/terbaru
 
 ### `docs/05_audits`
@@ -86,11 +86,11 @@ Semua dokumen legacy, superseded, dan historical. Copy penuh, tidak dimodifikasi
 
 | Jenis | Format | Contoh |
 |---|---|---|
-| ADR | `NNNN-kebab-title.md` | `0019-note-access-boundary.md` |
-| Blueprint | `topic-name.md` | `finance-residual.md` |
-| DoD | `topic-name-dod.md` | `finance-residual-dod.md` |
-| Workflow | `topic-name-workflow.md` | `finance-residual-workflow.md` |
-| Error log | `NNN-kebab-title.md` | `009-cashiers-can-rewrite.md` |
+| ADR | `NNNN_snake_title.md` | `0019-note-access-boundary.md` |
+| Blueprint | `NNNN_topic_name.md` | `finance-residual.md` |
+| DoD | `NNNN_topic_name_dod.md` | `finance-residual-dod.md` |
+| Workflow | `NNNN_topic_name_workflow.md` | `finance-residual-workflow.md` |
+| Error log | `NNNN_snake_title.md` | `009-cashiers-can-rewrite.md` |
 | Audit record | `YYYY-MM-DD-topic.md` | `2026-05-06-error-log-coverage.md` |
 | Handoff aktif | `YYYY-MM-DD-topic-handoff.md` | `2026-05-12-kotlin-skeleton-handoff.md` |
 | Folder | `kebab-case` | `error-log/`, `01_standards/` |

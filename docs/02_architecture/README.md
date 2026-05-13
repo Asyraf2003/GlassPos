@@ -8,6 +8,6 @@ Keputusan arsitektur permanen sistem Hyperpos.
 
 ## Aturan
 
-- Naming: `NNNN-kebab-title.md` (sequential, tanpa tanggal).
+- Naming: `NNNN_snake_title.md` (sequential, tanpa tanggal).
 - Jika keputusan berubah: buat ADR baru yang supersede, jangan edit ADR lama.
 - ADR yang superseded tetap ada sebagai pointer.
