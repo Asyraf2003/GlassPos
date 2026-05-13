@@ -6,15 +6,15 @@
 - Sequence: 0003
 - Scope: downward surplus revision commit
 - Previous handoff: docs/99_archive/handoff/v2/edit_refund_sniper/0002_revision_settlement_foundation_handoff.md
-- Latest proof: Phase 1C-B focused proof passed locally with 15 tests and 64 assertions.
+- Latest proof: Phase 1C-B focused proof passed locally with 15 tests and 64 assertions; final make verify passed with 972 tests and 5156 assertions.
 
 ## Status
 
-implementation focused-verified
+implementation final-safe-state verified
 
 This handoff records Phase 1C-B.
 
-This is not final safe-state proof because make verify has not been run after the slice.
+Final safe-state proof passed after the Phase 1C-B source, test, and docs changes.
 
 ## Session Goal
 
@@ -39,7 +39,6 @@ The goal is to preserve the revised payable amount in component allocations whil
 
 ## Gaps
 
-- make verify has not been run after this slice.
 - Full browser/manual QA has not been run.
 - No customer balance lifecycle exists yet.
 - No surplus disposition workflow exists yet.
@@ -132,6 +131,19 @@ Docs:
 
 ## Tests And Proof
 
+Final safe-state proof:
+
+    make verify
+
+Result:
+
+    972 passed, 5156 assertions
+
+PHPStan blocker resolved before final proof:
+
+- NoteReplacementPaymentAllocationReconciler PHPDoc used an invalid escaped FQCN type.
+- Fixed by importing PayableNoteComponent and using list<PayableNoteComponent> in the PHPDoc.
+
 Initial containment proof:
 
     php artisan test tests/Feature/Note/NoteReplacementOverpaidAllocationReplayFeatureTest.php
@@ -194,7 +206,7 @@ Line-count proof:
 
 ## Residual Risks
 
-- make verify is still required before final safe-state claim.
+- Final make verify passed with 972 tests and 5156 assertions.
 - Surplus disposition is still undecided.
 - Reporting has no explicit pending surplus mode.
 - UI has no explicit pending surplus display.
@@ -205,7 +217,7 @@ Line-count proof:
 
 Goal:
 
-Close docs hygiene, then run final safe-state verification if ending the session.
+Owner commit and push manually after docs hygiene is complete.
 
 Recommended next command:
 
@@ -244,7 +256,7 @@ If make verify passes, owner can commit and push manually.
     - note_revision_settlements records overpaid_pending surplus.
     - Focused proof: 15 passed, 64 assertions.
     - App line-count proof: NoteReplacementPaymentAllocationReconciler.php 94 lines.
-    - make verify still required before final safe-state claim.
+    - final make verify passed with 972 tests and 5156 assertions.
 
     Locked domain decision:
     - Downward revision surplus is pending undecided money state.
@@ -258,7 +270,7 @@ If make verify passes, owner can commit and push manually.
     - No generic reader/query patch without consumer proof.
 
     Current active target:
-    - Run final safe-state proof if closing the session.
+    - Owner commit and push manually after docs hygiene.
     - Otherwise continue only from a new scoped source audit.
 
     Required response shape:

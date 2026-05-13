@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Note\Services;
 
+use App\Application\Payment\DTO\PayableNoteComponent;
 use App\Application\Payment\Services\AllocatePaymentAcrossComponents;
 use App\Application\Payment\Services\ResolveNotePayableComponents;
 use App\Core\Note\Note\Note;
@@ -81,7 +82,7 @@ final class NoteReplacementPaymentAllocationReconciler
     }
 
     /**
-     * @param list<\\App\\Application\\Payment\\DTO\\PayableNoteComponent> $components
+     * @param list<PayableNoteComponent> $components
      */
     private function totalComponentAmount(array $components): int
     {
