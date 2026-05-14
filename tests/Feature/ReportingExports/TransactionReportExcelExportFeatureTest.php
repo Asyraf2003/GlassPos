@@ -60,8 +60,12 @@ final class TransactionReportExcelExportFeatureTest extends TestCase
         $this->assertSame(149999, $summary->getCell('B8')->getValue());
         $this->assertSame(9000, $summary->getCell('B9')->getValue());
         $this->assertSame(0, $summary->getCell('B10')->getValue());
-        $this->assertSame(140999, $summary->getCell('B11')->getValue());
-        $this->assertSame(9001, $summary->getCell('B12')->getValue());
+        $this->assertSame('Total Surplus Refund Paid', $summary->getCell('A11')->getValue());
+        $this->assertSame(0, $summary->getCell('B11')->getValue());
+        $this->assertSame('Total Sisa Refund Due', $summary->getCell('A12')->getValue());
+        $this->assertSame(0, $summary->getCell('B12')->getValue());
+        $this->assertSame(140999, $summary->getCell('B13')->getValue());
+        $this->assertSame(9001, $summary->getCell('B14')->getValue());
 
         $this->assertSame('ID Nota', $detail->getCell('B1')->getValue());
         $this->assertSame('note-1', $detail->getCell('B2')->getValue());
@@ -70,9 +74,13 @@ final class TransactionReportExcelExportFeatureTest extends TestCase
         $this->assertSame(99999, $detail->getCell('F2')->getValue());
         $this->assertSame(9000, $detail->getCell('G2')->getValue());
         $this->assertSame(0, $detail->getCell('H2')->getValue());
-        $this->assertSame(90999, $detail->getCell('I2')->getValue());
-        $this->assertSame(9001, $detail->getCell('J2')->getValue());
-        $this->assertSame('Ada Refund', $detail->getCell('K2')->getValue());
+        $this->assertSame('Surplus Refund Paid', $detail->getCell('I1')->getValue());
+        $this->assertSame(0, $detail->getCell('I2')->getValue());
+        $this->assertSame('Sisa Refund Due', $detail->getCell('J1')->getValue());
+        $this->assertSame(0, $detail->getCell('J2')->getValue());
+        $this->assertSame(90999, $detail->getCell('K2')->getValue());
+        $this->assertSame(9001, $detail->getCell('L2')->getValue());
+        $this->assertSame('Ada Refund', $detail->getCell('M2')->getValue());
         $this->assertSame('note-2', $detail->getCell('B3')->getValue());
         $this->assertNull($detail->getCell('B4')->getValue());
 
