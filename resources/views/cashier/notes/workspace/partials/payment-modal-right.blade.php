@@ -8,6 +8,25 @@
         <div class="small text-muted">Mode Aktif</div>
         <div class="fw-semibold fs-5 mb-3" id="workspace-payment-mode-text">Belum dipilih</div>
 
+        @if (($workspaceMode ?? 'create') === 'edit' && !empty($workspacePaymentSettlement['explanation']))
+            @php
+                $paymentExplanation = $workspacePaymentSettlement['explanation'];
+            @endphp
+
+            <div class="border rounded p-3 mb-3" id="workspace-payment-settlement-explanation">
+                <div class="fw-semibold mb-2">Settlement pembayaran backend</div>
+                <div class="small text-muted">
+                    Gross total: {{ number_format((int) ($paymentExplanation['gross_total_rupiah'] ?? 0), 0, ',', '.') }}
+                </div>
+                <div class="small text-muted">
+                    Net paid: {{ number_format((int) ($paymentExplanation['net_paid_rupiah'] ?? 0), 0, ',', '.') }}
+                </div>
+                <div class="small text-muted">
+                    Payable now: {{ number_format((int) ($paymentExplanation['outstanding_rupiah'] ?? 0), 0, ',', '.') }}
+                </div>
+            </div>
+        @endif
+
         <div class="d-grid gap-2 mb-3" id="workspace-payment-choice-list">
             <button
                 type="button"

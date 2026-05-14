@@ -238,4 +238,102 @@ final class EditTransactionWorkspacePageFeatureTest extends TestCase
         $response->assertSee('Payable now: 60.000');
     }
 
+    public function test_cashier_edit_workspace_exposes_backend_payable_amount_to_payment_calculator(): void
+    {
+        $this->loginAsKasir();
+
+        $user = User::query()->create([
+            'name' => 'Kasir Edit Calculator Payable',
+            'email' => 'edit-calculator-payable@example.test',
+            'password' => 'password',
+        ]);
+
+        DB::table('actor_accesses')->insert([
+            'actor_id' => (string) $user->getAuthIdentifier(),
+            'role' => 'kasir',
+        ]);
+
+        $today = date('Y-m-d');
+
+        DB::table('notes')->insert([
+            'id' => 'note-edit-calculator-payable-1',
+            'current_revision_id' => 'note-edit-calculator-payable-1-r001',
+            'latest_revision_number' => 1,
+            'customer_name' => 'Budi Calculator',
+            'customer_phone' => '08123456781',
+            'transaction_date' => $today,
+            'note_state' => 'open',
+            'total_rupiah' => 100000,
+        ]);
+
+        DB::table('work_items')->insert([
+            'id' => 'wi-edit-calculator-payable-1',
+            'note_id' => 'note-edit-calculator-payable-1',
+            'line_no' => 1,
+            'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+            'status' => WorkItem::STATUS_OPEN,
+            'subtotal_rupiah' => 100000,
+        ]);
+
+        DB::table('work_item_service_details')->insert([
+            'work_item_id' => 'wi-edit-calculator-payable-1',
+            'service_name' => 'Servis Calculator Payable',
+            'service_price_rupiah' => 100000,
+            'part_source' => ServiceDetail::PART_SOURCE_NONE,
+        ]);
+
+        DB::table('note_revisions')->insert([
+            'id' => 'note-edit-calculator-payable-1-r001',
+            'note_root_id' => 'note-edit-calculator-payable-1',
+            'revision_number' => 1,
+            'parent_revision_id' => null,
+            'created_by_actor_id' => null,
+            'reason' => 'edit calculator payable dom contract regression',
+            'customer_name' => 'Budi Calculator',
+            'customer_phone' => '08123456781',
+            'transaction_date' => $today,
+            'grand_total_rupiah' => 100000,
+            'line_count' => 1,
+            'created_at' => now()->format('Y-m-d H:i:s'),
+            'updated_at' => null,
+        ]);
+
+        DB::table('note_revision_lines')->insert([
+            'id' => 'note-edit-calculator-payable-1-r001-l001',
+            'note_revision_id' => 'note-edit-calculator-payable-1-r001',
+            'work_item_root_id' => 'wi-edit-calculator-payable-1',
+            'line_no' => 1,
+            'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+            'status' => WorkItem::STATUS_OPEN,
+            'service_label' => 'Servis Calculator Payable',
+            'service_price_rupiah' => 100000,
+            'subtotal_rupiah' => 100000,
+            'payload' => null,
+            'created_at' => now()->format('Y-m-d H:i:s'),
+            'updated_at' => null,
+        ]);
+
+        DB::table('customer_payments')->insert([
+            'id' => 'payment-edit-calculator-payable-1',
+            'amount_rupiah' => 40000,
+            'paid_at' => $today,
+            'payment_method' => 'cash',
+        ]);
+
+        DB::table('payment_allocations')->insert([
+            'id' => 'allocation-edit-calculator-payable-1',
+            'customer_payment_id' => 'payment-edit-calculator-payable-1',
+            'note_id' => 'note-edit-calculator-payable-1',
+            'amount_rupiah' => 40000,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->get(route('cashier.notes.workspace.edit', ['noteId' => 'note-edit-calculator-payable-1']));
+
+        $response->assertOk();
+        $response->assertSee('id="workspace-payment-modal"', false);
+        $response->assertSee('data-backend-payable-rupiah="60000"', false);
+        $response->assertSee('data-backend-payment-basis="backend_outstanding_settlement"', false);
+    }
+
 }
