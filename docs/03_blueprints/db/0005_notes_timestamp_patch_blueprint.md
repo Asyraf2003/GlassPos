@@ -1,6 +1,6 @@
 # DB Blueprint 0005 - Notes Timestamp Patch Blueprint
 
-Status: Patch Blueprinted  
+Status: Focused Verified  
 Scope: `notes` system row timestamp hardening  
 Owner: HyperPOS  
 
@@ -263,3 +263,49 @@ Next safe step:
 - inspect existing migration/database tests for best location to assert `notes.created_at` and `notes.updated_at`;
 - inspect whether there is an existing note writer persistence test;
 - then create the smallest characterization/GREEN path.
+
+## 18. Implementation Proof - 2026-05-15
+
+Status: Focused Verified.
+
+Implemented patch shape:
+
+- Added new migration for `notes.created_at` and `notes.updated_at`.
+- Kept both columns nullable to preserve direct insert compatibility.
+- Backfilled existing `created_at` values with migration execution time, not `transaction_date`.
+- Updated `DatabaseNoteWriterAdapter::create()` to write `created_at` and `updated_at`.
+- Updated `DatabaseNoteWriterAdapter::updateHeader()`, `updateTotal()`, and `updateOperationalState()` to write `updated_at`.
+- Did not expose timestamps to the `Note` domain object.
+- Did not change report semantics.
+- Did not add timestamp indexes.
+
+Proof:
+
+- Syntax passed for migration, writer, schema test, and writer persistence test.
+- RED targeted schema proof failed with `Missing notes.created_at`: 1 failed, 2 passed, 20 assertions.
+- GREEN targeted schema proof passed: 3 tests, 21 assertions.
+- GREEN targeted writer persistence proof passed: 2 tests, 16 assertions.
+- Focused create flow proof passed: 3 tests, 10 assertions.
+- Focused blast-radius proof passed: 31 tests, 186 assertions.
+- `git diff --check` produced no output after focused verification.
+
+Verified blast-radius files:
+
+- `tests/Feature/Database/V2NoteOperationalStateMigrationTest.php`
+- `tests/Feature/Note/NoteOperationalStatePersistenceFeatureTest.php`
+- `tests/Feature/Note/CreateNoteFeatureTest.php`
+- `tests/Feature/Payment/AllocateCustomerPaymentFeatureTest.php`
+- `tests/Feature/Note/RecordNotePaymentHttpFeatureTest.php`
+- `tests/Feature/Reporting/GetTransactionReportDatasetFeatureTest.php`
+- `tests/Feature/Reporting/GetOperationalProfitSummaryFeatureTest.php`
+- `tests/Feature/Note/CreateNoteRevisionSurplusRefundDueHandlerTest.php`
+- `tests/Feature/Inventory/ReverseNoteStoreStockInventoryOperationFeatureTest.php`
+- `tests/Feature/PushNotification/SendDueNoteReminderPushCommandFeatureTest.php`
+
+Remaining gaps:
+
+- Full `make verify` not run/proven for this slice.
+- Browser/manual QA not run.
+- PostgreSQL runtime not active/proven.
+- No timestamp read-path/index optimization approved.
+

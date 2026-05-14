@@ -35,7 +35,7 @@ Patch schema tidak boleh dimulai hanya karena row sudah ada di matrix. Patch bar
 
 | Table group | Migration files | Category | Source-of-truth status | Business/effective date | Occurred/action date | System timestamps | Money/status/source columns | Actor/reason/audit link | Known read/write proof | PostgreSQL risk | CRUD/read path risk | Recommendation | Patch allowed now | Required proof before patch | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `notes` | `database/migrations/2026_03_14_000100_create_notes_table.php`; `database/migrations/2026_04_22_000003_add_current_revision_pointer_to_notes_table.php`; `database/migrations/2026_04_27_000100_add_due_date_to_notes_table.php` | Transaction header table | P0 finance-sensitive root transaction header | FACT: `transaction_date`, `due_date` | FACT: `closed_at`, `reopened_at` | GAP: no `created_at`, no `updated_at` proven in current migration output | FACT: `total_rupiah`, `note_state`, `current_revision_id`, `latest_revision_number` | FACT: `closed_by_actor_id`, `reopened_by_actor_id`; GAP: reason/audit linkage not fully verified in this slice | FACT: `DatabaseNoteWriterAdapter` inserts and updates without `created_at`/`updated_at`; FACT: many tests and seeders direct insert/updateOrInsert `notes` | Medium: timestamp defaults/backfill must stay portable and not rely on MySQL-only behavior | Medium: root table feeds payment, refund, revision, reporting, dashboard, due reminder, and exports | Create narrow patch blueprint for `notes` timestamp semantics before schema patch | No | Full direct insert inventory, writer/update policy, backfill policy, RED/characterization test, focused blast-radius test list | Audited |
+| `notes` | `database/migrations/2026_03_14_000100_create_notes_table.php`; `database/migrations/2026_04_22_000003_add_current_revision_pointer_to_notes_table.php`; `database/migrations/2026_04_27_000100_add_due_date_to_notes_table.php`; `database/migrations/2026_05_15_000100_add_system_timestamps_to_notes_table.php` | Transaction header table | P0 finance-sensitive root transaction header | FACT: `transaction_date`, `due_date` | FACT: `closed_at`, `reopened_at` | FACT: `created_at`, `updated_at` added by focused patch; pre-patch historical creation time remains approximate/backfilled | FACT: `total_rupiah`, `note_state`, `current_revision_id`, `latest_revision_number` | FACT: `closed_by_actor_id`, `reopened_by_actor_id`; GAP: reason/audit linkage not fully verified in this slice | FACT: `DatabaseNoteWriterAdapter` writes `created_at`/`updated_at` on create and writes `updated_at` on note updates; FACT: nullable schema preserves direct insert compatibility | Medium residual: timestamp columns are portable enough for current Laravel/MySQL scope, but PostgreSQL migration itself is not active | Low-medium residual: no new read-path/index claim for timestamps | Keep `transaction_date` as report date; do not index timestamps until real read path exists; move next to `customer_payments`/`customer_refunds` audit | No further patch in this row until wider/global proof or new issue | RED: missing `notes.created_at`; GREEN: schema 3/21, writer persistence 2/16, create flow 3/10; Focused: 31/186; remaining gaps: full `make verify`, browser/manual QA, PostgreSQL runtime migration | Focused Verified |
 | `customer_payments` | `database/migrations/2026_03_14_000600_create_customer_payments_table.php`; `database/migrations/2026_04_27_000700_add_payment_method_and_cash_details_to_customer_payments.php` | Payment/source financial table | P0 payment source | GAP | GAP | GAP | GAP | GAP | GAP | Medium | Medium | Audit after `notes` | No | Migration, writer, allocation linkage, reporting path, direct fixtures | Reported |
 | `customer_refunds` | `database/migrations/2026_03_15_000100_create_customer_refunds_table.php` | Refund/source financial table | P0 refund source | GAP | GAP | GAP | GAP | GAP | GAP | Medium | Medium | Audit after payment/refund root dependency is clear | No | Migration, writer, refund allocation linkage, reporting path, direct fixtures | Reported |
 | `payment_allocations` | `database/migrations/2026_03_14_000700_create_payment_allocations_table.php` | Allocation table | P0 allocation truth | GAP | GAP | GAP | GAP | GAP | GAP | Medium | Medium | Audit after `customer_payments` | No | Parent payment timestamp inheritance, immutability, writer, over-allocation tests | Reported |
@@ -70,4 +70,39 @@ Next safe step:
 - Define whether the first patch should add only `created_at`, or both `created_at` and `updated_at`.
 - Define deterministic backfill policy without inventing historical creation time.
 - Define RED/characterization test and focused blast-radius tests before implementation.
+
+
+## 6. Notes Timestamp Patch Proof - 2026-05-15
+
+Status for `notes`: Focused Verified.
+
+Production files changed:
+
+- `database/migrations/2026_05_15_000100_add_system_timestamps_to_notes_table.php`
+- `app/Adapters/Out/Note/DatabaseNoteWriterAdapter.php`
+
+Test files changed:
+
+- `tests/Feature/Database/V2NoteOperationalStateMigrationTest.php`
+- `tests/Feature/Note/NoteOperationalStatePersistenceFeatureTest.php`
+
+Proof:
+
+- RED targeted schema test: `V2NoteOperationalStateMigrationTest` failed with `Missing notes.created_at`, 1 failed, 2 passed, 20 assertions.
+- GREEN targeted schema test: `V2NoteOperationalStateMigrationTest` passed, 3 tests, 21 assertions.
+- GREEN targeted writer persistence test: `NoteOperationalStatePersistenceFeatureTest` passed, 2 tests, 16 assertions.
+- Focused create flow test: `CreateNoteFeatureTest` passed, 3 tests, 10 assertions.
+- Focused blast-radius suite passed, 31 tests, 186 assertions.
+- `git diff --check` produced no output after focused verification.
+
+Remaining gaps:
+
+- Full `make verify` has not been proven in this slice.
+- Browser/manual QA has not been run.
+- PostgreSQL migration runtime has not been executed because PostgreSQL is not active.
+- Timestamp read path/index hardening is not approved because no real timestamp read path has been proven.
+
+Next table group:
+
+- `customer_payments` and `customer_refunds` audit.
 
