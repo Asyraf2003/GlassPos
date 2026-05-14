@@ -21,6 +21,8 @@ final class V2NoteOperationalStateMigrationTest extends TestCase
             'closed_by_actor_id',
             'reopened_at',
             'reopened_by_actor_id',
+            'created_at',
+            'updated_at',
         ] as $column) {
             self::assertTrue(Schema::hasColumn('notes', $column), "Missing notes.{$column}");
         }
