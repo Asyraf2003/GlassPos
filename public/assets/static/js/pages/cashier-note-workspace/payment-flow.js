@@ -108,6 +108,22 @@
   const currentRows = () =>
     typeof NS.currentRows === "function" ? NS.currentRows() : [];
 
+  const backendPayableAmount = () => {
+    const modal = modalEl();
+
+    if (!modal || modal.dataset.backendPaymentBasis !== "backend_outstanding_settlement") {
+      return 0;
+    }
+
+    return digits(modal.dataset.backendPayableRupiah || "");
+  };
+
+  const effectivePaymentTotal = (total) => {
+    const backendPayable = backendPayableAmount();
+
+    return backendPayable > 0 ? backendPayable : total;
+  };
+
   const grandTotal = () =>
     currentRows().reduce((sum, item) => sum + Number(item?.total || 0), 0);
 
@@ -135,12 +151,14 @@
   };
 
   const payableAmount = (total) => {
+    const effectiveTotal = effectivePaymentTotal(total);
+
     if (NS.paymentState.mode === "full") {
-      return total;
+      return effectiveTotal;
     }
 
     if (NS.paymentState.mode === "partial") {
-      return partialAmount(total);
+      return partialAmount(effectiveTotal);
     }
 
     return 0;
