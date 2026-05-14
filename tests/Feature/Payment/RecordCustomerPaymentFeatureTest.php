@@ -10,6 +10,11 @@ use App\Adapters\Out\Payment\DatabaseCustomerPaymentWriterAdapter;
 use App\Ports\Out\UuidPort;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Core\Payment\CustomerPayment\CustomerPayment;
+use App\Core\Payment\CustomerPayment\CustomerPaymentCashDetail;
+use App\Core\Shared\ValueObjects\Money;
+use DateTimeImmutable;
+use Illuminate\Support\Facades\DB;
 
 final class RecordCustomerPaymentFeatureTest extends TestCase
 {
