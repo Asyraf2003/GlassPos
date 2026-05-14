@@ -40,6 +40,8 @@ final class TransactionReportPdfViewDataBuilder
             ['label' => 'Pembayaran Dialokasikan', 'value' => $this->rupiah($summary['allocated_payment_rupiah'] ?? 0)],
             ['label' => 'Dana Dikembalikan', 'value' => $this->rupiah($summary['refunded_rupiah'] ?? 0)],
             ['label' => 'Refund Due', 'value' => $this->rupiah($summary['refund_due_rupiah'] ?? 0)],
+            ['label' => 'Surplus Refund Paid', 'value' => $this->rupiah($summary['surplus_refund_paid_rupiah'] ?? 0)],
+            ['label' => 'Sisa Refund Due', 'value' => $this->rupiah($summary['remaining_refund_due_rupiah'] ?? 0)],
             ['label' => 'Kas Bersih', 'value' => $this->rupiah($summary['net_cash_collected_rupiah'] ?? 0)],
             ['label' => 'Sisa Tagihan', 'value' => $this->rupiah($summary['outstanding_rupiah'] ?? 0)],
         ];
@@ -55,6 +57,8 @@ final class TransactionReportPdfViewDataBuilder
             'paid' => $this->rupiah($row['allocated_payment_rupiah'] ?? 0),
             'refund' => $this->rupiah($row['refunded_rupiah'] ?? 0),
             'refund_due' => $this->rupiah($row['refund_due_rupiah'] ?? 0),
+            'surplus_refund_paid' => $this->rupiah($row['surplus_refund_paid_rupiah'] ?? 0),
+            'remaining_refund_due' => $this->rupiah($row['remaining_refund_due_rupiah'] ?? 0),
             'net_paid' => $this->rupiah($row['net_cash_collected_rupiah'] ?? 0),
             'outstanding' => $this->rupiah($row['outstanding_rupiah'] ?? 0),
             'status' => $this->stringValue($row['payment_status_label'] ?? ''),

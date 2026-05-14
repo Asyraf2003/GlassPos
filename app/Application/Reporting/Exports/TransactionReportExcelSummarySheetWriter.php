@@ -28,6 +28,8 @@ final class TransactionReportExcelSummarySheetWriter
             ['Total Pembayaran Dialokasikan', (int) ($summary['allocated_payment_rupiah'] ?? 0)],
             ['Total Dana Dikembalikan', (int) ($summary['refunded_rupiah'] ?? 0)],
             ['Total Refund Due', (int) ($summary['refund_due_rupiah'] ?? 0)],
+            ['Total Surplus Refund Paid', (int) ($summary['surplus_refund_paid_rupiah'] ?? 0)],
+            ['Total Sisa Refund Due', (int) ($summary['remaining_refund_due_rupiah'] ?? 0)],
             ['Total Kas Bersih', (int) ($summary['net_cash_collected_rupiah'] ?? 0)],
             ['Total Sisa Tagihan', (int) ($summary['outstanding_rupiah'] ?? 0)],
             ['Nota Lunas', (int) ($summary['settled_rows'] ?? 0)],
