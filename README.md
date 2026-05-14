@@ -1,3 +1,7 @@
+<!-- HYPERPOS_LATEST_HANDOFF_START -->
+Latest Handoff: docs/99_archive/handoff/v2/edit_refund_sniper/0022_adr_0030_s12_docs_closure_handoff.md
+<!-- HYPERPOS_LATEST_HANDOFF_END -->
+
 # App Kasir Hexagonal
 
 > Sistem kasir dan operasional servis-sparepart yang dibangun dengan fokus pada **presisi data**, **kerahasiaan data klien**, **arsitektur modular**, dan **auditability**.
