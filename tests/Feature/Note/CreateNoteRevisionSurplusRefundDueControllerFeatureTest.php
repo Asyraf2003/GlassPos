@@ -166,6 +166,7 @@ final class CreateNoteRevisionSurplusRefundDueControllerFeatureTest extends Test
 
         DB::table('audit_events')->insert([
             'id' => 'audit-event-existing-active-refund-due-001',
+            'bounded_context' => 'note',
             'aggregate_type' => 'note_revision_surplus_disposition',
             'aggregate_id' => 'disposition-existing-active-refund-due-001',
             'event_name' => 'note_revision_surplus_refund_due_created',
@@ -176,6 +177,7 @@ final class CreateNoteRevisionSurplusRefundDueControllerFeatureTest extends Test
             'request_id' => 'request-existing-active-refund-due-001',
             'correlation_id' => 'correlation-existing-active-refund-due-001',
             'occurred_at' => '2026-05-13 09:45:00',
+            'metadata_json' => null,
         ]);
 
         DB::table('note_revision_surplus_dispositions')->insert([
