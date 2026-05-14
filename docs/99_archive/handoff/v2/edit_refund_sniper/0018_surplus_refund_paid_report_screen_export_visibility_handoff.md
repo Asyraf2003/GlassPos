@@ -7,7 +7,7 @@
 - Scope: report screen and export visibility for surplus_refund_paid and remaining_refund_due
 - Previous handoff: docs/99_archive/handoff/v2/edit_refund_sniper/0017_surplus_refund_paid_report_cash_ledger_read_model_handoff.md
 - Owner workflow: owner handles commit and push manually
-- Closure state: focused local proof passed; full make verify not yet claimed for this slice
+- Closure state: final make verify passed; owner commit/push pending unless already handled
 
 ## Status
 
@@ -268,18 +268,25 @@ Result:
 
 Still pending:
 
-- full make verify after this slice
 - commit and push proof from owner
 - dashboard/operational profit integration
 - refund_paid submit UI/controller/route
 - cash ledger source metadata hardening for ADR 0029 source_table/source_id/source_disposition_id semantics
 - reversal/cancel flow
 
+## Final Make Verify Proof
+
+Final make verify proof after stale export feature fixture fixes:
+
+    Tests: 1014 passed / 5455 assertions
+
+This verifies the full project test suite after report screen/export visibility changes.
+
 ## Residual Risks
 
 The focused proof is strong for report dataset, screen, and export visibility.
 
-Full project safe state still requires final make verify before claiming closure at repo level.
+Full local verification is green.
 
 No export query divergence was introduced in this slice because export surfaces still consume the same GetTransactionReportDatasetHandler dataset path through the existing controllers/builders.
 
@@ -294,7 +301,7 @@ Recommended next scope options:
 
 Recommended default:
 
-Run final make verify, then owner commit/push.
+Owner commit/push this verified slice.
 
 After owner closure, the next engineering slice should be cash ledger source metadata hardening if ADR 0029 traceability is prioritized, otherwise refund_paid submit UI/controller/route.
 
@@ -351,7 +358,6 @@ Current completed slices:
 
 Known residual gaps:
 
-- full make verify after 0018 slice
 - owner commit/push proof after 0018 slice
 - cash ledger source metadata is still minimal; ADR 0029 source_table/source_id/source_disposition_id semantics are not fully carried through DTO yet
 - refund_paid submit UI/controller/route is not implemented
@@ -360,7 +366,7 @@ Known residual gaps:
 
 Next safest step:
 
-Run full make verify and owner commit/push for 0018.
+Owner commit/push for 0018.
 
 After closure, choose between:
 
