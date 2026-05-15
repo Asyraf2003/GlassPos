@@ -6,7 +6,7 @@ namespace Tests\Feature\Payment;
 
 use App\Application\Payment\UseCases\RecordCustomerRefundHandler;
 use App\Ports\Out\Note\NoteReaderPort;
-use App\Core\Note\Note;
+use App\Core\Note\Note\Note;
 use App\Adapters\Out\Note\DatabaseNoteReaderAdapter;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
