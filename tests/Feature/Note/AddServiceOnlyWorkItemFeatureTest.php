@@ -8,6 +8,7 @@ use App\Application\Note\UseCases\AddWorkItemHandler;
 use App\Application\Shared\DTO\Result;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -131,23 +132,26 @@ final class AddServiceOnlyWorkItemFeatureTest extends TestCase
         ]);
 
         DB::table('work_items')->insert([
-            [
-                'id' => 'work-item-line-race-1',
-                'note_id' => 'note-line-race-1',
-                'line_no' => 1,
-                'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
-                'status' => WorkItem::STATUS_OPEN,
-                'subtotal_rupiah' => 30000,
-            ],
-            [
+            'id' => 'work-item-line-race-1',
+            'note_id' => 'note-line-race-1',
+            'line_no' => 1,
+            'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+            'status' => WorkItem::STATUS_OPEN,
+            'subtotal_rupiah' => 30000,
+        ]);
+
+        try {
+            DB::table('work_items')->insert([
                 'id' => 'work-item-line-race-2',
                 'note_id' => 'note-line-race-1',
                 'line_no' => 1,
                 'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
                 'status' => WorkItem::STATUS_OPEN,
                 'subtotal_rupiah' => 50000,
-            ],
-        ]);
+            ]);
+        } catch (QueryException) {
+            // Expected: database invariant rejects duplicate line number for the same note.
+        }
 
         $this->assertSame(
             1,

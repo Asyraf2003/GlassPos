@@ -34,7 +34,7 @@ final class AddWorkItemHandler
         $started = false;
         try {
             $this->transactions->begin(); $started = true;
-            $note = $this->notes->getById(trim($nId)) ?? throw new DomainException('Note tidak ditemukan.');
+            $note = $this->notes->getByIdForUpdate(trim($nId)) ?? throw new DomainException('Note tidak ditemukan.');
 
             $this->addability->assertAllowed($note);
             $workItem = $this->factory->build($note->id(), $lNo, trim($type), $sd, $ext, $sto);
