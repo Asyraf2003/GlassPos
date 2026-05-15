@@ -45,6 +45,7 @@ final class NoteDetailPageController extends Controller
                 'workspace_edit_route' => 'admin.notes.workspace.edit',
             ],
             'addRowsAction' => route('admin.notes.rows.store', ['noteId' => $noteId]),
+            'canManageSurplusDisposition' => true,
             'oldRows' => array_values(old('rows', [['line_type' => 'service']])),
             'paymentAction' => $paymentAction,
             'paymentDateDefault' => date('Y-m-d'),

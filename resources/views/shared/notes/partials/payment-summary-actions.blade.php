@@ -29,7 +29,7 @@
       <div class="fw-bold text-uppercase text-body">{{ $note['payment_status_label'] ?? '-' }}</div>
     </div>
 
-    @if (($note['surplus_disposition']['has_pending_refund_due_action'] ?? false) && ! empty($note['surplus_disposition']['pending_items'] ?? []))
+    @if (($canManageSurplusDisposition ?? false) && ($note['surplus_disposition']['has_pending_refund_due_action'] ?? false) && ! empty($note['surplus_disposition']['pending_items'] ?? []))
       <div class="border rounded p-3 bg-body mb-3">
         <div class="small text-muted mb-1">Surplus Nota</div>
         <div class="fw-semibold text-body mb-2">Tandai Refund Due</div>
@@ -100,7 +100,7 @@
       </div>
     @endif
 
-    @if (($note['surplus_disposition']['has_pending_refund_paid_action'] ?? false) && ! empty($note['surplus_disposition']['refund_paid_items'] ?? []))
+    @if (($canManageSurplusDisposition ?? false) && ($note['surplus_disposition']['has_pending_refund_paid_action'] ?? false) && ! empty($note['surplus_disposition']['refund_paid_items'] ?? []))
       <div class="border rounded p-3 bg-body mb-3">
         <div class="small text-muted mb-1">Surplus Nota</div>
         <div class="fw-semibold text-body mb-2">Catat Refund Paid</div>
