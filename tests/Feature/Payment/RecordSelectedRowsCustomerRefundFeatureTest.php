@@ -163,6 +163,11 @@ final class RecordSelectedRowsCustomerRefundFeatureTest extends TestCase
             {
             }
 
+            public function countAll(): int
+            {
+                return $this->delegate->countAll();
+            }
+
             public function getById(string $id): ?Note
             {
                 return $this->delegate->getById($id);
