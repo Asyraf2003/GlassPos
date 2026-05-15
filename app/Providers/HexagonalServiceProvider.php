@@ -14,12 +14,6 @@ use App\Adapters\Out\Audit\DatabaseAuditLogReaderAdapter;
 use App\Adapters\Out\Auth\LaravelUuidAdapter;
 use App\Adapters\Out\Clock\SystemClockAdapter;
 use App\Adapters\Out\EmployeeFinance\DatabaseEmployeePayrollTableReaderAdapter;
-use App\Adapters\Out\IdentityAccess\CachedActorAccessReaderAdapter;
-use App\Adapters\Out\IdentityAccess\CachedAdminCashierAreaAccessStateAdapter;
-use App\Adapters\Out\IdentityAccess\CachedAdminTransactionCapabilityStateAdapter;
-use App\Adapters\Out\IdentityAccess\DatabaseActorAccessReaderAdapter;
-use App\Adapters\Out\IdentityAccess\DatabaseAdminCashierAreaAccessStateAdapter;
-use App\Adapters\Out\IdentityAccess\DatabaseAdminTransactionCapabilityStateAdapter;
 use App\Adapters\Out\Inventory\DatabaseInventoryMovementReaderAdapter;
 use App\Adapters\Out\Inventory\DatabaseInventoryMovementWriterAdapter;
 use App\Adapters\Out\Inventory\DatabaseProductInventoryCostingProjectionWriterAdapter;
@@ -140,9 +134,6 @@ use App\Ports\Out\EmployeeFinance\EmployeeWriterPort;
 use App\Ports\Out\EmployeeFinance\PayrollDisbursementWriterPort;
 use App\Ports\Out\EmployeeFinance\PayrollDisbursementReversalWriterPort;
 use App\Ports\Out\EmployeeFinance\EmployeePayrollTableReaderPort;
-use App\Ports\Out\IdentityAccess\ActorAccessReaderPort;
-use App\Ports\Out\IdentityAccess\AdminCashierAreaAccessStatePort;
-use App\Ports\Out\IdentityAccess\AdminTransactionCapabilityStatePort;
 use App\Ports\Out\Inventory\InventoryMovementReaderPort;
 use App\Ports\Out\Inventory\InventoryMovementWriterPort;
 use App\Ports\Out\Inventory\ProductInventoryCostingProjectionWriterPort;
@@ -270,10 +261,6 @@ class HexagonalServiceProvider extends ServiceProvider
         $this->app->singleton(SupplierListProjectionService::class);
         $this->app->singleton(SupplierReceiptFactory::class);
         $this->app->scoped(SupplierInvoiceChangeContext::class, fn (): SupplierInvoiceChangeContext => new SupplierInvoiceChangeContext());
-
-        $this->app->scoped(ActorAccessReaderPort::class, CachedActorAccessReaderAdapter::class);
-        $this->app->scoped(AdminTransactionCapabilityStatePort::class, CachedAdminTransactionCapabilityStateAdapter::class);
-        $this->app->scoped(AdminCashierAreaAccessStatePort::class, CachedAdminCashierAreaAccessStateAdapter::class);
 
         $this->app->singleton(ProductReaderPort::class, DatabaseProductReaderAdapter::class);
         $this->app->singleton(ProductDetailReaderPort::class, DatabaseProductDetailReaderAdapter::class);
