@@ -1,6 +1,6 @@
 # DB Blueprint 0011 - Work Item Timestamp Readiness Hardening Patch Blueprint
 
-Status: Patch Blueprinted
+Status: Focused Verified
 Scope: `work_items`, `work_item_service_details`, `work_item_external_purchase_lines`, and `work_item_store_stock_lines` row timestamp/readiness hardening
 Owner: HyperPOS
 
@@ -418,3 +418,52 @@ Do not claim:
 - browser/manual QA
 - PostgreSQL runtime migration
 - full DB hardening completion
+## 15. Patch Implementation Summary
+
+Status: Focused Verified.
+
+Production files changed:
+
+- `database/migrations/2026_05_15_000005_add_operational_timestamps_to_work_item_tables.php`
+- `app/Adapters/Out/Note/DatabaseWorkItemWriterAdapter.php`
+- `app/Adapters/Out/Note/WorkItemLineInsertsTrait.php`
+- `app/Adapters/Out/Note/WorkItemServiceUpdateGuardsTrait.php`
+
+Test files changed:
+
+- `tests/Feature/Database/WorkItemTimestampSchemaTest.php`
+- `tests/Feature/Note/WorkItemWriterTimestampFeatureTest.php`
+
+RED schema proof:
+
+- `WorkItemTimestampSchemaTest` failed with `Missing work_items.created_at`.
+- Result: `1 failed / 1 assertion`.
+
+RED writer proof:
+
+- `WorkItemWriterTimestampFeatureTest` failed with SQL `Unknown column 'created_at'` on `work_items` timestamp select.
+- Result: `1 failed / 0 assertions`.
+
+GREEN targeted proof:
+
+- `WorkItemTimestampSchemaTest` passed.
+- `WorkItemWriterTimestampFeatureTest` passed create/update timestamp coverage.
+- Result: `4 passed / 36 assertions`.
+
+Focused blast-radius proof:
+
+- Covered schema, writer create/update, service-only add, external purchase add, store-stock add, store-stock sale-only add, work item status update, service fee update writers, paid work item correction, payment allocation, selected-row refund, inventory reversal, and operational profit reporting.
+- Result: `45 passed / 321 assertions`.
+
+## 16. Remaining Gaps
+
+- Full `make verify` has not been run for this slice.
+- Browser/manual QA has not been run.
+- PostgreSQL runtime migration has not been executed because PostgreSQL is not active.
+- Timestamp read-path/index hardening is not approved because no real read path filters or sorts these rows by `created_at` / `updated_at`.
+- `created_at` / `updated_at` remain system row timestamps only and must not be used as business/report dates.
+
+## 17. Next Table Group
+
+Next safe DB hardening step should select the next matrix row with `Reported`, `Audited`, or `Patch Blueprinted` status after confirming no dirty source/doc gap remains for 0011.
+
