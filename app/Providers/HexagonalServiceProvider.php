@@ -7,11 +7,6 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Application\EmployeeFinance\Context\EmployeeChangeContext;
-use App\Adapters\Out\Audit\DatabaseAuditLogAdapter;
-use App\Adapters\Out\Audit\DatabaseAuditEventWriterAdapter;
-use App\Adapters\Out\Audit\DatabaseAuditLogReaderAdapter;
-use App\Adapters\Out\Auth\LaravelUuidAdapter;
-use App\Adapters\Out\Clock\SystemClockAdapter;
 use App\Adapters\Out\EmployeeFinance\DatabaseEmployeePayrollTableReaderAdapter;
 use App\Adapters\Out\Inventory\DatabaseInventoryMovementReaderAdapter;
 use App\Adapters\Out\Inventory\DatabaseInventoryMovementWriterAdapter;
@@ -51,7 +46,6 @@ use App\Adapters\Out\Payment\DatabasePaymentAllocationReaderAdapter;
 use App\Adapters\Out\Payment\DatabasePaymentAllocationWriterAdapter;
 use App\Adapters\Out\Payment\DatabasePaymentComponentAllocationReaderAdapter;
 use App\Adapters\Out\Payment\DatabasePaymentComponentAllocationWriterAdapter;
-use App\Adapters\Out\Persistence\DatabaseTransactionManagerAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierInvoiceLineReaderAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierInvoiceListProjectionSourceReaderAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierInvoiceListProjectionWriterAdapter;
@@ -107,13 +101,7 @@ use App\Application\Procurement\Services\SupplierInvoiceListProjectionService;
 use App\Application\Procurement\Services\SupplierListProjectionService;
 use App\Application\Procurement\Services\SupplierReceiptFactory;
 use App\Application\Procurement\Services\SupplierService;
-use App\Application\System\Health\HealthCheckHandler;
 use App\Core\Inventory\Policies\NegativeStockPolicy;
-use App\Ports\In\HealthCheckUseCase;
-use App\Ports\Out\AuditEventWriterPort;
-use App\Ports\Out\AuditLogPort;
-use App\Ports\Out\AuditLogReaderPort;
-use App\Ports\Out\ClockPort;
 use App\Ports\Out\EmployeeFinance\EmployeeDebtAdjustmentWriterPort;
 use App\Ports\Out\EmployeeFinance\EmployeeDebtReaderPort;
 use App\Ports\Out\EmployeeFinance\EmployeeDebtWriterPort;
@@ -190,8 +178,6 @@ use App\Ports\Out\Procurement\SupplierReceiptWriterPort;
 use App\Ports\Out\Procurement\SupplierWriterPort;
 use App\Ports\Out\Procurement\ProcurementInvoiceTableReaderPort;
 use App\Ports\Out\Procurement\SupplierTableReaderPort;
-use App\Ports\Out\TransactionManagerPort;
-use App\Ports\Out\UuidPort;
 use Illuminate\Support\ServiceProvider;
 
 class HexagonalServiceProvider extends ServiceProvider
@@ -199,16 +185,6 @@ class HexagonalServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(EmployeeChangeContext::class, fn (): EmployeeChangeContext => new EmployeeChangeContext());
-        $this->app->bind(HealthCheckUseCase::class, HealthCheckHandler::class);
-
-        $this->app->singleton(ClockPort::class, SystemClockAdapter::class);
-        $this->app->singleton(\App\Ports\Out\RouteUrlGeneratorPort::class, \App\Adapters\Out\Routing\LaravelRouteUrlGeneratorAdapter::class);
-        $this->app->singleton(UuidPort::class, LaravelUuidAdapter::class);
-        $this->app->singleton(AuditEventWriterPort::class, DatabaseAuditEventWriterAdapter::class);
-        $this->app->singleton(AuditLogPort::class, DatabaseAuditLogAdapter::class);
-        $this->app->singleton(AuditLogReaderPort::class, DatabaseAuditLogReaderAdapter::class);
-        $this->app->singleton(TransactionManagerPort::class, DatabaseTransactionManagerAdapter::class);
-
         $this->app->singleton(NegativeStockPolicy::class, DefaultNegativeStockPolicy::class);
         $this->app->singleton(NotePaidStatusPolicy::class);
         $this->app->singleton(NoteAddabilityPolicy::class);

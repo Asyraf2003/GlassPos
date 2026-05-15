@@ -9,5 +9,6 @@ return [
     App\Providers\ExpenseServiceProvider::class,
     App\Providers\ProductCatalogServiceProvider::class,
     App\Providers\PushNotificationServiceProvider::class,
+    App\Providers\InfrastructureServiceProvider::class,
     App\Providers\HexagonalServiceProvider::class,
 ];
