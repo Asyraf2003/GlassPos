@@ -13,12 +13,6 @@ use App\Adapters\Out\Audit\DatabaseAuditEventWriterAdapter;
 use App\Adapters\Out\Audit\DatabaseAuditLogReaderAdapter;
 use App\Adapters\Out\Auth\LaravelUuidAdapter;
 use App\Adapters\Out\Clock\SystemClockAdapter;
-use App\Adapters\Out\Expense\DatabaseExpenseCategoryListPageQuery;
-use App\Adapters\Out\Expense\DatabaseExpenseCategoryReaderAdapter;
-use App\Adapters\Out\Expense\DatabaseExpenseCategoryWriterAdapter;
-use App\Adapters\Out\Expense\DatabaseExpenseCategoryTableReaderAdapter;
-use App\Adapters\Out\Expense\DatabaseOperationalExpenseWriterAdapter;
-use App\Adapters\Out\Expense\DatabaseOperationalExpenseTableReaderAdapter;
 use App\Adapters\Out\EmployeeFinance\DatabaseEmployeePayrollTableReaderAdapter;
 use App\Adapters\Out\IdentityAccess\CachedActorAccessReaderAdapter;
 use App\Adapters\Out\IdentityAccess\CachedAdminCashierAreaAccessStateAdapter;
@@ -146,12 +140,6 @@ use App\Ports\Out\EmployeeFinance\EmployeeWriterPort;
 use App\Ports\Out\EmployeeFinance\PayrollDisbursementWriterPort;
 use App\Ports\Out\EmployeeFinance\PayrollDisbursementReversalWriterPort;
 use App\Ports\Out\EmployeeFinance\EmployeePayrollTableReaderPort;
-use App\Ports\Out\Expense\ExpenseCategoryReaderPort;
-use App\Ports\Out\Expense\ExpenseCategoryOptionReaderPort;
-use App\Ports\Out\Expense\ExpenseCategoryWriterPort;
-use App\Ports\Out\Expense\ExpenseCategoryTableReaderPort;
-use App\Ports\Out\Expense\OperationalExpenseWriterPort;
-use App\Ports\Out\Expense\OperationalExpenseTableReaderPort;
 use App\Ports\Out\IdentityAccess\ActorAccessReaderPort;
 use App\Ports\Out\IdentityAccess\AdminCashierAreaAccessStatePort;
 use App\Ports\Out\IdentityAccess\AdminTransactionCapabilityStatePort;
@@ -388,11 +376,5 @@ class HexagonalServiceProvider extends ServiceProvider
         $this->app->singleton(PayrollDisbursementReversalWriterPort::class, \App\Adapters\Out\EmployeeFinance\DatabasePayrollDisbursementReversalWriterAdapter::class);
         $this->app->singleton(\App\Ports\Out\EmployeeFinance\PayrollTableReaderPort::class, \App\Adapters\Out\EmployeeFinance\DatabasePayrollTableReaderAdapter::class);
 
-        $this->app->singleton(ExpenseCategoryReaderPort::class, DatabaseExpenseCategoryReaderAdapter::class);
-        $this->app->singleton(ExpenseCategoryOptionReaderPort::class, DatabaseExpenseCategoryListPageQuery::class);
-        $this->app->singleton(ExpenseCategoryWriterPort::class, DatabaseExpenseCategoryWriterAdapter::class);
-        $this->app->singleton(ExpenseCategoryTableReaderPort::class, DatabaseExpenseCategoryTableReaderAdapter::class);
-        $this->app->singleton(OperationalExpenseWriterPort::class, DatabaseOperationalExpenseWriterAdapter::class);
-        $this->app->singleton(OperationalExpenseTableReaderPort::class, DatabaseOperationalExpenseTableReaderAdapter::class);
     }
 }

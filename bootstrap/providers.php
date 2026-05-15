@@ -6,5 +6,6 @@ return [
     App\Providers\NoteRevisionServiceProvider::class,
     App\Providers\MobileApiServiceProvider::class,
     App\Providers\ReportingServiceProvider::class,
+    App\Providers\ExpenseServiceProvider::class,
     App\Providers\HexagonalServiceProvider::class,
 ];
