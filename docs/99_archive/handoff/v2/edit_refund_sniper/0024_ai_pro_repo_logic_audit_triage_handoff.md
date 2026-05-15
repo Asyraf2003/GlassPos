@@ -219,6 +219,9 @@ Local GREEN proof:
   - `tests/Feature/Note/ClosedNoteFullRefundExternalPurchaseLifecycleFeatureTest.php`
   - `tests/Unit/Application/Note/Services/SelectedRowsRefundBucketsBuilderTest.php`
   - Result: `19 passed, 99 assertions`.
+- Full `make verify` proof:
+  - Final visible test summary: `1051 passed, 5658 assertions`.
+  - Duration: `56.37s`.
 
 Conclusion:
 - HP-REFUND-001 was a real source-level serialization gap.
@@ -228,7 +231,6 @@ Conclusion:
 Remaining verification gaps:
 - No true parallel two-connection stress test was executed.
 - No explicit DB lock wait or timeout assertion was executed.
-- No full `make verify` run was executed for this HP-REFUND patch.
 - No browser/manual QA was executed.
 
 Next action:
