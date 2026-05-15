@@ -223,16 +223,60 @@ Next action:
 - Do not patch HP-SURPLUS-001 source unless a new RED proof shows the invariant can still be violated.
 - If deeper proof is needed later, add a dedicated concurrency stress test around two simultaneous refund_due requests for the same settlement.
 
-### HP-UI-001 — shared UI surplus action role-agnostic
+### HP-UI-001 - shared UI surplus action role-agnostic
 
-Status: Suspected.
+Status: Confirmed RED, fixed GREEN.
 
-Reason:
-Shared note detail and shared surplus partial can be risky, but HP-AUTH-001 route removal changes exploitability.
+Original AI Pro claim:
+- Shared surplus action UI could render admin-only surplus mutation actions outside the intended admin boundary.
 
-Required proof:
-- cashier DOM test proving cashier detail renders admin-only surplus action.
-- admin DOM test proving intended action remains available.
+Local RED proof:
+- Added cashier DOM regression:
+  - `tests/Feature/Note/CashierNoteSurplusRefundDueUiAccessFeatureTest.php`
+- RED result:
+  - Cashier detail rendered `Tandai Refund Due` for a note with pending surplus.
+  - Failure: response HTML was expected not to contain `Tandai Refund Due`.
+- Admin UI remained green in the same targeted run.
+
+Root cause:
+- `resources/views/shared/notes/partials/payment-summary-actions.blade.php` rendered surplus refund_due action from shared note detail data.
+- The refund_due form posts to admin route:
+  - `admin.notes.revision-settlements.refund-due.store`
+- Admin and cashier note detail pages share the same `shared.notes.show` view.
+- The shared partial did not require an explicit admin-only render flag before showing surplus mutation actions.
+
+Production fix:
+- `app/Adapters/In/Http/Controllers/Admin/Note/NoteDetailPageController.php`
+  - Adds `canManageSurplusDisposition => true` for admin detail rendering.
+- `resources/views/shared/notes/partials/payment-summary-actions.blade.php`
+  - Requires `($canManageSurplusDisposition ?? false)` before rendering pending refund_due actions.
+  - Requires `($canManageSurplusDisposition ?? false)` before rendering refund_paid actions.
+- Cashier controller remains unchanged.
+  - Missing flag defaults to false in the shared partial.
+
+Local GREEN proof:
+- Syntax:
+  - `php -l app/Adapters/In/Http/Controllers/Admin/Note/NoteDetailPageController.php`
+  - `php -l resources/views/shared/notes/partials/payment-summary-actions.blade.php`
+- Focused tests passed:
+  - `tests/Feature/Note/CashierNoteSurplusRefundDueUiAccessFeatureTest.php`
+  - `tests/Feature/Note/AdminNoteSurplusRefundDueUiFeatureTest.php`
+  - `tests/Feature/Note/AdminNoteSurplusRefundPaidUiFeatureTest.php`
+- Result: 4 passed, 42 assertions.
+
+Conclusion:
+- HP-UI-001 was a real UI-to-logic boundary bug.
+- The shared partial now requires an explicit admin render capability before showing admin-only surplus mutation forms.
+- Refund_due and refund_paid surplus actions are both guarded by the same view boundary.
+
+Remaining verification gaps:
+- No full `make verify` run was executed for this HP-UI patch.
+- No browser/manual QA was executed.
+- No broader cashier note detail feature suite was executed after this patch.
+
+Next action:
+- Run focused cashier/admin note detail blast-radius tests before closing this finding as session-safe.
+- Do not change backend refund_due/refund_paid handlers for HP-UI unless a new backend proof appears.
 
 ### HP-INV-001 — inventory reversal idempotency race
 
