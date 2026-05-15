@@ -175,13 +175,65 @@ Owner handles commit/push manually.
 
 ### HP-REFUND-001 — selected-row refund race
 
-Status: Suspected.
+Status: Confirmed RED, fixed GREEN.
 
-Reason:
-AI Pro described plausible race risk, but no local RED proof has been produced yet.
+Original AI Pro claim:
+- Selected-row refund flow had a plausible race window that could allow double refund / over-refund / duplicate stock reversal.
 
-Required proof:
-- concurrent or invariant test showing double refund / over-refund / duplicate stock reversal.
+Local source-risk proof:
+- `RecordClosedNoteRefundController` resolves `SelectedRowsRefundPlan` before entering the selected-row refund transaction.
+- `SelectedNoteRowsRefundPlanResolver` builds refund buckets from `payment_component_allocations` and `refund_component_allocations` using normal reader methods.
+- `PaymentComponentAllocationReaderPort` and `RefundComponentAllocationReaderPort` did not expose for-update reader methods.
+- `DatabasePaymentComponentAllocationReaderAdapter::listByNoteId(...)` and `DatabaseRefundComponentAllocationReaderAdapter::listByNoteId(...)` read without `lockForUpdate()`.
+- `RecordCustomerRefundOperation` previously loaded the note through `NoteReaderPort::getById(...)`, so selected-row refund did not acquire the existing note row lock before refund allocation reads.
+- `refund_component_allocations` unique constraint is scoped to `customer_refund_id + component_type + component_ref_id`, so two different refunds are not prevented at the database layer from writing the same component.
+
+Local RED proof:
+- Added lock-invariant regression:
+  - `tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php`
+  - `test_selected_row_refund_locks_note_before_refund_allocation_reads`
+- RED result:
+  - Test reached the assertion after a successful selected-row refund.
+  - Failure: `forUpdateCalls` was `0`.
+  - Message: selected-row customer refund must lock the note before refund allocation reads to serialize concurrent refunds.
+- Targeted RED:
+  - `1 failed, 2 assertions`.
+
+Production fix:
+- `app/Application/Payment/Services/RecordCustomerRefundOperation.php`
+  - Changed note read from `NoteReaderPort::getById(...)` to `NoteReaderPort::getByIdForUpdate(...)`.
+  - This makes customer refund operation acquire the note row lock inside the existing transaction before pair-limit validation and component refund allocation.
+
+Local GREEN proof:
+- Syntax:
+  - `php -l app/Application/Payment/Services/RecordCustomerRefundOperation.php`
+  - `php -l tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php`
+- Targeted GREEN:
+  - `tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php --filter=selected_row_refund_locks_note_before_refund_allocation_reads`
+  - Result: `1 passed, 2 assertions`.
+- Focused refund blast-radius:
+  - `tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php`
+  - `tests/Feature/Payment/RecordCustomerRefundFeatureTest.php`
+  - `tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php`
+  - `tests/Feature/Note/ClosedNoteFullRefundStoreStockInventoryLifecycleFeatureTest.php`
+  - `tests/Feature/Note/ClosedNoteFullRefundExternalPurchaseLifecycleFeatureTest.php`
+  - `tests/Unit/Application/Note/Services/SelectedRowsRefundBucketsBuilderTest.php`
+  - Result: `19 passed, 99 assertions`.
+
+Conclusion:
+- HP-REFUND-001 was a real source-level serialization gap.
+- The selected-row refund operation now uses the existing note row lock seam before refund allocation reads.
+- The fix is intentionally minimal and does not add schema constraints, new idempotency keys, or true parallel test infrastructure.
+
+Remaining verification gaps:
+- No true parallel two-connection stress test was executed.
+- No explicit DB lock wait or timeout assertion was executed.
+- No full `make verify` run was executed for this HP-REFUND patch.
+- No browser/manual QA was executed.
+
+Next action:
+- Do not broaden this HP-REFUND patch unless a new RED proof shows over-refund or duplicate stock reversal can still happen.
+- If deeper concurrency proof is needed later, add a dedicated two-connection selected-row refund stress test around the same note and selected row.
 
 ### HP-SURPLUS-001 - refund_due race can exceed pending surplus
 
