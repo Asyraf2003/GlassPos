@@ -134,12 +134,12 @@ final class RecordNoteRevisionSurplusRefundPaymentControllerFeatureTest extends 
             ->from(route('admin.notes.show', ['noteId' => 'note-root-paid-http-001']))
             ->post('/admin/notes/revision-surplus-dispositions/surplus-disposition-paid-http-001/refund-paid', $payload);
 
+        $first->assertRedirect(route('admin.notes.show', ['noteId' => 'note-root-paid-http-001']));
+        $first->assertSessionHas('success');
+
         $second = $this->actingAs($admin)
             ->from(route('admin.notes.show', ['noteId' => 'note-root-paid-http-001']))
             ->post('/admin/notes/revision-surplus-dispositions/surplus-disposition-paid-http-001/refund-paid', $payload);
-
-        $first->assertRedirect(route('admin.notes.show', ['noteId' => 'note-root-paid-http-001']));
-        $first->assertSessionHas('success');
 
         $second->assertRedirect(route('admin.notes.show', ['noteId' => 'note-root-paid-http-001']));
         $second->assertSessionHas('success');
@@ -172,6 +172,9 @@ final class RecordNoteRevisionSurplusRefundPaymentControllerFeatureTest extends 
                 'idempotency_key' => 'refund-paid-surplus-disposition-paid-http-001-122000',
             ]);
 
+        $first->assertRedirect(route('admin.notes.show', ['noteId' => 'note-root-paid-http-001']));
+        $first->assertSessionHas('success');
+
         $second = $this->actingAs($admin)
             ->from(route('admin.notes.show', ['noteId' => 'note-root-paid-http-001']))
             ->post('/admin/notes/revision-surplus-dispositions/surplus-disposition-paid-http-001/refund-paid', [
@@ -180,9 +183,6 @@ final class RecordNoteRevisionSurplusRefundPaymentControllerFeatureTest extends 
                 'reason' => 'Customer received changed surplus refund paid from stale form.',
                 'idempotency_key' => 'refund-paid-surplus-disposition-paid-http-001-122000',
             ]);
-
-        $first->assertRedirect(route('admin.notes.show', ['noteId' => 'note-root-paid-http-001']));
-        $first->assertSessionHas('success');
 
         $second->assertRedirect(route('admin.notes.show', ['noteId' => 'note-root-paid-http-001']));
         $second->assertSessionHasErrors(['refund_paid']);
