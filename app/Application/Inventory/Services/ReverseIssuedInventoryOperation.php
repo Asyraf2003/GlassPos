@@ -51,7 +51,7 @@ final class ReverseIssuedInventoryOperation
             }
 
             $qty = abs($movement->qtyDelta());
-            $inventory = $this->inventories->getByProductId($movement->productId());
+            $inventory = $this->inventories->getByProductIdForUpdate($movement->productId());
             $costing = $this->costings->getByProductId($movement->productId());
 
             if ($inventory === null || $costing === null) {
