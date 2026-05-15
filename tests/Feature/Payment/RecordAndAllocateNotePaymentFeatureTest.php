@@ -60,6 +60,31 @@ final class RecordAndAllocateNotePaymentFeatureTest extends TestCase
         ]);
     }
 
+
+    public function test_record_and_allocate_note_payment_stores_operational_timestamps_on_component_allocations(): void
+    {
+        $this->seedMixedNote();
+
+        $result = app(RecordAndAllocateNotePaymentHandler::class)->handle('note-1', 10000, '2026-04-02');
+
+        $this->assertTrue($result->isSuccess());
+
+        $paymentId = (string) DB::table('customer_payments')->value('id');
+
+        $rows = DB::table('payment_component_allocations')
+            ->where('customer_payment_id', $paymentId)
+            ->where('note_id', 'note-1')
+            ->get(['created_at', 'updated_at']);
+
+        $this->assertCount(3, $rows);
+
+        foreach ($rows as $row) {
+            $this->assertNotNull($row->created_at);
+            $this->assertNotNull($row->updated_at);
+            $this->assertSame($row->created_at, $row->updated_at);
+        }
+    }
+
     public function test_it_moves_to_service_fee_only_after_product_buckets_are_fully_covered(): void
     {
         $this->seedMixedNote();

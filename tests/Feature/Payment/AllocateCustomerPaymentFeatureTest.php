@@ -40,6 +40,27 @@ final class AllocateCustomerPaymentFeatureTest extends TestCase
         ]);
     }
 
+
+    public function test_allocate_customer_payment_handler_stores_operational_timestamps_on_legacy_allocation(): void
+    {
+        $this->seedNote('note-1', 'Budi Santoso', '2026-03-14', 100000);
+        $this->seedCustomerPayment('payment-1', 150000, '2026-03-15');
+
+        $handler = $this->buildHandler('allocation-timestamp-1');
+        $result = $handler->handle('payment-1', 'note-1', 40000);
+
+        $this->assertTrue($result->isSuccess());
+
+        $row = DB::table('payment_allocations')
+            ->where('id', 'allocation-timestamp-1')
+            ->first(['created_at', 'updated_at']);
+
+        $this->assertNotNull($row);
+        $this->assertNotNull($row->created_at);
+        $this->assertNotNull($row->updated_at);
+        $this->assertSame($row->created_at, $row->updated_at);
+    }
+
     public function test_allocate_customer_payment_handler_rejects_invalid_target(): void
     {
         $this->seedNote('note-1', 'Budi Santoso', '2026-03-14', 100000);

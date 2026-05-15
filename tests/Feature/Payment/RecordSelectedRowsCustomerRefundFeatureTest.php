@@ -114,6 +114,39 @@ final class RecordSelectedRowsCustomerRefundFeatureTest extends TestCase
         );
     }
 
+
+    public function test_selected_rows_refund_stores_operational_timestamps_on_refund_component_allocations(): void
+    {
+        $this->seedNote();
+        $this->seedPaymentAndAllocations();
+
+        $result = app(RecordCustomerRefundHandler::class)->handle(
+            'payment-1',
+            'note-1',
+            4000,
+            '2026-04-03',
+            'Refund timestamp allocation',
+            'actor-1',
+            ['wi-2'],
+        );
+
+        $this->assertTrue($result->isSuccess());
+
+        $refundId = (string) DB::table('customer_refunds')->value('id');
+
+        $rows = DB::table('refund_component_allocations')
+            ->where('customer_refund_id', $refundId)
+            ->get(['created_at', 'updated_at']);
+
+        $this->assertCount(1, $rows);
+
+        foreach ($rows as $row) {
+            $this->assertNotNull($row->created_at);
+            $this->assertNotNull($row->updated_at);
+            $this->assertSame($row->created_at, $row->updated_at);
+        }
+    }
+
     private function seedNote(): void
     {
         $this->seedNotePaymentProduct('product-1', 'KB-001', 'Ban Luar', 'Federal', 100, 5000);
