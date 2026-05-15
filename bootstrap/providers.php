@@ -12,5 +12,6 @@ return [
     App\Providers\InfrastructureServiceProvider::class,
     App\Providers\EmployeeFinanceServiceProvider::class,
     App\Providers\InventoryServiceProvider::class,
+    App\Providers\ProcurementServiceProvider::class,
     App\Providers\HexagonalServiceProvider::class,
 ];
