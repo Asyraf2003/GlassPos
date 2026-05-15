@@ -12,6 +12,7 @@ use App\Core\Procurement\SupplierReceipt\SupplierReceipt;
 use App\Core\Procurement\SupplierReceipt\SupplierReceiptLine;
 use App\Core\Shared\ValueObjects\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
@@ -99,6 +100,94 @@ it('supplier payment writer stores operational timestamps on create', function (
     expect($row)->not->toBeNull();
     expect($row->created_at)->not->toBeNull();
     expect($row->updated_at)->not->toBeNull();
+});
+
+it('supplier invoice writer preserves created at and updates updated at on update', function (): void {
+    seedSupplierInvoiceLineFixture();
+
+    DB::table('supplier_invoices')
+        ->where('id', 'supplier-invoice-fixture-ts-1')
+        ->update([
+            'created_at' => '2026-05-01 10:00:00',
+            'updated_at' => '2026-05-01 10:00:00',
+        ]);
+
+    $line = SupplierInvoiceLine::create(
+        'supplier-invoice-line-fixture-ts-1',
+        1,
+        'product-writer-ts-1',
+        'P-WRITER-1',
+        'Oli Mesin Updated',
+        'Federal',
+        1,
+        2,
+        Money::fromInt(60_000),
+    );
+
+    $invoice = SupplierInvoice::create(
+        'supplier-invoice-fixture-ts-1',
+        'supplier-writer-ts-1',
+        'PT Supplier Timestamp',
+        'INV-FIXTURE-UPDATED',
+        new DateTimeImmutable('2026-05-18'),
+        [$line],
+    );
+
+    Carbon::setTestNow('2026-05-20 12:34:56');
+
+    try {
+        (new DatabaseSupplierInvoiceWriterAdapter())->update($invoice);
+    } finally {
+        Carbon::setTestNow();
+    }
+
+    $row = DB::table('supplier_invoices')
+        ->where('id', 'supplier-invoice-fixture-ts-1')
+        ->first();
+
+    expect($row)->not->toBeNull();
+    expect((string) $row->created_at)->toBe('2026-05-01 10:00:00');
+    expect((string) $row->updated_at)->toBe('2026-05-20 12:34:56');
+});
+
+it('supplier payment writer preserves created at and updates updated at on update', function (): void {
+    seedSupplierInvoiceFixture();
+
+    DB::table('supplier_payments')->insert([
+        'id' => 'supplier-payment-fixture-ts-1',
+        'supplier_invoice_id' => 'supplier-invoice-fixture-ts-1',
+        'amount_rupiah' => 25_000,
+        'paid_at' => '2026-05-17',
+        'proof_status' => SupplierPayment::PROOF_STATUS_PENDING,
+        'proof_storage_path' => null,
+        'created_at' => '2026-05-01 11:00:00',
+        'updated_at' => '2026-05-01 11:00:00',
+    ]);
+
+    $payment = SupplierPayment::create(
+        'supplier-payment-fixture-ts-1',
+        'supplier-invoice-fixture-ts-1',
+        Money::fromInt(25_000),
+        new DateTimeImmutable('2026-05-17'),
+        SupplierPayment::PROOF_STATUS_UPLOADED,
+        'supplier-payments/proofs/proof-1.jpg',
+    );
+
+    Carbon::setTestNow('2026-05-21 13:45:01');
+
+    try {
+        (new DatabaseSupplierPaymentWriterAdapter())->update($payment);
+    } finally {
+        Carbon::setTestNow();
+    }
+
+    $row = DB::table('supplier_payments')
+        ->where('id', 'supplier-payment-fixture-ts-1')
+        ->first();
+
+    expect($row)->not->toBeNull();
+    expect((string) $row->created_at)->toBe('2026-05-01 11:00:00');
+    expect((string) $row->updated_at)->toBe('2026-05-21 13:45:01');
 });
 
 function seedSupplierAndProduct(): void
