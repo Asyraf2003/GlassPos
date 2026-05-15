@@ -42,7 +42,7 @@ final class RecordCustomerRefundOperation
         array $selectedRowIds = [],
     ): RecordedCustomerRefund {
         $payment = $this->customerPayments->getById(trim($customerPaymentId));
-        $note = $this->notes->getById(trim($noteId));
+        $note = $this->notes->getByIdForUpdate(trim($noteId));
 
         if ($payment === null || $note === null) {
             throw new DomainException('Target refund tidak ditemukan.');
