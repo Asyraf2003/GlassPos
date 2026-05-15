@@ -26,17 +26,6 @@ use App\Adapters\Out\IdentityAccess\CachedAdminTransactionCapabilityStateAdapter
 use App\Adapters\Out\IdentityAccess\DatabaseActorAccessReaderAdapter;
 use App\Adapters\Out\IdentityAccess\DatabaseAdminCashierAreaAccessStateAdapter;
 use App\Adapters\Out\IdentityAccess\DatabaseAdminTransactionCapabilityStateAdapter;
-use App\Adapters\Out\MobileApi\DatabaseMobileApiTokenStoreAdapter;
-use App\Adapters\Out\MobileApi\LaravelMobileApiUserIdentityAdapter;
-use App\Application\MobileApi\Auth\Services\MobileApiActorResolver;
-use App\Application\MobileApi\Auth\Services\MobileApiTokenHasher;
-use App\Application\MobileApi\Auth\Services\MobileApiTokenIssuer;
-use App\Application\MobileApi\Auth\Services\MobileApiTokenVerifier;
-use App\Application\MobileApi\Auth\UseCases\LoginMobileApiUserHandler;
-use App\Application\MobileApi\Auth\UseCases\LogoutMobileApiTokenHandler;
-use App\Ports\Out\MobileApi\MobileApiCredentialVerifierPort;
-use App\Ports\Out\MobileApi\MobileApiTokenStorePort;
-use App\Ports\Out\MobileApi\MobileApiUserReaderPort;
 use App\Adapters\Out\Inventory\DatabaseInventoryMovementReaderAdapter;
 use App\Adapters\Out\Inventory\DatabaseInventoryMovementWriterAdapter;
 use App\Adapters\Out\Inventory\DatabaseProductInventoryCostingProjectionWriterAdapter;
@@ -319,16 +308,6 @@ class HexagonalServiceProvider extends ServiceProvider
         $this->app->scoped(ActorAccessReaderPort::class, CachedActorAccessReaderAdapter::class);
         $this->app->scoped(AdminTransactionCapabilityStatePort::class, CachedAdminTransactionCapabilityStateAdapter::class);
         $this->app->scoped(AdminCashierAreaAccessStatePort::class, CachedAdminCashierAreaAccessStateAdapter::class);
-
-        $this->app->singleton(MobileApiCredentialVerifierPort::class, LaravelMobileApiUserIdentityAdapter::class);
-        $this->app->singleton(MobileApiUserReaderPort::class, LaravelMobileApiUserIdentityAdapter::class);
-        $this->app->singleton(MobileApiTokenStorePort::class, DatabaseMobileApiTokenStoreAdapter::class);
-        $this->app->singleton(MobileApiTokenHasher::class);
-        $this->app->singleton(MobileApiTokenIssuer::class);
-        $this->app->singleton(MobileApiTokenVerifier::class);
-        $this->app->singleton(MobileApiActorResolver::class);
-        $this->app->singleton(LoginMobileApiUserHandler::class);
-        $this->app->singleton(LogoutMobileApiTokenHandler::class);
 
         $this->app->singleton(ProductReaderPort::class, DatabaseProductReaderAdapter::class);
         $this->app->singleton(ProductDetailReaderPort::class, DatabaseProductDetailReaderAdapter::class);
