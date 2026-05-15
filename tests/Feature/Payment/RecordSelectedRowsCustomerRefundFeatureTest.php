@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Payment;
 
 use App\Application\Payment\UseCases\RecordCustomerRefundHandler;
+use App\Ports\Out\Note\NoteReaderPort;
+use App\Core\Note\Note;
+use App\Adapters\Out\Note\DatabaseNoteReaderAdapter;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -145,6 +148,52 @@ final class RecordSelectedRowsCustomerRefundFeatureTest extends TestCase
             $this->assertNotNull($row->updated_at);
             $this->assertSame($row->created_at, $row->updated_at);
         }
+    }
+
+
+    public function test_selected_row_refund_locks_note_before_refund_allocation_reads(): void
+    {
+        $this->seedNote();
+        $this->seedPaymentAndAllocations();
+
+        $spy = new class ($this->app->make(DatabaseNoteReaderAdapter::class)) implements NoteReaderPort {
+            public int $forUpdateCalls = 0;
+
+            public function __construct(private readonly NoteReaderPort $delegate)
+            {
+            }
+
+            public function getById(string $id): ?Note
+            {
+                return $this->delegate->getById($id);
+            }
+
+            public function getByIdForUpdate(string $id): ?Note
+            {
+                $this->forUpdateCalls++;
+
+                return $this->delegate->getByIdForUpdate($id);
+            }
+        };
+
+        $this->app->instance(NoteReaderPort::class, $spy);
+
+        $result = app(RecordCustomerRefundHandler::class)->handle(
+            'payment-1',
+            'note-1',
+            4000,
+            '2026-04-03',
+            'Refund selected-row lock invariant',
+            'actor-1',
+            ['wi-2'],
+        );
+
+        $this->assertTrue($result->isSuccess());
+        $this->assertGreaterThan(
+            0,
+            $spy->forUpdateCalls,
+            'Selected-row customer refund must lock the note before refund allocation reads to serialize concurrent refunds.',
+        );
     }
 
     private function seedNote(): void
