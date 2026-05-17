@@ -42,7 +42,7 @@ final class CreateTransactionWorkspaceWorkItemPayloadMapper
 
         $service = [
             'service_name' => $this->requiredString($item['service']['name'] ?? null, 'Nama servis wajib diisi.'),
-            'service_price_rupiah' => $this->requiredInt($item['service']['price_rupiah'] ?? null, 'Harga servis wajib diisi.'),
+            'service_price_rupiah' => $this->requiredServicePrice($item),
             'part_source' => 'none',
         ];
 
@@ -64,6 +64,28 @@ final class CreateTransactionWorkspaceWorkItemPayloadMapper
         }
 
         return trim($value);
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    private function requiredServicePrice(array $item): int
+    {
+        $value = $item['service']['price_rupiah'] ?? null;
+
+        if (! is_int($value)) {
+            throw new DomainException('Harga servis wajib diisi.');
+        }
+
+        if ($value > 0) {
+            return $value;
+        }
+
+        if ($value === 0 && ($item['pricing_mode'] ?? null) === 'package_auto_split') {
+            return 0;
+        }
+
+        throw new DomainException('Harga servis wajib diisi.');
     }
 
     private function requiredInt(mixed $value, string $message): int
