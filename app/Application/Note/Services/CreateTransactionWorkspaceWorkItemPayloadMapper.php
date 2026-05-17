@@ -13,6 +13,7 @@ final class CreateTransactionWorkspaceWorkItemPayloadMapper
         private readonly CreateTransactionWorkspaceStoreStockLineMapper $storeStock,
         private readonly CreateTransactionWorkspaceExternalPurchaseLineMapper $external,
         private readonly CreateTransactionWorkspaceServiceWorkItemVariantResolver $variants,
+        private readonly CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer $packagePricing,
     ) {
     }
 
@@ -36,6 +37,8 @@ final class CreateTransactionWorkspaceWorkItemPayloadMapper
         if ($entryMode !== 'service') {
             throw new DomainException('Tipe item workspace tidak didukung.');
         }
+
+        $item = $this->packagePricing->compose($item);
 
         $service = [
             'service_name' => $this->requiredString($item['service']['name'] ?? null, 'Nama servis wajib diisi.'),
