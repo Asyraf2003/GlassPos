@@ -35,13 +35,25 @@ final class ServiceDetailTest extends TestCase
         );
     }
 
-    public function test_it_rejects_non_positive_service_price(): void
+    public function test_it_accepts_zero_service_price(): void
+    {
+        $detail = ServiceDetail::create(
+            'Servis Karburator',
+            Money::zero(),
+            ServiceDetail::PART_SOURCE_NONE,
+        );
+
+        $this->assertSame(0, $detail->servicePriceRupiah()->amount());
+    }
+
+    public function test_it_rejects_negative_service_price(): void
     {
         $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Service price rupiah tidak boleh negatif.');
 
         ServiceDetail::create(
             'Servis Karburator',
-            Money::zero(),
+            Money::fromInt(-1),
             ServiceDetail::PART_SOURCE_NONE,
         );
     }
