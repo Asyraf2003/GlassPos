@@ -15,11 +15,13 @@
     const pricingMode = row.querySelector("[data-pricing-mode]")?.value || "manual_split";
     const packageTotal = digits(row.querySelector('input[name$="[package_total_rupiah]"]')?.value);
 
-    if (type === "product") return { service: 0, product: qty * product };
+    const storeStockTotal = qty * product;
+
+    if (type === "product") return { service: 0, product: storeStockTotal };
     if (type === "service_store_stock" && pricingMode === "package_auto_split" && packageTotal > 0) {
-      return { service: packageTotal, product: 0 };
+      return { service: Math.max(packageTotal - storeStockTotal, 0), product: storeStockTotal };
     }
-    if (type === "service_store_stock") return { service, product: qty * product };
+    if (type === "service_store_stock") return { service, product: storeStockTotal };
     if (type === "service_external") return { service, product: qty * external };
     return { service, product: 0 };
   };
