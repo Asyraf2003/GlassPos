@@ -88,12 +88,4 @@ final class CreateTransactionWorkspaceWorkItemPayloadMapper
         throw new DomainException('Harga servis wajib diisi.');
     }
 
-    private function requiredInt(mixed $value, string $message): int
-    {
-        if (! is_int($value) || $value <= 0) {
-            throw new DomainException($message);
-        }
-
-        return $value;
-    }
 }

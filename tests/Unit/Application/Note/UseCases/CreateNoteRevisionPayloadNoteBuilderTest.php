@@ -6,6 +6,7 @@ namespace Tests\Unit\Application\Note\UseCases;
 
 use App\Application\Note\Services\CreateTransactionWorkspaceExternalPurchaseLineMapper;
 use App\Application\Note\Services\CreateTransactionWorkspaceServiceWorkItemVariantResolver;
+use App\Application\Note\Services\CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer;
 use App\Application\Note\Services\CreateTransactionWorkspaceStoreStockLineMapper;
 use App\Application\Note\Services\CreateTransactionWorkspaceWorkItemPayloadMapper;
 use App\Application\Note\Services\RevisionWorkspace\RevisionSnapshotStoreStockLineKeyer;
@@ -159,6 +160,7 @@ final class CreateNoteRevisionPayloadNoteBuilderTest extends TestCase
                 new CreateTransactionWorkspaceStoreStockLineMapper(),
                 new CreateTransactionWorkspaceExternalPurchaseLineMapper(),
                 new CreateTransactionWorkspaceServiceWorkItemVariantResolver(),
+                new CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer($products),
             ),
             new WorkItemFactory(
                 $uuid,
