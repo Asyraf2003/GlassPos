@@ -71,8 +71,8 @@ final class ServiceDetail
             throw new DomainException('Service name wajib ada.');
         }
 
-        if ($servicePriceRupiah->greaterThan(Money::zero()) === false) {
-            throw new DomainException('Service price rupiah harus lebih besar dari nol.');
+        if ($servicePriceRupiah->amount() < 0) {
+            throw new DomainException('Service price rupiah tidak boleh negatif.');
         }
 
         $normalizedPartSource = trim($partSource);
