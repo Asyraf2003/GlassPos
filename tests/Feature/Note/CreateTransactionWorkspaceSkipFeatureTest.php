@@ -31,7 +31,21 @@ final class CreateTransactionWorkspaceSkipFeatureTest extends TestCase
         ]);
 
         $response->assertRedirect(route('cashier.notes.index'));
-        $this->assertDatabaseHas('notes', ['customer_name' => 'Budi', 'total_rupiah' => 50000]);
+
+        $noteId = (string) DB::table('notes')->value('id');
+
+        $this->assertDatabaseHas('notes', [
+            'id' => $noteId,
+            'customer_name' => 'Budi',
+            'total_rupiah' => 50000,
+        ]);
+
         $this->assertDatabaseCount('customer_payments', 0);
+        $this->assertDatabaseMissing('payment_component_allocations', [
+            'note_id' => $noteId,
+        ]);
+        $this->assertDatabaseMissing('payment_allocations', [
+            'note_id' => $noteId,
+        ]);
     }
 }

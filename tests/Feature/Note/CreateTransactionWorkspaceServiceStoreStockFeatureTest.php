@@ -82,11 +82,48 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
         ]);
 
         $response->assertRedirect(route('cashier.notes.index'));
+
+        $noteId = (string) DB::table('notes')->value('id');
+        $workItemId = (string) DB::table('work_items')->value('id');
+        $storeStockLineId = (string) DB::table('work_item_store_stock_lines')->value('id');
+
         $this->assertDatabaseHas('notes', [
+            'id' => $noteId,
             'customer_name' => 'Budi',
             'total_rupiah' => 110000,
         ]);
-        $this->assertDatabaseCount('work_item_service_details', 1);
-        $this->assertDatabaseCount('work_item_store_stock_lines', 1);
+
+        $this->assertDatabaseHas('work_items', [
+            'id' => $workItemId,
+            'note_id' => $noteId,
+            'transaction_type' => 'service_with_store_stock_part',
+            'subtotal_rupiah' => 110000,
+        ]);
+
+        $this->assertDatabaseHas('work_item_service_details', [
+            'work_item_id' => $workItemId,
+            'service_name' => 'Servis Tune Up',
+            'service_price_rupiah' => 70000,
+            'part_source' => 'none',
+        ]);
+
+        $this->assertDatabaseHas('work_item_store_stock_lines', [
+            'id' => $storeStockLineId,
+            'work_item_id' => $workItemId,
+            'product_id' => 'product-1',
+            'qty' => 2,
+            'line_total_rupiah' => 40000,
+        ]);
+
+        $this->assertDatabaseHas('inventory_movements', [
+            'product_id' => 'product-1',
+            'movement_type' => 'stock_out',
+            'source_type' => 'work_item_store_stock_line',
+            'source_id' => $storeStockLineId,
+            'tanggal_mutasi' => '2026-03-15',
+            'qty_delta' => -2,
+            'unit_cost_rupiah' => 10000,
+            'total_cost_rupiah' => -20000,
+        ]);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Note;
 
 use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
+use App\Core\Payment\CustomerPayment\CustomerPayment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -40,7 +41,7 @@ final class CreateTransactionWorkspaceFullTransferFeatureTest extends TestCase
 
         $this->assertDatabaseHas('customer_payments', [
             'amount_rupiah' => 150000,
-            'payment_method' => 'transfer',
+            'payment_method' => CustomerPayment::METHOD_TRANSFER,
             'paid_at' => '2026-03-15',
         ]);
 

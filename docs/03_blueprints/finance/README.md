@@ -15,6 +15,7 @@ Blueprint, DoD, dan Workflow untuk domain finance.
 | `note-revision-refund-ledger-dod.md` | DoD | Kriteria selesai revision-refund-ledger |
 | `note-revision-refund-ledger-workflow.md` | Workflow | Workflow eksekusi revision-refund-ledger |
 | `0009_create_transaction_domain_risk_handoff.md` | Handoff | Risiko create transaction sebelum pemisahan finance, payment method, cash calculator, edit, dan refund domain |
+| `../99_archive/handoff/v2/edit_refund_sniper/0028_create_transaction_modular_payment_hardening_handoff.md` | Handoff | Create transaction modular payment hardening: cash, transfer, skip/no-payment, partial transfer proof |
 
 ## ADR Terkait
 

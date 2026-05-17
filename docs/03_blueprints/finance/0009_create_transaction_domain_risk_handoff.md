@@ -456,3 +456,127 @@ Do not treat green create tests as full domain maturity.
 Treat them as baseline safety only.
 
 The first thing to harden is the cash audit seam.
+
+## Decision - Service store-stock package pricing allocation
+
+Status: Decision captured, not implemented.
+
+Scope:
+
+- Create transaction only.
+- Service with store-stock part only.
+- UI may expose a fast package-total input.
+- Backend must keep precise, explicit, auditable allocation.
+
+Out of scope:
+
+- External purchase package pricing.
+- Mixed payment.
+- Edit/revision package recalculation.
+- Refund impact.
+- Cash denomination/pecahan.
+- Report redesign.
+- Schema migration unless later explicitly decided.
+
+Business decision:
+
+- Operator may input one package total for service + store-stock sparepart.
+- System must split the package total automatically.
+- Formula:
+  - sparepart_total = product.harga_jual * qty
+  - service_price = package_total - sparepart_total
+- Minimum package total is sparepart_total.
+- package_total may equal sparepart_total.
+- service_price may be 0.
+- Reason: valid business cases exist where owner/family/customer only pays sparepart while service fee is waived.
+
+Current source conflict:
+
+- Current ServiceDetail invariant requires service price to be greater than zero.
+- This conflicts with the locked business decision that service_price may be 0 for package allocation.
+- Implementation must resolve this in the domain layer, not by adapter bypass.
+
+Store-stock rule:
+
+- Store-stock line must still respect minimum selling price policy.
+- Product sale allocation must not go below product.harga_jual * qty.
+- Package discount may reduce service fee, not sparepart minimum.
+
+External purchase decision:
+
+- External purchase is not included in this package-pricing decision.
+- Current external purchase field is unit_cost_rupiah.
+- That field represents cost/outlay, not a clean customer-facing sale price.
+- Future external purchase pricing needs a separate domain split:
+  - external_purchase_cost
+  - external_purchase_customer_charge
+  - margin/profit calculation
+- Do not reuse external_purchase.unit_cost_rupiah as package sale allocation without a separate decision.
+
+Audit requirement:
+
+Allocation must be explicit and traceable.
+
+Minimum audit facts needed when implemented:
+
+- actor id
+- actor role
+- timestamp
+- note/work item impacted
+- package_total input
+- product id
+- qty
+- sparepart_total allocated
+- service_price residual
+- allocation source mode
+- note total impact
+- rejection reason when package_total is below sparepart_total
+
+UI/backend decision:
+
+- UI may stay simple.
+- Backend must stay explicit.
+- UI package_total is an input convenience, not the internal source of truth.
+- Internal source of truth remains allocated service detail and store-stock line facts.
+
+Recommended implementation direction:
+
+- Add a focused application service for create transaction item pricing/composition.
+- The composer should run before CreateTransactionWorkspaceWorkItemPayloadMapper builds service/detail/line payloads.
+- Payment logic must remain untouched.
+- WorkItemPersister must remain a persistence/side-effect step, not a pricing calculator.
+- Grand total calculation must use the same composed pricing result to avoid duplicate formulas.
+
+Minimum implementation tests later:
+
+1. service + store-stock package total above sparepart minimum:
+   - product harga_jual 40.000
+   - qty 1
+   - package_total 150.000
+   - sparepart_total 40.000
+   - service_price 110.000
+   - note total 150.000
+
+2. service + store-stock package total equals sparepart minimum:
+   - product harga_jual 40.000
+   - qty 1
+   - package_total 40.000
+   - sparepart_total 40.000
+   - service_price 0
+   - note total 40.000
+
+3. service + store-stock package total below sparepart minimum:
+   - product harga_jual 40.000
+   - qty 1
+   - package_total 30.000
+   - request/use case rejected
+   - no note/work item/inventory/payment side effect
+
+4. external purchase package attempt:
+   - must remain unsupported until external cost-vs-charge domain is decided.
+
+Next technical target:
+
+- Characterize current service + store-stock writer behavior before implementation.
+- Then introduce package composer with RED/GREEN tests.
+
