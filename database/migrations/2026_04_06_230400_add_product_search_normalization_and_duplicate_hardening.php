@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('products', function (Blueprint $table): void {
-            $table->string('nama_barang_normalized')->nullable()->after('nama_barang');
-            $table->string('merek_normalized')->nullable()->after('merek');
+            $table->string('nama_barang_normalized')->nullable();
+            $table->string('merek_normalized')->nullable();
 
             $table->index('nama_barang_normalized', 'products_nama_barang_normalized_idx');
             $table->index('merek_normalized', 'products_merek_normalized_idx');

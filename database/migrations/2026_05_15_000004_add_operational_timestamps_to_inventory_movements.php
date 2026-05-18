@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::table('inventory_movements', function (Blueprint $table): void {
             if (! Schema::hasColumn('inventory_movements', 'created_at')) {
-                $table->timestamp('created_at')->nullable()->after('total_cost_rupiah');
+                $table->timestamp('created_at')->nullable();
             }
 
             if (! Schema::hasColumn('inventory_movements', 'updated_at')) {
-                $table->timestamp('updated_at')->nullable()->after('created_at');
+                $table->timestamp('updated_at')->nullable();
             }
         });
 

@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('employees', function (Blueprint $table): void {
-            $table->string('employee_name')->nullable()->after('id');
-            $table->string('salary_basis_type', 20)->nullable()->after('phone');
-            $table->bigInteger('default_salary_amount')->nullable()->after('salary_basis_type');
-            $table->string('employment_status', 20)->nullable()->after('default_salary_amount');
-            $table->date('started_at')->nullable()->after('employment_status');
-            $table->date('ended_at')->nullable()->after('started_at');
+            $table->string('employee_name')->nullable();
+            $table->string('salary_basis_type', 20)->nullable();
+            $table->bigInteger('default_salary_amount')->nullable();
+            $table->string('employment_status', 20)->nullable();
+            $table->date('started_at')->nullable();
+            $table->date('ended_at')->nullable();
         });
 
         DB::table('employees')->update([
@@ -46,10 +46,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('employees', function (Blueprint $table): void {
-            $table->string('name')->nullable()->after('id');
-            $table->bigInteger('base_salary')->nullable()->after('phone');
-            $table->string('pay_period', 20)->nullable()->after('base_salary');
-            $table->string('status', 20)->nullable()->after('pay_period');
+            $table->string('name')->nullable();
+            $table->bigInteger('base_salary')->nullable();
+            $table->string('pay_period', 20)->nullable();
+            $table->string('status', 20)->nullable();
         });
 
         DB::table('employees')->update([

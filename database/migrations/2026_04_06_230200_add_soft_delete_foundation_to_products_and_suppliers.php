@@ -11,17 +11,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('products', function (Blueprint $table): void {
-            $table->dateTime('deleted_at')->nullable()->after('harga_jual');
-            $table->string('deleted_by_actor_id')->nullable()->after('deleted_at');
-            $table->text('delete_reason')->nullable()->after('deleted_by_actor_id');
+            $table->dateTime('deleted_at')->nullable();
+            $table->string('deleted_by_actor_id')->nullable();
+            $table->text('delete_reason')->nullable();
 
             $table->index('deleted_at', 'products_deleted_at_idx');
         });
 
         Schema::table('suppliers', function (Blueprint $table): void {
-            $table->dateTime('deleted_at')->nullable()->after('nama_pt_pengirim_normalized');
-            $table->string('deleted_by_actor_id')->nullable()->after('deleted_at');
-            $table->text('delete_reason')->nullable()->after('deleted_by_actor_id');
+            $table->dateTime('deleted_at')->nullable();
+            $table->string('deleted_by_actor_id')->nullable();
+            $table->text('delete_reason')->nullable();
 
             $table->index('deleted_at', 'suppliers_deleted_at_idx');
         });

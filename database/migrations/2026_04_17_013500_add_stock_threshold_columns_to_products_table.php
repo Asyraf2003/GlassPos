@@ -16,11 +16,11 @@ return new class extends Migration
 
         Schema::table('products', function (Blueprint $table): void {
             if (!Schema::hasColumn('products', 'reorder_point_qty')) {
-                $table->integer('reorder_point_qty')->nullable()->after('harga_jual');
+                $table->integer('reorder_point_qty')->nullable();
             }
 
             if (!Schema::hasColumn('products', 'critical_threshold_qty')) {
-                $table->integer('critical_threshold_qty')->nullable()->after('reorder_point_qty');
+                $table->integer('critical_threshold_qty')->nullable();
             }
         });
     }

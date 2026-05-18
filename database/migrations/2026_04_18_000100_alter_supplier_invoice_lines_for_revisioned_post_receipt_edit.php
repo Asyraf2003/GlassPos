@@ -13,23 +13,23 @@ return new class extends Migration
     {
         Schema::table('supplier_invoice_lines', function (Blueprint $table): void {
             if (! Schema::hasColumn('supplier_invoice_lines', 'revision_no')) {
-                $table->integer('revision_no')->default(1)->after('supplier_invoice_id');
+                $table->integer('revision_no')->default(1);
             }
 
             if (! Schema::hasColumn('supplier_invoice_lines', 'is_current')) {
-                $table->boolean('is_current')->default(true)->after('revision_no');
+                $table->boolean('is_current')->default(true);
             }
 
             if (! Schema::hasColumn('supplier_invoice_lines', 'source_line_id')) {
-                $table->string('source_line_id')->nullable()->after('is_current');
+                $table->string('source_line_id')->nullable();
             }
 
             if (! Schema::hasColumn('supplier_invoice_lines', 'superseded_by_line_id')) {
-                $table->string('superseded_by_line_id')->nullable()->after('source_line_id');
+                $table->string('superseded_by_line_id')->nullable();
             }
 
             if (! Schema::hasColumn('supplier_invoice_lines', 'superseded_at')) {
-                $table->timestamp('superseded_at')->nullable()->after('superseded_by_line_id');
+                $table->timestamp('superseded_at')->nullable();
             }
         });
 

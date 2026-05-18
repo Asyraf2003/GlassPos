@@ -12,11 +12,11 @@ return new class extends Migration
     {
         Schema::table('notes', function (Blueprint $table): void {
             if (! Schema::hasColumn('notes', 'current_revision_id')) {
-                $table->string('current_revision_id')->nullable()->after('id');
+                $table->string('current_revision_id')->nullable();
             }
 
             if (! Schema::hasColumn('notes', 'latest_revision_number')) {
-                $table->integer('latest_revision_number')->default(0)->after('current_revision_id');
+                $table->integer('latest_revision_number')->default(0);
             }
         });
     }

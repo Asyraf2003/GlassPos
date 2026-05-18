@@ -12,27 +12,27 @@ return new class extends Migration
     {
         Schema::table('supplier_receipt_lines', function (Blueprint $table): void {
             if (! Schema::hasColumn('supplier_receipt_lines', 'product_id_snapshot')) {
-                $table->string('product_id_snapshot')->nullable()->after('supplier_invoice_line_id');
+                $table->string('product_id_snapshot')->nullable();
             }
 
             if (! Schema::hasColumn('supplier_receipt_lines', 'product_kode_barang_snapshot')) {
-                $table->string('product_kode_barang_snapshot')->nullable()->after('product_id_snapshot');
+                $table->string('product_kode_barang_snapshot')->nullable();
             }
 
             if (! Schema::hasColumn('supplier_receipt_lines', 'product_nama_barang_snapshot')) {
-                $table->string('product_nama_barang_snapshot')->nullable()->after('product_kode_barang_snapshot');
+                $table->string('product_nama_barang_snapshot')->nullable();
             }
 
             if (! Schema::hasColumn('supplier_receipt_lines', 'product_merek_snapshot')) {
-                $table->string('product_merek_snapshot')->nullable()->after('product_nama_barang_snapshot');
+                $table->string('product_merek_snapshot')->nullable();
             }
 
             if (! Schema::hasColumn('supplier_receipt_lines', 'product_ukuran_snapshot')) {
-                $table->integer('product_ukuran_snapshot')->nullable()->after('product_merek_snapshot');
+                $table->integer('product_ukuran_snapshot')->nullable();
             }
 
             if (! Schema::hasColumn('supplier_receipt_lines', 'unit_cost_rupiah_snapshot')) {
-                $table->integer('unit_cost_rupiah_snapshot')->nullable()->after('product_ukuran_snapshot');
+                $table->integer('unit_cost_rupiah_snapshot')->nullable();
             }
         });
     }
