@@ -481,3 +481,27 @@ Continue with PostgreSQL compatibility classification in this order:
 4. timestamp/date semantics
 5. source/projection rebuild policy
 6. live SQL transition mapping
+
+## Slice 3 - Employee migration `change()` cleanup
+
+Status: Focused Verified.
+
+FACT:
+- `database/migrations/2026_04_10_000100_alter_employees_table_for_employee_master_v2.php` no longer uses Laravel `->change()`.
+- Employee master v2 nullability tightening now uses explicit driver-aware SQL instead of schema-builder `change()`.
+- MySQL/MariaDB path uses `ALTER TABLE ... MODIFY ... NOT NULL`.
+- PostgreSQL path uses `ALTER TABLE ... ALTER COLUMN ... SET NOT NULL`.
+- Table identity is preserved; the `employees` table is not recreated.
+- Seeder work is intentionally out of scope until migration/system readiness is mature.
+
+PROOF:
+- Syntax check passed for employee master v2 migration.
+- `php artisan migrate:fresh --env=testing` passed.
+- Clean migration scan found no remaining `->change()` in `database/migrations`.
+- `make verify` passed: 1063 tests / 5769 assertions.
+
+BOUNDARY:
+- This is research/target-schema readiness work.
+- This does not modify the live MySQL database by itself.
+- This does not claim production PostgreSQL cutover readiness.
+- Live transition still requires explicit forward migration, SQL transform, or export/import mapping.

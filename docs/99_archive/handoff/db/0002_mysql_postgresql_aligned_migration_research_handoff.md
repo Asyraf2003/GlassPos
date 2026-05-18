@@ -242,7 +242,7 @@ Current expected residual scan categories:
 - Row-count parity proof does not exist yet.
 - Rupiah reconciliation proof across live data does not exist yet.
 - Projection rebuild proof for migrated data does not exist yet.
-- change() migration cleanup is not handled yet.
+- change() cleanup is Focused Verified for employee master v2 migration.
 - payload_json longText classification is not handled yet.
 - file_size_bytes unsigned metadata decision is not handled yet.
 - Full PostgreSQL application test suite does not exist yet.
@@ -264,7 +264,7 @@ Sub-step Progress:
 
 - 100 percent for unsigned cleanup.
 - 100 percent for domain after() cleanup.
-- 0 percent for change() cleanup.
+- 100 percent for Slice 3 employee change() cleanup within research scope.
 - 0 percent for payload_json classification.
 - 0 percent for PostgreSQL runtime harness.
 - 0 percent for live data migration SQL.
@@ -273,11 +273,11 @@ Sub-step Progress:
 
 Next active slice:
 
-Migration hardening Slice 3 - classify employee change() migration.
+Migration hardening Slice 3 - employee change() cleanup is Focused Verified.
 
 Do not patch immediately.
 
-First inspect why the migration uses change(), whether it is only nullability normalization, and whether a PostgreSQL-aligned research migration should replace it with a cleaner create-shape or explicit forward strategy.
+Employee master v2 migration `change()` cleanup has been patched and verified with explicit driver-aware nullability SQL.
 
 Minimum first command:
 
@@ -347,7 +347,7 @@ Latest completed:
 
 Current residuals:
 
-- change() remains only in employee master v2 migration.
+- change() cleanup verified; clean scan has no remaining `->change()` in `database/migrations`.
 - payload_json longText remains in transaction workspace drafts and note mutation snapshots.
 - framework longText/mediumText remains skipped.
 - framework jobs unsigned remains skipped.
@@ -355,7 +355,7 @@ Current residuals:
 
 Active target:
 
-- Slice 3 source audit for employee migration change().
+- Slice 3 employee migration change() cleanup is Focused Verified.
 - Do not patch before classification.
 
 Required response shape:
@@ -378,3 +378,27 @@ First command:
     rg -n "employee_name|salary_basis_type|employment_status|base_salary|pay_period|employee_versions|employee_debts|payroll_disbursements" app tests database --glob '*.php'
 
 Stop at classification before implementation.
+
+## Slice 3 - Employee migration `change()` cleanup
+
+Status: Focused Verified.
+
+FACT:
+- `database/migrations/2026_04_10_000100_alter_employees_table_for_employee_master_v2.php` no longer uses Laravel `->change()`.
+- Employee master v2 nullability tightening now uses explicit driver-aware SQL instead of schema-builder `change()`.
+- MySQL/MariaDB path uses `ALTER TABLE ... MODIFY ... NOT NULL`.
+- PostgreSQL path uses `ALTER TABLE ... ALTER COLUMN ... SET NOT NULL`.
+- Table identity is preserved; the `employees` table is not recreated.
+- Seeder work is intentionally out of scope until migration/system readiness is mature.
+
+PROOF:
+- Syntax check passed for employee master v2 migration.
+- `php artisan migrate:fresh --env=testing` passed.
+- Clean migration scan found no remaining `->change()` in `database/migrations`.
+- `make verify` passed: 1063 tests / 5769 assertions.
+
+BOUNDARY:
+- This is research/target-schema readiness work.
+- This does not modify the live MySQL database by itself.
+- This does not claim production PostgreSQL cutover readiness.
+- Live transition still requires explicit forward migration, SQL transform, or export/import mapping.
