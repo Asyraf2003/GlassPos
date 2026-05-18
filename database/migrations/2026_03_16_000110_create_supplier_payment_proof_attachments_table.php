@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('storage_path');
             $table->string('original_filename');
             $table->string('mime_type', 100);
-            $table->unsignedBigInteger('file_size_bytes');
+            $table->bigInteger('file_size_bytes');
             $table->timestamp('uploaded_at');
             $table->string('uploaded_by_actor_id');
 

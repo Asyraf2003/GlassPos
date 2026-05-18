@@ -367,7 +367,7 @@ Changed categories:
 Remaining intentionally unpatched:
 
 - Laravel framework job-table unsigned fields
-- supplier payment proof `file_size_bytes`
+- supplier payment proof `file_size_bytes` signed metadata alignment
 - PostgreSQL runtime migration
 - live MySQL data transformation
 - PostgreSQL import/parity proof
@@ -533,3 +533,51 @@ BOUNDARY:
 - This does not modify the live MySQL database by itself.
 - This does not claim production PostgreSQL cutover readiness.
 - Live transition still requires explicit forward migration, SQL transform, or export/import mapping.
+
+## Slice 5 - Supplier payment proof file size metadata signed integer alignment
+
+Status: Focused Verified.
+
+FACT:
+- `database/migrations/2026_03_16_000110_create_supplier_payment_proof_attachments_table.php` now declares `file_size_bytes` with `$table->bigInteger('file_size_bytes')`.
+- `file_size_bytes` is file metadata, not money, stock, quantity, ledger, or settlement math.
+- Admin and mobile upload paths already validate proof files with MIME restrictions and `max:2048`.
+- The field is written from uploaded file size and read back as integer metadata.
+
+PROOF:
+- Syntax check passed for the target migration.
+- Syntax check passed for `tests/Feature/Database/SupplierPaymentProofAttachmentSchemaTest.php`.
+- `php artisan migrate:fresh --env=testing` passed.
+- `SupplierPaymentProofAttachmentSchemaTest` passed.
+- `make verify` passed: 1065 tests / 5778 assertions.
+
+BOUNDARY:
+- This is research/target-schema readiness work.
+- This does not modify the live MySQL database by itself.
+- This does not claim production PostgreSQL cutover readiness.
+- Live transition still requires explicit forward migration, SQL transform, or export/import mapping.
+- Seeder work remains intentionally out of scope until DB baseline is frozen.
+
+## Slice 6 - User-linked foreignId compatibility decision
+
+Status: Focused Verified / acceptable documented residual.
+
+FACT:
+- `users.id` is created with `$table->id()`.
+- `push_subscriptions.user_id` uses `foreignId('user_id')->constrained('users')->cascadeOnDelete()`.
+- `mobile_api_tokens.user_id` uses `foreignId('user_id')->constrained('users')->cascadeOnDelete()`.
+- These fields are auth/framework-linked identifiers, not money, stock, ledger, quantity, or financial math.
+- Migration patch is not required because the app-owned user-linked tables intentionally follow Laravel `users.id` identity type.
+- `tests/Feature/Database/UserLinkedForeignKeySchemaTest.php` verifies type compatibility, FK existence, and cascade delete behavior.
+
+PROOF:
+- Syntax check passed for `UserLinkedForeignKeySchemaTest`.
+- Targeted `UserLinkedForeignKeySchemaTest` passed: 1 test / 13 assertions.
+- `make verify` passed: 1066 tests / 5791 assertions.
+
+BOUNDARY:
+- This is research/target-schema readiness work.
+- This does not modify the live MySQL database by itself.
+- This does not claim production PostgreSQL cutover readiness.
+- Live transition still requires explicit forward migration, SQL transform, or export/import mapping.
+- Seeder work remains intentionally out of scope until DB baseline is frozen.

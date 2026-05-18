@@ -75,7 +75,7 @@ Changed shape:
 - domain revision/counter fields moved from unsignedInteger to integer
 - note revision money fields moved from unsignedBigInteger to bigInteger
 - framework jobs unsigned fields were intentionally not touched
-- supplier payment proof file_size_bytes was intentionally not touched because it is metadata, not money
+- supplier payment proof file_size_bytes is now signed metadata and Focused Verified
 
 Domain counter/revision examples changed:
 
@@ -101,7 +101,7 @@ Domain money examples changed:
 Remaining intentionally unpatched:
 
 - 0001_01_01_000002_create_jobs_table.php unsigned framework fields
-- supplier_payment_proof_attachments.file_size_bytes
+- supplier_payment_proof_attachments.file_size_bytes signed metadata alignment
 - README mentions of unsigned scan patterns
 
 ## Slice 2 - MySQL after() Layout Helper Cleanup
@@ -134,7 +134,7 @@ Remaining intentionally unpatched:
 - change() in employee migration
 - framework longText and mediumText
 - domain payload_json longText
-- supplier payment proof file_size_bytes unsignedBigInteger
+- supplier payment proof file_size_bytes signed bigInteger
 
 ## Proof
 
@@ -213,7 +213,7 @@ Current expected residual scan categories:
    - note_mutation_snapshots.payload_json
 
 4. Metadata unsigned:
-   - supplier_payment_proof_attachments.file_size_bytes
+   - supplier_payment_proof_attachments.file_size_bytes signed metadata alignment
 
 5. README scan pattern mentions.
 
@@ -244,7 +244,7 @@ Current expected residual scan categories:
 - Projection rebuild proof for migrated data does not exist yet.
 - change() cleanup is Focused Verified for employee master v2 migration.
 - payload_json JSON alignment is Focused Verified for note mutation snapshots and transaction workspace drafts.
-- file_size_bytes unsigned metadata decision is not handled yet.
+- file_size_bytes signed metadata alignment is Focused Verified for supplier payment proof attachments.
 - Full PostgreSQL application test suite does not exist yet.
 - Cutover and rollback runbook does not exist yet.
 
@@ -351,7 +351,7 @@ Current residuals:
 - payload_json JSON alignment is Focused Verified for transaction workspace drafts and note mutation snapshots.
 - framework longText/mediumText remains skipped.
 - framework jobs unsigned remains skipped.
-- supplier_payment_proof_attachments.file_size_bytes remains metadata unsigned.
+- supplier_payment_proof_attachments.file_size_bytes signed metadata alignment signed metadata alignment is Focused Verified.
 
 Active target:
 
@@ -430,3 +430,51 @@ BOUNDARY:
 - This does not modify the live MySQL database by itself.
 - This does not claim production PostgreSQL cutover readiness.
 - Live transition still requires explicit forward migration, SQL transform, or export/import mapping.
+
+## Slice 5 - Supplier payment proof file size metadata signed integer alignment
+
+Status: Focused Verified.
+
+FACT:
+- `database/migrations/2026_03_16_000110_create_supplier_payment_proof_attachments_table.php` now declares `file_size_bytes` with `$table->bigInteger('file_size_bytes')`.
+- `file_size_bytes` is file metadata, not money, stock, quantity, ledger, or settlement math.
+- Admin and mobile upload paths already validate proof files with MIME restrictions and `max:2048`.
+- The field is written from uploaded file size and read back as integer metadata.
+
+PROOF:
+- Syntax check passed for the target migration.
+- Syntax check passed for `tests/Feature/Database/SupplierPaymentProofAttachmentSchemaTest.php`.
+- `php artisan migrate:fresh --env=testing` passed.
+- `SupplierPaymentProofAttachmentSchemaTest` passed.
+- `make verify` passed: 1065 tests / 5778 assertions.
+
+BOUNDARY:
+- This is research/target-schema readiness work.
+- This does not modify the live MySQL database by itself.
+- This does not claim production PostgreSQL cutover readiness.
+- Live transition still requires explicit forward migration, SQL transform, or export/import mapping.
+- Seeder work remains intentionally out of scope until DB baseline is frozen.
+
+## Slice 6 - User-linked foreignId compatibility decision
+
+Status: Focused Verified / acceptable documented residual.
+
+FACT:
+- `users.id` is created with `$table->id()`.
+- `push_subscriptions.user_id` uses `foreignId('user_id')->constrained('users')->cascadeOnDelete()`.
+- `mobile_api_tokens.user_id` uses `foreignId('user_id')->constrained('users')->cascadeOnDelete()`.
+- These fields are auth/framework-linked identifiers, not money, stock, ledger, quantity, or financial math.
+- Migration patch is not required because the app-owned user-linked tables intentionally follow Laravel `users.id` identity type.
+- `tests/Feature/Database/UserLinkedForeignKeySchemaTest.php` verifies type compatibility, FK existence, and cascade delete behavior.
+
+PROOF:
+- Syntax check passed for `UserLinkedForeignKeySchemaTest`.
+- Targeted `UserLinkedForeignKeySchemaTest` passed: 1 test / 13 assertions.
+- `make verify` passed: 1066 tests / 5791 assertions.
+
+BOUNDARY:
+- This is research/target-schema readiness work.
+- This does not modify the live MySQL database by itself.
+- This does not claim production PostgreSQL cutover readiness.
+- Live transition still requires explicit forward migration, SQL transform, or export/import mapping.
+- Seeder work remains intentionally out of scope until DB baseline is frozen.
