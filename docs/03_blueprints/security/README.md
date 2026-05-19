@@ -9,7 +9,7 @@ Blueprint, DoD, dan Workflow untuk 4 ADR keamanan sistem.
 | ADR-0019 Access Boundary | `adr-0019-access-boundary.md` | `adr-0019-access-boundary-dod.md` | `adr-0019-access-boundary-workflow.md` |
 | ADR-0020 Public Surface | `adr-0020-public-surface.md` | `adr-0020-public-surface-dod.md` | `adr-0020-public-surface-workflow.md` |
 | ADR-0022 Payment Concurrency | `adr-0022-payment-concurrency.md` | `adr-0022-payment-concurrency-dod.md` | `adr-0022-payment-concurrency-workflow.md` |
-| ADR-0023 Seeder Safety | `adr-0023-seeder-safety.md` | `adr-0023-seeder-safety-dod.md` | `adr-0023-seeder-safety-workflow.md` |
+| ADR-0023 Seeder Safety | `0010_seeder_safety.md` | `0011_seeder_safety_dod.md` | `0012_seeder_safety_workflow.md` |
 
 ## ADR Canonical
 

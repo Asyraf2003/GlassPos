@@ -276,5 +276,5 @@ Required prevention:
 
 ## Related Documents
 
-- DoD: docs/03_blueprints/security/adr-0023-seeder-safety-dod.md
-- Workflow: docs/03_blueprints/security/adr-0023-seeder-safety-workflow.md
+- DoD: docs/03_blueprints/security/0011_seeder_safety_dod.md
+- Workflow: docs/03_blueprints/security/0012_seeder_safety_workflow.md

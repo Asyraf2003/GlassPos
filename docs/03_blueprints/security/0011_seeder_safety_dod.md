@@ -155,4 +155,4 @@ Stop immediately if any of these happen:
 ## Related Documents
 
 - Blueprint: docs/03_blueprints/security/0010_seeder_safety.md
-- Workflow: docs/03_blueprints/security/adr-0023-seeder-safety-workflow.md
+- Workflow: docs/03_blueprints/security/0012_seeder_safety_workflow.md

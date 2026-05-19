@@ -273,4 +273,4 @@ Do not start with full seeder refactor before immediate predictable credential r
 ## Related Documents
 
 - Blueprint: docs/03_blueprints/security/0010_seeder_safety.md
-- DoD: docs/03_blueprints/security/adr-0023-seeder-safety-dod.md
+- DoD: docs/03_blueprints/security/0011_seeder_safety_dod.md
