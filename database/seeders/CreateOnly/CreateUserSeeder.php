@@ -19,7 +19,7 @@ final class CreateUserSeeder extends Seeder
 
         $adminId = $this->createUserOnly(
             name: 'Admin Demo',
-            email: 'admin@@gmail.com',
+            email: 'admin@gmail.com',
             password: self::DEFAULT_LOCAL_PASSWORD,
         );
 
