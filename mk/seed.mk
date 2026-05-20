@@ -39,3 +39,6 @@ seed-create-default:
 
 procurement:
 	php artisan db:seed --class="Database\Seeders\CreateOnly\CreateSupplierProcurementSeeder"
+
+supplier-payment:
+	php artisan db:seed --class="Database\Seeders\CreateOnly\CreateSupplierPaymentSeeder"
