@@ -45,3 +45,10 @@ supplier-payment:
 
 expense:
 	php artisan db:seed --class="Database\Seeders\CreateOnly\CreateOperationalExpenseSeeder"
+
+.PHONY: seed-admin-cashier-area-access
+seed-admin-cashier-area-access:
+	php artisan db:seed --class="Database\Seeders\CreateOnly\CreateAdminCashierAreaAccessSeeder"
+
+.PHONY: admin-cashier-area-access
+admin-cashier-area-access: seed-admin-cashier-area-access
