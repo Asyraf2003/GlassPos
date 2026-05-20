@@ -42,3 +42,6 @@ procurement:
 
 supplier-payment:
 	php artisan db:seed --class="Database\Seeders\CreateOnly\CreateSupplierPaymentSeeder"
+
+expense:
+	php artisan db:seed --class="Database\Seeders\CreateOnly\CreateOperationalExpenseSeeder"
