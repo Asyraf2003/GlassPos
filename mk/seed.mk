@@ -52,3 +52,10 @@ seed-admin-cashier-area-access:
 
 .PHONY: admin-cashier-area-access
 admin-cashier-area-access: seed-admin-cashier-area-access
+
+.PHONY: seed-employee-debt
+seed-employee-debt:
+	php artisan db:seed --class="Database\Seeders\CreateOnly\CreateEmployeeDebtSeeder"
+
+.PHONY: employee-debt
+employee-debt: seed-employee-debt
