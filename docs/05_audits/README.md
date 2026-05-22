@@ -10,4 +10,6 @@ Formal audit records — proof of work yang berdiri sendiri.
 
 ## Naming
 
-`YYYY-MM-DD-topic.md`
+`NNNN_topic.md`
+
+Audit records di folder ini mengikuti numbering berurutan agar mudah diselaraskan dengan lifecycle dan blueprint yang terkait.

@@ -19,21 +19,34 @@ Setiap GPT wajib membaca urutan ini sebelum memberi arahan kerja:
 1. 0002_decision_policy.md
 2. 0003_gpt_bootstrap_prompt.md
 3. 0004_session_start_protocol.md
-4. 0008_ai_personalization_profile.md
-5. core/10-scope-and-facts.md
-5. core/11-blueprint-first.md
-6. core/12-step-by-step-execution.md
-7. core/13-proof-and-progress.md
-8. workflow/20-response-structure.md
-9. workflow/21-active-step-policy.md
-10. architecture/
-11. domain/
-12. stack/
-13. output/
-14. workflow/24-session-capacity-policy.md
-15. 0005_handoff_template.md
-16. 0006_final_review_checklist.md
-17. 0099_changelog.md
+4. 0007_ai_usage_guide.md
+5. 0008_ai_personalization_profile.md
+6. core/0010_scope_and_facts.md
+7. core/0011_blueprint_first.md
+8. core/0012_step_by_step_execution.md
+9. core/0013_proof_and_progress.md
+10. workflow/0020_response_structure.md
+11. workflow/0021_active_step_policy.md
+12. workflow/0024_session_capacity_policy.md
+13. architecture/0040_hexagonal_baseline.md
+14. architecture/0041_public_contracts.md
+15. architecture/0042_error_handling_and_redaction.md
+16. architecture/0043_debug_gating.md
+17. architecture/0044_audit_and_dod.md
+18. domain/0050_final_domain_map.md
+19. domain/0051_ui_terms_and_status.md
+20. domain/0052_payment_lifecycle.md
+21. domain/0053_reporting_boundary.md
+22. stack/0060_laravel_rules.md
+23. stack/0061_go_rules.md
+24. stack/0062_aws_baseline.md
+25. output/0030_file_delivery.md
+26. output/0031_markdown_output_rule.md
+27. output/0032_blade_rule.md
+28. output/0033_terminal_command_delivery.md
+29. 0005_handoff_template.md
+30. 0006_final_review_checklist.md
+31. 0099_changelog.md
 
 ## Constitution Summary
 - Jangan berasumsi.
@@ -65,39 +78,41 @@ Sebelum menjawab, GPT wajib memastikan:
 - 0002_decision_policy.md
 - 0003_gpt_bootstrap_prompt.md
 - 0004_session_start_protocol.md
+- 0007_ai_usage_guide.md
+- 0008_ai_personalization_profile.md
 - 0005_handoff_template.md
 - 0006_final_review_checklist.md
 - core/
-  - 10-scope-and-facts.md
-  - 11-blueprint-first.md
-  - 12-step-by-step-execution.md
-  - 13-proof-and-progress.md
+  - 0010_scope_and_facts.md
+  - 0011_blueprint_first.md
+  - 0012_step_by_step_execution.md
+  - 0013_proof_and_progress.md
 - workflow/
-  - 20-response-structure.md
-  - 21-active-step-policy.md
-  - 22-option-evaluation.md
-  - 23-handoff-policy.md
-  - 24-session-capacity-policy.md
+  - 0020_response_structure.md
+  - 0021_active_step_policy.md
+  - 0022_option_evaluation.md
+  - 0023_handoff_policy.md
+  - 0024_session_capacity_policy.md
 - output/
-  - 30-file-delivery.md
-  - 31-markdown-output-rule.md
-  - 32-blade-rule.md
-  - 33-terminal-command-delivery.md
+  - 0030_file_delivery.md
+  - 0031_markdown_output_rule.md
+  - 0032_blade_rule.md
+  - 0033_terminal_command_delivery.md
 - architecture/
-  - 40-hexagonal-baseline.md
-  - 41-public-contracts.md
-  - 42-error-handling-and-redaction.md
-  - 43-debug-gating.md
-  - 44-audit-and-dod.md
+  - 0040_hexagonal_baseline.md
+  - 0041_public_contracts.md
+  - 0042_error_handling_and_redaction.md
+  - 0043_debug_gating.md
+  - 0044_audit_and_dod.md
 - domain/
-  - 50-final-domain-map.md
-  - 51-ui-terms-and-status.md
-  - 52-payment-lifecycle.md
-  - 53-reporting-boundary.md
+  - 0050_final_domain_map.md
+  - 0051_ui_terms_and_status.md
+  - 0052_payment_lifecycle.md
+  - 0053_reporting_boundary.md
 - stack/
-  - 60-laravel-rules.md
-  - 61-go-rules.md
-  - 62-aws-baseline.md
+  - 0060_laravel_rules.md
+  - 0061_go_rules.md
+  - 0062_aws_baseline.md
 - 0099_changelog.md
 
 ## Package Content Classification

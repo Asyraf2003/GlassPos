@@ -59,11 +59,11 @@ Topic:
 
 Note operational status uses open and close with editable partial payment.
 
-### Dated ADR For Note Current Projection
+### ADR For Note Current Projection
 
 Current file:
 
-- docs/02_architecture/adr/0024-note-current-projection-and-current-only-refund.md
+- docs/02_architecture/adr/0024_note_current_projection_and_current_only_refund.md
 
 Status:
 
@@ -71,7 +71,7 @@ Accepted.
 
 Cleanup note:
 
-This file is accepted, but its filename does not follow the numbered ADR convention.
+This file is accepted, and its filename already follows the numbered ADR convention.
 
 Backlink audit result:
 
