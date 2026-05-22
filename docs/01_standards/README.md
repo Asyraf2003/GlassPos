@@ -13,6 +13,7 @@ Aturan wajib untuk semua sesi kerja AI di repo ini. Semua file di sini bersifat 
 | `0005_handoff_template.md` | Template canonical untuk membuat handoff baru. |
 | `0006_final_review_checklist.md` | Checklist sebelum menutup sesi besar. |
 | `0007_ai_usage_guide.md` | Panduan layer mana untuk informasi apa. |
+| `0008_ai_personalization_profile.md` | Profil personalisasi AI repo-level dari owner. |
 | `0099_changelog.md` | Log perubahan paket AI_RULES. |
 | `core/` | Prinsip inti: scope, blueprint-first, step-by-step, proof. |
 | `workflow/` | Aturan workflow: response, active step, handoff, capacity. |
@@ -23,5 +24,5 @@ Aturan wajib untuk semua sesi kerja AI di repo ini. Semua file di sini bersifat 
 
 ## Aturan
 
-Jangan tambahkan file baru ke sini kecuali itu adalah mandatory AI rule yang berlaku untuk semua sesi.
+Jangan tambahkan file baru ke sini kecuali itu adalah mandatory AI rule yang berlaku untuk semua sesi atau owner mempromosikannya sebagai standards canonical.
 DoD, workflow, dan blueprint per topik ada di `docs/03_blueprints/`.
