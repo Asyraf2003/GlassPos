@@ -63,7 +63,7 @@ Current runtime implication:
 | Inventory | `app/Application/Inventory/UseCases/IssueInventoryHandler.php` | `inventory_issued` | Writes legacy audit for inventory issue | legacy_audit | maybe later, requires stock proof |
 | Inventory | `app/Application/Inventory/UseCases/RebuildInventoryProjectionHandler.php` | `inventory_projection_rebuilt` | Writes legacy audit for projection rebuild | legacy_audit | no, projection rebuild should not be first outbox pilot |
 | Inventory | `app/Application/Inventory/UseCases/RebuildInventoryCostingProjectionHandler.php` | `inventory_costing_rebuilt` | Writes legacy audit for costing projection rebuild | legacy_audit | no, costing/projection-sensitive |
-| Expense | `app/Application/Expense/UseCases/UpdateExpenseCategoryHandler.php` | `expense_category_updated` | Writes legacy audit after category update, outside explicit transaction in inspected snippet | legacy_audit | possible candidate after source/test proof |
+| Expense | `app/Application/Expense/UseCases/UpdateExpenseCategoryHandler.php` | `expense_category_updated` | Writes canonical audit through `AuditEventWriterPort` with metadata plus before/after snapshots | canonical_pilot | done for pilot `1d608443`; outbox still not implemented |
 | Expense | `app/Application/Expense/UseCases/ActivateExpenseCategoryHandler.php` | `expense_category_activated` | Writes legacy audit for expense category activation | legacy_audit | possible candidate after source/test proof |
 | Expense | `app/Application/Expense/UseCases/DeactivateExpenseCategoryHandler.php` | `expense_category_deactivated` | Writes legacy audit for expense category deactivation | legacy_audit | possible candidate after source/test proof |
 | Expense | `app/Application/Expense/UseCases/SoftDeleteOperationalExpenseHandler.php` | `operational_expense_soft_deleted` | Writes legacy audit for operational expense soft delete | legacy_audit | maybe later, expense mutation requires proof |
@@ -125,6 +125,12 @@ Possible later pilot candidates after source and test proof:
 - identity access capability used audit
 
 These are only candidates, not decisions.
+
+## Pilot Progress
+
+| Pilot | Commit | Proof | Status |
+|---|---|---|---|
+| Update expense category canonical audit | `1d608443` | `php -l` for handler/test; `php artisan test tests/Feature/Expense/UpdateExpenseCategoryFeatureTest.php tests/Feature/Expense/UpdateExpenseCategoryHttpFeatureTest.php tests/Feature/Expense/ActivateExpenseCategoryFeatureTest.php tests/Feature/Expense/DeactivateExpenseCategoryFeatureTest.php` passed with 6 tests and 35 assertions | completed |
 
 ## Required Proof Before Any Outbox Implementation
 
