@@ -4,18 +4,24 @@ declare(strict_types=1);
 
 namespace App\Application\Expense\UseCases;
 
+use App\Application\Audit\DTO\AuditEventSnapshotWrite;
+use App\Application\Audit\DTO\AuditEventWrite;
 use App\Application\Shared\DTO\Result;
 use App\Core\Shared\Exceptions\DomainException;
-use App\Ports\Out\AuditLogPort;
+use App\Ports\Out\AuditEventWriterPort;
+use App\Ports\Out\ClockPort;
 use App\Ports\Out\Expense\ExpenseCategoryReaderPort;
 use App\Ports\Out\Expense\ExpenseCategoryWriterPort;
+use App\Ports\Out\UuidPort;
 
 final class UpdateExpenseCategoryHandler
 {
     public function __construct(
         private readonly ExpenseCategoryReaderPort $readers,
         private readonly ExpenseCategoryWriterPort $writers,
-        private readonly AuditLogPort $audit,
+        private readonly AuditEventWriterPort $audit,
+        private readonly ClockPort $clock,
+        private readonly UuidPort $uuid,
     ) {
     }
 
@@ -41,15 +47,34 @@ final class UpdateExpenseCategoryHandler
             return Result::failure($e->getMessage(), ['expense_category' => ['INVALID_EXPENSE_CATEGORY']]);
         }
 
-        $this->writers->update($category);
-        $this->audit->record('expense_category_updated', [
-            'category_id' => $category->id(),
-            'performed_by_actor_id' => $performedByActorId,
-            'before' => $before,
-            'after' => $this->snapshot($category),
-        ]);
+        $after = $this->snapshot($category);
+        $actorId = trim($performedByActorId);
 
-        return Result::success($this->snapshot($category), 'Expense category berhasil diperbarui.');
+        $this->writers->update($category);
+        $this->audit->write(new AuditEventWrite(
+            id: $this->uuid->generate(),
+            boundedContext: 'expense',
+            aggregateType: 'expense_category',
+            aggregateId: $category->id(),
+            eventName: 'expense_category_updated',
+            actorId: $actorId === '' ? null : $actorId,
+            actorRole: null,
+            reason: null,
+            sourceChannel: null,
+            requestId: null,
+            correlationId: null,
+            occurredAt: $this->clock->now(),
+            metadata: [
+                'category_id' => $category->id(),
+                'performed_by_actor_id' => $actorId,
+            ],
+            snapshots: [
+                new AuditEventSnapshotWrite('before', $before),
+                new AuditEventSnapshotWrite('after', $after),
+            ],
+        ));
+
+        return Result::success($after, 'Expense category berhasil diperbarui.');
     }
 
     private function snapshot(object $category): array
