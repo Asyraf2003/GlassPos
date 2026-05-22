@@ -28,7 +28,8 @@ This folder is only for active or latest handoffs. Once a session is closed, arc
 
 | File | Topic | Status |
 |---|---|---|
-| `0001_audit_write_path_canonical_pilot_handoff.md` | Audit write path canonical pilot | continue in next session |
+| `0001_audit_write_path_canonical_pilot_handoff.md` | Audit write path canonical pilot | superseded by audit outbox runtime handoff |
+| `0002_audit_outbox_runtime_switch_handoff.md` | Audit outbox runtime switch | continue in next session |
 
 ## Archive
 

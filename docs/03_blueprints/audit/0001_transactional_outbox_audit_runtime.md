@@ -75,6 +75,25 @@ These assumptions must be verified before implementation.
 6. The first implementation slice should avoid changing API behavior unless the selected pilot flow already has API exposure or an API contract is part of that slice.
 7. Outbox entries may store snapshot payload JSON, but report-critical and audit-routing facts must remain explicit columns.
 
+## Implementation Progress Snapshot
+
+Latest proven progress from local operator output:
+
+- Phase 0 documentation and matrix: completed for current audit slice.
+- Phase 1 migration and adapter: implemented and focused tests passed.
+- Phase 2 processor: implemented and focused tests passed.
+- Phase 3 pilot binding in test: implemented and focused tests passed.
+- Phase 4 global runtime binding switch: attempted and partially proven.
+- Phase 5 monitoring: not implemented.
+
+Current Phase 4 status:
+
+- `AuditEventWriterPort` runtime binding was changed to `DatabaseAuditOutboxWriterAdapter`.
+- Runtime binding test passed.
+- Expense category HTTP update staged audit to `audit_outbox` and processor materialized canonical audit in focused proof.
+- Selected regression still has old-expectation failures because some tests expect immediate writes to `audit_events`.
+- Next required work is to update those tests to the staged audit runtime contract.
+
 ## GAP
 
 Runtime proof has not been executed in this document.
