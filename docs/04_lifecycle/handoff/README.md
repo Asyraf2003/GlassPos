@@ -24,6 +24,12 @@ This folder is only for active or latest handoffs. Once a session is closed, arc
 5. Latest handoff in this folder
 6. Archive in `docs/99_archive/handoff`
 
+## Active Handoffs
+
+| File | Topic | Status |
+|---|---|---|
+| `0001_audit_write_path_canonical_pilot_handoff.md` | Audit write path canonical pilot | continue in next session |
+
 ## Archive
 
 All old handoffs live in `docs/99_archive/handoff/`:
