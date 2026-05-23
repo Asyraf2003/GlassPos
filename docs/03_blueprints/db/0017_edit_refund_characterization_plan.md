@@ -584,3 +584,193 @@ Guardrail verification:
       -e "Do not touch high-risk delete/rebuild paths casually" \
       -e "Phase 1D-1 - Revision carry-forward settlement characterization" \
       docs/03_blueprints/db/0017_edit_refund_characterization_plan.md
+
+## Phase 1D Source Map Correction
+
+Status: source-map correction.
+
+This section updates the initial characterization plan after inspecting existing tests and settlement services.
+
+This section does not authorize production code changes.
+
+## FACT
+
+### Existing settlement unit coverage
+
+`tests/Unit/Application/Note/Services/BuildCreateNoteRevisionSettlementTest.php` already covers:
+
+- component payment and component refund totals when component settlement exists;
+- fallback to legacy payment and legacy refund totals when component settlement does not exist;
+- component surplus becomes `overpaid_pending`;
+- active surplus `refund_paid` is treated as cash-out when building later revision settlement.
+
+Therefore a new unit test for the same settlement math is not the first useful Phase 1D test.
+
+### Existing surplus refund_paid feature coverage
+
+`tests/Feature/Note/CreateNoteRevisionSurplusRefundPaidCarryForwardFeatureTest.php` already covers later revision after surplus `refund_paid`.
+
+The test asserts the later revision settlement records:
+
+- `carry_forward_paid_rupiah = 265000`
+- `carry_forward_refunded_rupiah = 50000`
+- `net_paid_rupiah = 215000`
+- `outstanding_rupiah = 15000`
+- `settlement_status = underpaid`
+
+Therefore candidate C4 is already represented by existing feature coverage and should not be the first new Phase 1D test.
+
+### Existing downward overpaid/surplus feature coverage
+
+`tests/Feature/Note/NoteReplacementOverpaidAllocationReplayFeatureTest.php` already covers active admin workspace revision that creates pending surplus settlement.
+
+The test asserts:
+
+- active revision route commits;
+- `note_revision_settlements` stores `settlement_status = overpaid_pending`;
+- `surplus_rupiah` is explicit;
+- active component allocation is capped to current revised total;
+- original customer payment remains preserved.
+
+Therefore the first Phase 1D test should not duplicate downward paid revision surplus coverage.
+
+### Existing fixture support
+
+`tests/Support/SeedsMinimalNotePaymentFixture.php` already supports minimal note, payment, work item, service, store-stock, legacy allocation, and current revision fixtures.
+
+New tests should reuse this fixture instead of inventing table columns.
+
+## GAP
+
+### G1 - Partial payment revision integration proof not yet found
+
+Current source-map has not proven an existing feature test for active revision after partial payment where the new revision total is greater than carried paid amount.
+
+Required proof:
+
+- revision commits through active application or route path;
+- `note_revision_settlements` stores carried paid amount;
+- `outstanding_rupiah` equals revised total minus carried net paid;
+- projection does not invent paid amount.
+
+### G2 - Ordinary refund carry-forward integration proof not yet found
+
+Current source-map has not proven an existing feature test for active revision after ordinary customer refund / refund component allocation where refund must be counted exactly once.
+
+Required proof:
+
+- carried paid amount is preserved;
+- carried ordinary refunded amount is included once;
+- net paid equals paid minus ordinary refunded;
+- revision settlement does not double-subtract refund;
+- projection remains consistent after revision.
+
+### G3 - Existing test command proof not produced in this step
+
+This source-map correction inspected repository files only.
+
+It does not claim that existing tests currently pass locally.
+
+Local command proof remains required before closing any test slice.
+
+## DECISION
+
+### D1 - Update Phase 1D-1 target
+
+Phase 1D-1 should target gaps not already covered by existing tests.
+
+New first candidate:
+
+`tests/Feature/Note/NoteRevisionSettlementCarryForwardFeatureTest.php`
+
+Initial tests:
+
+1. `test_revision_after_partial_payment_carries_paid_amount_into_underpaid_settlement`
+2. `test_revision_after_ordinary_refund_counts_refund_once_in_settlement`
+
+### D2 - Production files remain forbidden
+
+Phase 1D-1 remains test-only.
+
+Production files allowed:
+
+None.
+
+### D3 - Existing surplus refund_paid test is not duplicated
+
+Do not duplicate `CreateNoteRevisionSurplusRefundPaidCarryForwardFeatureTest.php`.
+
+If needed, run it as adjacency proof, not as new coverage.
+
+### D4 - Existing downward surplus test is not duplicated
+
+Do not duplicate `NoteReplacementOverpaidAllocationReplayFeatureTest.php`.
+
+If needed, run it as adjacency proof, not as new coverage.
+
+## Updated First Active Test Slice
+
+### Slice name
+
+Phase 1D-1 - Missing carry-forward settlement feature characterization.
+
+### Test file
+
+`tests/Feature/Note/NoteRevisionSettlementCarryForwardFeatureTest.php`
+
+### Test 1
+
+`test_revision_after_partial_payment_carries_paid_amount_into_underpaid_settlement`
+
+Expected fixture shape:
+
+- note total before revision: `100000`
+- existing payment allocation: `40000`
+- revised total: `120000`
+
+Expected settlement:
+
+- `gross_total_rupiah = 120000`
+- `carry_forward_paid_rupiah = 40000`
+- `carry_forward_refunded_rupiah = 0`
+- `net_paid_rupiah = 40000`
+- `outstanding_rupiah = 80000`
+- `surplus_rupiah = 0`
+- `settlement_status = underpaid`
+
+### Test 2
+
+`test_revision_after_ordinary_refund_counts_refund_once_in_settlement`
+
+Expected fixture shape:
+
+- note total before revision: `100000`
+- existing paid amount: `100000`
+- existing ordinary refunded amount: `30000`
+- revised total: `70000`
+
+Expected settlement:
+
+- `gross_total_rupiah = 70000`
+- `carry_forward_paid_rupiah = 100000`
+- `carry_forward_refunded_rupiah = 30000`
+- `net_paid_rupiah = 70000`
+- `outstanding_rupiah = 0`
+- `surplus_rupiah = 0`
+- `settlement_status = paid`
+
+## Suggested Local Proof Commands
+
+After adding the test file in a later step:
+
+```bash
+php artisan test tests/Feature/Note/NoteRevisionSettlementCarryForwardFeatureTest.php
+
+Adjacency proof candidates:
+
+php artisan test \
+  tests/Unit/Application/Note/Services/BuildCreateNoteRevisionSettlementTest.php \
+  tests/Feature/Note/CreateNoteRevisionSurplusRefundPaidCarryForwardFeatureTest.php \
+  tests/Feature/Note/NoteReplacementOverpaidAllocationReplayFeatureTest.php \
+  tests/Feature/Note/NoteRevisionSettlementCarryForwardFeatureTest.php
+
