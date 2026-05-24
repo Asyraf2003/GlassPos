@@ -22,12 +22,15 @@ use App\Ports\Out\Note\NoteRevisionSurplusRefundDueSourceReaderPort;
 use App\Ports\Out\Note\NoteRevisionSurplusRefundPaymentReaderPort;
 use App\Ports\Out\Note\NoteRevisionSurplusRefundPaymentWriterPort;
 use Illuminate\Contracts\Foundation\Application;
+use App\Adapters\Out\Audit\DatabaseAuditEventWriterAdapter;
 use App\Adapters\Out\Audit\DatabaseAuditLogAdapter;
 use App\Adapters\Out\Audit\DatabaseAuditLogReaderAdapter;
 use App\Adapters\Out\Auth\LaravelUuidAdapter;
 use App\Adapters\Out\Clock\SystemClockAdapter;
 use App\Adapters\Out\Persistence\DatabaseTransactionManagerAdapter;
 use App\Adapters\Out\Routing\LaravelRouteUrlGeneratorAdapter;
+use App\Application\Note\UseCases\CreateNoteRevisionSurplusRefundDueHandler;
+use App\Application\Note\UseCases\RecordNoteRevisionSurplusRefundPaymentHandler;
 use App\Application\System\Health\HealthCheckHandler;
 use App\Ports\In\HealthCheckUseCase;
 use App\Ports\Out\AuditEventWriterPort;
@@ -86,5 +89,13 @@ class InfrastructureServiceProvider extends ServiceProvider
         $this->app->singleton(AuditLogPort::class, DatabaseAuditLogAdapter::class);
         $this->app->singleton(AuditLogReaderPort::class, DatabaseAuditLogReaderAdapter::class);
         $this->app->singleton(TransactionManagerPort::class, DatabaseTransactionManagerAdapter::class);
+
+        $this->app
+            ->when([
+                CreateNoteRevisionSurplusRefundDueHandler::class,
+                RecordNoteRevisionSurplusRefundPaymentHandler::class,
+            ])
+            ->needs(AuditEventWriterPort::class)
+            ->give(DatabaseAuditEventWriterAdapter::class);
     }
 }
