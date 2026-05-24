@@ -591,3 +591,24 @@ Do not jump to PostgreSQL or Go while make verify is RED.
 
 Do not claim 1 second load until measured with realistic seed data.
 
+
+## Latest Full Verify Closure
+
+Operator proof:
+
+Tests: 2 skipped, 1080 passed, 5844 assertions.
+Duration: 59.90s.
+
+Decision:
+
+Audit FK/outbox mismatch blocker is closed for current test suite.
+
+The FK-bound refund_due/refund_paid flows are now compatible with canonical audit_events during domain writes.
+
+Global audit outbox direction remains preserved.
+
+Do not reopen this blocker unless a new RED proof appears.
+
+Next recommended active step:
+
+Start lifecycle maturity proof for create transaction to edit/refund/report/audit, one scenario at a time.
