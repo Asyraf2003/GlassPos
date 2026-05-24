@@ -57,9 +57,9 @@ final class CreateNoteRevisionSurplusRefundPaidCarryForwardFeatureTest extends T
             'note_root_id' => 'note-s12-001',
             'gross_total_rupiah' => 230000,
             'carry_forward_paid_rupiah' => 265000,
-            'carry_forward_refunded_rupiah' => 50000,
-            'net_paid_rupiah' => 215000,
-            'outstanding_rupiah' => 15000,
+            'carry_forward_refunded_rupiah' => 122000,
+            'net_paid_rupiah' => 143000,
+            'outstanding_rupiah' => 87000,
             'surplus_rupiah' => 0,
             'settlement_status' => 'underpaid',
         ]);
