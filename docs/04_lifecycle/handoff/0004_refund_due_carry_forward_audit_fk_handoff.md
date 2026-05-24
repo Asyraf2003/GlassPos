@@ -432,3 +432,162 @@ Decision checkpoint for audit FK/outbox mismatch:
 - Option C: schema redesign away from audit_events FK, only with ADR/migration plan
 
 Do not choose without source-map proof.
+
+## AI Session Control Addendum
+
+### Operator-Owned Git Boundary
+
+The assistant must not manage git.
+
+Do not ask for or suggest:
+
+- git status
+- git diff
+- git add
+- git commit
+- git push
+- branch creation
+- pull request creation
+- staging workflow
+- merge workflow
+
+Git, commit, branch, push, and PR are operator-owned.
+
+The assistant may mention changed file paths only when needed for implementation clarity.
+
+### Existing Proof Boundary
+
+Do not ask the operator to rerun make verify as the first step.
+
+The latest make verify failure is already known and must be treated as FACT for the next session.
+
+Known latest failure class:
+
+- audit FK and outbox mismatch
+- refund_due/refund_paid domain rows reference audit_events.id
+- runtime AuditEventWriterPort writes audit_outbox through DatabaseAuditOutboxWriterAdapter
+- audit_events row is not present at domain insert time
+- result is SQLSTATE 23000 FK violation
+
+The next session may request make verify only after a targeted patch and focused proofs are GREEN.
+
+### Source-Map Boundary
+
+Do not redo broad source-map work that is already documented in this handoff.
+
+Allowed source-map work:
+
+- inspect only files needed for the active blocker
+- inspect failing tests
+- inspect exact writer binding
+- inspect exact audit writer implementation
+- inspect exact FK migration or table write path
+
+Do not source-map UI, reports, API, PostgreSQL, Go, or seeders unless the active blocker requires it.
+
+### Implementation Delivery Format
+
+All implementation must be delivered as copy-paste CLI commands.
+
+Preferred patch format:
+
+- python3 inline patch when modifying existing files
+- cat here-doc only when creating a new file
+- no nested triple backtick fences inside generated handoff or prompt text
+- avoid decorative ASCII boxes
+- avoid markdown table if it makes copy-paste fragile
+- keep command output expectations plain text
+
+Do not produce a patch that requires the operator to manually edit multiple snippets.
+
+### Response Structure Required For Next Session
+
+Every technical response must separate:
+
+- FACT
+- GAP
+- ASSUMPTION
+- DECISION
+- PROOF
+- NEXT
+
+For simple confirmation, a short response is allowed.
+
+For implementation work, the assistant must start with a blueprint before patch.
+
+### Active Blocker Handling Rule
+
+The next session must process exactly one active blocker at a time.
+
+Loop:
+
+1. State current active blocker from existing proof.
+2. Source-map only the files needed for that blocker.
+3. Decide narrow patch.
+4. Provide CLI patch.
+5. Provide targeted proof command.
+6. Provide adjacent proof command.
+7. Only then request make verify.
+
+Do not start new features while current blocker remains RED.
+
+### Current Active Blocker
+
+Current active blocker:
+
+audit FK/outbox mismatch for refund_due/refund_paid flows.
+
+Known affected tests from operator log:
+
+- tests/Feature/Note/CreateNoteRevisionSurplusRefundDueControllerFeatureTest.php
+- tests/Feature/Note/CreateNoteRevisionSurplusRefundDueHandlerTest.php
+- tests/Feature/Note/RecordNoteRevisionSurplusRefundPaymentControllerFeatureTest.php
+- tests/Feature/Note/RecordNoteRevisionSurplusRefundPaymentHandlerTest.php
+
+Known failure:
+
+- HTTP 500 or QueryException
+- SQLSTATE 23000
+- audit_event_id foreign key fails
+- missing audit_events row
+
+Do not treat this as random test noise.
+
+Do not patch report or UI for this.
+
+Do not weaken audit integrity without decision.
+
+### Decision Options For Active Blocker
+
+The next assistant must choose only after source-map proof.
+
+Possible options:
+
+Option A:
+Use direct canonical audit writer for FK-bound refund_due/refund_paid flows.
+
+Option B:
+Use hybrid writer for FK-bound flows that writes canonical audit_events synchronously and keeps outbox compatibility if needed.
+
+Option C:
+Block and require ADR/schema migration because current outbox-only writer is incompatible with FK-bound domain tables.
+
+Do not pick option C unless the source-map proves a small safe compatibility patch is not enough.
+
+### Long-Term Direction Reminder
+
+The product direction remains:
+
+- mature create transaction first
+- make edit and refund safe on top of create transaction truth
+- keep settlement as backend truth
+- keep report based on official records
+- make every important action auditable
+- keep user-facing action fast
+- mature seeders for realistic lifecycle proof
+- only then prepare PostgreSQL and Go API transition
+
+Do not jump to PostgreSQL or Go while make verify is RED.
+
+Do not claim 1 second load until measured with realistic seed data.
+
