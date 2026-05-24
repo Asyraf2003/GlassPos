@@ -43,6 +43,7 @@ interface TransactionReportingSourceReaderPort
      *   event_type:string,
      *   direction:string,
      *   event_amount_rupiah:int,
+     *   payment_method?:?string,
      *   customer_payment_id:?string,
      *   refund_id:?string,
      *   source_table:string,

@@ -15,6 +15,7 @@ final class TransactionCashLedgerPerNoteRow
         private readonly string $eventType,
         private readonly string $direction,
         private readonly int $eventAmountRupiah,
+        private readonly ?string $paymentMethod,
         private readonly ?string $customerPaymentId,
         private readonly ?string $refundId,
         private readonly string $sourceTable,
@@ -48,6 +49,11 @@ final class TransactionCashLedgerPerNoteRow
         return $this->eventAmountRupiah;
     }
 
+    public function paymentMethod(): ?string
+    {
+        return $this->paymentMethod;
+    }
+
     public function customerPaymentId(): ?string
     {
         return $this->customerPaymentId;
@@ -65,6 +71,7 @@ final class TransactionCashLedgerPerNoteRow
      *   event_type:string,
      *   direction:string,
      *   event_amount_rupiah:int,
+     *   payment_method:?string,
      *   customer_payment_id:?string,
      *   refund_id:?string,
      *   source_table:string,
@@ -80,6 +87,7 @@ final class TransactionCashLedgerPerNoteRow
             'event_type' => $this->eventType(),
             'direction' => $this->direction(),
             'event_amount_rupiah' => $this->eventAmountRupiah(),
+            'payment_method' => $this->paymentMethod(),
             'customer_payment_id' => $this->customerPaymentId(),
             'refund_id' => $this->refundId(),
             'source_table' => $this->sourceTable(),
