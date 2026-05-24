@@ -28,14 +28,25 @@ final class TransactionCashLedgerReportingQuery
         $rows = $this->rows($fromEventDate, $toEventDate);
 
         return [
-            'total_in_rupiah' => array_sum(array_column(
-                array_filter($rows, static fn (array $row): bool => $row['direction'] === 'in'),
-                'event_amount_rupiah'
-            )),
-            'total_out_rupiah' => array_sum(array_column(
-                array_filter($rows, static fn (array $row): bool => $row['direction'] === 'out'),
-                'event_amount_rupiah'
-            )),
+            'total_in_rupiah' => $this->sumRows($rows, 'in'),
+            'cash_in_rupiah' => $this->sumRows($rows, 'in', 'cash'),
+            'transfer_in_rupiah' => $this->sumRows($rows, 'in', 'transfer'),
+            'total_out_rupiah' => $this->sumRows($rows, 'out'),
         ];
+    }
+
+    /**
+     * @param list<array<string, mixed>> $rows
+     */
+    private function sumRows(array $rows, string $direction, ?string $paymentMethod = null): int
+    {
+        return array_sum(array_column(
+            array_filter(
+                $rows,
+                static fn (array $row): bool => $row['direction'] === $direction
+                    && ($paymentMethod === null || ($row['payment_method'] ?? null) === $paymentMethod)
+            ),
+            'event_amount_rupiah'
+        ));
     }
 }
