@@ -196,6 +196,84 @@ final class TransactionCashLedgerReportingQueryFeatureTest extends TestCase
         $this->assertSame(3000, $recon['total_out_rupiah']);
     }
 
+
+    public function test_cash_ledger_reads_component_allocation_money_in_and_splits_cash_vs_transfer(): void
+    {
+        $this->seedNote('note-cash-ledger-create-cash', 'Cash Create Ledger', '2026-05-24', 85000);
+        $this->seedNote('note-cash-ledger-create-transfer', 'Transfer Create Ledger', '2026-05-24', 85000);
+
+        $this->seedWorkItem('wi-cash-ledger-create-cash', 'note-cash-ledger-create-cash', 1, 85000);
+        $this->seedWorkItem('wi-cash-ledger-create-transfer', 'note-cash-ledger-create-transfer', 1, 85000);
+
+        $this->seedCustomerPaymentWithMethod('pay-cash-ledger-create-cash', 85000, '2026-05-24', 'cash');
+        $this->seedCustomerPaymentWithMethod('pay-cash-ledger-create-transfer', 30000, '2026-05-24', 'transfer');
+
+        DB::table('payment_component_allocations')->insert([
+            [
+                'id' => 'pca-cash-ledger-create-cash',
+                'customer_payment_id' => 'pay-cash-ledger-create-cash',
+                'note_id' => 'note-cash-ledger-create-cash',
+                'work_item_id' => 'wi-cash-ledger-create-cash',
+                'component_type' => 'service_fee',
+                'component_ref_id' => 'wi-cash-ledger-create-cash',
+                'component_amount_rupiah_snapshot' => 85000,
+                'allocated_amount_rupiah' => 85000,
+                'allocation_priority' => 1,
+            ],
+            [
+                'id' => 'pca-cash-ledger-create-transfer',
+                'customer_payment_id' => 'pay-cash-ledger-create-transfer',
+                'note_id' => 'note-cash-ledger-create-transfer',
+                'work_item_id' => 'wi-cash-ledger-create-transfer',
+                'component_type' => 'service_fee',
+                'component_ref_id' => 'wi-cash-ledger-create-transfer',
+                'component_amount_rupiah_snapshot' => 85000,
+                'allocated_amount_rupiah' => 30000,
+                'allocation_priority' => 1,
+            ],
+        ]);
+
+        $query = app(TransactionCashLedgerReportingQuery::class);
+        $rows = $query->rows('2026-05-01', '2026-05-31');
+        $recon = $query->reconciliation('2026-05-01', '2026-05-31');
+
+        $this->assertCount(2, $rows);
+
+        $cashRow = collect($rows)->firstWhere('customer_payment_id', 'pay-cash-ledger-create-cash');
+        $transferRow = collect($rows)->firstWhere('customer_payment_id', 'pay-cash-ledger-create-transfer');
+
+        $this->assertNotNull($cashRow);
+        $this->assertNotNull($transferRow);
+
+        $this->assertSame('payment_allocation', $cashRow['event_type']);
+        $this->assertSame('in', $cashRow['direction']);
+        $this->assertSame('cash', $cashRow['payment_method']);
+        $this->assertSame(85000, $cashRow['event_amount_rupiah']);
+        $this->assertSame('payment_component_allocations', $cashRow['source_table']);
+
+        $this->assertSame('payment_allocation', $transferRow['event_type']);
+        $this->assertSame('in', $transferRow['direction']);
+        $this->assertSame('transfer', $transferRow['payment_method']);
+        $this->assertSame(30000, $transferRow['event_amount_rupiah']);
+        $this->assertSame('payment_component_allocations', $transferRow['source_table']);
+
+        $this->assertSame(115000, $recon['total_in_rupiah']);
+        $this->assertSame(85000, $recon['cash_in_rupiah']);
+        $this->assertSame(30000, $recon['transfer_in_rupiah']);
+        $this->assertSame(0, $recon['total_out_rupiah']);
+    }
+
+
+    private function seedCustomerPaymentWithMethod(string $id, int $amountRupiah, string $paidAt, string $paymentMethod): void
+    {
+        DB::table('customer_payments')->insert([
+            'id' => $id,
+            'amount_rupiah' => $amountRupiah,
+            'paid_at' => $paidAt,
+            'payment_method' => $paymentMethod,
+        ]);
+    }
+
     private function seedNote(string $id, string $customerName, string $transactionDate, int $totalRupiah): void
     {
         DB::table('notes')->insert([
