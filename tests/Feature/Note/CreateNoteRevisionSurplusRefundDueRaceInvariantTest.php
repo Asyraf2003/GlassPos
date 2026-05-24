@@ -97,6 +97,11 @@ final class LockAwarePendingRefundDueReaderFake implements NoteRevisionSurplusDi
         return [];
     }
 
+    public function sumActiveRefundDueAmountByNoteRootId(string $noteRootId): int
+    {
+        return $this->writer->activeTotalRupiah();
+    }
+
     private function pendingWithActiveDisposition(int $activeDispositionRupiah): NoteRevisionSurplusPending
     {
         return NoteRevisionSurplusPending::create(
