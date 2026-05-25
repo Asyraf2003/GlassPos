@@ -5,7 +5,7 @@
 - Slice / topic: Create transaction lifecycle cash ledger consumer, page, PDF export, Excel export, and verification closure for cash vs transfer split
 - Workflow step: Phase 1F-9 cash ledger consumer/page/export exposure and verify closure
 - Status: continue in next session
-- Progress: 88%
+- Progress: 90%
 
 ## Target Work Page
 Continue lifecycle maturity proof for create transaction cash/transfer reporting after cash ledger reader, handler, summary builder, period builder, admin page, PDF export, Excel export, and full verification were proven GREEN.
@@ -90,7 +90,6 @@ Current next target is admin cash ledger detail table payment method exposure ch
 - Broad report version mode redesign.
 
 ## GAP
-- Admin cash ledger page detail table still does not explicitly expose payment_method.
 - Dashboard cash-in wording may still collapse total_in_rupiah as cash-in, but dashboard is separate scope.
 - PDF binary visual/manual review was not performed; proof is data builder, Blade render, and export feature test.
 - Browser/manual UI QA was not performed.
@@ -119,6 +118,7 @@ Current next target is admin cash ledger detail table payment method exposure ch
   - 81%: audit-lines blocker for TransactionCashLedgerPaymentRowsQuery.php closed without changing cash ledger behavior.
   - 84%: stale reporting export feature regressions fixed after split contract.
   - 88%: full make verify GREEN after cash ledger export split and audit-lines sequence.
+  - 90%: admin cash ledger page detail table exposes payment_method and focused adjacent reporting suite remains GREEN.
 - Use transfer as canonical customer payment money-in naming.
 - Keep legacy tf normalization where needed.
 - Do not patch UI/payment forms or expense naming unless selected as a separate active step.
@@ -275,7 +275,6 @@ Current next target is admin cash ledger detail table payment method exposure ch
     - Full verification is GREEN after cash ledger export split and audit-lines closure.
 
 ## Risks / Follow-up Notes
-- Admin cash ledger page detail table still does not explicitly expose payment_method.
 - Dashboard cash-in wording may still collapse total_in_rupiah as cash-in; treat dashboard as separate active step.
 - Export proof covers data builder, Blade render, feature export, and full verify; no manual PDF visual QA was done.
 - Query split is intended as behavior-preserving refactor. Existing query/reporting tests stayed GREEN.
@@ -290,3 +289,45 @@ Single active step:
 - Do not patch dashboard in the same response.
 - Do not patch export again in the same response.
 - Do not ask for make verify as first action.
+
+<!-- phase-1f-9z-admin-detail-payment-method-proof -->
+## Phase 1F-9Z - Admin Cash Ledger Detail Payment Method Proof
+
+## FACT
+- Admin cash ledger page detail table now exposes payment_method for money-in rows.
+- Targeted page characterization test is GREEN.
+- Focused adjacent reporting suite is GREEN.
+
+## Verification Proof
+- command:
+  - php artisan test tests/Feature/Reporting/TransactionCashLedgerPageFeatureTest.php --filter=test_admin_cash_ledger_detail_table_exposes_payment_method_for_money_in_rows
+  - result:
+    - Tests: 1 passed (4 assertions)
+    - Duration: 6.00s
+  - meaning:
+    - Admin cash ledger page detail table exposes payment method for money-in rows.
+
+- command:
+  - php artisan test tests/Feature/Reporting/TransactionCashLedgerPageFeatureTest.php tests/Feature/Reporting/TransactionCashLedgerReportingQueryFeatureTest.php tests/Feature/Reporting/GetTransactionCashLedgerPerNoteFeatureTest.php tests/Feature/Reporting/TransactionCashLedgerSummaryBuilderFeatureTest.php tests/Feature/Reporting/TransactionCashLedgerPeriodTableBuilderFeatureTest.php
+  - result:
+    - Tests: 20 passed (135 assertions)
+    - Duration: 6.73s
+  - meaning:
+    - Focused admin cash ledger page and adjacent reporting suite remain GREEN after detail payment_method exposure.
+
+## GAP
+- Browser/manual UI QA was not performed.
+- Full make verify was not rerun after this admin page detail payment_method patch.
+
+## DECISION
+- Progress is now 90%.
+- Do not claim a new full make verify GREEN without a new make verify output.
+- Keep dashboard, export, API, PostgreSQL, Go, migration/backfill, payment forms, and handlers out of scope unless selected as a separate active step.
+
+## Next Step
+Phase 1F-9AB - Select next remaining cash ledger lifecycle gap.
+
+Recommended candidates:
+- Browser/manual QA for admin cash ledger page detail table.
+- Dashboard cash-in wording characterization only if dashboard is explicitly selected as active step.
+- Keep PostgreSQL, Go API, migration/backfill, export, and payment forms out of scope unless selected by owner.
