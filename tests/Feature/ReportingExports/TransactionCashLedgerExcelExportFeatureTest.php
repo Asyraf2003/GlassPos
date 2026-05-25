@@ -50,36 +50,44 @@ final class TransactionCashLedgerExcelExportFeatureTest extends TestCase
         $this->assertSame('01/01/2030 s/d 31/01/2030', $summary->getCell('B2')->getValue());
         $this->assertSame(3, $summary->getCell('B6')->getValue());
         $this->assertSame(12000, $summary->getCell('B7')->getValue());
-        $this->assertSame(1000, $summary->getCell('B8')->getValue());
-        $this->assertSame(11000, $summary->getCell('B9')->getValue());
+        $this->assertSame(12000, $summary->getCell('B8')->getValue());
+        $this->assertSame(0, $summary->getCell('B9')->getValue());
+        $this->assertSame(1000, $summary->getCell('B10')->getValue());
+        $this->assertSame(11000, $summary->getCell('B11')->getValue());
 
         $this->assertSame('Tanggal Event', $detail->getCell('B1')->getValue());
-        $this->assertSame('Tabel Sumber', $detail->getCell('J1')->getValue());
-        $this->assertSame('ID Sumber', $detail->getCell('K1')->getValue());
-        $this->assertSame('ID Disposisi Sumber', $detail->getCell('L1')->getValue());
+        $this->assertSame('Metode Pembayaran', $detail->getCell('G1')->getValue());
+        $this->assertSame('Nominal', $detail->getCell('H1')->getValue());
+        $this->assertSame('Tabel Sumber', $detail->getCell('K1')->getValue());
+        $this->assertSame('ID Sumber', $detail->getCell('L1')->getValue());
+        $this->assertSame('ID Disposisi Sumber', $detail->getCell('M1')->getValue());
         $this->assertSame('02/01/2030', $detail->getCell('B2')->getValue());
         $this->assertSame('note-1', $detail->getCell('C2')->getValue());
         $this->assertSame('Alokasi Pembayaran', $detail->getCell('E2')->getValue());
         $this->assertSame('Masuk', $detail->getCell('F2')->getValue());
-        $this->assertSame(8000, $detail->getCell('G2')->getValue());
-        $this->assertSame('customer_payments', $detail->getCell('J2')->getValue());
-        $this->assertSame('pay-1', $detail->getCell('K2')->getValue());
-        $this->assertNull($detail->getCell('L2')->getValue());
+        $this->assertSame('Tunai', $detail->getCell('G2')->getValue());
+        $this->assertSame(8000, $detail->getCell('H2')->getValue());
+        $this->assertSame('payment_allocations', $detail->getCell('K2')->getValue());
+        $this->assertSame('pay-1', $detail->getCell('L2')->getValue());
+        $this->assertNull($detail->getCell('M2')->getValue());
 
         $this->assertSame('04/01/2030', $detail->getCell('B4')->getValue());
         $this->assertSame('Pengembalian Dana', $detail->getCell('E4')->getValue());
         $this->assertSame('Keluar', $detail->getCell('F4')->getValue());
-        $this->assertSame(1000, $detail->getCell('G4')->getValue());
-        $this->assertSame('customer_refunds', $detail->getCell('J4')->getValue());
-        $this->assertSame('ref-1', $detail->getCell('K4')->getValue());
-        $this->assertNull($detail->getCell('L4')->getValue());
+        $this->assertSame('-', $detail->getCell('G4')->getValue());
+        $this->assertSame(1000, $detail->getCell('H4')->getValue());
+        $this->assertSame('customer_refunds', $detail->getCell('K4')->getValue());
+        $this->assertSame('ref-1', $detail->getCell('L4')->getValue());
+        $this->assertNull($detail->getCell('M4')->getValue());
         $this->assertNull($detail->getCell('C5')->getValue());
 
         $this->assertSame('02/01/2030', $period->getCell('A2')->getValue());
         $this->assertSame(1, $period->getCell('B2')->getValue());
         $this->assertSame(8000, $period->getCell('C2')->getValue());
-        $this->assertSame(0, $period->getCell('D2')->getValue());
-        $this->assertSame(8000, $period->getCell('E2')->getValue());
+        $this->assertSame(8000, $period->getCell('D2')->getValue());
+        $this->assertSame(0, $period->getCell('E2')->getValue());
+        $this->assertSame(0, $period->getCell('F2')->getValue());
+        $this->assertSame(8000, $period->getCell('G2')->getValue());
 
         unlink($path);
         $spreadsheet->disconnectWorksheets();
@@ -140,6 +148,7 @@ final class TransactionCashLedgerExcelExportFeatureTest extends TestCase
             'id' => $paymentId,
             'amount_rupiah' => $amountRupiah,
             'paid_at' => $paidAt,
+            'payment_method' => 'cash',
         ]);
 
         DB::table('payment_allocations')->insert([

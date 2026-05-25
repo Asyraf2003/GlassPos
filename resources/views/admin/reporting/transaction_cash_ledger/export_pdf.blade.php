@@ -111,7 +111,7 @@
                     <td>{{ $row['note_label'] }}</td>
                     <td>{{ $row['event_type'] }}</td>
                     <td>{{ $row['direction'] }}</td>
-                    <td>{{ $row['payment_method'] }}</td>
+                    <td>{{ $row['payment_method'] ?? '-' }}</td>
                     <td>{{ $row['payment_marker'] }}</td>
                     <td>{{ $row['refund_marker'] }}</td>
                     <td>{{ $row['source_table'] }}</td>
