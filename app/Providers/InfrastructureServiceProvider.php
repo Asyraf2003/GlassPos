@@ -8,6 +8,7 @@ use App\Adapters\Out\Audit\DatabaseAuditEventWriterAdapter;
 use App\Adapters\Out\Audit\DatabaseAuditLogAdapter;
 use App\Adapters\Out\Audit\DatabaseAuditLogReaderAdapter;
 use App\Adapters\Out\Audit\DatabaseAuditOutboxWriterAdapter;
+use App\Adapters\Out\Idempotency\DatabaseIdempotencyRecordAdapter;
 use App\Adapters\Out\Auth\LaravelUuidAdapter;
 use App\Adapters\Out\Clock\SystemClockAdapter;
 use App\Adapters\Out\Persistence\DatabaseTransactionManagerAdapter;
@@ -19,6 +20,7 @@ use App\Ports\In\HealthCheckUseCase;
 use App\Ports\Out\AuditEventWriterPort;
 use App\Ports\Out\AuditLogPort;
 use App\Ports\Out\AuditLogReaderPort;
+use App\Ports\Out\IdempotencyRecordPort;
 use App\Ports\Out\ClockPort;
 use App\Ports\Out\RouteUrlGeneratorPort;
 use App\Ports\Out\TransactionManagerPort;
@@ -38,6 +40,7 @@ class InfrastructureServiceProvider extends ServiceProvider
         $this->app->singleton(AuditLogPort::class, DatabaseAuditLogAdapter::class);
         $this->app->singleton(AuditLogReaderPort::class, DatabaseAuditLogReaderAdapter::class);
         $this->app->singleton(TransactionManagerPort::class, DatabaseTransactionManagerAdapter::class);
+        $this->app->singleton(IdempotencyRecordPort::class, DatabaseIdempotencyRecordAdapter::class);
 
         $this->app
             ->when([

@@ -6,6 +6,7 @@ namespace App\Application\Note\UseCases;
 
 use App\Application\Note\Services\CreateTransactionWorkspaceAuditPayloadBuilder;
 use App\Application\Note\Services\CreateTransactionWorkspaceInlinePaymentRecorder;
+use App\Application\Note\Services\CreateTransactionWorkspaceIdempotencyService;
 use App\Application\Note\Services\CreateTransactionWorkspaceNoteFactory;
 use App\Application\Note\Services\CreateTransactionWorkspaceSuccessMessageBuilder;
 use App\Application\Note\Services\CreateTransactionWorkspaceWorkItemPersister;
@@ -21,6 +22,7 @@ final class CreateTransactionWorkspaceHandler
 {
     public function __construct(
         private readonly NoteWriterPort $notes,
+        private readonly CreateTransactionWorkspaceIdempotencyService $idempotency,
         private readonly TransactionManagerPort $transactions,
         private readonly CreateTransactionWorkspaceNoteFactory $noteFactory,
         private readonly CreateTransactionWorkspaceWorkItemPersister $items,
@@ -42,10 +44,16 @@ final class CreateTransactionWorkspaceHandler
     public function handle(array $payload): Result
     {
         $started = false;
+        $replayed = $this->idempotency->replay($payload);
+
+        if ($replayed !== null) {
+            return $replayed;
+        }
 
         try {
             $this->transactions->begin();
             $started = true;
+            $this->idempotency->start($payload);
 
             $note = $this->noteFactory->make((array) ($payload['note'] ?? []));
             $this->notes->create($note);
@@ -66,9 +74,7 @@ final class CreateTransactionWorkspaceHandler
 
             $this->projection->syncNote($note->id());
 
-            $this->transactions->commit();
-
-            return Result::success(
+            $result = Result::success(
                 [
                     'note' => [
                         'id' => $note->id(),
@@ -80,6 +86,11 @@ final class CreateTransactionWorkspaceHandler
                 ],
                 $this->messages->build($paymentSummary)
             );
+
+            $this->idempotency->succeed($payload, $result);
+            $this->transactions->commit();
+
+            return $result;
         } catch (DomainException $e) {
             if ($started) {
                 $this->transactions->rollBack();

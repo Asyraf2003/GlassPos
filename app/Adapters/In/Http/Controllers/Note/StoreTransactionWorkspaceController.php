@@ -17,7 +17,14 @@ final class StoreTransactionWorkspaceController extends Controller
         CreateTransactionWorkspaceHandler $handler,
         DeleteTransactionWorkspaceDraftOperation $drafts,
     ): RedirectResponse {
-        $result = $handler->handle($request->validated());
+        $actorId = $request->user()?->getAuthIdentifier();
+        $payload = $request->validated();
+
+        if ($actorId !== null) {
+            $payload['_actor_id'] = (string) $actorId;
+        }
+
+        $result = $handler->handle($payload);
 
         if ($result->isFailure()) {
             return back()
@@ -26,8 +33,6 @@ final class StoreTransactionWorkspaceController extends Controller
                 ])
                 ->withInput();
         }
-
-        $actorId = $request->user()?->getAuthIdentifier();
 
         if ($actorId !== null) {
             $drafts->deleteForActorAndWorkspace((string) $actorId, 'create');

@@ -12,6 +12,7 @@ final class StoreTransactionWorkspaceRules
     public static function build(): array
     {
         return [
+            'idempotency_key' => ['nullable', 'string', 'max:120'],
             'note' => ['required', 'array'],
             'note.customer_name' => ['required', 'string'],
             'note.customer_phone' => ['nullable', 'string'],
