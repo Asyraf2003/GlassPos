@@ -403,3 +403,89 @@ Use the prompt below exactly.
     Do not patch production first.
     Do not touch edit/refund/API/dashboard/seeder.
     Do not ask for make verify as first action.
+
+---
+
+# Phase 1F-10G Closure Boundary Update
+
+## Date
+
+2026-05-25
+
+## Status
+
+Phase 1 service-only create transaction maturity is CLOSED with explicit deferred gaps.
+
+## Closure Scope
+
+### Closed inside Phase 1 service-only create maturity
+
+- Create workspace service-only full cash payment lifecycle is proven.
+- Create workspace service-only partial cash payment lifecycle is proven.
+- Create workspace service-only no-payment / debt lifecycle is proven.
+- Create workspace service-only full transfer payment lifecycle is proven.
+- Create workspace service-only partial transfer payment lifecycle is proven.
+- Rollback after inline payment writes is proven.
+- Same-key same-payload create workspace idempotency is proven.
+- Same-key different-payload idempotency rejection is proven.
+- Failed-attempt retry with same idempotency key and same payload is proven.
+- Idempotency patch passes focused adjacent create lifecycle tests.
+- Idempotency patch passes full verify.
+
+### Deferred gaps
+
+These are not treated as blockers for closing service-only create maturity, but they remain explicit future work:
+
+- True same-key concurrency proof.
+- Store-stock/inventory create lifecycle characterization.
+- Store-stock/inventory rollback characterization.
+- Seeder cleanup.
+
+## Latest Proof
+
+- command:
+  - php artisan test tests/Feature/Note/CreateTransactionWorkspaceDuplicateSubmitFeatureTest.php tests/Feature/Note/CreateTransactionWorkspaceRollbackFeatureTest.php tests/Feature/Note/CreateTransactionWorkspaceInlinePaymentLifecycleFeatureTest.php
+- result:
+  - Tests: 10 passed (158 assertions)
+  - Duration: 6.90s
+- meaning:
+  - Focused duplicate-submit, idempotency retry, rollback, and inline payment lifecycle suite is GREEN.
+
+- command:
+  - make verify
+- result:
+  - PHPStan: 1736/1736, no errors
+  - audit-lines: SUCCESS
+  - Blade PHP/directive audit: SUCCESS
+  - Contract audit: passed
+  - Pest: 2 skipped, 1102 passed (6077 assertions)
+  - Duration: 55.39s
+- meaning:
+  - Full project verification is GREEN after idempotency and split-file remediation.
+
+## Files Added During Closure Remediation
+
+- app/Application/Note/Services/CreateTransactionWorkspaceIdempotencyScopeResolver.php
+- app/Application/Note/Services/CreateTransactionWorkspaceResultBuilder.php
+
+## Files Changed During Closure Remediation
+
+- app/Application/Note/UseCases/CreateTransactionWorkspaceHandler.php
+- app/Application/Note/Services/CreateTransactionWorkspaceIdempotencyService.php
+- tests/Feature/Note/CreateTransactionWorkspaceDuplicateSubmitFeatureTest.php
+
+## Locked Decision
+
+- Phase 1 create maturity closure applies to the service-only create transaction lifecycle.
+- Remaining concurrency, store-stock/inventory, and seeder cleanup gaps are explicitly deferred.
+- Do not reopen Phase 1 service-only create maturity unless a regression appears in focused tests or full verify.
+
+## Recommended Next Step
+
+Choose one next branch explicitly:
+
+1. Phase 1G - store-stock/inventory create lifecycle characterization.
+2. Phase 1H - true same-key concurrency proof.
+3. Seeder cleanup foundation.
+4. Phase 2 - edit transaction lifecycle maturity, only if owner accepts the deferred Phase 1 gaps.
+
