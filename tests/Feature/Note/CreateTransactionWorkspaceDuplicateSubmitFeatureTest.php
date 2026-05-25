@@ -154,4 +154,84 @@ final class CreateTransactionWorkspaceDuplicateSubmitFeatureTest extends TestCas
     }
 
 
+    public function test_duplicate_create_workspace_submit_with_same_idempotency_key_and_different_payload_is_rejected_without_creating_second_note(): void
+    {
+        $this->loginAsKasir();
+
+        $user = User::query()->create([
+            'name' => 'Kasir Idempotent Conflict',
+            'email' => 'create-idempotent-conflict@example.test',
+            'password' => 'password',
+        ]);
+
+        DB::table('actor_accesses')->insert([
+            'actor_id' => (string) $user->getAuthIdentifier(),
+            'role' => 'kasir',
+        ]);
+
+        $payload = [
+            'idempotency_key' => 'idem-create-workspace-conflict-001',
+            'note' => [
+                'customer_name' => 'Idempotent Conflict Customer',
+                'customer_phone' => '081234567896',
+                'transaction_date' => '2026-05-24',
+            ],
+            'items' => [[
+                'entry_mode' => 'service',
+                'part_source' => 'none',
+                'pricing_mode' => 'manual_split',
+                'package_total_rupiah' => null,
+                'service' => [
+                    'name' => 'Servis Idempotent Conflict',
+                    'price_rupiah' => 85000,
+                    'notes' => '',
+                ],
+                'product_lines' => [[
+                    'product_id' => '',
+                    'qty' => '',
+                    'unit_price_rupiah' => '',
+                ]],
+                'external_purchase_lines' => [[
+                    'label' => '',
+                    'qty' => '',
+                    'unit_cost_rupiah' => '',
+                ]],
+            ]],
+            'inline_payment' => [
+                'decision' => 'pay_full',
+                'payment_method' => 'cash',
+                'paid_at' => '2026-05-24',
+                'amount_received_rupiah' => 100000,
+            ],
+        ];
+
+        $changedPayload = $payload;
+        $changedPayload['note']['customer_name'] = 'Idempotent Conflict Customer Changed';
+
+        $firstResponse = $this->actingAs($user)->post(route('notes.workspace.store'), $payload);
+        $secondResponse = $this->actingAs($user))
+            ->from(route('notes.workspace.store'))
+            ->post(route('notes.workspace.store'), $changedPayload);
+
+        $firstResponse->assertRedirect(route('cashier.notes.index'));
+        $secondResponse->assertRedirect();
+        $secondResponse->assertSessionHasErrors(['workspace']);
+
+        $this->assertSame(1, DB::table('notes')->count());
+        $this->assertSame(
+            1,
+            DB::table('notes')->where('customer_name', 'Idempotent Conflict Customer')->count()
+        );
+        $this->assertSame(
+            0,
+            DB::table('notes')->where('customer_name', 'Idempotent Conflict Customer Changed')->count()
+        );
+
+        $this->assertSame(1, DB::table('work_items')->count());
+        $this->assertSame(1, DB::table('customer_payments')->count());
+        $this->assertSame(1, DB::table('payment_component_allocations')->count());
+        $this->assertSame(1, DB::table('note_history_projection')->count());
+    }
+
+
 }
