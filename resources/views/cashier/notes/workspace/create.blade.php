@@ -24,11 +24,6 @@
 
     <form action="{{ $formAction ?? route('notes.workspace.store') }}" method="POST" novalidate id="cashier-note-workspace-form">
         @csrf
-            <input
-                type="hidden"
-                name="idempotency_key"
-                value="{{ (string) \Illuminate\Support\Str::uuid() }}"
-            >
         @if (($workspaceMode ?? 'create') === 'edit')
             @method('PATCH')
         @endif
