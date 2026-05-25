@@ -22,7 +22,9 @@ final class TransactionCashLedgerExcelPeriodSheetWriter
             $values[] = [
                 ViewDateFormatter::display($row['period_label'] ?? null),
                 (int) ($row['total_events'] ?? 0),
+                (int) ($row['total_in_rupiah'] ?? 0),
                 (int) ($row['cash_in_rupiah'] ?? 0),
+                (int) ($row['transfer_in_rupiah'] ?? 0),
                 (int) ($row['cash_out_rupiah'] ?? 0),
                 (int) ($row['net_amount_rupiah'] ?? 0),
             ];
@@ -32,10 +34,12 @@ final class TransactionCashLedgerExcelPeriodSheetWriter
             'Tanggal',
             'Total Kejadian',
             'Kas Masuk',
+            'Tunai Masuk',
+            'Transfer Masuk',
             'Kas Keluar',
             'Nilai Bersih',
         ], $values);
 
-        $this->tables->autosize($sheet, 5);
+        $this->tables->autosize($sheet, 7);
     }
 }
