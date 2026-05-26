@@ -349,3 +349,76 @@ Use this prompt exactly.
     - Browser/manual QA is not done.
     - Report/export proof after edit/refund/revision remains a gap.
     - Audit is still transitional.
+
+### Phase 2-07 - Report/export proof after active revision refund
+
+Status: GREEN / CLOSED
+
+Goal:
+
+Close the report/export proof gap for edit/refund/revision by proving that an active note revision followed by refund of the current replacement row is visible through transaction cash ledger report surfaces.
+
+Files added:
+
+- tests/Feature/Note/TransactionCashLedgerAfterRevisionRefundFeatureTest.php
+
+Characterization covered:
+
+- Seed closed paid service-only note.
+- Submit active note revision through CreateNoteRevisionHandler.
+- Reject stale-row refund remained covered by existing adjacency proof.
+- Refund current replacement work item through active refund route.
+- Verify transaction cash ledger page includes:
+  - note id
+  - Alokasi Pembayaran
+  - Pengembalian Dana
+  - payment_allocations
+  - customer_refunds
+  - payment id
+  - refund id
+  - Rp 100.000
+- Verify Excel export includes payment and refund events in Detail Event Kas.
+- Verify PDF export returns a valid downloadable PDF for the same lifecycle range.
+
+Targeted proof:
+
+php artisan test tests/Feature/Note/TransactionCashLedgerAfterRevisionRefundFeatureTest.php
+
+Result:
+
+Tests: 1 passed (25 assertions)
+Duration: 6.90s
+
+Focused consolidation command:
+
+php artisan test \
+  tests/Feature/Note/TransactionCashLedgerAfterRevisionRefundFeatureTest.php \
+  tests/Feature/Reporting/TransactionCashLedgerPageFeatureTest.php \
+  tests/Feature/ReportingExports/TransactionCashLedgerExcelExportFeatureTest.php \
+  tests/Feature/ReportingExports/TransactionCashLedgerPdfExportFeatureTest.php \
+  tests/Feature/Note/RefundAfterRevisionCurrentRowBoundaryFeatureTest.php \
+  tests/Feature/Note/NoteRevisionRollbackFeatureTest.php \
+  tests/Feature/Note/NoteRevisionStoreStockInventoryLifecycleFeatureTest.php
+
+Focused consolidation result:
+
+Tests: 23 passed (226 assertions)
+Duration: 8.66s
+
+Full verification command:
+
+make verify
+
+Full verification result:
+
+Tests: 2 skipped, 1109 passed (6178 assertions)
+Duration: 56.77s
+
+Closure decision:
+
+Report/export proof after edit/refund/revision is closed through targeted characterization, focused consolidation, and full make verify proof.
+
+Remaining gaps:
+
+- Browser/manual QA is not done.
+- Audit is still transitional.
