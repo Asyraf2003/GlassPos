@@ -24,16 +24,31 @@ final class CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer
             return $item;
         }
 
-        $line = $this->firstLine($item['product_lines'] ?? []);
-        $productId = $this->requiredString($line['product_id'] ?? null, 'Product wajib dipilih.');
-        $qty = $this->requiredInt($line['qty'] ?? null, 'Qty produk wajib diisi.');
+        $lines = $this->lines($item['product_lines'] ?? []);
         $packageTotal = $this->requiredInt($item['package_total_rupiah'] ?? null, 'Harga paket wajib diisi.');
+        $sparepartTotal = 0;
+        $normalizedLines = [];
 
-        $product = $this->products->getById($productId)
-            ?? throw new DomainException('Product tidak ditemukan.');
+        if ($lines === []) {
+            throw new DomainException('Product wajib dipilih.');
+        }
 
-        $productUnitPrice = $product->hargaJual()->amount();
-        $sparepartTotal = $productUnitPrice * $qty;
+        foreach ($lines as $line) {
+            $productId = $this->requiredString($line['product_id'] ?? null, 'Product wajib dipilih.');
+            $qty = $this->requiredInt($line['qty'] ?? null, 'Qty produk wajib diisi.');
+
+            $product = $this->products->getById($productId)
+                ?? throw new DomainException('Product tidak ditemukan.');
+
+            $productUnitPrice = $product->hargaJual()->amount();
+            $sparepartTotal += $productUnitPrice * $qty;
+
+            $line['product_id'] = $productId;
+            $line['qty'] = $qty;
+            $line['unit_price_rupiah'] = $productUnitPrice;
+
+            $normalizedLines[] = $line;
+        }
 
         if ($packageTotal < $sparepartTotal) {
             throw new DomainException('Harga paket tidak boleh lebih kecil dari total harga sparepart.');
@@ -42,27 +57,46 @@ final class CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer
         $service = is_array($item['service'] ?? null) ? $item['service'] : [];
         $service['price_rupiah'] = $packageTotal - $sparepartTotal;
 
-        $line['unit_price_rupiah'] = $productUnitPrice;
-
         $item['service'] = $service;
-        $item['product_lines'] = [$line];
+        $item['product_lines'] = $normalizedLines;
 
         return $item;
     }
 
     /**
      * @param mixed $value
-     * @return array<string, mixed>
+     * @return list<array<string, mixed>>
      */
-    private function firstLine(mixed $value): array
+    private function lines(mixed $value): array
     {
         if (! is_array($value)) {
             return [];
         }
 
-        $first = array_values($value)[0] ?? [];
+        if ($this->looksLikeLine($value)) {
+            return [$value];
+        }
 
-        return is_array($first) ? $first : [];
+        $lines = [];
+
+        foreach (array_values($value) as $line) {
+            if (is_array($line)) {
+                $lines[] = $line;
+            }
+        }
+
+        return $lines;
+    }
+
+    /**
+     * @param array<mixed> $value
+     */
+    private function looksLikeLine(array $value): bool
+    {
+        return array_key_exists('product_id', $value)
+            || array_key_exists('qty', $value)
+            || array_key_exists('unit_price_rupiah', $value)
+            || array_key_exists('price_basis', $value);
     }
 
     private function requiredString(mixed $value, string $message): string

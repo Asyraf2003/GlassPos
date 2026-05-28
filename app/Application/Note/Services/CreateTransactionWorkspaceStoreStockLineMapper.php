@@ -14,7 +14,30 @@ final class CreateTransactionWorkspaceStoreStockLineMapper
      */
     public function map(array $item): array
     {
-        $line = $this->firstLine($item['product_lines'] ?? []);
+        return $this->mapLine($this->firstLine($item['product_lines'] ?? []));
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     * @return list<array<string, mixed>>
+     */
+    public function mapMany(array $item): array
+    {
+        $lines = $this->lines($item['product_lines'] ?? []);
+
+        if ($lines === []) {
+            return [$this->map($item)];
+        }
+
+        return array_map(fn (array $line): array => $this->mapLine($line), $lines);
+    }
+
+    /**
+     * @param array<string, mixed> $line
+     * @return array<string, mixed>
+     */
+    private function mapLine(array $line): array
+    {
         $qty = $this->requiredInt($line['qty'] ?? null, 'Qty produk wajib diisi.');
         $unitPrice = $this->requiredInt($line['unit_price_rupiah'] ?? null, 'Harga satuan produk wajib diisi.');
 
@@ -29,17 +52,47 @@ final class CreateTransactionWorkspaceStoreStockLineMapper
 
     /**
      * @param mixed $value
-     * @return array<string, mixed>
+     * @return list<array<string, mixed>>
      */
-    private function firstLine(mixed $value): array
+    private function lines(mixed $value): array
     {
         if (! is_array($value)) {
             return [];
         }
 
-        $first = array_values($value)[0] ?? [];
+        if ($this->looksLikeLine($value)) {
+            return [$value];
+        }
 
-        return is_array($first) ? $first : [];
+        $lines = [];
+
+        foreach (array_values($value) as $line) {
+            if (is_array($line)) {
+                $lines[] = $line;
+            }
+        }
+
+        return $lines;
+    }
+
+    /**
+     * @param mixed $value
+     * @return array<string, mixed>
+     */
+    private function firstLine(mixed $value): array
+    {
+        return $this->lines($value)[0] ?? [];
+    }
+
+    /**
+     * @param array<mixed> $value
+     */
+    private function looksLikeLine(array $value): bool
+    {
+        return array_key_exists('product_id', $value)
+            || array_key_exists('qty', $value)
+            || array_key_exists('unit_price_rupiah', $value)
+            || array_key_exists('price_basis', $value);
     }
 
     private function priceBasis(mixed $value): string
