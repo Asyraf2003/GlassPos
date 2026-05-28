@@ -14,12 +14,18 @@ final class DatabasePaymentAllocationReaderAdapter implements PaymentAllocationR
     public function getTotalAllocatedAmountByNoteId(string $noteId): Money
     {
         $normalizedNoteId = $this->normalize($noteId, 'Note id pada payment allocation wajib ada.');
+
         $componentTotal = (int) DB::table('payment_component_allocations')
             ->where('note_id', $normalizedNoteId)
             ->sum('allocated_amount_rupiah');
 
+        $componentPaymentIds = DB::table('payment_component_allocations')
+            ->where('note_id', $normalizedNoteId)
+            ->select('customer_payment_id');
+
         $legacyTotal = (int) DB::table('payment_allocations')
             ->where('note_id', $normalizedNoteId)
+            ->whereNotIn('customer_payment_id', $componentPaymentIds)
             ->sum('amount_rupiah');
 
         return Money::fromInt($componentTotal + $legacyTotal);
