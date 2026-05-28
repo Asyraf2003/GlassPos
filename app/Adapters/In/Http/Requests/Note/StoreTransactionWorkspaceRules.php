@@ -31,9 +31,9 @@ final class StoreTransactionWorkspaceRules
             'items.*.service.notes' => ['nullable', 'string'],
 
             'items.*.product_lines' => ['nullable', 'array'],
-            'items.*.product_lines.0.product_id' => ['nullable', 'string'],
-            'items.*.product_lines.0.qty' => ['nullable', 'integer', 'min:1'],
-            'items.*.product_lines.0.unit_price_rupiah' => ['nullable', 'integer', 'min:1'],
+            'items.*.product_lines.*.product_id' => ['nullable', 'string'],
+            'items.*.product_lines.*.qty' => ['nullable', 'integer', 'min:1'],
+            'items.*.product_lines.*.unit_price_rupiah' => ['nullable', 'integer', 'min:1'],
 
             'items.*.external_purchase_lines' => ['nullable', 'array'],
             'items.*.external_purchase_lines.0.label' => ['nullable', 'string'],
