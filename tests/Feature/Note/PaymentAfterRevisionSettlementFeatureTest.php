@@ -58,61 +58,6 @@ final class PaymentAfterRevisionSettlementFeatureTest extends TestCase
             $billingRows->message() ?? 'Billing rows provider failed without message.'
         );
 
-        dump([
-            'current_work_item_id' => $currentWorkItemId,
-            'billing_rows' => array_map(
-                static fn (array $row): array => [
-                    'id' => $row['id'] ?? null,
-                    'work_item_id' => $row['work_item_id'] ?? null,
-                    'component_type' => $row['component_type'] ?? null,
-                    'component_ref_id' => $row['component_ref_id'] ?? null,
-                    'component_total_rupiah' => $row['component_total_rupiah'] ?? null,
-                    'allocated_rupiah' => $row['allocated_rupiah'] ?? null,
-                    'net_paid_rupiah' => $row['net_paid_rupiah'] ?? null,
-                    'outstanding_rupiah' => $row['outstanding_rupiah'] ?? null,
-                    'can_select_manually' => $row['can_select_manually'] ?? null,
-                ],
-                $billingRows->data(),
-            ),
-        ]);
-
-        $billingRows = $this->app
-            ->make(\App\Application\Note\Services\SelectedNoteBillingRowsProvider::class)
-            ->provide('note-payment-after-revision-001');
-
-        self::assertTrue(
-            $billingRows->isSuccess(),
-            $billingRows->message() ?? 'Billing rows provider failed without message.'
-        );
-
-        self::fail(json_encode([
-            'current_work_item_id_from_work_items_table' => $currentWorkItemId,
-            'selected_id_test_would_send' => $currentWorkItemId . '::service_fee::' . $currentWorkItemId,
-            'billing_rows' => array_map(
-                static fn (array $row): array => [
-                    'id' => $row['id'] ?? null,
-                    'work_item_id' => $row['work_item_id'] ?? null,
-                    'component_type' => $row['component_type'] ?? null,
-                    'component_ref_id' => $row['component_ref_id'] ?? null,
-                    'component_total_rupiah' => $row['component_total_rupiah'] ?? null,
-                    'allocated_rupiah' => $row['allocated_rupiah'] ?? null,
-                    'net_paid_rupiah' => $row['net_paid_rupiah'] ?? null,
-                    'outstanding_rupiah' => $row['outstanding_rupiah'] ?? null,
-                    'can_select_manually' => $row['can_select_manually'] ?? null,
-                ],
-                $billingRows->data(),
-            ),
-        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-
-        $billingRows = $this->app
-            ->make(\App\Application\Note\Services\SelectedNoteBillingRowsProvider::class)
-            ->provide('note-payment-after-revision-001');
-
-        self::assertTrue(
-            $billingRows->isSuccess(),
-            $billingRows->message() ?? 'Billing rows provider failed without message.'
-        );
-
         self::fail(json_encode([
             'current_work_item_id_from_work_items_table' => $currentWorkItemId,
             'selected_id_test_would_send' => $currentWorkItemId . '::service_fee::' . $currentWorkItemId,
@@ -127,6 +72,11 @@ final class PaymentAfterRevisionSettlementFeatureTest extends TestCase
                 ->map(fn (object $row): array => (array) $row)
                 ->all(),
             'payment_component_allocations' => DB::table('payment_component_allocations')
+                ->orderBy('id')
+                ->get()
+                ->map(fn (object $row): array => (array) $row)
+                ->all(),
+            'refund_component_allocations' => DB::table('refund_component_allocations')
                 ->orderBy('id')
                 ->get()
                 ->map(fn (object $row): array => (array) $row)
@@ -156,6 +106,7 @@ final class PaymentAfterRevisionSettlementFeatureTest extends TestCase
                 $billingRows->data(),
             ),
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
 
         $this->actingAs($admin)
             ->from(route('admin.notes.show', ['noteId' => 'note-payment-after-revision-001']))
