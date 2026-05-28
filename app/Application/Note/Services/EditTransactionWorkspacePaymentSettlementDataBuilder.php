@@ -14,7 +14,7 @@ final class EditTransactionWorkspacePaymentSettlementDataBuilder
     /** @return array<string, mixed>|null */
     public function build(string $noteId): ?array
     {
-        $result = $this->paymentSettlement->resolveFull($noteId);
+        $result = $this->paymentSettlement->preview($noteId);
 
         if ($result->isFailure()) {
             return null;

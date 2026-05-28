@@ -45,6 +45,30 @@ final class NoteOutstandingPaymentAmountResolver
         ]);
     }
 
+    public function preview(string $noteId): Result
+    {
+        $note = $this->notes->getById(trim($noteId));
+
+        if ($note === null) {
+            return Result::failure('Nota tidak ditemukan.', ['payment' => ['PAYMENT_INVALID_TARGET']]);
+        }
+
+        $grandTotal = $note->totalRupiah()->amount();
+        $allocated = $this->allocations->getTotalAllocatedAmountByNoteId($note->id())->amount();
+        $refunded = $this->refunds->getTotalRefundedAmountByNoteId($note->id())->amount();
+        $netPaid = max($allocated - $refunded, 0);
+        $outstanding = max($grandTotal - $netPaid, 0);
+
+        return Result::success([
+            'amount_rupiah' => $outstanding,
+            'grand_total_rupiah' => $grandTotal,
+            'net_paid_rupiah' => $netPaid,
+            'outstanding_rupiah' => $outstanding,
+            'surplus_rupiah' => max($netPaid - $grandTotal, 0),
+            'explanation' => $this->explanation($grandTotal, $netPaid, $outstanding),
+        ]);
+    }
+
     public function resolvePartial(string $noteId, int $amountRupiah): Result
     {
         $full = $this->resolveFull($noteId);
