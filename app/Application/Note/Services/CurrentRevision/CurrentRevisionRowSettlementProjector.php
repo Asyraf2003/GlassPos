@@ -39,6 +39,14 @@ final class CurrentRevisionRowSettlementProjector
         $totalRefunded = $this->legacyRefunds->getTotalRefundedAmountByNoteId($noteId)->amount();
 
         if ($paymentTotals !== [] || $refundTotals !== []) {
+            $this->mergeNoteLevelRemainders(
+                $lines,
+                $paymentTotals,
+                $refundTotals,
+                max($totalAllocated - array_sum($paymentTotals), 0),
+                max($totalRefunded - array_sum($refundTotals), 0),
+            );
+
             return $this->componentSummary->build($lines, $paymentTotals, $refundTotals);
         }
 
