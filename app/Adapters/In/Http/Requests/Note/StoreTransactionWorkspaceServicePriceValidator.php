@@ -18,10 +18,12 @@ final class StoreTransactionWorkspaceServicePriceValidator
             return true;
         }
 
-        return $price === 0
-            && ($item['pricing_mode'] ?? null) === 'package_auto_split'
-            && self::intValue($item['package_total_rupiah'] ?? null) > 0
-            && self::hasStoreStockLine($item);
+        if ($price !== 0 || ($item['pricing_mode'] ?? null) !== 'package_auto_split') {
+            return false;
+        }
+
+        return self::intValue($item['package_total_rupiah'] ?? null) > 0
+            && (self::hasStoreStockLine($item) || self::hasExternalPackageLine($item));
     }
 
     /**
@@ -35,6 +37,16 @@ final class StoreTransactionWorkspaceServicePriceValidator
             && trim((string) $line['product_id']) !== ''
             && self::intValue($line['qty'] ?? null) > 0
             && self::intValue($line['unit_price_rupiah'] ?? null) > 0;
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    private static function hasExternalPackageLine(array $item): bool
+    {
+        $line = self::firstLine($item['external_purchase_lines'] ?? []);
+
+        return self::intValue($line['total_rupiah'] ?? null) > 0;
     }
 
     /**
