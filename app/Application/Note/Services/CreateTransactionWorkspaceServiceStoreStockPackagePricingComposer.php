@@ -24,6 +24,10 @@ final class CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer
             return $item;
         }
 
+        if (! $this->hasProductLine($item['product_lines'] ?? [])) {
+            return $item;
+        }
+
         $packageTotal = $this->requiredInt($item['package_total_rupiah'] ?? null, 'Harga paket wajib diisi.');
         $pricedLines = (new CreateTransactionWorkspaceServiceStoreStockPackageProductLinesComposer($this->products))
             ->compose($item['product_lines'] ?? []);
@@ -40,6 +44,19 @@ final class CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer
         $item['product_lines'] = $pricedLines['product_lines'];
 
         return $item;
+    }
+
+    private function hasProductLine(mixed $value): bool
+    {
+        if (! is_array($value)) {
+            return false;
+        }
+
+        $first = array_values($value)[0] ?? [];
+
+        return is_array($first)
+            && is_string($first['product_id'] ?? null)
+            && trim((string) $first['product_id']) !== '';
     }
 
     private function requiredInt(mixed $value, string $message): int
