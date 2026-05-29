@@ -773,3 +773,164 @@ Remaining gaps:
 - Report/export impact is not proven yet.
 - Edit/revision remains future-readiness only.
 
+
+### Phase 2-11 - Package auto split create maturity closure
+
+#### Scope
+
+Phase 2-11 closed create-side package auto split maturity for service workspace rows.
+
+Included scope:
+- service + store-stock `package_auto_split` with multiple different `product_lines` in one service row;
+- duplicate `product_id` rejection inside one service row;
+- service + external purchase `package_auto_split`;
+- package allocation audit payload for store-stock and external purchase package allocations;
+- report impact characterization for transaction summary and operational profit reports.
+
+Explicitly out of scope:
+- edit/revision implementation;
+- payment lifecycle redesign;
+- API/Go/PostgreSQL work;
+- report/export patching;
+- browser/manual QA;
+- PDF/XLSX visual/manual review.
+
+#### Implementation summary
+
+Create store-stock package split now preserves multiple product lines instead of collapsing to the first line.
+
+Key behavior:
+- `package_total_rupiah` is treated as the final customer-facing package price.
+- Store-stock sparepart total is computed from all product lines using trusted catalog selling price.
+- Service residual is computed as:
+
+    service_price_rupiah = package_total_rupiah - summed_store_stock_part_total
+
+- Multiple `work_item_store_stock_lines` are persisted under the same service work item.
+- Inventory issue is executed once per persisted store-stock line.
+- Package allocation audit now records one allocation row per store-stock line.
+
+Duplicate product behavior:
+- Duplicate `product_id` inside one service row is rejected.
+- Error message is actionable:
+  - product may not be input twice in one service row;
+  - reason: prevents duplicate package allocation and duplicate stock recording;
+  - fix: increase `qty` on the existing product line.
+
+External purchase package behavior:
+- External package split accepts simple `external_purchase_lines[0][total_rupiah]`.
+- Service residual is computed as:
+
+    service_price_rupiah = package_total_rupiah - external_total_rupiah
+
+- Persisted external purchase line uses:
+  - default label: `Pembelian luar` when label is blank;
+  - `qty = 1`;
+  - `unit_cost_rupiah = total_rupiah`;
+  - `line_total_rupiah = total_rupiah`.
+- Audit payload records external package allocation metadata.
+
+Report impact:
+- Transaction summary report reads `notes.total_rupiah`, so package totals are visible without report patching.
+- Operational profit reads:
+  - external purchase cost from `work_item_external_purchase_lines.line_total_rupiah`;
+  - store-stock COGS from `inventory_movements` with `source_type = work_item_store_stock_line`.
+- Report patch was not indicated.
+- Focused report characterization proves create output is visible to transaction and profit reports.
+
+#### Files touched
+
+Production/request:
+- `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceRules.php`
+- `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceProductLineNormalizer.php`
+- `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceProductLineListNormalizer.php`
+- `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceProductLineShape.php`
+- `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceProductLineValueNormalizer.php`
+- `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceExternalPurchaseLineNormalizer.php`
+- `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceServicePriceValidator.php`
+
+Production/application:
+- `app/Application/Note/Services/CreateTransactionWorkspaceProductLineCollection.php`
+- `app/Application/Note/Services/CreateTransactionWorkspaceServiceStoreStockPackageProductLinesComposer.php`
+- `app/Application/Note/Services/CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer.php`
+- `app/Application/Note/Services/CreateTransactionWorkspaceStoreStockLineMapper.php`
+- `app/Application/Note/Services/CreateTransactionWorkspaceWorkItemPayloadMapper.php`
+- `app/Application/Note/Services/CreateTransactionWorkspaceWorkItemPersister.php`
+- `app/Application/Note/Services/CreateTransactionWorkspacePackageAllocationAuditMapper.php`
+- `app/Application/Note/Services/CreateTransactionWorkspaceDuplicateProductLineGuard.php`
+- `app/Application/Note/Services/CreateTransactionWorkspaceServiceExternalPurchasePackagePricingComposer.php`
+- `app/Application/Note/Services/CreateTransactionWorkspacePersistResult.php`
+
+Tests:
+- `tests/Feature/Note/CreateTransactionWorkspaceServiceStoreStockFeatureTest.php`
+- `tests/Feature/Note/CreateTransactionWorkspaceServiceExternalPurchaseFeatureTest.php`
+- `tests/Feature/Reporting/PackageAutoSplitCreateReportImpactFeatureTest.php`
+
+#### RED proof captured during the slice
+
+Store-stock multi-product package RED:
+- Expected service price: `120000`
+- Actual service price before patch: `150000`
+- Cause: only first store-stock product line was used in package split.
+
+Duplicate product RED:
+- Expected redirect: `/cashier/notes/workspace/create`
+- Actual redirect before patch: `/cashier/notes`
+- Cause: duplicate product was accepted and transaction was created.
+
+External purchase package RED:
+- Expected redirect: `/cashier/notes`
+- Actual redirect before patch: `/`
+- Validation error:
+  - `Harga servis wajib lebih dari 0 kecuali package service + sparepart.`
+- Cause: zero service price was only allowed for package service + store-stock, not package service + external purchase.
+
+#### GREEN proof
+
+Focused store-stock package proof:
+- multi-product package test passed;
+- duplicate product rejection test passed;
+- focused note adjacency suite passed.
+
+Focused external purchase package proof:
+- targeted external package test passed:
+  - `Tests: 1 passed (11 assertions)`
+
+Focused report impact proof:
+- `tests/Feature/Reporting/PackageAutoSplitCreateReportImpactFeatureTest.php`
+- Result:
+  - `Tests: 1 passed (20 assertions)`
+
+Final full verification:
+- Command:
+  - `make verify`
+- Final proof:
+  - `Tests: 2 skipped, 1116 passed (6262 assertions)`
+  - `Duration: 55.01s`
+
+Because `make verify` reaches the final Pest summary only after earlier verification gates pass, this also confirms:
+- PHPStan passed;
+- audit-lines passed;
+- Blade PHP/directive audit passed;
+- contract audit passed;
+- full Pest suite passed.
+
+#### Residual gaps
+
+Still not done:
+- browser/manual QA;
+- PDF/XLSX visual/manual review;
+- edit/revision implementation;
+- edit/refund/revision report/export lifecycle proof beyond existing prior closure;
+- broader audit lifecycle redesign;
+- API/Go/PostgreSQL scope.
+
+#### Next recommended active step
+
+Recommended next step:
+- Phase 2-12 - decide whether to continue with browser/manual QA, handoff cleanup, or open the next lifecycle slice.
+
+Do not start edit/revision implementation unless a new blueprint step is selected and scoped.
+Do not patch report/export unless a failing characterization proves a report/export gap.
+Do not use report code to repair domain state.
+
