@@ -934,3 +934,97 @@ Do not start edit/revision implementation unless a new blueprint step is selecte
 Do not patch report/export unless a failing characterization proves a report/export gap.
 Do not use report code to repair domain state.
 
+
+### Phase 2-12 - Milestone closure and Milestone 3 opening
+
+Status: BLUEPRINT / HANDOFF UPDATE PENDING LOCAL VERIFICATION
+
+#### Closure decision
+
+Phase 2 is closed for create-side transaction workspace maturity.
+
+Closed scope:
+- service-only create maturity from earlier Phase 1 closure remains intact;
+- active edit/revision characterization foundation remains proven by prior Phase 2 slices;
+- report/export proof after active revision refund was previously closed;
+- closed paid edit settlement preview and payment-after-revision delta HTTP proof were closed;
+- create package auto split maturity is closed through Phase 2-11.
+
+Latest create-side closure proof:
+- `make verify`
+- `Tests: 2 skipped, 1116 passed (6262 assertions)`
+- `Duration: 55.01s`
+
+Phase 2-11 closed:
+- service + store-stock `package_auto_split` with multiple different `product_lines` in one service row;
+- duplicate `product_id` rejection inside one service row;
+- service + external purchase `package_auto_split`;
+- package allocation audit for store-stock and external purchase allocations;
+- report impact characterization for transaction summary and operational profit reports.
+
+#### Residual gaps promoted out of Phase 2
+
+The following gaps are not blockers for create-side Phase 2 closure and are promoted/deferred:
+
+- browser/manual QA;
+- PDF/XLSX visual/manual review;
+- edit/revision package auto split implementation;
+- edit/refund/revision report/export lifecycle proof beyond existing prior closure;
+- broader audit lifecycle redesign;
+- API/Go/PostgreSQL scope.
+
+#### Milestone 3 opening blueprint
+
+Milestone 3 target:
+
+Edit/revision package auto split readiness.
+
+Milestone 3 starts as blueprint-only.
+
+Primary goal:
+- source-map how the proven create package auto split semantics should survive active edit/revision replacement.
+
+Initial scope-in:
+- inspect active revision request, mapper, replacement, settlement, and audit paths;
+- determine whether package metadata is currently preserved, flattened, or lost during revision;
+- define expected revision behavior for:
+  - `pricing_mode`;
+  - `package_total_rupiah`;
+  - `parts_total_rupiah`;
+  - `service_price_rupiah`;
+  - store-stock parts breakdown;
+  - external purchase total;
+  - package allocation audit metadata;
+- add characterization tests only after the blueprint identifies the active path and expected behavior.
+
+Initial scope-out:
+- no production edit/revision patch before RED proof;
+- no payment lifecycle redesign;
+- no report/export patch unless a failing characterization proves a report/export gap;
+- no API/Go/PostgreSQL work;
+- no browser/manual QA closure without a real browser runner;
+- no broader audit redesign in the first Milestone 3 slice.
+
+Binding rules:
+- create semantics are the source behavior to preserve;
+- edit/revision must not flatten package auto split into manual split without an explicit decision;
+- package recalculation must be auditable;
+- settlement/payment/refund projections must continue to use persisted component rows;
+- stop on first RED and source-map before patching.
+
+#### Next recommended active step
+
+Milestone 3-01 - Blueprint active edit/revision package auto split path.
+
+Goal:
+- inspect the active revision path and identify exactly where package pricing metadata should enter, persist, and be audited.
+
+Suggested source files to inspect first:
+- `app/Adapters/In/Http/Requests/Note/StoreNoteRevisionRequest.php`
+- `app/Adapters/In/Http/Controllers/Note/StoreNoteRevisionController.php`
+- `app/Application/Note/UseCases/CreateNoteRevisionHandler.php`
+- `app/Application/Note/Services/ApplyNoteRevisionAsActiveReplacement.php`
+- create-side package auto split services from Phase 2-11.
+
+Do not implement Milestone 3 until the blueprint is written and locally verified.
+
