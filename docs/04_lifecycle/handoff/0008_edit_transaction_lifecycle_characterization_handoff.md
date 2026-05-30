@@ -1028,3 +1028,102 @@ Suggested source files to inspect first:
 
 Do not implement Milestone 3 until the blueprint is written and locally verified.
 
+
+### Milestone 3-01 through 3-08 - Payment concurrency characterization and remediation
+
+#### FACT
+- Milestone 3 started from `docs/04_lifecycle/error_log/2026-05-28_full_repo_audit/0006_payment_concurrency_characterization_gap.md`.
+- Initial status was `SUSPECTED / GAP`, not confirmed runtime bug.
+- Local audit anchors existed:
+  - `PAYMENT CONCURRENCY CHARACTERIZATION GAP`
+  - `SUGGESTED NEXT PROOF`
+  - `0006_payment_concurrency_characterization_gap`
+  - `TOP PRIORITY QUEUE`
+  - `SAFE NEXT STEPS`
+- Focused baseline before concurrency patch passed:
+  - `Tests: 18 passed (110 assertions)`
+  - `Duration: 6.96s`
+- Payment/payment concurrency characterization was added:
+  - `tests/Feature/Payment/PaymentConcurrencyCharacterizationFeatureTest.php`
+- Payment/payment same-note full payment collision passed:
+  - `Tests: 1 passed (10 assertions)`
+  - `Duration: 11.28s`
+- Payment/refund concurrency characterization was added:
+  - `tests/Feature/Payment/PaymentRefundConcurrencyCharacterizationFeatureTest.php`
+- Payment/refund collision produced RED runtime proof before patch:
+  - payment worker succeeded.
+  - refund worker failed with `Illuminate\Database\QueryException`.
+  - MySQL error: `SQLSTATE[HY000]: General error: 1020 Record has changed since last read in table 'notes'`.
+  - SQL shape: `select * from notes where id = note-payment-refund-concurrency-1 limit 1 for update`.
+- Patch added transient concurrency retry around payment/refund transaction boundaries.
+- Patch extracted retry logic to avoid line-limit audit failure:
+  - `app/Application/Payment/Services/PaymentConcurrencyTransientExceptionClassifier.php`
+  - `app/Application/Payment/Services/PaymentTransactionRetryRunner.php`
+- Existing payment/refund transaction classes were kept under the 100-line audit limit after extraction.
+- Targeted proof after patch passed:
+  - `Tests: 2 passed (23 assertions)`
+  - `Duration: 22.30s`
+- Full verification after patch passed:
+  - `Tests: 2 skipped, 1118 passed (6285 assertions)`
+  - `Duration: 71.16s`
+
+#### CHANGED FILES
+- `app/Application/Payment/Services/PaymentConcurrencyTransientExceptionClassifier.php`
+- `app/Application/Payment/Services/PaymentTransactionRetryRunner.php`
+- `app/Application/Payment/UseCases/RecordAndAllocateNotePaymentHandler.php`
+- `app/Application/Payment/Services/RecordCustomerRefundTransaction.php`
+- `tests/Feature/Payment/PaymentConcurrencyCharacterizationFeatureTest.php`
+- `tests/Feature/Payment/PaymentRefundConcurrencyCharacterizationFeatureTest.php`
+- `docs/04_lifecycle/handoff/0008_edit_transaction_lifecycle_characterization_handoff.md`
+- `docs/04_lifecycle/error_log/2026-05-28_full_repo_audit/0006_payment_concurrency_characterization_gap.md`
+
+#### DECISION
+- Payment/payment same-note collision is characterized GREEN.
+- Payment/refund same-note collision had confirmed runtime RED proof before patch.
+- The confirmed failure was raw transient database concurrency exception, not proven over-allocation or data corruption.
+- The smallest accepted remediation is transient retry around payment/refund transaction boundaries.
+- Retry is shared through `PaymentTransactionRetryRunner`.
+- Transient error classification is isolated in `PaymentConcurrencyTransientExceptionClassifier`.
+- No git operation was performed.
+
+#### PROOF
+- command:
+  - `php artisan test tests/Feature/Payment/PaymentConcurrencyCharacterizationFeatureTest.php`
+- result:
+  - `Tests: 1 passed (10 assertions)`
+  - `Duration: 11.28s`
+- meaning:
+  - Same-note payment/payment full outstanding collision does not over-allocate in local MySQL characterization.
+
+- command:
+  - `php artisan test tests/Feature/Payment/PaymentRefundConcurrencyCharacterizationFeatureTest.php`
+- result before patch:
+  - `Tests: 1 failed (6 assertions)`
+  - refund worker failed with `SQLSTATE[HY000]: General error: 1020 Record has changed since last read in table 'notes'`
+- meaning:
+  - Same-note payment/refund collision had confirmed runtime concurrency failure before remediation.
+
+- command:
+  - `php artisan test tests/Feature/Payment/PaymentConcurrencyCharacterizationFeatureTest.php tests/Feature/Payment/PaymentRefundConcurrencyCharacterizationFeatureTest.php`
+- result after patch:
+  - `Tests: 2 passed (23 assertions)`
+  - `Duration: 22.30s`
+- meaning:
+  - Payment/payment and payment/refund concurrency characterization both pass after transient retry remediation.
+
+- command:
+  - `make verify`
+- result:
+  - `Tests: 2 skipped, 1118 passed (6285 assertions)`
+  - `Duration: 71.16s`
+- meaning:
+  - Full local verification is GREEN after payment concurrency remediation.
+
+#### GAP
+- Idempotency collision under true concurrent create-workspace duplicate submit is not yet characterized.
+- PostgreSQL concurrency behavior is not proven by this MySQL proof.
+- This does not close unrelated full-repo audit items.
+
+#### NEXT
+- Close Phase 3 payment concurrency remediation documentation.
+- Next milestone after owner acceptance: choose next audit queue item from `9999_summary_matrix.md`.

@@ -105,3 +105,47 @@ php artisan test --filter=Note
 - Status akhir: `GAP`.
 - Alasan: kontrak payment dan boundary transaksi sudah terlihat, tetapi proof runtime untuk same-note concurrent payment characterization belum ada.
 - Dengan data yang ada sekarang, tidak sah menaikkan temuan ini menjadi confirmed runtime bug.
+
+## REMEDIATION UPDATE - 2026-05-29
+
+### FACT
+- This issue started as `SUSPECTED / GAP`, not a confirmed runtime bug.
+- Runtime characterization was added before production remediation.
+- Payment/payment same-note collision was characterized first and passed.
+- Payment/refund same-note collision produced confirmed runtime RED proof before patch.
+- The RED proof was not over-allocation.
+- The RED proof was a transient MySQL concurrency exception escaping the refund transaction boundary:
+  - `Illuminate\Database\QueryException`
+  - `SQLSTATE[HY000]: General error: 1020 Record has changed since last read in table 'notes'`
+  - failing SQL shape: `select * from notes where id = note-payment-refund-concurrency-1 limit 1 for update`
+- Remediation added a shared retry runner around payment/refund transaction boundaries.
+- Retry classification is isolated in `PaymentConcurrencyTransientExceptionClassifier`.
+- Retry execution is isolated in `PaymentTransactionRetryRunner`.
+
+### CHANGED FILES
+- `app/Application/Payment/Services/PaymentConcurrencyTransientExceptionClassifier.php`
+- `app/Application/Payment/Services/PaymentTransactionRetryRunner.php`
+- `app/Application/Payment/UseCases/RecordAndAllocateNotePaymentHandler.php`
+- `app/Application/Payment/Services/RecordCustomerRefundTransaction.php`
+- `tests/Feature/Payment/PaymentConcurrencyCharacterizationFeatureTest.php`
+- `tests/Feature/Payment/PaymentRefundConcurrencyCharacterizationFeatureTest.php`
+
+### PROOF
+- Payment/payment characterization:
+  - `Tests: 1 passed (10 assertions)`
+  - `Duration: 11.28s`
+- Payment/refund characterization before patch:
+  - RED with `SQLSTATE[HY000]: General error: 1020 Record has changed since last read in table 'notes'`
+- Targeted concurrency proof after patch:
+  - `Tests: 2 passed (23 assertions)`
+  - `Duration: 22.30s`
+- Full verification after patch:
+  - `Tests: 2 skipped, 1118 passed (6285 assertions)`
+  - `Duration: 71.16s`
+
+### FINAL STATUS
+- Status akhir: `FIXED WITH PROOF` for MySQL local payment/payment and payment/refund same-note concurrency characterization.
+- Remaining gap:
+  - true concurrent idempotency collision is not yet characterized.
+  - PostgreSQL behavior is not proven by this MySQL proof.
+  - unrelated full-repo audit issues remain outside this remediation.
