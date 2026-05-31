@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Database\Seeders\CreateOnly;
 
-use Illuminate\Database\Seeder;
+use Database\Seeders\CreateOnly\Support\CreateOnlySeeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
-final class CreateEmployeeDebtSeeder extends Seeder
+final class CreateEmployeeDebtSeeder extends CreateOnlySeeder
 {
     private const TARGET_TABLE = 'employee_debts';
 
@@ -62,8 +61,7 @@ final class CreateEmployeeDebtSeeder extends Seeder
 
     public function run(): void
     {
-        $this->guardEnvironment();
-        $this->guardSchema();
+        $this->assertLocalOrTesting();
 
         $employeeIds = $this->employeeIds();
 
@@ -76,15 +74,7 @@ final class CreateEmployeeDebtSeeder extends Seeder
                 throw new RuntimeException('Not enough employees to seed employee debts.');
             }
 
-            $exists = DB::table(self::TARGET_TABLE)
-                ->where('id', $scenario['id'])
-                ->exists();
-
-            if ($exists) {
-                continue;
-            }
-
-            DB::table(self::TARGET_TABLE)->insert($this->filterExistingColumns(self::TARGET_TABLE, [
+            if ($this->createOnly(self::TARGET_TABLE, 'id', $scenario['id'], [
                 'id' => $scenario['id'],
                 'employee_id' => $employeeId,
                 'total_debt' => $scenario['total_debt'],
@@ -93,9 +83,9 @@ final class CreateEmployeeDebtSeeder extends Seeder
                 'notes' => $scenario['notes'],
                 'created_at' => $scenario['created_at'],
                 'updated_at' => $scenario['created_at'],
-            ]));
-
-            $created++;
+            ])) {
+                $created++;
+            }
         }
 
         $this->command?->info(sprintf(
@@ -103,46 +93,6 @@ final class CreateEmployeeDebtSeeder extends Seeder
             count(self::DEBT_SCENARIOS),
             $created
         ));
-    }
-
-    private function guardEnvironment(): void
-    {
-        if (! app()->environment(['local', 'testing'])) {
-            throw new RuntimeException('CreateEmployeeDebtSeeder may only run in local/testing environment.');
-        }
-    }
-
-    private function guardSchema(): void
-    {
-        foreach ([self::TARGET_TABLE, 'employees'] as $table) {
-            if (! Schema::hasTable($table)) {
-                throw new RuntimeException(sprintf('Required table missing: %s.', $table));
-            }
-        }
-
-        $requiredColumns = [
-            self::TARGET_TABLE => [
-                'id',
-                'employee_id',
-                'total_debt',
-                'remaining_balance',
-                'status',
-                'notes',
-                'created_at',
-                'updated_at',
-            ],
-            'employees' => [
-                'id',
-            ],
-        ];
-
-        foreach ($requiredColumns as $table => $columns) {
-            foreach ($columns as $column) {
-                if (! Schema::hasColumn($table, $column)) {
-                    throw new RuntimeException(sprintf('Required column missing: %s.%s.', $table, $column));
-                }
-            }
-        }
     }
 
     /**
@@ -157,16 +107,5 @@ final class CreateEmployeeDebtSeeder extends Seeder
             ->map(static fn (mixed $id): string => (string) $id)
             ->values()
             ->all();
-    }
-
-    /**
-     * @param array<string, mixed> $record
-     * @return array<string, mixed>
-     */
-    private function filterExistingColumns(string $table, array $record): array
-    {
-        $columns = array_flip(Schema::getColumnListing($table));
-
-        return array_intersect_key($record, $columns);
     }
 }
