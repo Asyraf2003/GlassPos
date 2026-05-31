@@ -300,3 +300,79 @@ Product display name in package breakdown is still read from current products ta
 Full make verify has not been run after this formatter patch.
 Browser/manual UI proof after formatter patch is not recorded.
 Reporting/export impact from global ViewDateFormatter change has not been fully regressed.
+
+### Historical product display name snapshot proof
+
+Status: DONE for service store-stock package breakdown product display name snapshot.
+
+Implemented proof:
+- Revision line payload now writes `product_name_snapshot` for store-stock product lines when the product can be resolved.
+- Package breakdown display now prefers historical snapshot names before current catalog fallback.
+- Fallback order:
+  - `product_name_snapshot`
+  - `product_nama_barang_snapshot`
+  - current `products.nama_barang`
+  - `product_id`
+- Legacy payload without snapshot remains supported through current catalog fallback.
+- Existing detail package visibility regression remains green.
+- Create workspace package autosplit integration remains green.
+- Revision payload builder trusted snapshot regression remains green.
+
+Files changed:
+- `app/Application/Note/Services/NoteRevisionLinePayloadMapper.php`
+- `app/Application/Note/Services/CurrentRevision/CurrentRevisionPackageBreakdownMapper.php`
+- `tests/Unit/Application/Note/Services/NoteRevisionLinePayloadMapperTest.php`
+- `tests/Feature/Note/CurrentRevisionPackageBreakdownMapperFeatureTest.php`
+
+Proof commands:
+
+```bash
+php -l app/Application/Note/Services/NoteRevisionLinePayloadMapper.php
+php -l app/Application/Note/Services/CurrentRevision/CurrentRevisionPackageBreakdownMapper.php
+php -l tests/Unit/Application/Note/Services/NoteRevisionLinePayloadMapperTest.php
+php -l tests/Feature/Note/CurrentRevisionPackageBreakdownMapperFeatureTest.php
+
+php artisan test \
+  tests/Unit/Application/Note/Services/NoteRevisionLinePayloadMapperTest.php \
+  tests/Feature/Note/CurrentRevisionPackageBreakdownMapperFeatureTest.php
+
+php artisan test tests/Feature/Note/NoteDetailOperationalPackageVisibilityFeatureTest.php
+
+php artisan test tests/Feature/Note/CreateTransactionWorkspaceServiceStoreStockFeatureTest.php --filter=package
+
+php artisan test tests/Unit/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilderTest.php
+
+rg -n "product_name_snapshot|Nama Snapshot Lama|Filter Oli Lama|4 passed \(9 assertions\)|1 passed \(11 assertions\)" \
+  app/Application/Note/Services/NoteRevisionLinePayloadMapper.php \
+  app/Application/Note/Services/CurrentRevision/CurrentRevisionPackageBreakdownMapper.php \
+  tests/Unit/Application/Note/Services/NoteRevisionLinePayloadMapperTest.php \
+  tests/Feature/Note/CurrentRevisionPackageBreakdownMapperFeatureTest.php
+
+Proof output:
+
+Syntax:
+No syntax errors detected in all 4 changed PHP files.
+Focused snapshot tests:
+PASS Tests\Unit\Application\Note\Services\NoteRevisionLinePayloadMapperTest
+PASS Tests\Feature\Note\CurrentRevisionPackageBreakdownMapperFeatureTest
+Tests: 4 passed (9 assertions)
+Existing detail package regression:
+PASS Tests\Feature\Note\NoteDetailOperationalPackageVisibilityFeatureTest
+Tests: 1 passed (11 assertions)
+Create workspace package autosplit integration:
+PASS Tests\Feature\Note\CreateTransactionWorkspaceServiceStoreStockFeatureTest
+Tests: 6 passed (73 assertions)
+Revision payload builder integration:
+PASS Tests\Unit\Application\Note\UseCases\CreateNoteRevisionPayloadNoteBuilderTest
+Tests: 2 passed (4 assertions)
+Static grep:
+product_name_snapshot
+product_nama_barang_snapshot
+Nama Snapshot Lama
+Filter Oli Lama
+
+Remaining gaps after this proof:
+
+Full make verify has not been run after date formatter and product snapshot patches.
+Browser/manual UI proof after these patches is not recorded.
+Reporting/export impact from global ViewDateFormatter change has not been fully regressed.
