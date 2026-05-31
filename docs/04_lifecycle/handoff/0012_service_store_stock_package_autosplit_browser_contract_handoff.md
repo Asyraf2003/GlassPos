@@ -235,3 +235,68 @@ Proof output:
 Remaining gaps:
 - Product display name in package breakdown is read from current products table, not a historical product name snapshot in revision payload.
 - Date display still uses current ViewDateFormatter format d/m/Y; client-facing tgl bulan tahun display remains a separate UI formatting step.
+
+### Detail UI Indonesian date display proof
+
+Status: DONE for centralized client-facing date formatter.
+
+Implemented proof:
+- `ViewDateFormatter::display()` now renders Indonesian month-name date output.
+- Date-only display target:
+  - `01 Juni 2026`
+- Date-time display target:
+  - `01 Juni 2026 14:30`
+- Legacy slash date input is converted:
+  - `01/06/2026` -> `01 Juni 2026`
+  - `01/06/2026 14:30` -> `01 Juni 2026 14:30`
+- `ViewDateFormatter::range()` now inherits Indonesian month-name output.
+
+Files changed:
+- `app/Support/ViewDateFormatter.php`
+- `tests/Unit/Support/ViewDateFormatterTest.php`
+
+Proof commands:
+
+```bash
+php -l app/Support/ViewDateFormatter.php
+php -l tests/Unit/Support/ViewDateFormatterTest.php
+
+php artisan test tests/Unit/Support/ViewDateFormatterTest.php
+
+php artisan test \
+  tests/Feature/Note/NoteDetailOperationalPackageVisibilityFeatureTest.php \
+  tests/Feature/Note/CashierHybridNoteDetailFeatureTest.php \
+  tests/Feature/Note/NoteDetailEditEntryFeatureTest.php \
+  tests/Feature/Note/CashierDetailRenderedBillingRowsPaymentFeatureTest.php
+
+rg -n "INDONESIAN_MONTHS|01 Juni 2026|d/m/Y|ViewDateFormatterTest|formatIndonesian|parseSlashDate" \
+  app/Support/ViewDateFormatter.php \
+  tests/Unit/Support/ViewDateFormatterTest.php
+
+Proof output:
+
+Syntax:
+No syntax errors detected in app/Support/ViewDateFormatter.php
+No syntax errors detected in tests/Unit/Support/ViewDateFormatterTest.php
+Focused formatter unit test:
+PASS Tests\Unit\Support\ViewDateFormatterTest
+Tests: 7 passed (9 assertions)
+Focused detail/payment regression:
+PASS Tests\Feature\Note\NoteDetailOperationalPackageVisibilityFeatureTest
+PASS Tests\Feature\Note\CashierHybridNoteDetailFeatureTest
+PASS Tests\Feature\Note\NoteDetailEditEntryFeatureTest
+PASS Tests\Feature\Note\CashierDetailRenderedBillingRowsPaymentFeatureTest
+Tests: 7 passed (36 assertions)
+Static grep:
+INDONESIAN_MONTHS
+formatIndonesian
+parseSlashDate
+ViewDateFormatterTest
+01 Juni 2026
+
+Remaining gaps:
+
+Product display name in package breakdown is still read from current products table, not a historical product name snapshot in revision payload.
+Full make verify has not been run after this formatter patch.
+Browser/manual UI proof after formatter patch is not recorded.
+Reporting/export impact from global ViewDateFormatter change has not been fully regressed.
