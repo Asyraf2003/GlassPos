@@ -36,11 +36,14 @@
     const storeStockTotal = rowStoreStockTotal(row);
 
     if (type === "product") return { service: 0, product: storeStockTotal };
+
     if (type === "service_store_stock" && pricingMode === "package_auto_split" && packageTotal > 0) {
       return { service: Math.max(packageTotal - storeStockTotal, 0), product: storeStockTotal };
     }
+
     if (type === "service_store_stock") return { service, product: storeStockTotal };
     if (type === "service_external") return { service, product: externalQty * external };
+
     return { service, product: 0 };
   };
 
@@ -52,31 +55,35 @@
   };
 
   NS.syncQtyGuard = (row) => {
-    row.querySelectorAll("[data-product-line]").forEach((scope) => {
-      const input = scope.querySelector("[data-qty-input]");
-      const error = scope.querySelector("[data-stock-error]") || row.querySelector("[data-stock-error]");
-      if (!input || !error) return;
+    const scopes = row.querySelectorAll("[data-product-line]");
 
-      const available = digits(row.dataset.availableStock || "0");
-      const qty = digits(input.value);
-      const invalid = available > 0 && qty > available;
+    if (scopes.length) {
+      scopes.forEach((scope) => {
+        const input = scope.querySelector("[data-qty-input]");
+        const error = row.querySelector("[data-stock-error]");
+        if (!input || !error) return;
 
-      input.classList.toggle("is-invalid", invalid);
-      error.classList.toggle("d-none", !invalid);
-    });
+        const available = digits(row.dataset.availableStock || "0");
+        const qty = digits(input.value);
+        const invalid = available > 0 && qty > available;
 
-    if (!row.querySelector("[data-product-line]")) {
-      const input = row.querySelector("[data-qty-input]");
-      const error = row.querySelector("[data-stock-error]");
-      if (!input || !error) return;
+        input.classList.toggle("is-invalid", invalid);
+        error.classList.toggle("d-none", !invalid);
+      });
 
-      const available = digits(row.dataset.availableStock || "0");
-      const qty = digits(input.value);
-      const invalid = available > 0 && qty > available;
-
-      input.classList.toggle("is-invalid", invalid);
-      error.classList.toggle("d-none", !invalid);
+      return;
     }
+
+    const input = row.querySelector("[data-qty-input]");
+    const error = row.querySelector("[data-stock-error]");
+    if (!input || !error) return;
+
+    const available = digits(row.dataset.availableStock || "0");
+    const qty = digits(input.value);
+    const invalid = available > 0 && qty > available;
+
+    input.classList.toggle("is-invalid", invalid);
+    error.classList.toggle("d-none", !invalid);
   };
 
   NS.currentRows = () =>
