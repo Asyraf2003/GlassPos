@@ -191,15 +191,4 @@ final class CreatePayrollDisbursementSeeder extends CreateOnlySeeder
             throw new RuntimeException(sprintf('Existing payroll differs from seed contract: %s.', $id));
         }
     }
-
-    /**
-     * @param array<string, mixed> $record
-     * @return array<string, mixed>
-     */
-    private function filterExistingColumns(string $table, array $record): array
-    {
-        $columns = array_flip(Schema::getColumnListing($table));
-
-        return array_intersect_key($record, $columns);
-    }
 }
