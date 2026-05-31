@@ -172,6 +172,141 @@
     return 0;
   };
 
+  const clearWorkspaceValidationError = () => {
+    const alert = byId("workspace-client-validation-error");
+    if (alert) {
+      alert.remove();
+    }
+
+    document
+      .querySelectorAll("[data-workspace-client-invalid='1']")
+      .forEach((element) => {
+        element.classList.remove("is-invalid");
+        delete element.dataset.workspaceClientInvalid;
+      });
+  };
+
+  const showWorkspaceValidationError = (message, target = null) => {
+    const form = formEl();
+
+    if (!form) {
+      window.alert(message);
+      return;
+    }
+
+    let alert = byId("workspace-client-validation-error");
+
+    if (!alert) {
+      alert = document.createElement("div");
+      alert.id = "workspace-client-validation-error";
+      alert.className = "alert alert-danger";
+      alert.setAttribute("role", "alert");
+      form.prepend(alert);
+    }
+
+    alert.textContent = message;
+    alert.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    if (target instanceof HTMLElement) {
+      target.classList.add("is-invalid");
+      target.dataset.workspaceClientInvalid = "1";
+      focusElement(target);
+    }
+  };
+
+  const serviceStoreStockAutosplitIssue = (row) => {
+    const pricingMode = row.querySelector("[data-pricing-mode]")?.value || "";
+    const packageTotalInput = row.querySelector('input[name$="[package_total_rupiah]"]');
+    const packageTotal = digits(packageTotalInput?.value || "");
+
+    if (pricingMode !== "package_auto_split") {
+      return null;
+    }
+
+    if (packageTotal <= 0) {
+      return {
+        message: "Total paket wajib diisi sebelum proses nota.",
+        target: row.querySelector("[data-package-total-input]") || packageTotalInput,
+      };
+    }
+
+    const scopes = Array.from(row.querySelectorAll("[data-product-line]"));
+    const productScopes = scopes.length ? scopes : [row];
+    let sparepartTotal = 0;
+
+    for (const scope of productScopes) {
+      const productSearch = scope.querySelector("[data-product-search]");
+      const productId = scope.querySelector("[data-product-id]")?.value?.trim() || "";
+      const qtyInput = scope.querySelector("[data-qty-input]");
+      const unitPriceInput = scope.querySelector('input[name$="[unit_price_rupiah]"]');
+      const qty = digits(qtyInput?.value || "");
+      const unitPrice = digits(unitPriceInput?.value || "");
+
+      if (!productId) {
+        return {
+          message: "Sparepart toko wajib dipilih dari hasil pencarian, bukan diketik manual.",
+          target: productSearch,
+        };
+      }
+
+      if (qty <= 0) {
+        return {
+          message: "Qty sparepart toko wajib lebih dari 0.",
+          target: qtyInput,
+        };
+      }
+
+      if (unitPrice <= 0) {
+        return {
+          message: "Harga sparepart toko belum valid. Pilih ulang produk dari hasil pencarian.",
+          target: productSearch,
+        };
+      }
+
+      sparepartTotal += qty * unitPrice;
+    }
+
+    if (packageTotal < sparepartTotal) {
+      return {
+        message: "Total paket tidak boleh lebih kecil dari total harga sparepart.",
+        target: row.querySelector("[data-package-total-input]") || packageTotalInput,
+      };
+    }
+
+    return null;
+  };
+
+  const firstWorkspaceValidationIssue = () => {
+    for (const row of document.querySelectorAll("[data-line-item]")) {
+      if (!(row instanceof HTMLElement)) {
+        continue;
+      }
+
+      if ((row.dataset.itemType || "") !== "service_store_stock") {
+        continue;
+      }
+
+      const issue = serviceStoreStockAutosplitIssue(row);
+      if (issue) {
+        return issue;
+      }
+    }
+
+    return null;
+  };
+
+  const ensureWorkspaceReadyForPayment = () => {
+    const issue = firstWorkspaceValidationIssue();
+
+    if (!issue) {
+      clearWorkspaceValidationError();
+      return true;
+    }
+
+    showWorkspaceValidationError(issue.message, issue.target);
+    return false;
+  };
+
   const lineSummaryLabel = (item) => {
     const row = item?.row;
     if (!(row instanceof HTMLElement)) {
@@ -585,6 +720,10 @@
 
   document.addEventListener("click", (event) => {
     if (event.target.closest("#workspace-open-payment-dialog")) {
+      if (!ensureWorkspaceReadyForPayment()) {
+        return;
+      }
+
       openPaymentModal();
       return;
     }
@@ -622,6 +761,10 @@
   });
 
   document.addEventListener("input", (event) => {
+    if (event.target.closest?.("[data-line-item]")) {
+      clearWorkspaceValidationError();
+    }
+
     if (event.target.id === "inline_payment_amount_paid_display") {
       const input = partialAmountInput();
       if (input) input.dataset.partialDefault = "";
@@ -706,7 +849,27 @@
     }
   });
 
+  const bindWorkspaceSubmitGuard = () => {
+    const form = formEl();
+
+    if (!form || form.dataset.workspaceSubmitGuardBound === "1") {
+      return;
+    }
+
+    form.dataset.workspaceSubmitGuardBound = "1";
+
+    form.addEventListener("submit", (event) => {
+      if (ensureWorkspaceReadyForPayment()) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+    });
+  };
+
   bindPaymentModalLifecycle();
+  bindWorkspaceSubmitGuard();
   hydrateStateFromHidden();
   NS.refreshPaymentUi();
 
