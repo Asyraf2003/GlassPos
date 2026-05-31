@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Database\Seeders\CreateOnly;
 
-use Illuminate\Database\Seeder;
+use Database\Seeders\CreateOnly\Support\CreateOnlySeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
-final class CreateAuditBaselineSeeder extends Seeder
+final class CreateAuditBaselineSeeder extends CreateOnlySeeder
 {
     private const CORRELATION_ID = 'seed-create-only-audit-baseline-v1';
     private const REASON = 'Create-only seed audit baseline';
 
     public function run(): void
     {
-        $this->assertLocalOrTesting();
+        parent::assertLocalOrTesting();
 
         $this->assertTableExists('audit_events');
         $this->assertTableExists('audit_event_snapshots');
@@ -31,13 +31,6 @@ final class CreateAuditBaselineSeeder extends Seeder
         });
 
         $this->command?->info('Create-only audit baseline seeded.');
-    }
-
-    private function assertLocalOrTesting(): void
-    {
-        if (! app()->environment(['local', 'testing'])) {
-            throw new RuntimeException(static::class.' is only allowed in local/testing environments.');
-        }
     }
 
     private function assertTableExists(string $table): void
@@ -134,7 +127,7 @@ final class CreateAuditBaselineSeeder extends Seeder
         $snapshotId = $this->snapshotId($auditEventId, 'after');
 
         if (! DB::table('audit_events')->where('id', $auditEventId)->exists()) {
-            DB::table('audit_events')->insert([
+            $this->createOnly('audit_events', 'id', $auditEventId, [
                 'id' => $auditEventId,
                 'bounded_context' => $boundedContext,
                 'aggregate_type' => $aggregateType,
@@ -160,7 +153,7 @@ final class CreateAuditBaselineSeeder extends Seeder
             ->where('audit_event_id', $auditEventId)
             ->where('snapshot_kind', 'after')
             ->exists()) {
-            DB::table('audit_event_snapshots')->insert([
+            $this->createOnly('audit_event_snapshots', 'id', $snapshotId, [
                 'id' => $snapshotId,
                 'audit_event_id' => $auditEventId,
                 'snapshot_kind' => 'after',
@@ -199,7 +192,7 @@ final class CreateAuditBaselineSeeder extends Seeder
 
                     $changedAt = $this->occurredAt($payload);
 
-                    DB::table('employee_versions')->insert([
+                    $this->createOnly('employee_versions', 'id', $this->versionId('employee', $employeeId, 1), [
                         'id' => $this->versionId('employee', $employeeId, 1),
                         'employee_id' => $employeeId,
                         'revision_no' => 1,
@@ -252,7 +245,7 @@ final class CreateAuditBaselineSeeder extends Seeder
 
                     $changedAt = $this->occurredAt($invoice);
 
-                    DB::table('supplier_invoice_versions')->insert([
+                    $this->createOnly('supplier_invoice_versions', 'id', $this->versionId('supplier-invoice', $invoiceId, $revisionNo), [
                         'id' => $this->versionId('supplier-invoice', $invoiceId, $revisionNo),
                         'supplier_invoice_id' => $invoiceId,
                         'revision_no' => $revisionNo,
