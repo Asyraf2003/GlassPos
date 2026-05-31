@@ -3,6 +3,7 @@
 
   const replaceIndex = (html, index) => html.replaceAll("__INDEX__", String(index));
   const titleByType = (type, number) => `Rincian ${number} · ${NS.labelByType(type)}`;
+  const digits = (value) => Number.parseInt(String(value || "").replace(/\D+/g, "") || "0", 10);
 
   const focusElement = (element, select = true) => {
     if (!(element instanceof HTMLElement)) return;
@@ -40,12 +41,13 @@
       return (
         row.querySelector("[data-product-search]") ||
         row.querySelector("[data-qty-input]") ||
-        row.querySelector("textarea")
+        row.querySelector("[data-price-input]")
       );
     }
 
     return (
       row.querySelector('input[name$="[service][name]"]') ||
+      row.querySelector("[data-package-total-input]") ||
       row.querySelector("[data-product-search]") ||
       row.querySelector('input[name$="[external_purchase_lines][0][label]"]') ||
       row.querySelector("textarea")
@@ -61,20 +63,16 @@
         row.querySelector("[data-product-search]"),
         row.querySelector("[data-qty-input]"),
         row.querySelector("[data-price-input]"),
-        row.querySelector('textarea[name$="[description]"]'),
       ].filter(Boolean);
     }
 
     if (type === "service_store_stock") {
       return [
         row.querySelector('input[name$="[service][name]"]'),
-        row.querySelector("[data-pricing-mode]"),
-        moneyInputs[0],
         row.querySelector("[data-package-total-input]"),
         row.querySelector("[data-product-search]"),
         row.querySelector("[data-qty-input]"),
         row.querySelector("[data-price-input]"),
-        row.querySelector('textarea[name$="[service][notes]"]'),
       ].filter(Boolean);
     }
 
@@ -133,6 +131,34 @@
     });
   };
 
+  NS.bindQtyControls = (row) => {
+    if (!(row instanceof HTMLElement)) return;
+    if (row.dataset.qtyControlsBound === "1") return;
+
+    row.dataset.qtyControlsBound = "1";
+
+    row.querySelectorAll("[data-qty-increment], [data-qty-decrement]").forEach((button) => {
+      if (!(button instanceof HTMLElement)) return;
+
+      button.addEventListener("click", () => {
+        const input = button
+          .closest(".workspace-qty-control")
+          ?.querySelector("[data-qty-input]");
+
+        if (!(input instanceof HTMLInputElement)) return;
+
+        const current = Math.max(digits(input.value), 1);
+        const next = button.hasAttribute("data-qty-decrement")
+          ? Math.max(current - 1, 1)
+          : current + 1;
+
+        input.value = String(next);
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        NS.updateSummary?.();
+      });
+    });
+  };
+
   NS.addRow = (type, initial = {}) => {
     const root = document.getElementById("workspace-line-items");
     const template = document.getElementById(`workspace-template-${type}`);
@@ -158,6 +184,7 @@
     NS.applyInitialValues(row, type, initial);
     window.AdminMoneyInput?.bindBySelector?.(row);
     NS.bindProductSearch?.(row);
+    NS.bindQtyControls?.(row);
     NS.bindRowKeyboard?.(row);
     NS.renumberRows();
     NS.updateSummary?.();
@@ -180,19 +207,21 @@
       if (el && value !== undefined && value !== null) el.value = String(value);
     };
 
+    set('input[name$="[description]"]', item?.description || "");
     set('textarea[name$="[description]"]', item?.description || "");
     set("[data-pay-now]", item?.pay_now || "0");
     set('input[name$="[service][name]"]', item?.service?.name || "");
+    set('input[name$="[service][notes]"]', item?.service?.notes || "");
     set('textarea[name$="[service][notes]"]', item?.service?.notes || "");
     set("[data-product-search]", item?.selected_label || "");
-    set("[data-pricing-mode]", item?.pricing_mode || "manual_split");
+    set("[data-pricing-mode]", item?.pricing_mode || "package_auto_split");
     set('input[name$="[package_total_rupiah]"]', item?.package_total_rupiah || "");
     set("[data-product-id]", item?.product_lines?.[0]?.product_id || "");
     set("[data-price-basis]", item?.product_lines?.[0]?.price_basis || "current_catalog");
     set('input[name$="[external_purchase_lines][0][label]"]', item?.external_purchase_lines?.[0]?.label || "");
     set('input[name$="[external_purchase_lines][0][qty]"]', item?.external_purchase_lines?.[0]?.qty || "1");
     set('input[name$="[product_lines][0][qty]"]', item?.product_lines?.[0]?.qty || "1");
-    set('input[name$="[service][price_rupiah]"]', item?.service?.price_rupiah || "");
+    set('input[name$="[service][price_rupiah]"]', item?.service?.price_rupiah ?? "0");
     set('input[name$="[product_lines][0][unit_price_rupiah]"]', item?.product_lines?.[0]?.unit_price_rupiah || "");
     set('input[name$="[external_purchase_lines][0][unit_cost_rupiah]"]', item?.external_purchase_lines?.[0]?.unit_cost_rupiah || "");
 
