@@ -208,4 +208,8 @@
     disable,
     isSupported: ensureSupported,
   };
+
+  cleanupLegacyServiceWorkers().catch(() => {
+    // Legacy service worker cleanup is best-effort.
+  });
 })();
