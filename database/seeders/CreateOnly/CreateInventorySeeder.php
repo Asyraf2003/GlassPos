@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace Database\Seeders\CreateOnly;
 
-use Illuminate\Database\Seeder;
+use Database\Seeders\CreateOnly\Support\CreateOnlySeeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-use RuntimeException;
 
-final class CreateInventorySeeder extends Seeder
+final class CreateInventorySeeder extends CreateOnlySeeder
 {
     public function run(): void
     {
@@ -57,31 +55,6 @@ final class CreateInventorySeeder extends Seeder
                 'inventory_value_rupiah' => $totalCost,
             ]);
         }
-    }
-
-    private function assertLocalOrTesting(): void
-    {
-        if (! app()->environment(['local', 'testing'])) {
-            throw new RuntimeException(self::class . ' is only allowed in local/testing environments.');
-        }
-    }
-
-    private function createOnly(string $table, string $key, mixed $value, array $row): bool
-    {
-        if (DB::table($table)->where($key, '=', $value)->exists()) {
-            return false;
-        }
-
-        DB::table($table)->insert($this->filterExistingColumns($table, $row));
-
-        return true;
-    }
-
-    private function filterExistingColumns(string $table, array $row): array
-    {
-        $columns = array_flip(Schema::getColumnListing($table));
-
-        return array_intersect_key($row, $columns);
     }
 
     private function estimateUnitCost(int $hargaJual): int
