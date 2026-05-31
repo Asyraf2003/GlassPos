@@ -15,7 +15,7 @@
         <input type="hidden" name="items[__INDEX__][service][price_rupiah]" value="0" data-money-raw>
         <input type="hidden" name="items[__INDEX__][service][notes]" value="">
 
-        <div class="row g-2 align-items-start">
+        <div class="row g-2 align-items-start" data-product-line>
             <div class="col-12 col-lg-4">
                 <label class="form-label small mb-1">Nama Servis</label>
                 <input
@@ -43,7 +43,7 @@
                 </div>
             </div>
 
-            <div class="col-12 col-lg-4" data-product-line>
+            <div class="col-12 col-lg-4">
                 <label class="form-label small mb-1">Sparepart Toko</label>
                 <div class="position-relative">
                     <input type="hidden" name="items[__INDEX__][product_lines][0][product_id]" value="" data-product-id>
