@@ -21,7 +21,7 @@
 
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('assets/extensions/apexcharts/apexcharts.css') }}?v={{ filemtime(public_path('assets/extensions/apexcharts/apexcharts.css')) }}">
+    <link rel="stylesheet" href="{{ asset('assets/extensions/apexcharts/apexcharts.css') }}?v={{ config('app.asset_version') }}">
     <style>
         .dashboard-heading-filter-icon {
             display: none;
@@ -1321,6 +1321,6 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('assets/extensions/apexcharts/apexcharts.min.js') }}?v={{ filemtime(public_path('assets/extensions/apexcharts/apexcharts.min.js')) }}"></script>
-    <script src="{{ asset('assets/static/js/admin/dashboard-analytics.js') }}?v={{ filemtime(public_path('assets/static/js/admin/dashboard-analytics.js')) }}"></script>
+    <script src="{{ asset('assets/extensions/apexcharts/apexcharts.min.js') }}?v={{ config('app.asset_version') }}"></script>
+    <script src="{{ asset('assets/static/js/admin/dashboard-analytics.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

@@ -173,5 +173,5 @@
             deleteBaseUrl: @json(route('admin.products.delete', ['productId' => '__ID__'])),
         };
     </script>
-    <script src="{{ asset('assets/static/js/pages/admin-products-table.js') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-products-table.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

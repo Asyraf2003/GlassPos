@@ -181,8 +181,8 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}"></script>
-    <script src="{{ asset('assets/static/js/pages/admin-expense-create/category-search.js') }}"></script>
-    <script src="{{ asset('assets/static/js/pages/admin-expense-create/flow.js') }}"></script>
-    <script src="{{ asset('assets/static/js/pages/admin-expense-create/boot.js') }}"></script>
+    <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}?v={{ config('app.asset_version') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-expense-create/category-search.js') }}?v={{ config('app.asset_version') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-expense-create/flow.js') }}?v={{ config('app.asset_version') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-expense-create/boot.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

@@ -174,5 +174,5 @@
             employeeDetailUrl: @json(route('admin.employees.show', ['employeeId' => $detail['summary']['id']]))
         };
     </script>
-    <script src="{{ asset('assets/static/js/pages/admin-employee-payroll-history.js') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-employee-payroll-history.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

@@ -230,7 +230,7 @@
             paymentStoreBaseUrl: @json(route('admin.employee-debts.payments.store', ['debtId' => '__ID__']))
         };
     </script>
-    <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}"></script>
-    <script src="{{ asset('assets/static/js/pages/admin-employee-debts-table.js') }}"></script>
-    <script src="{{ asset('assets/static/js/pages/admin-employee-debt-table-actions.js') }}"></script>
+    <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}?v={{ config('app.asset_version') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-employee-debts-table.js') }}?v={{ config('app.asset_version') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-employee-debt-table-actions.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

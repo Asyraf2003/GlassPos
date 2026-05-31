@@ -172,5 +172,5 @@
             reverseStoreBaseUrl: @json(route('admin.payrolls.reverse.store', ['payrollId' => '__ID__']))
         };
     </script>
-    <script src="{{ asset('assets/static/js/pages/admin-payrolls-table.js') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-payrolls-table.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

@@ -611,5 +611,5 @@
     </div>
 </section>
 
-<script src="{{ asset('assets/static/js/pages/cashier-dashboard.js') }}"></script>
+<script src="{{ asset('assets/static/js/pages/cashier-dashboard.js') }}?v={{ config('app.asset_version') }}"></script>
 @endsection

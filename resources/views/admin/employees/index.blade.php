@@ -155,6 +155,6 @@
             createDebtUrl: @json(route('admin.employee-debts.create'))
         };
     </script>
-    <script src="{{ asset('assets/static/js/pages/admin-employees-table.js') }}"></script>
-    <script src="{{ asset('assets/static/js/pages/admin-employee-table-actions.js') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-employees-table.js') }}?v={{ config('app.asset_version') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-employee-table-actions.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

@@ -136,5 +136,5 @@
             csrfToken: @json(csrf_token())
         };
     </script>
-    <script src="{{ asset('assets/static/js/pages/admin-expenses-table.js') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-expenses-table.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

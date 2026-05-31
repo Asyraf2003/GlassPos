@@ -379,7 +379,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}"></script>
+    <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}?v={{ config('app.asset_version') }}"></script>
     <script>
         window.procurementCreateConfig = {
             lookupEndpoint: @json(route('admin.procurement.products.lookup')),
@@ -390,5 +390,5 @@
             )
         };
     </script>
-    <script src="{{ asset('assets/static/js/pages/admin-procurement-edit.js') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-procurement-edit.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

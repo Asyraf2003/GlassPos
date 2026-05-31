@@ -157,12 +157,12 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}"></script>
+    <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}?v={{ config('app.asset_version') }}"></script>
     <script>
         window.payrollCreateConfig = {
             employees: @json($employees),
         };
         window.AdminMoneyInput?.bindBySelector(document);
     </script>
-    <script src="{{ asset('assets/static/js/pages/admin-payroll-create.js') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-payroll-create.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

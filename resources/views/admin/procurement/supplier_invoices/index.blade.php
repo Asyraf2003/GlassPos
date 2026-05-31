@@ -344,7 +344,7 @@
         </script>
     @endif
 
-    <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}"></script>
+    <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}?v={{ config('app.asset_version') }}"></script>
     <script>
         window.procurementInvoiceTableConfig = {
             endpoint: @json(route('admin.procurement.supplier-invoices.table')),
@@ -357,5 +357,5 @@
             oldVoidReason: @json(old('void_reason'))
         };
     </script>
-    <script src="{{ asset('assets/static/js/pages/admin-procurement-invoices-table.js') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-procurement-invoices-table.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

@@ -158,5 +158,5 @@
             updateErrorMessage: @json($errors->first('nama_pt_pengirim') ?: $errors->first('supplier'))
         };
     </script>
-    <script src="{{ asset('assets/static/js/pages/admin-suppliers-table.js') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-suppliers-table.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

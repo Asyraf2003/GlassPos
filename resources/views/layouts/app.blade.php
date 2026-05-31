@@ -9,15 +9,15 @@
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
 
     <link rel="shortcut icon" href="{{ asset('assets/compiled/svg/favicon.svg') }}" type="image/x-icon">
-    <link rel="stylesheet" href="{{ asset('assets/compiled/css/app.css') }}?v={{ filemtime(public_path('assets/compiled/css/app.css')) }}">
-    <link rel="stylesheet" href="{{ asset('assets/compiled/css/app-dark.css') }}?v={{ filemtime(public_path('assets/compiled/css/app-dark.css')) }}">
-    <link rel="stylesheet" href="{{ asset('assets/compiled/css/iconly.css') }}?v={{ filemtime(public_path('assets/compiled/css/iconly.css')) }}">
-    <link rel="stylesheet" href="{{ asset('assets/static/css/ui-foundation.css') }}?v={{ filemtime(public_path('assets/static/css/ui-foundation.css')) }}">
+    <link rel="stylesheet" href="{{ asset('assets/compiled/css/app.css') }}?v={{ config('app.asset_version') }}">
+    <link rel="stylesheet" href="{{ asset('assets/compiled/css/app-dark.css') }}?v={{ config('app.asset_version') }}">
+    <link rel="stylesheet" href="{{ asset('assets/compiled/css/iconly.css') }}?v={{ config('app.asset_version') }}">
+    <link rel="stylesheet" href="{{ asset('assets/static/css/ui-foundation.css') }}?v={{ config('app.asset_version') }}">
     @stack('styles')
 </head>
 
 <body>
-    <script src="{{ asset('assets/static/js/initTheme.js') }}?v={{ filemtime(public_path('assets/static/js/initTheme.js')) }}"></script>
+    <script src="{{ asset('assets/static/js/initTheme.js') }}?v={{ config('app.asset_version') }}"></script>
 
     <div id="app">
         @if (request()->routeIs('admin.*'))
@@ -72,10 +72,10 @@
         </div>
     </div>
 
-    <script src="{{ asset('assets/static/js/components/dark.js') }}?v={{ filemtime(public_path('assets/static/js/components/dark.js')) }}"></script>
-    <script src="{{ asset('assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js') }}?v={{ filemtime(public_path('assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js')) }}"></script>
-    <script src="{{ asset('assets/compiled/js/app.js') }}?v={{ filemtime(public_path('assets/compiled/js/app.js')) }}"></script>
-    <script src="{{ asset('assets/static/js/shared/page-freshness.js') }}?v={{ filemtime(public_path('assets/static/js/shared/page-freshness.js')) }}"></script>
+    <script src="{{ asset('assets/static/js/components/dark.js') }}?v={{ config('app.asset_version') }}"></script>
+    <script src="{{ asset('assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js') }}?v={{ config('app.asset_version') }}"></script>
+    <script src="{{ asset('assets/compiled/js/app.js') }}?v={{ config('app.asset_version') }}"></script>
+    <script src="{{ asset('assets/static/js/shared/page-freshness.js') }}?v={{ config('app.asset_version') }}"></script>
     <script
         id="push-notification-config"
         type="application/json"
@@ -87,8 +87,8 @@
         data-default-icon="{{ asset('assets/compiled/svg/favicon.svg') }}"
         data-default-url="{{ route('admin.notes.index') }}"
     ></script>
-    <script src="{{ asset('assets/static/js/shared/push-notifications.js') }}?v={{ filemtime(public_path('assets/static/js/shared/push-notifications.js')) }}"></script>
+    <script src="{{ asset('assets/static/js/shared/push-notifications.js') }}?v={{ config('app.asset_version') }}"></script>
     @stack('scripts')
-    <script src="{{ asset('assets/static/js/layout-smart-back.js') }}?v={{ filemtime(public_path('assets/static/js/layout-smart-back.js')) }}"></script>
+    <script src="{{ asset('assets/static/js/layout-smart-back.js') }}?v={{ config('app.asset_version') }}"></script>
 </body>
 </html>

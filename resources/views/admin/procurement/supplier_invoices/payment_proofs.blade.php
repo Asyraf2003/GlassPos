@@ -317,7 +317,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}"></script>
+    <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}?v={{ config('app.asset_version') }}"></script>
     <script>
         window.AdminMoneyInput?.bindBySelector(document);
     </script>

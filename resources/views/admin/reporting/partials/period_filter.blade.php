@@ -211,5 +211,5 @@
 </div>
 
 @push('scripts')
-    <script src="{{ asset('assets/static/js/shared/admin-report-period-filter.js') }}?v={{ filemtime(public_path('assets/static/js/shared/admin-report-period-filter.js')) }}"></script>
+    <script src="{{ asset('assets/static/js/shared/admin-report-period-filter.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

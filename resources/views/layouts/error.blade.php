@@ -10,11 +10,11 @@
     @endif
 
     @if (file_exists(public_path('assets/compiled/css/app.css')))
-        <link rel="stylesheet" href="{{ asset('assets/compiled/css/app.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/compiled/css/app.css') }}?v={{ config('app.asset_version') }}">
     @endif
 
     @if (file_exists(public_path('assets/compiled/css/error.css')))
-        <link rel="stylesheet" href="{{ asset('assets/compiled/css/error.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/compiled/css/error.css') }}?v={{ config('app.asset_version') }}">
     @endif
 
     <style>
@@ -188,7 +188,7 @@
 
 <body>
     @if (file_exists(public_path('assets/static/js/initTheme.js')))
-        <script src="{{ asset('assets/static/js/initTheme.js') }}"></script>
+        <script src="{{ asset('assets/static/js/initTheme.js') }}?v={{ config('app.asset_version') }}"></script>
     @endif
 
     <div id="error">

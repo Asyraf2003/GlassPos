@@ -105,5 +105,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('assets/static/js/pages/admin-expense-category-create.js') }}"></script>
+    <script src="{{ asset('assets/static/js/pages/admin-expense-category-create.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush
