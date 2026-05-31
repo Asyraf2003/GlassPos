@@ -6,7 +6,6 @@ namespace App\Application\Note\Services\CurrentRevision;
 
 use App\Core\Note\Revision\NoteRevisionLineSnapshot;
 use App\Core\Note\WorkItem\WorkItem;
-use Illuminate\Support\Facades\DB;
 
 final class CurrentRevisionPackageBreakdownMapper
 {
@@ -45,7 +44,7 @@ final class CurrentRevisionPackageBreakdownMapper
             ? array_values(array_filter($payload['store_stock_lines'], 'is_array'))
             : [];
 
-        $names = $this->productNames(array_map(
+        $names = CurrentRevisionPackageProductNameResolver::currentNames(array_map(
             static fn (array $line): string => trim((string) ($line['product_id'] ?? '')),
             $lines,
         ));
@@ -60,48 +59,12 @@ final class CurrentRevisionPackageBreakdownMapper
             $parts[] = [
                 'id' => trim((string) ($line['id'] ?? '')),
                 'product_id' => $productId,
-                'product_name' => $this->productDisplayName($line, $productId, $names),
+                'product_name' => CurrentRevisionPackageProductNameResolver::displayName($line, $productId, $names),
                 'qty' => (int) ($line['qty'] ?? 0),
                 'line_total_rupiah' => (int) ($line['line_total_rupiah'] ?? 0),
             ];
         }
 
         return $parts;
-    }
-
-    /**
-     * @param array<string, mixed> $line
-     * @param array<string, string> $currentNames
-     */
-    private function productDisplayName(array $line, string $productId, array $currentNames): string
-    {
-        foreach (['product_name_snapshot', 'product_nama_barang_snapshot'] as $snapshotKey) {
-            $snapshotName = trim((string) ($line[$snapshotKey] ?? ''));
-
-            if ($snapshotName !== '') {
-                return $snapshotName;
-            }
-        }
-
-        return $currentNames[$productId] ?? $productId;
-    }
-
-    /**
-     * @param list<string> $productIds
-     * @return array<string, string>
-     */
-    private function productNames(array $productIds): array
-    {
-        $ids = array_values(array_unique(array_filter($productIds)));
-
-        if ($ids === []) {
-            return [];
-        }
-
-        return DB::table('products')
-            ->whereIn('id', $ids)
-            ->pluck('nama_barang', 'id')
-            ->map(static fn ($name): string => (string) $name)
-            ->all();
     }
 }
