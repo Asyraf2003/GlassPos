@@ -233,7 +233,7 @@ Proof output:
   - Tests: 7 passed (36 assertions)
 
 Remaining gaps:
-- Product display name in package breakdown is read from current products table, not a historical product name snapshot in revision payload.
+- CLOSED: Product display name snapshot gap is closed by `Historical product display name snapshot proof`; package breakdown now prefers revision payload snapshot with current catalog fallback for legacy payload.
 - Date display still uses current ViewDateFormatter format d/m/Y; client-facing tgl bulan tahun display remains a separate UI formatting step.
 
 ### Detail UI Indonesian date display proof
