@@ -6,6 +6,7 @@ namespace Tests\Feature\Note;
 
 use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Ports\Out\ClockPort;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\NoteDetailOperationalPackageFixture;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
@@ -32,7 +33,8 @@ final class NoteDetailOperationalPackageVisibilityFeatureTest extends TestCase
             'role' => 'kasir',
         ]);
 
-        $this->seedVisibleStoreStockPackageDetailFixture(date('Y-m-d'));
+        $today = $this->app->make(ClockPort::class)->now()->format('Y-m-d');
+        $this->seedVisibleStoreStockPackageDetailFixture($today);
 
         $this->actingAs($user)
             ->get(route('cashier.notes.show', ['noteId' => 'note-detail-package-1']))
