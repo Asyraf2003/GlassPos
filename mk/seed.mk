@@ -109,6 +109,10 @@ employee-debt-adjustment: seed-employee-debt-adjustment
 seed-payroll-disbursement:
 	php artisan db:seed --class='Database\Seeders\CreateOnly\CreatePayrollDisbursementSeeder'
 
+.PHONY: seed-transaction-week
+seed-transaction-week:
+	php artisan db:seed --class='Database\Seeders\CreateOnly\CreateTransactionWeekSeeder'
+
 .PHONY: payroll-disbursement
 payroll-disbursement: seed-payroll-disbursement
 	$(MAKE) seed-audit-baseline
@@ -130,7 +134,7 @@ create-all-v2: seed-create-all-v2
 	php artisan projection:rebuild-indexes all
 
 .PHONY: seed-create-all-v3
-seed-create-all-v3: seed-user seed-admin-cashier-area-access seed-create-basic seed-create-week seed-create-year seed-inventory seed-procurement seed-supplier-payment seed-expense seed-employee-debt seed-employee-debt-payment seed-employee-debt-adjustment seed-payroll-disbursement
+seed-create-all-v3: seed-user seed-admin-cashier-area-access seed-create-basic seed-create-week seed-create-year seed-inventory seed-procurement seed-supplier-payment seed-expense seed-employee-debt seed-employee-debt-payment seed-employee-debt-adjustment seed-payroll-disbursement seed-transaction-week
 
 .PHONY: create-all-v3
 create-all-v3: seed-create-all-v3
@@ -159,6 +163,7 @@ help:
 	@echo "  make employee-debt-payment        Create employee debt payment scenarios, then audit baseline"
 	@echo "  make employee-debt-adjustment     Create employee debt adjustment scenarios, then audit baseline"
 	@echo "  make payroll-disbursement         Create payroll disbursement scenarios, then audit baseline"
+	@echo "  make seed-transaction-week        Source-only transaction notes weekly seed"
 	@echo ""
 	@echo "Audit baseline:"
 	@echo "  make audit-baseline               Rebuild/create deterministic audit_events, snapshots, employee_versions, supplier_invoice_versions for existing seed rows"
