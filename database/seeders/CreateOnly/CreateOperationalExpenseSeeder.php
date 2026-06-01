@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders\CreateOnly;
 
 use Database\Seeders\CreateOnly\Support\CreateOnlySeeder;
+use Database\Seeders\CreateOnly\Support\CreateOnlySeedCalendar;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -34,7 +35,7 @@ final class CreateOperationalExpenseSeeder extends CreateOnlySeeder
                 $id = sprintf('seed-operational-expense-%04d', $i);
 
                 $amountRupiah = 15000 + ($i * 2500);
-                $expenseDate = sprintf('2026-05-%02d', (($i - 1) % 30) + 1);
+                $expenseDate = CreateOnlySeedCalendar::currentMonthDate((($i - 1) % 30) + 1);
                 $paymentMethod = $paymentMethods[($i - 1) % count($paymentMethods)];
 
                 if ($this->createOnly('operational_expenses', 'id', $id, [
