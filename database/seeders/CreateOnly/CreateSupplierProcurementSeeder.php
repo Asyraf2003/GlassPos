@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders\CreateOnly;
 
 use Database\Seeders\CreateOnly\Support\CreateOnlySeeder;
+use Database\Seeders\CreateOnly\Support\CreateOnlySeedCalendar;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -46,9 +47,10 @@ final class CreateSupplierProcurementSeeder extends CreateOnlySeeder
                 $invoiceId = sprintf('seed-supplier-invoice-%04d', $invoiceNo);
                 $receiptId = sprintf('seed-supplier-receipt-%04d', $invoiceNo);
 
-                $tanggalPengiriman = sprintf('2026-05-%02d', (($invoiceNo - 1) % 24) + 1);
-                $jatuhTempo = sprintf('2026-06-%02d', (($invoiceNo - 1) % 24) + 1);
-                $tanggalTerima = sprintf('2026-05-%02d', (($invoiceNo + 1) % 24) + 1);
+                $shipmentDay = (($invoiceNo - 1) % 24) + 1;
+                $tanggalPengiriman = CreateOnlySeedCalendar::currentMonthDate($shipmentDay);
+                $jatuhTempo = CreateOnlySeedCalendar::nextMonthDate($shipmentDay);
+                $tanggalTerima = CreateOnlySeedCalendar::currentMonthDate($shipmentDay + 2);
 
                 $invoiceLines = [];
 
