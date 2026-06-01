@@ -89,7 +89,7 @@ final class TransactionReportPageFeatureTest extends TestCase
         $response->assertSee('/admin/reports/transactions/export.xlsx', false);
         $response->assertSee('Unduh PDF');
         $response->assertSee('/admin/reports/transactions/export.pdf', false);
-        $response->assertSee('01/01/2030 s/d 31/01/2030');
+        $response->assertSee('01 Januari 2030 s/d 31 Januari 2030');
         $response->assertSee('Rp 150.000');
         $response->assertSee('Rp 149.999');
         $response->assertSee('Rp 9.000');
@@ -178,7 +178,7 @@ final class TransactionReportPageFeatureTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertSee('05/01/2030 s/d 05/01/2030');
+        $response->assertSee('05 Januari 2030 s/d 05 Januari 2030');
         $response->assertSee('Rp 25.000');
         $response->assertSee('note-inside');
         $response->assertDontSee('note-outside-before');

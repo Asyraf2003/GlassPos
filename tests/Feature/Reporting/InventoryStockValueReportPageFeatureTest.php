@@ -96,7 +96,7 @@ final class InventoryStockValueReportPageFeatureTest extends TestCase
         $response->assertSee('Stok dan Nilai Persediaan');
         $response->assertSee('inventory-stock-value-report-filter-form', false);
         $response->assertSee('Notifikasi stok belum aktif.');
-        $response->assertSee('01/01/2030 s/d 31/01/2030');
+        $response->assertSee('01 Januari 2030 s/d 31 Januari 2030');
         $response->assertSee('Rp 211.000');
         $response->assertSee('Supra');
         $response->assertSee('Vario');
@@ -172,7 +172,7 @@ final class InventoryStockValueReportPageFeatureTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertSee('07/01/2030 s/d 09/01/2030');
+        $response->assertSee('07 Januari 2030 s/d 09 Januari 2030');
         $response->assertSee('Supra');
         $response->assertSee('Vario');
         $response->assertSee('Rp 52.000');

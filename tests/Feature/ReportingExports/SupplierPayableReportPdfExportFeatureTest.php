@@ -85,9 +85,9 @@ final class SupplierPayableReportPdfExportFeatureTest extends TestCase
     {
         $html = view('admin.reporting.supplier_payable.export_pdf', [
             'title' => 'Hutang Pemasok',
-            'periodLabel' => '01/01/2030 s/d 31/01/2030',
-            'referenceDateLabel' => '31/01/2030',
-            'generatedAt' => '31/01/2030 10:00',
+            'periodLabel' => '01 Januari 2030 s/d 31 Januari 2030',
+            'referenceDateLabel' => '31 Januari 2030',
+            'generatedAt' => '31 Januari 2030 10:00',
             'summaryItems' => [
                 ['label' => 'Total Faktur', 'value' => 2],
                 ['label' => 'Total Tagihan', 'value' => 'Rp 150.000'],
@@ -96,7 +96,7 @@ final class SupplierPayableReportPdfExportFeatureTest extends TestCase
             ],
             'periodRows' => [
                 [
-                    'period_label' => '07/01/2030',
+                    'period_label' => '07 Januari 2030',
                     'total_rows' => 1,
                     'grand_total' => 'Rp 100.000',
                     'total_paid' => 'Rp 70.000',
@@ -116,8 +116,8 @@ final class SupplierPayableReportPdfExportFeatureTest extends TestCase
                 [
                     'invoice_no' => 'F-001',
                     'supplier' => 'PT Sumber Makmur',
-                    'shipment_date' => '07/01/2030',
-                    'due_date' => '20/01/2030',
+                    'shipment_date' => '07 Januari 2030',
+                    'due_date' => '20 Januari 2030',
                     'status' => 'Lewat Jatuh Tempo',
                     'grand_total' => 'Rp 100.000',
                     'total_paid' => 'Rp 70.000',

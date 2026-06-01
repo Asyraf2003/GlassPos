@@ -53,9 +53,9 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertSee('admin/reports/transaction-cash-ledger/export.pdf', false);
         $response->assertSee('period_mode=monthly', false);
         $response->assertSee('reference_date=2026-04-01', false);
-        $response->assertSee('02/04/2026');
-        $response->assertSee('03/04/2026');
-        $response->assertSee('04/04/2026');
+        $response->assertSee('02 April 2026');
+        $response->assertSee('03 April 2026');
+        $response->assertSee('04 April 2026');
         $response->assertSee('note-1');
         $response->assertSee('note-2');
         $response->assertSee('Alokasi Pembayaran');
@@ -145,7 +145,7 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertSee('02/04/2026 s/d 02/04/2026');
+        $response->assertSee('02 April 2026 s/d 02 April 2026');
         $response->assertSee('note-daily-1');
         $response->assertDontSee('note-daily-2');
         $response->assertSee('Rp 7.000');
@@ -166,7 +166,7 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertSee('06/04/2026 s/d 12/04/2026');
+        $response->assertSee('06 April 2026 s/d 12 April 2026');
         $response->assertSee('note-week-1');
         $response->assertSee('note-week-2');
         $response->assertDontSee('note-week-3');
@@ -187,7 +187,7 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertSee('01/04/2026 s/d 30/04/2026');
+        $response->assertSee('01 April 2026 s/d 30 April 2026');
         $response->assertSee('note-month-1');
         $response->assertSee('note-month-2');
         $response->assertDontSee('note-month-3');
@@ -209,7 +209,7 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertSee('02/04/2026 s/d 04/04/2026');
+        $response->assertSee('02 April 2026 s/d 04 April 2026');
         $response->assertSee('note-custom-1');
         $response->assertSee('note-custom-2');
         $response->assertDontSee('note-custom-3');

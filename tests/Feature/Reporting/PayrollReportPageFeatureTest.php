@@ -44,7 +44,7 @@ final class PayrollReportPageFeatureTest extends TestCase
         $response->assertSee('value="custom"', false);
         $response->assertSee('name="date_from"', false);
         $response->assertSee('name="date_to"', false);
-        $response->assertSee('01/01/2030 s/d 31/01/2030');
+        $response->assertSee('01 Januari 2030 s/d 31 Januari 2030');
         $response->assertSee('Montir A');
         $response->assertSee('Montir B');
         $response->assertSee('Harian');
@@ -68,7 +68,7 @@ final class PayrollReportPageFeatureTest extends TestCase
         ]));
 
         $response->assertOk();
-        $response->assertSee('07/01/2030 s/d 07/01/2030');
+        $response->assertSee('07 Januari 2030 s/d 07 Januari 2030');
         $response->assertSee('Montir Custom B');
         $response->assertDontSee('Montir Custom A');
         $response->assertSee('Rp 40.000');

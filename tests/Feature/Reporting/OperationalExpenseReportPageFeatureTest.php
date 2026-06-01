@@ -52,7 +52,7 @@ final class OperationalExpenseReportPageFeatureTest extends TestCase
         $response->assertSee('name="date_from"', false);
         $response->assertSee('name="date_to"', false);
         $response->assertSee('operational-expense-report-filter-form', false);
-        $response->assertSee('01/01/2030 s/d 31/01/2030');
+        $response->assertSee('01 Januari 2030 s/d 31 Januari 2030');
         $response->assertSee('Listrik');
         $response->assertSee('Makan');
         $response->assertSee('Rp 215.000');
@@ -81,7 +81,7 @@ final class OperationalExpenseReportPageFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Custom');
-        $response->assertSee('10/01/2030 s/d 31/01/2030');
+        $response->assertSee('10 Januari 2030 s/d 31 Januari 2030');
         $response->assertSee('Inside custom range');
         $response->assertSee('Inside custom end');
         $response->assertSee('Rp 125.000');

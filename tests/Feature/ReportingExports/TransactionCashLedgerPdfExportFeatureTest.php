@@ -60,8 +60,8 @@ final class TransactionCashLedgerPdfExportFeatureTest extends TestCase
     {
         $html = view('admin.reporting.transaction_cash_ledger.export_pdf', [
             'title' => 'Laporan Buku Kas Transaksi',
-            'periodLabel' => '01/01/2030 s/d 31/01/2030',
-            'generatedAt' => '31/01/2030 10:00',
+            'periodLabel' => '01 Januari 2030 s/d 31 Januari 2030',
+            'generatedAt' => '31 Januari 2030 10:00',
             'summaryItems' => [
                 ['label' => 'Total Kejadian', 'value' => 3],
                 ['label' => 'Kas Masuk', 'value' => 'Rp 12.000'],
@@ -70,7 +70,7 @@ final class TransactionCashLedgerPdfExportFeatureTest extends TestCase
             ],
             'rows' => [
                 [
-                    'date' => '02/01/2030',
+                    'date' => '02 Januari 2030',
                     'note_label' => 'Budi · 2030-01-02',
                     'event_type' => 'Alokasi Pembayaran',
                     'direction' => 'Masuk',

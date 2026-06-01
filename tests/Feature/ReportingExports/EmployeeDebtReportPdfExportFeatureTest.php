@@ -71,8 +71,8 @@ final class EmployeeDebtReportPdfExportFeatureTest extends TestCase
     {
         $html = view('admin.reporting.employee_debt.export_pdf', [
             'title' => 'Laporan Hutang Karyawan',
-            'periodLabel' => '01/01/2030 s/d 31/01/2030',
-            'generatedAt' => '31/01/2030 10:00',
+            'periodLabel' => '01 Januari 2030 s/d 31 Januari 2030',
+            'generatedAt' => '31 Januari 2030 10:00',
             'summaryItems' => [
                 ['label' => 'Total Hutang', 'value' => 'Rp 310.000'],
                 ['label' => 'Sudah Dibayar', 'value' => 'Rp 110.000'],
@@ -83,7 +83,7 @@ final class EmployeeDebtReportPdfExportFeatureTest extends TestCase
             ],
             'periodRows' => [
                 [
-                    'period_label' => '07/01/2030',
+                    'period_label' => '07 Januari 2030',
                     'total_rows' => 2,
                     'total_debt' => 'Rp 150.000',
                     'total_paid_amount' => 'Rp 40.000',
@@ -101,7 +101,7 @@ final class EmployeeDebtReportPdfExportFeatureTest extends TestCase
             ],
             'rows' => [
                 [
-                    'recorded_at' => '07/01/2030',
+                    'recorded_at' => '07 Januari 2030',
                     'debt_id' => 'debt-1',
                     'employee_id' => 'employee-1',
                     'status' => 'unpaid',

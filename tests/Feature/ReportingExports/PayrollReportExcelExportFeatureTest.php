@@ -52,21 +52,21 @@ final class PayrollReportExcelExportFeatureTest extends TestCase
         $this->assertNotNull($mode);
 
         $this->assertSame('Laporan Gaji', $summary->getCell('A1')->getValue());
-        $this->assertSame('01/01/2030 s/d 31/01/2030', $summary->getCell('B2')->getValue());
+        $this->assertSame('01 Januari 2030 s/d 31 Januari 2030', $summary->getCell('B2')->getValue());
         $this->assertSame(3, $summary->getCell('B6')->getValue());
         $this->assertSame(100000, $summary->getCell('B7')->getValue());
-        $this->assertSame('07/01/2030', $summary->getCell('B8')->getValue());
+        $this->assertSame('07 Januari 2030', $summary->getCell('B8')->getValue());
         $this->assertSame('Harian', $summary->getCell('B9')->getValue());
 
         $this->assertSame('Tanggal', $detail->getCell('B1')->getValue());
-        $this->assertSame('06/01/2030', $detail->getCell('B2')->getValue());
+        $this->assertSame('06 Januari 2030', $detail->getCell('B2')->getValue());
         $this->assertSame('Montir A', $detail->getCell('C2')->getValue());
         $this->assertSame('Harian', $detail->getCell('D2')->getValue());
         $this->assertSame('Harian A', $detail->getCell('E2')->getValue());
         $this->assertSame(50000, $detail->getCell('F2')->getValue());
         $this->assertNull($detail->getCell('C5')->getValue());
 
-        $this->assertSame('06/01/2030', $period->getCell('A2')->getValue());
+        $this->assertSame('06 Januari 2030', $period->getCell('A2')->getValue());
         $this->assertSame(1, $period->getCell('B2')->getValue());
         $this->assertSame(50000, $period->getCell('C2')->getValue());
 

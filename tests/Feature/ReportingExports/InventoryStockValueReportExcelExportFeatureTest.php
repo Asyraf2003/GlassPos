@@ -109,7 +109,7 @@ final class InventoryStockValueReportExcelExportFeatureTest extends TestCase
         $this->assertNotNull($movement);
 
         $this->assertSame('Stok dan Nilai Persediaan', $summary->getCell('A1')->getValue());
-        $this->assertSame('01/01/2030 s/d 31/01/2030', $summary->getCell('B2')->getValue());
+        $this->assertSame('01 Januari 2030 s/d 31 Januari 2030', $summary->getCell('B2')->getValue());
         $this->assertSame(4, $summary->getCell('B6')->getValue());
         $this->assertSame(2, $summary->getCell('B7')->getValue());
         $this->assertSame(21, $summary->getCell('B8')->getValue());

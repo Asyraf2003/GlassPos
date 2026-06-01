@@ -47,7 +47,7 @@ final class TransactionCashLedgerExcelExportFeatureTest extends TestCase
         $this->assertNotNull($period);
 
         $this->assertSame('Laporan Buku Kas Transaksi', $summary->getCell('A1')->getValue());
-        $this->assertSame('01/01/2030 s/d 31/01/2030', $summary->getCell('B2')->getValue());
+        $this->assertSame('01 Januari 2030 s/d 31 Januari 2030', $summary->getCell('B2')->getValue());
         $this->assertSame(3, $summary->getCell('B6')->getValue());
         $this->assertSame(12000, $summary->getCell('B7')->getValue());
         $this->assertSame(12000, $summary->getCell('B8')->getValue());
@@ -61,7 +61,7 @@ final class TransactionCashLedgerExcelExportFeatureTest extends TestCase
         $this->assertSame('Tabel Sumber', $detail->getCell('K1')->getValue());
         $this->assertSame('ID Sumber', $detail->getCell('L1')->getValue());
         $this->assertSame('ID Disposisi Sumber', $detail->getCell('M1')->getValue());
-        $this->assertSame('02/01/2030', $detail->getCell('B2')->getValue());
+        $this->assertSame('02 Januari 2030', $detail->getCell('B2')->getValue());
         $this->assertSame('note-1', $detail->getCell('C2')->getValue());
         $this->assertSame('Alokasi Pembayaran', $detail->getCell('E2')->getValue());
         $this->assertSame('Masuk', $detail->getCell('F2')->getValue());
@@ -71,7 +71,7 @@ final class TransactionCashLedgerExcelExportFeatureTest extends TestCase
         $this->assertSame('pay-1', $detail->getCell('L2')->getValue());
         $this->assertNull($detail->getCell('M2')->getValue());
 
-        $this->assertSame('04/01/2030', $detail->getCell('B4')->getValue());
+        $this->assertSame('04 Januari 2030', $detail->getCell('B4')->getValue());
         $this->assertSame('Pengembalian Dana', $detail->getCell('E4')->getValue());
         $this->assertSame('Keluar', $detail->getCell('F4')->getValue());
         $this->assertSame('-', $detail->getCell('G4')->getValue());
@@ -81,7 +81,7 @@ final class TransactionCashLedgerExcelExportFeatureTest extends TestCase
         $this->assertNull($detail->getCell('M4')->getValue());
         $this->assertNull($detail->getCell('C5')->getValue());
 
-        $this->assertSame('02/01/2030', $period->getCell('A2')->getValue());
+        $this->assertSame('02 Januari 2030', $period->getCell('A2')->getValue());
         $this->assertSame(1, $period->getCell('B2')->getValue());
         $this->assertSame(8000, $period->getCell('C2')->getValue());
         $this->assertSame(8000, $period->getCell('D2')->getValue());

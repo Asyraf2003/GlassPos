@@ -63,8 +63,8 @@ final class OperationalExpenseReportPdfExportFeatureTest extends TestCase
     {
         $html = view('admin.reporting.operational_expense.export_pdf', [
             'title' => 'Laporan Biaya Operasional',
-            'periodLabel' => '01/01/2030 s/d 31/01/2030',
-            'generatedAt' => '31/01/2030 10:00',
+            'periodLabel' => '01 Januari 2030 s/d 31 Januari 2030',
+            'generatedAt' => '31 Januari 2030 10:00',
             'summaryItems' => [
                 ['label' => 'Jumlah Catatan', 'value' => 2],
                 ['label' => 'Total Biaya', 'value' => 'Rp 125.000'],
@@ -74,7 +74,7 @@ final class OperationalExpenseReportPdfExportFeatureTest extends TestCase
             ],
             'rows' => [
                 [
-                    'date' => '06/01/2030',
+                    'date' => '06 Januari 2030',
                     'expense_id' => 'expense-1',
                     'category_name' => 'Listrik',
                     'description' => 'Bayar listrik',

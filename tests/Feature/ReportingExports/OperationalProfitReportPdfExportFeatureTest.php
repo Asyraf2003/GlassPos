@@ -85,8 +85,8 @@ final class OperationalProfitReportPdfExportFeatureTest extends TestCase
     {
         $html = view('admin.reporting.operational_profit.export_pdf', [
             'title' => 'Laporan Laba Kas Operasional',
-            'periodLabel' => '01/01/2030 s/d 31/01/2030',
-            'generatedAt' => '31/01/2030 10:00',
+            'periodLabel' => '01 Januari 2030 s/d 31 Januari 2030',
+            'generatedAt' => '31 Januari 2030 10:00',
             'summaryItems' => [
                 ['label' => 'Uang Masuk', 'value' => 'Rp 200.000'],
                 ['label' => 'Pengembalian Dana', 'value' => 'Rp 10.000'],

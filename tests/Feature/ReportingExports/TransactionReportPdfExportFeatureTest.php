@@ -70,8 +70,8 @@ final class TransactionReportPdfExportFeatureTest extends TestCase
     {
         $html = view('admin.reporting.transaction_summary.export_pdf', [
             'title' => 'Laporan Transaksi',
-            'periodLabel' => '01/01/2030 s/d 31/01/2030',
-            'generatedAt' => '31/01/2030 10:00',
+            'periodLabel' => '01 Januari 2030 s/d 31 Januari 2030',
+            'generatedAt' => '31 Januari 2030 10:00',
             'summaryItems' => [
                 ['label' => 'Jumlah Nota', 'value' => 2],
                 ['label' => 'Total Transaksi', 'value' => 'Rp 150.000'],
@@ -85,7 +85,7 @@ final class TransactionReportPdfExportFeatureTest extends TestCase
             ],
             'rows' => [
                 [
-                    'date' => '07/01/2030',
+                    'date' => '07 Januari 2030',
                     'note_id' => 'note-1',
                     'customer_name' => 'Budi',
                     'total' => 'Rp 100.000',

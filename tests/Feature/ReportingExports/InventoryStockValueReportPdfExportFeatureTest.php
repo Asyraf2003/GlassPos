@@ -117,9 +117,9 @@ final class InventoryStockValueReportPdfExportFeatureTest extends TestCase
     {
         $html = view('admin.reporting.inventory_stock_value.export_pdf', [
             'title' => 'Stok dan Nilai Persediaan',
-            'periodLabel' => '01/01/2030 s/d 31/01/2030',
-            'referenceDateLabel' => '31/01/2030',
-            'generatedAt' => '31/01/2030 10:00',
+            'periodLabel' => '01 Januari 2030 s/d 31 Januari 2030',
+            'referenceDateLabel' => '31 Januari 2030',
+            'generatedAt' => '31 Januari 2030 10:00',
             'summaryItems' => [
                 ['label' => 'Produk Snapshot', 'value' => 2],
                 ['label' => 'Nilai Persediaan', 'value' => 'Rp 96.000'],

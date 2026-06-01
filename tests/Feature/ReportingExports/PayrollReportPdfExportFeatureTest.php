@@ -64,24 +64,24 @@ final class PayrollReportPdfExportFeatureTest extends TestCase
     {
         $html = view('admin.reporting.payroll.export_pdf', [
             'title' => 'Laporan Gaji',
-            'periodLabel' => '01/01/2030 s/d 31/01/2030',
-            'generatedAt' => '31/01/2030 10:00',
+            'periodLabel' => '01 Januari 2030 s/d 31 Januari 2030',
+            'generatedAt' => '31 Januari 2030 10:00',
             'summaryItems' => [
                 ['label' => 'Jumlah Pencairan', 'value' => 3],
                 ['label' => 'Total Nominal', 'value' => 'Rp 100.000'],
-                ['label' => 'Tanggal Terakhir', 'value' => '07/01/2030'],
+                ['label' => 'Tanggal Terakhir', 'value' => '07 Januari 2030'],
                 ['label' => 'Mode Terbesar', 'value' => 'Harian'],
                 ['label' => 'Rata-rata Harian', 'value' => 'Rp 3.226'],
             ],
             'periodRows' => [
-                ['period_label' => '06/01/2030', 'total_rows' => 1, 'total_amount' => 'Rp 50.000'],
+                ['period_label' => '06 Januari 2030', 'total_rows' => 1, 'total_amount' => 'Rp 50.000'],
             ],
             'modeRows' => [
                 ['mode_label' => 'Harian', 'total_rows' => 2, 'total_amount' => 'Rp 60.000'],
             ],
             'rows' => [
                 [
-                    'date' => '06/01/2030',
+                    'date' => '06 Januari 2030',
                     'employee_name' => 'Montir A',
                     'mode_label' => 'Harian',
                     'notes' => 'Harian A',

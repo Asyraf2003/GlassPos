@@ -83,7 +83,7 @@ final class OperationalProfitReportPageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('Laba Kas Operasional');
         $response->assertSee('operational-profit-report-filter-form', false);
-        $response->assertSee('01/01/2030 s/d 31/01/2030');
+        $response->assertSee('01 Januari 2030 s/d 31 Januari 2030');
         $response->assertSee('Rp 200.000');
         $response->assertSee('Rp 10.000');
         $response->assertSee('Rp 50.000');

@@ -53,7 +53,7 @@ final class EmployeeDebtReportPageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('Laporan Hutang Karyawan');
         $response->assertSee('employee-debt-report-filter-form', false);
-        $response->assertSee('01/01/2030 s/d 31/01/2030');
+        $response->assertSee('01 Januari 2030 s/d 31 Januari 2030');
         $response->assertSee('Rp 310.000');
         $response->assertSee('Rp 110.000');
         $response->assertSee('Rp 200.000');
@@ -84,7 +84,7 @@ final class EmployeeDebtReportPageFeatureTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertSee('07/01/2030 s/d 09/01/2030');
+        $response->assertSee('07 Januari 2030 s/d 09 Januari 2030');
         $response->assertSee('Rp 150.000');
         $response->assertSee('debt-in-1');
         $response->assertSee('debt-in-2');

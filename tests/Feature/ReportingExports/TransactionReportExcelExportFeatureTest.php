@@ -54,7 +54,7 @@ final class TransactionReportExcelExportFeatureTest extends TestCase
         $this->assertNotNull($detail);
 
         $this->assertSame('Laporan Transaksi', $summary->getCell('A1')->getValue());
-        $this->assertSame('01/01/2030 s/d 31/01/2030', $summary->getCell('B2')->getValue());
+        $this->assertSame('01 Januari 2030 s/d 31 Januari 2030', $summary->getCell('B2')->getValue());
         $this->assertSame(2, $summary->getCell('B6')->getValue());
         $this->assertSame(150000, $summary->getCell('B7')->getValue());
         $this->assertSame(149999, $summary->getCell('B8')->getValue());

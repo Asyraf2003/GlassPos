@@ -76,8 +76,8 @@ final class SupplierPayableReportExcelExportFeatureTest extends TestCase
         $this->assertNotNull($supplier);
 
         $this->assertSame('Hutang Pemasok', $summary->getCell('A1')->getValue());
-        $this->assertSame('01/01/2030 s/d 31/01/2030', $summary->getCell('B2')->getValue());
-        $this->assertSame('31/01/2030', $summary->getCell('B4')->getValue());
+        $this->assertSame('01 Januari 2030 s/d 31 Januari 2030', $summary->getCell('B2')->getValue());
+        $this->assertSame('31 Januari 2030', $summary->getCell('B4')->getValue());
         $this->assertSame(2, $summary->getCell('B7')->getValue());
         $this->assertSame(150000, $summary->getCell('B8')->getValue());
         $this->assertSame(120000, $summary->getCell('B9')->getValue());
@@ -86,8 +86,8 @@ final class SupplierPayableReportExcelExportFeatureTest extends TestCase
         $this->assertSame('No Faktur', $detail->getCell('B1')->getValue());
         $this->assertSame('F-001', $detail->getCell('B2')->getValue());
         $this->assertSame('PT Sumber Makmur', $detail->getCell('C2')->getValue());
-        $this->assertSame('07/01/2030', $detail->getCell('D2')->getValue());
-        $this->assertSame('20/01/2030', $detail->getCell('E2')->getValue());
+        $this->assertSame('07 Januari 2030', $detail->getCell('D2')->getValue());
+        $this->assertSame('20 Januari 2030', $detail->getCell('E2')->getValue());
         $this->assertSame('Lewat Jatuh Tempo', $detail->getCell('F2')->getValue());
         $this->assertSame(100000, $detail->getCell('G2')->getValue());
         $this->assertSame(70000, $detail->getCell('H2')->getValue());
@@ -96,7 +96,7 @@ final class SupplierPayableReportExcelExportFeatureTest extends TestCase
         $this->assertSame(3, $detail->getCell('K2')->getValue());
         $this->assertNull($detail->getCell('B4')->getValue());
 
-        $this->assertSame('07/01/2030', $period->getCell('A2')->getValue());
+        $this->assertSame('07 Januari 2030', $period->getCell('A2')->getValue());
         $this->assertSame(1, $period->getCell('B2')->getValue());
         $this->assertSame(100000, $period->getCell('C2')->getValue());
         $this->assertSame(70000, $period->getCell('D2')->getValue());
