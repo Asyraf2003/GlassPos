@@ -315,6 +315,59 @@ Status impact:
 Refund boundary after package multi-product revision is PARTIAL GREEN for downward overpaid current replacement row refund.
 
 
+## Phase 3 Focused Consolidation Proof After Refund Boundary
+
+FOCUSED-CONSOLIDATION-003
+
+Problem / target:
+
+Consolidate the full focused Phase 3 characterization file after adding downward-overpaid package multi-product refund boundary proof.
+
+Local command:
+
+```text
+php artisan test tests/Feature/Note/EditTransactionWorkspacePackageAutoSplitCharacterizationTest.php
+```
+
+Local output:
+
+```text
+PASS  Tests\Feature\Note\EditTransactionWorkspacePackageAutoSplitCharacterizationTest
+✓ edit workspace preloads service store stock package auto split multi product revision    5.95s
+✓ admin can submit service store stock package auto split multi product revision           0.15s
+✓ package auto split multi product revision reverses old stock and issues replacement sto… 0.11s
+✓ package auto split multi product revision rebuilds payment allocations and records unde… 0.10s
+✓ package auto split multi product downward revision caps replay and records overpaid set… 0.13s
+✓ package auto split multi product refund after downward revision targets current replace… 0.23s
+
+Tests: 6 passed (89 assertions)
+Duration: 6.81s
+```
+
+Proven by this local output:
+
+edit workspace preload service-store-stock package auto split multi-product revision remains GREEN
+admin submit edit/revision package auto split multi-product remains GREEN
+inventory reverse/reissue for package multi-product revision remains GREEN
+payment allocation rebuild and underpaid settlement remains GREEN
+downward overpaid replay cap and overpaid_pending settlement remains GREEN
+downward-overpaid selected-row refund boundary remains GREEN
+focused Phase 3 characterization file is consolidated at 6 tests / 89 assertions
+
+Boundary:
+
+This focused consolidation does not close exact-paid package multi-product revision settlement.
+This focused consolidation does not close report/export after revision.
+This focused consolidation does not close browser/manual QA.
+This focused consolidation does not close full make verify.
+
+Status impact:
+
+Phase 3 edit/revision service-store-stock package auto split multi-product is stronger after refund boundary proof.
+Core focused edit/revision + inventory + payment/settlement base + downward refund boundary is GREEN.
+Full lifecycle closure is still not claimed.
+
+
 Still OPEN
 Payment / Settlement
 
