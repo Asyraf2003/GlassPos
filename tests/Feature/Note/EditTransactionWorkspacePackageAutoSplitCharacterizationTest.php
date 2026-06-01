@@ -182,6 +182,216 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         self::assertCount(2, $decoded['store_stock_lines'] ?? []);
     }
 
+
+    public function test_package_auto_split_multi_product_revision_reverses_old_stock_and_issues_replacement_stock(): void
+    {
+        $this->seedOpenMultiProductPackageNote();
+
+        DB::table('product_inventory')
+            ->where('product_id', 'product-package-edit-a')
+            ->update(['qty_on_hand' => 8]);
+
+        DB::table('product_inventory')
+            ->where('product_id', 'product-package-edit-b')
+            ->update(['qty_on_hand' => 9]);
+
+        DB::table('product_inventory_costing')
+            ->where('product_id', 'product-package-edit-a')
+            ->update([
+                'avg_cost_rupiah' => 35000,
+                'inventory_value_rupiah' => 280000,
+            ]);
+
+        DB::table('product_inventory_costing')
+            ->where('product_id', 'product-package-edit-b')
+            ->update([
+                'avg_cost_rupiah' => 20000,
+                'inventory_value_rupiah' => 180000,
+            ]);
+
+        DB::table('inventory_movements')->insert([
+            [
+                'id' => 'move-edit-package-old-a',
+                'product_id' => 'product-package-edit-a',
+                'movement_type' => 'stock_out',
+                'source_type' => 'work_item_store_stock_line',
+                'source_id' => 'ssl-edit-package-multi-a',
+                'tanggal_mutasi' => '2026-05-31',
+                'qty_delta' => -2,
+                'unit_cost_rupiah' => 35000,
+                'total_cost_rupiah' => -70000,
+            ],
+            [
+                'id' => 'move-edit-package-old-b',
+                'product_id' => 'product-package-edit-b',
+                'movement_type' => 'stock_out',
+                'source_type' => 'work_item_store_stock_line',
+                'source_id' => 'ssl-edit-package-multi-b',
+                'tanggal_mutasi' => '2026-05-31',
+                'qty_delta' => -1,
+                'unit_cost_rupiah' => 20000,
+                'total_cost_rupiah' => -20000,
+            ],
+        ]);
+
+        $user = User::query()->create([
+            'name' => 'Admin Package Revision Inventory Characterization',
+            'email' => 'admin-package-revision-inventory-characterization@example.test',
+            'password' => 'password',
+        ]);
+
+        DB::table('actor_accesses')->insert([
+            'actor_id' => (string) $user->getAuthIdentifier(),
+            'role' => 'admin',
+        ]);
+
+        DB::table('admin_transaction_capability_states')->updateOrInsert(
+            ['actor_id' => (string) $user->getAuthIdentifier()],
+            ['active' => true],
+        );
+
+        $response = $this->actingAs($user)->patch(
+            route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
+            [
+                'reason' => 'Package multi-product inventory revision characterization.',
+                'note' => [
+                    'customer_name' => 'Budi Edit Package Multi Inventory Revised',
+                    'customer_phone' => '08123456789',
+                    'transaction_date' => '2026-06-01',
+                    'operational_note' => 'Alasan revisi stok package multi.',
+                ],
+                'items' => [
+                    [
+                        'entry_mode' => 'service',
+                        'description' => null,
+                        'part_source' => 'store_stock',
+                        'pricing_mode' => 'package_auto_split',
+                        'package_total_rupiah' => 300000,
+                        'service' => [
+                            'name' => 'Servis Paket Multi Inventory Revised',
+                            'price_rupiah' => 0,
+                            'notes' => null,
+                        ],
+                        'product_lines' => [
+                            [
+                                'product_id' => 'product-package-edit-a',
+                                'qty' => 2,
+                                'unit_price_rupiah' => 50000,
+                                'price_basis' => 'revision_snapshot',
+                            ],
+                            [
+                                'product_id' => 'product-package-edit-b',
+                                'qty' => 2,
+                                'unit_price_rupiah' => 30000,
+                                'price_basis' => 'revision_snapshot',
+                            ],
+                        ],
+                        'external_purchase_lines' => [],
+                    ],
+                ],
+            ]
+        );
+
+        $response->assertRedirect(route('admin.notes.show', ['noteId' => 'note-edit-package-multi-001']));
+
+        $workItemId = (string) DB::table('work_items')
+            ->where('note_id', 'note-edit-package-multi-001')
+            ->value('id');
+
+        self::assertNotSame('', $workItemId);
+
+        $replacementLineIds = DB::table('work_item_store_stock_lines')
+            ->where('work_item_id', $workItemId)
+            ->pluck('id', 'product_id');
+
+        self::assertArrayHasKey('product-package-edit-a', $replacementLineIds->all());
+        self::assertArrayHasKey('product-package-edit-b', $replacementLineIds->all());
+
+        $this->assertDatabaseHas('inventory_movements', [
+            'product_id' => 'product-package-edit-a',
+            'movement_type' => 'stock_in',
+            'source_type' => 'transaction_workspace_updated',
+            'source_id' => 'ssl-edit-package-multi-a',
+            'tanggal_mutasi' => '2026-06-01',
+            'qty_delta' => 2,
+            'unit_cost_rupiah' => 35000,
+            'total_cost_rupiah' => 70000,
+        ]);
+
+        $this->assertDatabaseHas('inventory_movements', [
+            'product_id' => 'product-package-edit-b',
+            'movement_type' => 'stock_in',
+            'source_type' => 'transaction_workspace_updated',
+            'source_id' => 'ssl-edit-package-multi-b',
+            'tanggal_mutasi' => '2026-06-01',
+            'qty_delta' => 1,
+            'unit_cost_rupiah' => 20000,
+            'total_cost_rupiah' => 20000,
+        ]);
+
+        $this->assertDatabaseHas('inventory_movements', [
+            'product_id' => 'product-package-edit-a',
+            'movement_type' => 'stock_out',
+            'source_type' => 'work_item_store_stock_line',
+            'source_id' => (string) $replacementLineIds['product-package-edit-a'],
+            'tanggal_mutasi' => '2026-06-01',
+            'qty_delta' => -2,
+            'unit_cost_rupiah' => 35000,
+            'total_cost_rupiah' => -70000,
+        ]);
+
+        $this->assertDatabaseHas('inventory_movements', [
+            'product_id' => 'product-package-edit-b',
+            'movement_type' => 'stock_out',
+            'source_type' => 'work_item_store_stock_line',
+            'source_id' => (string) $replacementLineIds['product-package-edit-b'],
+            'tanggal_mutasi' => '2026-06-01',
+            'qty_delta' => -2,
+            'unit_cost_rupiah' => 20000,
+            'total_cost_rupiah' => -40000,
+        ]);
+
+        self::assertSame(
+            1,
+            DB::table('inventory_movements')
+                ->where('source_type', 'transaction_workspace_updated')
+                ->where('source_id', 'ssl-edit-package-multi-a')
+                ->where('movement_type', 'stock_in')
+                ->count(),
+        );
+
+        self::assertSame(
+            1,
+            DB::table('inventory_movements')
+                ->where('source_type', 'transaction_workspace_updated')
+                ->where('source_id', 'ssl-edit-package-multi-b')
+                ->where('movement_type', 'stock_in')
+                ->count(),
+        );
+
+        $this->assertDatabaseHas('product_inventory', [
+            'product_id' => 'product-package-edit-a',
+            'qty_on_hand' => 8,
+        ]);
+
+        $this->assertDatabaseHas('product_inventory', [
+            'product_id' => 'product-package-edit-b',
+            'qty_on_hand' => 8,
+        ]);
+
+        $this->assertDatabaseHas('product_inventory_costing', [
+            'product_id' => 'product-package-edit-a',
+            'avg_cost_rupiah' => 35000,
+            'inventory_value_rupiah' => 280000,
+        ]);
+
+        $this->assertDatabaseHas('product_inventory_costing', [
+            'product_id' => 'product-package-edit-b',
+            'avg_cost_rupiah' => 20000,
+            'inventory_value_rupiah' => 160000,
+        ]);
+    }
+
     private function seedOpenMultiProductPackageNote(): void
     {
         $this->seedNoteBase(
