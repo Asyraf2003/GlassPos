@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders\CreateOnly;
 
 use Database\Seeders\CreateOnly\Support\CreateOnlySeeder;
+use Database\Seeders\CreateOnly\Support\CreateOnlySeedCalendar;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -16,46 +17,53 @@ final class CreateEmployeeDebtSeeder extends CreateOnlySeeder
      * @var list<array{
      *   id:string,
      *   total_debt:int,
-     *   notes:string,
-     *   created_at:string
+     *   day:int,
+     *   time:string,
+     *   notes:string
      * }>
      */
     private const DEBT_SCENARIOS = [
         [
             'id' => '00000000-0000-5000-0001-000000000001',
             'total_debt' => 150000,
+            'day' => 20,
+            'time' => '08:10:00',
             'notes' => 'Seed kasbon aktif - sparepart keluarga',
-            'created_at' => '2026-05-20 08:10:00',
         ],
         [
             'id' => '00000000-0000-5000-0001-000000000002',
             'total_debt' => 225000,
+            'day' => 20,
+            'time' => '08:20:00',
             'notes' => 'Seed kasbon aktif - kebutuhan harian',
-            'created_at' => '2026-05-20 08:20:00',
         ],
         [
             'id' => '00000000-0000-5000-0001-000000000003',
             'total_debt' => 300000,
+            'day' => 20,
+            'time' => '08:30:00',
             'notes' => 'Seed kasbon aktif - operasional pribadi',
-            'created_at' => '2026-05-20 08:30:00',
         ],
         [
             'id' => '00000000-0000-5000-0001-000000000004',
             'total_debt' => 450000,
+            'day' => 20,
+            'time' => '08:40:00',
             'notes' => 'Seed kasbon aktif - cicilan internal',
-            'created_at' => '2026-05-20 08:40:00',
         ],
         [
             'id' => '00000000-0000-5000-0001-000000000005',
             'total_debt' => 600000,
+            'day' => 20,
+            'time' => '08:50:00',
             'notes' => 'Seed kasbon aktif - kebutuhan mendadak',
-            'created_at' => '2026-05-20 08:50:00',
         ],
         [
             'id' => '00000000-0000-5000-0001-000000000006',
             'total_debt' => 750000,
+            'day' => 20,
+            'time' => '09:00:00',
             'notes' => 'Seed kasbon aktif - pinjaman sementara',
-            'created_at' => '2026-05-20 09:00:00',
         ],
     ];
 
@@ -74,6 +82,8 @@ final class CreateEmployeeDebtSeeder extends CreateOnlySeeder
                 throw new RuntimeException('Not enough employees to seed employee debts.');
             }
 
+            $createdAt = $this->scenarioDateTime($scenario);
+
             if ($this->createOnly(self::TARGET_TABLE, 'id', $scenario['id'], [
                 'id' => $scenario['id'],
                 'employee_id' => $employeeId,
@@ -81,8 +91,8 @@ final class CreateEmployeeDebtSeeder extends CreateOnlySeeder
                 'remaining_balance' => $scenario['total_debt'],
                 'status' => 'unpaid',
                 'notes' => $scenario['notes'],
-                'created_at' => $scenario['created_at'],
-                'updated_at' => $scenario['created_at'],
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt,
             ])) {
                 $created++;
             }
@@ -94,6 +104,17 @@ final class CreateEmployeeDebtSeeder extends CreateOnlySeeder
             $created
         ));
     }
+
+    /**
+     * @param array<string, mixed> $scenario
+     */
+    private function scenarioDateTime(array $scenario): string
+    {
+        return CreateOnlySeedCalendar::currentMonthDate((int) $scenario['day'])
+            .' '
+            .(string) $scenario['time'];
+    }
+
 
     /**
      * @return list<string>
