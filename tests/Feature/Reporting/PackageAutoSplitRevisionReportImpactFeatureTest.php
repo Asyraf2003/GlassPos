@@ -202,6 +202,41 @@ final class PackageAutoSplitRevisionReportImpactFeatureTest extends TestCase
             (string) $pdfResponse->headers->get('Content-Disposition'),
         );
         self::assertStringStartsWith('%PDF', (string) $pdfResponse->getContent());
+
+        $cashLedgerQuery = [
+            'period_mode' => 'custom',
+            'date_from' => '2030-01-01',
+            'date_to' => '2030-01-31',
+        ];
+
+        $cashLedgerExcelResponse = $this->actingAs($admin)->get(
+            route('admin.reports.transaction_cash_ledger.export_excel', $cashLedgerQuery),
+        );
+
+        $cashLedgerExcelResponse->assertOk();
+        self::assertStringContainsString(
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            (string) $cashLedgerExcelResponse->headers->get('Content-Type'),
+        );
+        self::assertStringContainsString(
+            'laporan-buku-kas-transaksi-2030-01-01-sampai-2030-01-31.xlsx',
+            (string) $cashLedgerExcelResponse->headers->get('Content-Disposition'),
+        );
+
+        $cashLedgerPdfResponse = $this->actingAs($admin)->get(
+            route('admin.reports.transaction_cash_ledger.export_pdf', $cashLedgerQuery),
+        );
+
+        $cashLedgerPdfResponse->assertOk();
+        self::assertStringContainsString(
+            'application/pdf',
+            (string) $cashLedgerPdfResponse->headers->get('Content-Type'),
+        );
+        self::assertStringContainsString(
+            'laporan-buku-kas-transaksi-2030-01-01-sampai-2030-01-31.pdf',
+            (string) $cashLedgerPdfResponse->headers->get('Content-Disposition'),
+        );
+        self::assertStringStartsWith('%PDF', (string) $cashLedgerPdfResponse->getContent());
     }
 
     private function seedPackageMultiProductNoteWithFullPayment(): void
