@@ -668,6 +668,83 @@ Transaction report dataset and transaction summary PDF/Excel export after packag
 Report/export lifecycle is PARTIAL GREEN because transaction cash ledger export and browser/manual QA remain open.
 
 
+## Phase 3 Cash Ledger Export HTTP Proof - Package Multi-Product Revision
+
+REPORT-EXPORT-003
+
+Problem / target:
+
+Characterize transaction cash ledger PDF and Excel export HTTP routes after service-store-stock package auto split multi-product downward revision.
+
+Context:
+
+Transaction summary dataset and transaction summary PDF/Excel export were already GREEN.
+Cash ledger export uses a different route/controller/use case path:
+admin.reports.transaction_cash_ledger.export_excel
+admin.reports.transaction_cash_ledger.export_pdf
+
+Scenario reused:
+
+Original note total = 250000.
+Existing payment = 250000.
+Downward revision package total = 200000.
+Revision settlement becomes overpaid_pending with surplus 50000.
+
+Updated characterization test:
+
+tests/Feature/Reporting/PackageAutoSplitRevisionReportImpactFeatureTest.php
+
+Updated test:
+
+test_transaction_report_exports_after_package_multi_product_downward_revision_return_files
+
+Local syntax proof:
+
+Command:
+php -l tests/Feature/Reporting/PackageAutoSplitRevisionReportImpactFeatureTest.php
+
+Output:
+No syntax errors detected in tests/Feature/Reporting/PackageAutoSplitRevisionReportImpactFeatureTest.php
+
+Local focused proof:
+
+Command:
+php artisan test tests/Feature/Reporting/PackageAutoSplitRevisionReportImpactFeatureTest.php
+
+Output:
+PASS Tests\Feature\Reporting\PackageAutoSplitRevisionReportImpactFeatureTest
+✓ transaction report reads current total after package multi product downward revision
+✓ transaction report exports after package multi product downward revision return files
+
+Tests: 2 passed (27 assertions)
+Duration: 6.80s
+
+Proven:
+
+transaction report dataset after package multi-product downward revision remains GREEN
+transaction summary Excel export remains GREEN
+transaction summary PDF export remains GREEN
+cash ledger Excel export route returns HTTP 200
+cash ledger Excel export returns spreadsheet content type
+cash ledger Excel export returns expected laporan-buku-kas-transaksi filename
+cash ledger PDF export route returns HTTP 200
+cash ledger PDF export returns application/pdf content type
+cash ledger PDF export returns expected laporan-buku-kas-transaksi filename
+cash ledger PDF response starts with %PDF
+
+Boundary:
+
+This proof covers transaction summary dataset/export and transaction cash ledger export HTTP responses.
+This proof does not close browser/manual QA.
+This proof does not close full make verify.
+This proof does not prove downloaded file visual formatting beyond content type, filename, and PDF signature.
+
+Status impact:
+
+Report/export after package multi-product revision is focused GREEN for transaction summary dataset, transaction summary PDF/Excel export, and transaction cash ledger PDF/Excel export.
+Remaining lifecycle gaps before full closure are browser/manual QA and full make verify.
+
+
 Still OPEN
 Payment / Settlement
 
