@@ -745,6 +745,117 @@ Report/export after package multi-product revision is focused GREEN for transact
 Remaining lifecycle gaps before full closure are browser/manual QA and full make verify.
 
 
+## Phase 3 Line Limit Refactor and Full Automated Verify
+
+LINE-LIMIT-001
+
+Problem / target:
+
+make verify failed after report/export proof because audit-lines found one file over the 100 line limit.
+
+Failure output:
+
+ERROR: File berikut melebihi limit 100 baris tanpa label bypass:
+- [104 lines] app/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilder.php
+
+Patch:
+
+Extracted revision payload work item loop into a dedicated builder.
+
+Changed files:
+
+app/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilder.php
+app/Application/Note/UseCases/CreateNoteRevisionPayloadWorkItemBuilder.php
+tests/Unit/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilderTest.php
+
+Local syntax proof:
+
+Command:
+php -l app/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilder.php
+php -l app/Application/Note/UseCases/CreateNoteRevisionPayloadWorkItemBuilder.php
+php -l tests/Unit/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilderTest.php
+
+Output:
+No syntax errors detected in app/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilder.php
+No syntax errors detected in app/Application/Note/UseCases/CreateNoteRevisionPayloadWorkItemBuilder.php
+No syntax errors detected in tests/Unit/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilderTest.php
+
+Line-count proof:
+
+Command:
+wc -l \
+  app/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilder.php \
+  app/Application/Note/UseCases/CreateNoteRevisionPayloadWorkItemBuilder.php
+
+Output:
+69 app/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilder.php
+49 app/Application/Note/UseCases/CreateNoteRevisionPayloadWorkItemBuilder.php
+118 total
+
+Local unit proof:
+
+Command:
+php artisan test tests/Unit/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilderTest.php
+
+Output:
+PASS Tests\Unit\Application\Note\UseCases\CreateNoteRevisionPayloadNoteBuilderTest
+✓ it accepts server trusted historical revision snapshot below current catalog price
+✓ it rejects forged revision snapshot below current catalog price
+
+Tests: 2 passed (4 assertions)
+Duration: 0.13s
+
+Proven:
+
+CreateNoteRevisionPayloadNoteBuilder is now below the 100-line audit limit.
+New CreateNoteRevisionPayloadWorkItemBuilder is below the 100-line audit limit.
+Revision payload builder unit coverage remains GREEN.
+No bypass label was added.
+
+FULL-VERIFY-001
+
+Problem / target:
+
+Run full automated verification after Phase 3 package multi-product revision, report/export proof, and line-limit refactor.
+
+Command:
+make verify
+
+Final local output:
+Tests: 2 skipped, 1140 passed (6466 assertions)
+Duration: 81.71s
+
+Proven:
+
+Full automated test suite completed with 1140 passing tests and 2 skipped tests.
+No failing test is visible in the final local output.
+The earlier line-limit blocker was removed before this full verify reached the test suite.
+
+Boundary:
+
+This proof covers automated verification only.
+This proof does not close browser/manual QA.
+This proof does not prove production deploy state.
+This proof does not prove remote connector state.
+This proof does not prove visual formatting of downloaded report files beyond focused HTTP export assertions.
+
+Status impact:
+
+Phase 3 focused automated lifecycle is GREEN for:
+edit/revision package multi-product preload and submit
+inventory reversal/reissue
+payment allocation rebuild and settlement
+downward refund boundary
+transaction summary dataset
+transaction summary PDF/Excel export HTTP
+transaction cash ledger PDF/Excel export HTTP
+line-limit audit blocker
+full automated make verify
+
+Remaining lifecycle gap:
+browser/manual QA.
+
+
 Still OPEN
 Payment / Settlement
 
