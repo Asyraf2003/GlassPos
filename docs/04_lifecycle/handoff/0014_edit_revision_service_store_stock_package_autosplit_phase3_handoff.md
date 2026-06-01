@@ -434,6 +434,61 @@ exact-paid paid
 downward overpaid_pending
 
 
+## Phase 3 Focused Consolidation Proof After Exact-Paid Settlement
+
+FOCUSED-CONSOLIDATION-004
+
+Problem / target:
+
+Consolidate the full focused Phase 3 characterization file after adding exact-paid package multi-product revision settlement proof.
+
+Local command:
+
+```text
+php artisan test tests/Feature/Note/EditTransactionWorkspacePackageAutoSplitCharacterizationTest.php
+```
+
+Local output:
+
+```text
+PASS  Tests\Feature\Note\EditTransactionWorkspacePackageAutoSplitCharacterizationTest
+✓ edit workspace preloads service store stock package auto split multi product revision    6.09s
+✓ admin can submit service store stock package auto split multi product revision           0.15s
+✓ package auto split multi product revision reverses old stock and issues replacement sto… 0.11s
+✓ package auto split multi product revision rebuilds payment allocations and records unde… 0.10s
+✓ package auto split multi product downward revision caps replay and records overpaid set… 0.10s
+✓ package auto split multi product refund after downward revision targets current replace… 0.21s
+✓ package auto split multi product exact paid revision records paid settlement             0.12s
+
+Tests: 7 passed (102 assertions)
+Duration: 7.03s
+```
+
+Proven by this local output:
+
+edit workspace preload service-store-stock package auto split multi-product revision remains GREEN
+admin submit edit/revision package auto split multi-product remains GREEN
+inventory reverse/reissue for package multi-product revision remains GREEN
+payment allocation rebuild and underpaid settlement remains GREEN
+downward overpaid replay cap and overpaid_pending settlement remains GREEN
+downward-overpaid selected-row refund boundary remains GREEN
+exact-paid paid settlement remains GREEN
+focused Phase 3 characterization file is consolidated at 7 tests / 102 assertions
+
+Boundary:
+
+This focused consolidation does not close report/export after revision.
+This focused consolidation does not close browser/manual QA.
+This focused consolidation does not close full make verify.
+This focused consolidation does not claim full lifecycle closure.
+
+Status impact:
+
+Payment/settlement after package multi-product revision is GREEN for partial-paid underpaid, exact-paid paid, and downward overpaid scenarios.
+Core focused edit/revision + inventory + payment/settlement + downward refund boundary is GREEN.
+Remaining high-value lifecycle gap before full verify is report/export after package multi-product revision.
+
+
 Still OPEN
 Payment / Settlement
 
