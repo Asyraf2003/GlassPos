@@ -779,6 +779,255 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
     }
 
 
+    public function test_package_auto_split_multi_product_refund_after_downward_revision_targets_current_replacement_components_only(): void
+    {
+        $this->seedOpenMultiProductPackageNote();
+
+        $this->seedCustomerPaymentBase(
+            'payment-edit-package-multi-refund-001',
+            250000,
+            '2026-05-31',
+        );
+
+        $this->seedPaymentAllocationBase(
+            'payment-allocation-edit-package-multi-refund-001',
+            'payment-edit-package-multi-refund-001',
+            'note-edit-package-multi-001',
+            250000,
+        );
+
+        DB::table('payment_component_allocations')->insert([
+            [
+                'id' => 'pca-edit-package-multi-refund-old-a',
+                'customer_payment_id' => 'payment-edit-package-multi-refund-001',
+                'note_id' => 'note-edit-package-multi-001',
+                'work_item_id' => 'wi-edit-package-multi-001',
+                'component_type' => PaymentComponentType::SERVICE_STORE_STOCK_PART,
+                'component_ref_id' => 'ssl-edit-package-multi-a',
+                'component_amount_rupiah_snapshot' => 100000,
+                'allocated_amount_rupiah' => 100000,
+                'allocation_priority' => 1,
+            ],
+            [
+                'id' => 'pca-edit-package-multi-refund-old-b',
+                'customer_payment_id' => 'payment-edit-package-multi-refund-001',
+                'note_id' => 'note-edit-package-multi-001',
+                'work_item_id' => 'wi-edit-package-multi-001',
+                'component_type' => PaymentComponentType::SERVICE_STORE_STOCK_PART,
+                'component_ref_id' => 'ssl-edit-package-multi-b',
+                'component_amount_rupiah_snapshot' => 30000,
+                'allocated_amount_rupiah' => 30000,
+                'allocation_priority' => 2,
+            ],
+            [
+                'id' => 'pca-edit-package-multi-refund-old-service',
+                'customer_payment_id' => 'payment-edit-package-multi-refund-001',
+                'note_id' => 'note-edit-package-multi-001',
+                'work_item_id' => 'wi-edit-package-multi-001',
+                'component_type' => PaymentComponentType::SERVICE_FEE,
+                'component_ref_id' => 'wi-edit-package-multi-001',
+                'component_amount_rupiah_snapshot' => 120000,
+                'allocated_amount_rupiah' => 120000,
+                'allocation_priority' => 3,
+            ],
+        ]);
+
+        $user = User::query()->create([
+            'name' => 'Admin Package Revision Refund Characterization',
+            'email' => 'admin-package-revision-refund-characterization@example.test',
+            'password' => 'password',
+        ]);
+
+        DB::table('actor_accesses')->insert([
+            'actor_id' => (string) $user->getAuthIdentifier(),
+            'role' => 'admin',
+        ]);
+
+        DB::table('admin_transaction_capability_states')->updateOrInsert(
+            ['actor_id' => (string) $user->getAuthIdentifier()],
+            ['active' => true],
+        );
+
+        $response = $this->actingAs($user)->patch(
+            route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
+            [
+                'reason' => 'Package multi-product refund boundary characterization.',
+                'note' => [
+                    'customer_name' => 'Budi Edit Package Multi Refund Revised',
+                    'customer_phone' => '08123456789',
+                    'transaction_date' => '2026-06-01',
+                    'operational_note' => 'Alasan revisi refund package multi.',
+                ],
+                'items' => [
+                    [
+                        'entry_mode' => 'service',
+                        'description' => null,
+                        'part_source' => 'store_stock',
+                        'pricing_mode' => 'package_auto_split',
+                        'package_total_rupiah' => 200000,
+                        'service' => [
+                            'name' => 'Servis Paket Multi Refund Revised',
+                            'price_rupiah' => 0,
+                            'notes' => null,
+                        ],
+                        'product_lines' => [
+                            [
+                                'product_id' => 'product-package-edit-a',
+                                'qty' => 2,
+                                'unit_price_rupiah' => 50000,
+                                'price_basis' => 'revision_snapshot',
+                            ],
+                            [
+                                'product_id' => 'product-package-edit-b',
+                                'qty' => 1,
+                                'unit_price_rupiah' => 30000,
+                                'price_basis' => 'revision_snapshot',
+                            ],
+                        ],
+                        'external_purchase_lines' => [],
+                    ],
+                ],
+            ]
+        );
+
+        $response->assertRedirect(route('admin.notes.show', ['noteId' => 'note-edit-package-multi-001']));
+
+        $workItemId = (string) DB::table('work_items')
+            ->where('note_id', 'note-edit-package-multi-001')
+            ->value('id');
+
+        self::assertNotSame('', $workItemId);
+        self::assertNotSame('wi-edit-package-multi-001', $workItemId);
+
+        $replacementLineIds = DB::table('work_item_store_stock_lines')
+            ->where('work_item_id', $workItemId)
+            ->pluck('id', 'product_id');
+
+        self::assertArrayHasKey('product-package-edit-a', $replacementLineIds->all());
+        self::assertArrayHasKey('product-package-edit-b', $replacementLineIds->all());
+
+        $this->assertDatabaseHas('payment_component_allocations', [
+            'customer_payment_id' => 'payment-edit-package-multi-refund-001',
+            'note_id' => 'note-edit-package-multi-001',
+            'work_item_id' => $workItemId,
+            'component_type' => PaymentComponentType::SERVICE_STORE_STOCK_PART,
+            'component_ref_id' => (string) $replacementLineIds['product-package-edit-a'],
+            'allocated_amount_rupiah' => 100000,
+        ]);
+
+        $this->assertDatabaseHas('payment_component_allocations', [
+            'customer_payment_id' => 'payment-edit-package-multi-refund-001',
+            'note_id' => 'note-edit-package-multi-001',
+            'work_item_id' => $workItemId,
+            'component_type' => PaymentComponentType::SERVICE_STORE_STOCK_PART,
+            'component_ref_id' => (string) $replacementLineIds['product-package-edit-b'],
+            'allocated_amount_rupiah' => 30000,
+        ]);
+
+        $this->assertDatabaseHas('payment_component_allocations', [
+            'customer_payment_id' => 'payment-edit-package-multi-refund-001',
+            'note_id' => 'note-edit-package-multi-001',
+            'work_item_id' => $workItemId,
+            'component_type' => PaymentComponentType::SERVICE_FEE,
+            'component_ref_id' => $workItemId,
+            'allocated_amount_rupiah' => 70000,
+        ]);
+
+        self::assertSame(
+            200000,
+            (int) DB::table('payment_component_allocations')
+                ->where('note_id', 'note-edit-package-multi-001')
+                ->where('customer_payment_id', 'payment-edit-package-multi-refund-001')
+                ->sum('allocated_amount_rupiah'),
+        );
+
+        $this->actingAs($user)
+            ->from(route('admin.notes.show', ['noteId' => 'note-edit-package-multi-001']))
+            ->post(route('admin.notes.refunds.store', ['noteId' => 'note-edit-package-multi-001']), [
+                'selected_row_ids' => ['wi-edit-package-multi-001'],
+                'refunded_at' => '2026-06-02',
+                'reason' => 'Attempt stale package multi row refund.',
+            ])
+            ->assertRedirect(route('admin.notes.show', ['noteId' => 'note-edit-package-multi-001']))
+            ->assertSessionHasErrors(['refund']);
+
+        $this->assertDatabaseCount('customer_refunds', 0);
+        $this->assertDatabaseCount('refund_component_allocations', 0);
+
+        $this->actingAs($user)
+            ->from(route('admin.notes.show', ['noteId' => 'note-edit-package-multi-001']))
+            ->post(route('admin.notes.refunds.store', ['noteId' => 'note-edit-package-multi-001']), [
+                'selected_row_ids' => [$workItemId],
+                'refunded_at' => '2026-06-02',
+                'reason' => 'Refund current replacement package multi row.',
+            ])
+            ->assertRedirect(route('admin.notes.index'))
+            ->assertSessionHas('success');
+
+        $refundId = (string) DB::table('customer_refunds')
+            ->where('note_id', 'note-edit-package-multi-001')
+            ->value('id');
+
+        self::assertNotSame('', $refundId);
+
+        $this->assertDatabaseHas('customer_refunds', [
+            'id' => $refundId,
+            'customer_payment_id' => 'payment-edit-package-multi-refund-001',
+            'note_id' => 'note-edit-package-multi-001',
+            'amount_rupiah' => 200000,
+            'reason' => 'Refund current replacement package multi row.',
+        ]);
+
+        $this->assertDatabaseHas('refund_component_allocations', [
+            'customer_refund_id' => $refundId,
+            'customer_payment_id' => 'payment-edit-package-multi-refund-001',
+            'note_id' => 'note-edit-package-multi-001',
+            'work_item_id' => $workItemId,
+            'component_type' => PaymentComponentType::SERVICE_STORE_STOCK_PART,
+            'component_ref_id' => (string) $replacementLineIds['product-package-edit-a'],
+            'refunded_amount_rupiah' => 100000,
+        ]);
+
+        $this->assertDatabaseHas('refund_component_allocations', [
+            'customer_refund_id' => $refundId,
+            'customer_payment_id' => 'payment-edit-package-multi-refund-001',
+            'note_id' => 'note-edit-package-multi-001',
+            'work_item_id' => $workItemId,
+            'component_type' => PaymentComponentType::SERVICE_STORE_STOCK_PART,
+            'component_ref_id' => (string) $replacementLineIds['product-package-edit-b'],
+            'refunded_amount_rupiah' => 30000,
+        ]);
+
+        $this->assertDatabaseHas('refund_component_allocations', [
+            'customer_refund_id' => $refundId,
+            'customer_payment_id' => 'payment-edit-package-multi-refund-001',
+            'note_id' => 'note-edit-package-multi-001',
+            'work_item_id' => $workItemId,
+            'component_type' => PaymentComponentType::SERVICE_FEE,
+            'component_ref_id' => $workItemId,
+            'refunded_amount_rupiah' => 70000,
+        ]);
+
+        self::assertSame(
+            200000,
+            (int) DB::table('refund_component_allocations')
+                ->where('customer_refund_id', $refundId)
+                ->sum('refunded_amount_rupiah'),
+        );
+
+        $this->assertDatabaseMissing('refund_component_allocations', [
+            'customer_refund_id' => $refundId,
+            'work_item_id' => 'wi-edit-package-multi-001',
+        ]);
+
+        $this->assertDatabaseHas('work_items', [
+            'id' => $workItemId,
+            'note_id' => 'note-edit-package-multi-001',
+            'status' => WorkItem::STATUS_CANCELED,
+        ]);
+    }
+
+
     private function seedOpenMultiProductPackageNote(): void
     {
         $this->seedNoteBase(
