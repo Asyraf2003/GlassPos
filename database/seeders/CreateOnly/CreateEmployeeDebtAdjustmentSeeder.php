@@ -6,6 +6,7 @@ namespace Database\Seeders\CreateOnly;
 
 use App\Core\IdentityAccess\Role\Role;
 use Database\Seeders\CreateOnly\Support\CreateOnlySeeder;
+use Database\Seeders\CreateOnly\Support\CreateOnlySeedCalendar;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -21,11 +22,13 @@ final class CreateEmployeeDebtAdjustmentSeeder extends CreateOnlySeeder
      *   before_total_debt:int,
      *   adjustment_amount:int,
      *   notes:string,
-     *   created_at:string,
+     *   day:int,
+     *   time:string,
      *   adjustment:array{
      *     id:string,
      *     reason:string,
-     *     created_at:string
+     *     day:int,
+     *     time:string
      *   }
      * }>
      */
@@ -36,11 +39,13 @@ final class CreateEmployeeDebtAdjustmentSeeder extends CreateOnlySeeder
             'before_total_debt' => 300000,
             'adjustment_amount' => 50000,
             'notes' => 'Seed kasbon adjustment increase - tambahan sparepart',
-            'created_at' => '2026-05-20 13:10:00',
+            'day' => 20,
+            'time' => '13:10:00',
             'adjustment' => [
                 'id' => '00000000-0000-5200-0003-000000000001',
                 'reason' => 'Seed penyesuaian principal kasbon tambah sparepart',
-                'created_at' => '2026-05-20 13:40:00',
+                'day' => 20,
+                'time' => '13:40:00',
             ],
         ],
         [
@@ -49,11 +54,13 @@ final class CreateEmployeeDebtAdjustmentSeeder extends CreateOnlySeeder
             'before_total_debt' => 450000,
             'adjustment_amount' => 125000,
             'notes' => 'Seed kasbon adjustment increase - tambahan kebutuhan operasional',
-            'created_at' => '2026-05-20 13:20:00',
+            'day' => 20,
+            'time' => '13:20:00',
             'adjustment' => [
                 'id' => '00000000-0000-5200-0003-000000000002',
                 'reason' => 'Seed penyesuaian principal kasbon kebutuhan operasional',
-                'created_at' => '2026-05-20 13:50:00',
+                'day' => 20,
+                'time' => '13:50:00',
             ],
         ],
         [
@@ -62,11 +69,13 @@ final class CreateEmployeeDebtAdjustmentSeeder extends CreateOnlySeeder
             'before_total_debt' => 700000,
             'adjustment_amount' => 200000,
             'notes' => 'Seed kasbon adjustment increase - tambahan pinjaman sementara',
-            'created_at' => '2026-05-20 13:30:00',
+            'day' => 20,
+            'time' => '13:30:00',
             'adjustment' => [
                 'id' => '00000000-0000-5200-0003-000000000003',
                 'reason' => 'Seed penyesuaian principal kasbon pinjaman sementara',
-                'created_at' => '2026-05-20 14:00:00',
+                'day' => 20,
+                'time' => '14:00:00',
             ],
         ],
     ];
@@ -89,6 +98,9 @@ final class CreateEmployeeDebtAdjustmentSeeder extends CreateOnlySeeder
                 throw new RuntimeException('Not enough employees to seed employee debt adjustments.');
             }
 
+            $debtCreatedAt = $this->scenarioDateTime($scenario);
+            $adjustmentCreatedAt = $this->scenarioDateTime($scenario['adjustment']);
+
             if ($this->debtExists($scenario['id'])) {
                 $this->assertExistingDebtMatches($scenario['id'], $afterTotalDebt);
             } else {
@@ -99,8 +111,8 @@ final class CreateEmployeeDebtAdjustmentSeeder extends CreateOnlySeeder
                     'remaining_balance' => $afterTotalDebt,
                     'status' => 'unpaid',
                     'notes' => $scenario['notes'],
-                    'created_at' => $scenario['created_at'],
-                    'updated_at' => $scenario['adjustment']['created_at'],
+                    'created_at' => $debtCreatedAt,
+                    'updated_at' => $adjustmentCreatedAt,
                 ])) {
                     $createdDebts++;
                 }
@@ -124,8 +136,8 @@ final class CreateEmployeeDebtAdjustmentSeeder extends CreateOnlySeeder
                 'after_total_debt' => $afterTotalDebt,
                 'before_remaining_balance' => $scenario['before_total_debt'],
                 'after_remaining_balance' => $afterTotalDebt,
-                'created_at' => $adjustment['created_at'],
-                'updated_at' => $adjustment['created_at'],
+                'created_at' => $adjustmentCreatedAt,
+                'updated_at' => $adjustmentCreatedAt,
             ])) {
                 $createdAdjustments++;
             }
@@ -153,6 +165,17 @@ final class CreateEmployeeDebtAdjustmentSeeder extends CreateOnlySeeder
             ->values()
             ->all();
     }
+
+    /**
+     * @param array<string, mixed> $scenario
+     */
+    private function scenarioDateTime(array $scenario): string
+    {
+        return CreateOnlySeedCalendar::currentMonthDate((int) $scenario['day'])
+            .' '
+            .(string) $scenario['time'];
+    }
+
 
     private function adminActorId(): string
     {
