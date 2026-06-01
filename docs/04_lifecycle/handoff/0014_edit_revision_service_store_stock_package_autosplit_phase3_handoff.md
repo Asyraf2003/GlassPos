@@ -258,8 +258,8 @@ Payment / Settlement
 
 OPEN:
 
-Payment allocation rebuild after package multi-product revision is PARTIAL GREEN for partial-paid underpaid scenario.
-Settlement record/status after package multi-product revision is PARTIAL GREEN for partial-paid underpaid scenario.
+Payment allocation rebuild after package multi-product revision is PARTIAL GREEN for partial-paid underpaid and downward overpaid scenarios.
+Settlement record/status after package multi-product revision is PARTIAL GREEN for partial-paid underpaid and downward overpaid scenarios.
 Paid/partial-paid/overpaid scenario after revision.
 Guarantee no payment amount disappears or doubles.
 note_revision_settlements correctness after r002 revision.
@@ -321,7 +321,7 @@ Estimated Progress
 
 Phase 3 edit/revision service-store-stock package auto split:
 
-Approximately 70% to 75%.
+Approximately 75% to 80%.
 
 If counting only preload + submit + inventory, that slice is about 80%+.
 
@@ -419,6 +419,58 @@ Boundary:
 
 This proof covers partial-paid underpaid package multi-product revision only.
 It does not prove exact-paid, overpaid/downward, refund boundary, report/export, browser QA, or full verify.
+
+
+## Phase 3 Payment / Settlement Proof - Downward Overpaid Package Multi-Product
+
+PAYMENT-SETTLEMENT-002
+
+Problem / target:
+
+Characterize downward revision after a fully paid service-store-stock package auto split multi-product note becomes overpaid after replacement total decreases.
+
+Local command:
+
+```text
+php artisan test tests/Feature/Note/EditTransactionWorkspacePackageAutoSplitCharacterizationTest.php
+```
+
+Local output:
+
+```text
+PASS  Tests\Feature\Note\EditTransactionWorkspacePackageAutoSplitCharacterizationTest
+✓ edit workspace preloads service store stock package auto split multi product revision
+✓ admin can submit service store stock package auto split multi product revision
+✓ package auto split multi product revision reverses old stock and issues replacement stock
+✓ package auto split multi product revision rebuilds payment allocations and records underpaid settlement
+✓ package auto split multi product downward revision caps replay and records overpaid settlement
+
+Tests: 5 passed (62 assertions)
+Duration: 6.48s
+```
+
+Proven by this focused test:
+
+Downward package multi-product revision caps rebuilt payment_component_allocations to replacement gross total.
+Existing customer_payments row is preserved at 250000.
+Replacement allocation total is capped to 200000, so the overpaid amount is not incorrectly allocated into replacement components.
+Replacement allocation is distributed across:
+product A store-stock part = 100000
+product B store-stock part = 30000
+service fee residual = 70000
+r002 note_revision_settlements is recorded with:
+gross_total_rupiah = 200000
+carry_forward_paid_rupiah = 250000
+carry_forward_refunded_rupiah = 0
+net_paid_rupiah = 250000
+outstanding_rupiah = 0
+surplus_rupiah = 50000
+settlement_status = overpaid_pending
+
+Boundary:
+
+This proof covers downward overpaid package multi-product revision only.
+It does not prove exact-paid package multi-product revision, refund boundary, report/export, browser QA, or full verify.
 
 
 Next Session Opening Prompt Should Reference This File
