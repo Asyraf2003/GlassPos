@@ -376,3 +376,27 @@ Remaining gaps after this proof:
 Full make verify has not been run after date formatter and product snapshot patches.
 Browser/manual UI proof after these patches is not recorded.
 Reporting/export impact from global ViewDateFormatter change has not been fully regressed.
+
+---
+
+## SUPERSEDED STATUS POINTER
+
+Later closure proof is recorded in:
+
+- docs/04_lifecycle/handoff/0013_create_transaction_workspace_create_path_closure_handoff.md
+
+The following earlier gaps in this handoff are superseded for the create/detail/report baseline:
+
+- full 'make verify' pending,
+- detail 'operational_note' visibility pending,
+- package breakdown visibility pending,
+- reporting/export impact pending.
+
+Final known local proof is:
+
+> make verify
+> Tests: 2 skipped, 1131 passed (6342 assertions)
+
+Remaining lifecycle work is not create/detail baseline work. It belongs to the next scope:
+Phase 3 - Edit/Revision lifecycle characterization for service-store-stock package auto split.
+
