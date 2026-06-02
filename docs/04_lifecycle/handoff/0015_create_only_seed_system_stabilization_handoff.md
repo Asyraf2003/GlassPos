@@ -10,6 +10,8 @@ This handoff does not close the full seed system.
 
 ## Source Of Truth
 
+- Active seed scale blueprint: docs/03_blueprints/seeder/0001_create_only_seed_scale_profiles.md
+
 Local command output is the highest source of truth.
 
 Do not claim a seed, report, projection, test, or verify status without local proof.
@@ -645,24 +647,49 @@ Use create-all-month-normal-100m for the monthly normal 100-200 juta aggregate p
 
 Do not start peak, stress, or refund scaffold in the same step as the 100M profile.
 
+## Active Blueprint Promotion
+
+Peak/stress scale planning was promoted from chat-only planning into:
+
+docs/03_blueprints/seeder/0001_create_only_seed_scale_profiles.md
+
+Purpose:
+
+keep create-only seed scale profiles auditable outside the chat session;
+preserve existing small and 100M profile proof;
+define peak 500 juta/month as the next implementation target;
+reserve stress 6-8 miliar/month and 10 miliar/month as separate future targets;
+avoid mixing refund scaffold into create-only scale profile work.
+
+Current blueprint status:
+
+L0 create-all-v3: implemented/proven
+L1 create-all-month-normal-100m: implemented/proven
+L2 create-all-month-peak-500m: planned next
+L3 create-all-month-stress-8b: planned later
+L4 create-all-month-stress-10b: planned later
+L5 refund scaffold: planned separately
+
+
 ## NEXT ACTIVE STEP
 
-Plan peak 500 juta/month dataset profile.
+Patch peak 500 juta/month seeder files only.
 
 Goal:
 
-Define the next seed profile above monthly normal 100-200 juta.
+Implement the first peak 500 juta/month seeder slice from the promoted blueprint.
 Keep existing weekly, monthly-normal small, and monthly-normal 100M profiles intact.
-Do not patch code until the peak 500 juta blueprint is explicit.
+Patch only the three new peak seeder/factory files before touching make targets.
 
 Scope:
 
-Review current transaction seed totals.
-Define peak profile target note count, cash-in range, cost mix, paid/unpaid mix, payment method mix, and report expectations.
-Decide whether peak 500 juta should be a new seeder and separate make target.
-Preserve create-all-v3 and create-all-month-normal-100m behavior.
+Add database/seeders/CreateOnly/CreateTransactionMonthPeak500MSeeder.php.
+Add database/seeders/CreateOnly/Support/CreateTransactionMonthPeak500MPayloadFactory.php.
+Add database/seeders/CreateOnly/Support/CreateTransactionMonthPeak500MItemFactory.php.
+Verify syntax and line count only.
 
-Do not start stress 6-8 miliar/month, refund scaffold, or report wording patch in the same step.
+Do not patch mk/seed.mk until the three files pass syntax and line-count proof.
+Do not start stress 6-8 miliar/month, 10 miliar/month, refund scaffold, or report wording patch in the same step.
 
 ## Opening Prompt For Next Session
 
@@ -747,14 +774,17 @@ Duration: 83.03s.
 
 Mulai dari NEXT ACTIVE STEP di handoff:
 
-Plan peak 500 juta/month dataset profile.
+Patch peak 500 juta/month seeder files only.
 
 Target sesi berikutnya:
 
-Jangan patch dulu.
-Buat blueprint dulu untuk peak 500 juta/month dataset profile.
-Review current transaction seed totals and existing monthly-normal 100M shape.
-Tentukan target note count, cash-in range, product cost mix, paid/unpaid mix, payment method mix, store-stock/external purchase/service/package mix, dan expected report output.
-Tentukan apakah profile peak 500 juta harus menjadi seeder baru atau make target baru.
-Jangan mulai stress 6-8 miliar/month, refund scaffold, atau report wording patch di step yang sama.
-Setelah blueprint jelas, baru next response boleh lanjut ke patch scope yang kecil dan provable.
+Baca active blueprint:
+docs/03_blueprints/seeder/0001_create_only_seed_scale_profiles.md
+Jangan patch make target dulu.
+Patch hanya tiga file peak 500M seeder/factory:
+database/seeders/CreateOnly/CreateTransactionMonthPeak500MSeeder.php
+database/seeders/CreateOnly/Support/CreateTransactionMonthPeak500MPayloadFactory.php
+database/seeders/CreateOnly/Support/CreateTransactionMonthPeak500MItemFactory.php
+Jalankan syntax dan line-count proof.
+Jangan mulai stress 6-8 miliar/month, 10 miliar/month, refund scaffold, atau report wording patch di step yang sama.
+Setelah 3 file peak seeder valid, baru next response boleh wire make target.
