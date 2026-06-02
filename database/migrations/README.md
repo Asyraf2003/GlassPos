@@ -1,8 +1,8 @@
 # HyperPOS Database Migration Contract
 
-Status: Active migration contract reference  
-Scope: MySQL schema hardening toward PostgreSQL-aligned structure  
-Runtime DB now: MySQL  
+Status: Active migration contract reference
+Scope: MySQL schema hardening toward PostgreSQL-aligned structure
+Runtime DB now: MySQL
 Future target: PostgreSQL-ready schema discipline, not immediate PostgreSQL cutover
 
 ## Goal
@@ -185,7 +185,7 @@ Do not start seeder rewrite before this classification is done.
 
 ## Current Migration Compatibility Scan - unsigned/layout/text
 
-Status: Active classification target  
+Status: Active classification target
 Source command:
 
     rg -n -- "unsignedInteger|unsignedBigInteger|->after\\(|->change\\(|mediumText|longText|enum" database/migrations
@@ -704,3 +704,259 @@ NEXT TRANSITION-ONLY WORK:
 - Projection rebuild proof.
 - PostgreSQL application test suite.
 - Cutover and rollback runbook.
+
+## Live Production Schema Parity Track - Structure Only
+
+Status: Active planning note
+Scope: Compare and align production MySQL table names and table structures against the migration-defined target schema.
+Runtime DB now: MySQL
+Production DB: `arbiconb_abiad`
+Local/reference DB name seen in prior snapshot: `bengkelhex`
+
+## Scope Decision
+
+The live parity target is structure only.
+
+Included:
+
+- table names
+- table existence
+- column names
+- column order where migration compatibility or raw SQL depends on it
+- column type
+- nullable flag
+- default value
+- primary key shape
+- index and unique key shape
+- foreign key shape
+- generated columns
+- table engine and collation when they affect compatibility
+
+Excluded:
+
+- table row contents
+- row count parity
+- seeded data parity
+- transaction data parity
+- data overwrite
+- dump/restore data sync
+
+Decision:
+
+- Do not compare or copy business data for this track.
+- Do not generate `INSERT`, data `UPDATE`, data `DELETE`, or full data dump scripts from this track.
+- Production structure changes must be forward-only SQL or explicit Laravel migration scripts.
+
+## Source Of Truth Order For This Track
+
+Use this priority order:
+
+1. Repository migration files in `database/migrations` define the target structure.
+2. Existing migration contract README defines policy and boundaries.
+3. Production `information_schema` query output defines current live production structure.
+4. Prior local database snapshot is supporting evidence only, not the final target source.
+
+Rationale:
+
+- Local MySQL CLI may not be available or reliable as the schema source.
+- Edited historical migrations define the intended research/fresh schema direction.
+- The live database will not automatically receive those edits.
+- Therefore the correct comparison is target migration schema versus live production schema.
+
+## Current Snapshot Finding From Prior Ad-Hoc Schema Comparison
+
+Status: Informational, not final patch proof.
+
+FACT:
+
+- A prior ad-hoc schema comparison suggested production-like output had extra backup tables not present in the cleaner reference snapshot:
+  - `backup_srl_a3kzl_20260419`
+  - `supplier_list_projection_backup_before_manual_rebuild`
+- A prior ad-hoc comparison also suggested several structure differences around:
+  - unsigned-to-signed integer cleanup results
+  - JSON/text payload alignment
+  - timestamp default/on-update semantics
+  - supplier payment proof attachment metadata
+  - supplier invoice and receipt line timestamp residue
+  - production backup tables
+
+BOUNDARY:
+
+- These findings must not be used as final production patch SQL yet.
+- The final diff must be regenerated from repository migrations plus production `information_schema` output.
+- Backup-looking production tables must not be dropped until ownership and preservation decision are documented.
+
+## Production Access Constraint
+
+Production allows MySQL query access only.
+
+Allowed production reads:
+
+- `information_schema.TABLES`
+- `information_schema.COLUMNS`
+- `information_schema.STATISTICS`
+- `information_schema.KEY_COLUMN_USAGE`
+- `information_schema.TRIGGERS`
+- `SHOW CREATE TABLE` if available in the panel
+
+Forbidden production behavior in this track:
+
+- `migrate:fresh`
+- destructive table rebuilds
+- dropping backup-looking tables without explicit decision
+- data import/export for parity
+- mass alteration without backup and rollback SQL
+
+## Required Next Work - Migration Schema Inventory
+
+Status: Next active step before patching production.
+
+Goal:
+
+Build a migration-derived target schema inventory from repository files.
+
+Required repository reads:
+
+- all files in `database/migrations/*.php`
+- any migration helper/macro used by migrations
+- current migration README/contract file
+- any handoff that declares DB baseline freeze or production parity plan
+
+Minimum extraction categories:
+
+- `Schema::create(...)`
+- `Schema::table(...)`
+- `$table->...` column definitions
+- index definitions
+- unique constraints
+- foreign keys
+- raw `DB::statement(...)`
+- generated-column workarounds
+- JSON validity checks
+- driver-aware migration branches
+
+Required output artifact:
+
+- `target_schema_from_migrations.md` or equivalent section in this README
+- table-by-table target structure summary
+- accepted residual classification
+- production diff checklist
+
+## Required Production Snapshot Query - Structure Only
+
+Use production SQL only. Do not query row contents.
+
+```sql
+SELECT
+  TABLE_NAME,
+  TABLE_TYPE,
+  ENGINE,
+  TABLE_COLLATION
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = 'arbiconb_abiad'
+ORDER BY TABLE_NAME;
+
+SELECT
+  TABLE_NAME,
+  ORDINAL_POSITION,
+  COLUMN_NAME,
+  COLUMN_TYPE,
+  IS_NULLABLE,
+  COLUMN_DEFAULT,
+  COLUMN_KEY,
+  EXTRA,
+  CHARACTER_SET_NAME,
+  COLLATION_NAME
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = 'arbiconb_abiad'
+ORDER BY TABLE_NAME, ORDINAL_POSITION;
+
+SELECT
+  TABLE_NAME,
+  INDEX_NAME,
+  NON_UNIQUE,
+  SEQ_IN_INDEX,
+  COLUMN_NAME,
+  SUB_PART,
+  INDEX_TYPE
+FROM information_schema.STATISTICS
+WHERE TABLE_SCHEMA = 'arbiconb_abiad'
+ORDER BY TABLE_NAME, INDEX_NAME, SEQ_IN_INDEX;
+
+SELECT
+  TABLE_NAME,
+  CONSTRAINT_NAME,
+  COLUMN_NAME,
+  REFERENCED_TABLE_NAME,
+  REFERENCED_COLUMN_NAME
+FROM information_schema.KEY_COLUMN_USAGE
+WHERE TABLE_SCHEMA = 'arbiconb_abiad'
+  AND REFERENCED_TABLE_NAME IS NOT NULL
+ORDER BY TABLE_NAME, CONSTRAINT_NAME, ORDINAL_POSITION;
+
+SELECT
+  TRIGGER_NAME,
+  EVENT_MANIPULATION,
+  EVENT_OBJECT_TABLE,
+  ACTION_TIMING
+FROM information_schema.TRIGGERS
+WHERE TRIGGER_SCHEMA = 'arbiconb_abiad'
+ORDER BY EVENT_OBJECT_TABLE, TRIGGER_NAME;
+```
+
+## Patch Planning Rule
+
+Do not patch production directly from an unreviewed diff.
+
+Patch sequence must be:
+
+1. read migration contract
+2. read all migration files
+3. generate migration-derived target schema inventory
+4. collect production structure-only snapshot
+5. classify diff table-by-table
+6. separate harmless backup/legacy tables from active application tables
+7. write forward-only SQL patch draft
+8. write rollback SQL draft
+9. review destructive operations separately
+10. execute one small table group at a time
+11. verify production structure after each group
+
+## Table Group Order For Slow Execution
+
+Recommended order:
+
+1. non-destructive metadata/collation/type alignment
+2. JSON validity and payload alignment
+3. timestamp/default alignment
+4. revision/counter signed integer alignment
+5. supplier/procurement line timestamp cleanup
+6. generated-column/index compatibility checks
+7. backup-looking table decision
+8. final schema verification
+
+Do not combine all groups into one giant patch unless a rollback-tested dry run exists. Large SQL blobs make humans feel powerful right before they delete the wrong thing.
+
+## Required Proof Before Marking Production Structure Parity Done
+
+Required proof:
+
+- migration-derived target schema inventory exists
+- production pre-patch structure snapshot exists
+- reviewed diff exists
+- production backup exists or hosting backup point is documented
+- forward SQL exists
+- rollback SQL exists
+- production post-patch structure snapshot exists
+- post-patch diff shows no unintended structural drift
+- application smoke test is completed after production structure patch
+
+Allowed claim after proof:
+
+- Production MySQL table structure has been aligned to the migration-defined target schema for the reviewed table groups.
+
+Forbidden claim after proof:
+
+- Production data was synchronized.
+- Production PostgreSQL cutover is ready.
+- Full application correctness is proven from schema parity alone.
