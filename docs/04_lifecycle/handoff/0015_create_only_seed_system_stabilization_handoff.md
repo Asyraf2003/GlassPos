@@ -1519,3 +1519,110 @@ Do not start 10B.
 Do not start refund scaffold.
 Do not claim stress 8B closed until full aggregate, report sanity, export proof, and verify are complete.
 ```
+
+### STRESS-8B-PAUSE-001 - Pause extreme stress profile as non-blocking backlog
+
+Local date: 2026-06-02.
+
+#### Context
+
+Stress 8B was implemented as an extreme create-only monthly stress profile after Peak 500M closure.
+
+This profile is intentionally not promoted to normal workflow closure yet.
+
+#### Work completed
+
+Stress 8B completed work:
+
+```text
+Stress 8B blueprint promoted to executable profile.
+Inventory capacity proof completed.
+Seeder files created.
+Seeder syntax proof completed.
+Seeder line-count proof completed.
+Standalone seeder proof completed.
+Standalone source aggregate proof completed.
+mk/seed.mk target wiring completed.
+make dry-run proof completed.
+```
+
+#### Latest local execution proof
+
+Executed:
+
+```text
+php artisan migrate:fresh --seed
+make create-all-month-stress-8b
+```
+
+Visible output:
+
+```text
+create-only transaction month-stress-8b notes: planned=3200 created=3200 replayed=0
+Create-only audit baseline seeded.
+Rebuild projection procurement selesai.
+Rebuild projection supplier selesai.
+Note projection: 3234/3234
+Rebuild projection note selesai.
+Projection rebuild selesai.
+```
+
+#### What this proves
+
+Stress 8B seeder is executable through the human-facing make target.
+Stress 8B target can run after a fresh database reset.
+Stress 8B target reaches audit baseline and projection rebuild.
+Note projection rebuild reached the expected 3234 notes.
+
+#### Still not proven
+
+The following closure proofs were intentionally not completed:
+
+```text
+Final aggregate SQL proof after full make target.
+Operational profit sanity proof.
+PDF export proof.
+XLSX export proof.
+make verify proof.
+Final Stress 8B closure.
+```
+
+#### Decision
+
+Stress 8B is paused.
+Stress 8B is not closed.
+Stress 8B is kept as an extreme-load backlog profile.
+Stress 8B must not block return to create transaction, report, edit, or refund work.
+Do not start 10B from this branch of work.
+Do not start refund scaffold as a continuation of Stress 8B.
+Do not remove Stress 8B seeder files.
+Do not route normal development through create-all-month-stress-8b.
+
+#### Make target policy
+
+```text
+create-all-v3:
+    normal small owner-readable sanity profile.
+
+create-all-month-normal-100m:
+    monthly normal 100M profile.
+
+create-all-month-peak-500m:
+    proven peak 500M profile.
+
+create-all-month-stress-8b:
+    extreme stress profile, executable but paused before final closure.
+```
+
+#### Next valid work direction
+
+Return focus to application behavior work:
+
+```text
+create transaction
+reports
+edit/refund lifecycle
+```
+
+Stress 8B may be resumed only by explicitly reopening this backlog item and completing the missing closure proofs.
+
