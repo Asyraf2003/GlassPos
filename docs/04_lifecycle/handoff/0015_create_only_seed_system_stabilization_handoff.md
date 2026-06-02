@@ -608,7 +608,7 @@ test suite remains GREEN after the change.
 
 Full serious create-all seed system:
 
-80-82%
+84-86%
 
 Reason full system is not higher:
 
@@ -647,6 +647,205 @@ Use create-all-month-normal-100m for the monthly normal 100-200 juta aggregate p
 
 Do not start peak, stress, or refund scaffold in the same step as the 100M profile.
 
+## Peak 500M Interim Proof And Open PR
+
+### SEED-TXN-005 - Peak 500M standalone and aggregate proof
+
+Files added in current session:
+
+- `database/seeders/CreateOnly/CreateTransactionMonthPeak500MSeeder.php`
+- `database/seeders/CreateOnly/Support/CreateTransactionMonthPeak500MPayloadFactory.php`
+- `database/seeders/CreateOnly/Support/CreateTransactionMonthPeak500MItemFactory.php`
+
+Make targets added:
+
+- `seed-transaction-month-peak-500m`
+- `seed-create-all-month-peak-500m`
+- `create-all-month-peak-500m`
+
+Local syntax and line-count proof:
+
+```text
+No syntax errors detected in database/seeders/CreateOnly/CreateTransactionMonthPeak500MSeeder.php
+No syntax errors detected in database/seeders/CreateOnly/Support/CreateTransactionMonthPeak500MPayloadFactory.php
+No syntax errors detected in database/seeders/CreateOnly/Support/CreateTransactionMonthPeak500MItemFactory.php
+  88 database/seeders/CreateOnly/CreateTransactionMonthPeak500MSeeder.php
+  90 database/seeders/CreateOnly/Support/CreateTransactionMonthPeak500MPayloadFactory.php
+  80 database/seeders/CreateOnly/Support/CreateTransactionMonthPeak500MItemFactory.php
+```
+
+Standalone seed replay proof:
+
+```text
+create-only transaction month-peak-500m notes: planned=280 created=280 replayed=0
+create-only transaction month-peak-500m notes: planned=280 created=0 replayed=280
+```
+
+Standalone count proof:
+
+```text
+notes_total = 280
+notes_peak_500m_by_customer = 280
+notes_peak_500m_by_note = 280
+work_items_total = 280
+customer_payments_total = 264
+store_stock_lines_total = 170
+external_purchase_lines_total = 70
+notes_total_sum = 576000000
+customer_payments_sum = 523600000
+```
+
+Aggregate projection proof:
+
+```text
+Supplier projection: 78/78
+Note projection: 200/314
+Note projection: 314/314
+Projection rebuild selesai.
+```
+
+Aggregate count proof:
+
+```text
+notes = 314
+work_items = 314
+customer_payments = 295
+note_history_projection = 314
+notes_peak_500m_by_customer = 280
+notes_peak_500m_by_note = 280
+store_stock_lines_total = 181
+external_purchase_lines_total = 78
+notes_total_sum = 604140000
+customer_payments_sum = 550265000
+```
+
+Interpretation:
+
+Peak 500M transaction seed is implemented.
+Standalone seed is replay-safe after removing mutable qty_on_hand >= 20 product selection.
+Aggregate profile reaches Rp 550.265.000 cash-in.
+Note projection is aligned at 314/314.
+Blueprint expected values differed by Rp 15.000; local output is source of truth.
+
+### REPORT-SANITY-003 - Peak 500M operational profit sanity, not closed
+
+Local handler-based output:
+
+```text
+success = true
+notes = 314
+work_items = 314
+customer_payments = 295
+note_history_projection = 314
+from_date = 2026-06-01
+to_date = 2026-06-30
+cash_in_rupiah = 550265000
+refunded_rupiah = 0
+external_purchase_cost_rupiah = 99720000
+store_stock_cogs_rupiah = 13954444
+product_purchase_cost_rupiah = 113674444
+operational_expense_rupiah = 0
+payroll_disbursement_rupiah = 0
+employee_debt_cash_out_rupiah = 0
+cash_operational_profit_rupiah = 436590556
+```
+
+Interpretation:
+
+Peak report handler returns positive cash operational profit.
+Peak cash-in is above 500 juta.
+However, non-transaction cash-out values are zero:
+
+```text
+operational_expense_rupiah = 0
+payroll_disbursement_rupiah = 0
+employee_debt_cash_out_rupiah = 0
+```
+
+This differs from the earlier 100M profile proof, where fixed cash-out values were present.
+Peak report sanity is therefore not fully closed until this ambiguity is investigated.
+
+### VERIFY-003 - Full verification after peak 500M changes
+
+Local command:
+
+```text
+make verify
+```
+
+Visible local output:
+
+```text
+phpstan: [OK] No errors
+audit-lines: SUCCESS
+Blade PHP audit: SUCCESS
+Contract audit passed
+Tests: 2 skipped, 1140 passed (6466 assertions)
+Duration: 82.39s
+```
+
+Interpretation:
+
+Static analysis, audits, and test suite remain green after peak 500M changes.
+
+### PR-PEAK-001 - Investigate zero non-transaction cash-out in peak report sanity
+
+Problem:
+
+Peak 500M operational profit sanity returned:
+
+```text
+operational_expense_rupiah = 0
+payroll_disbursement_rupiah = 0
+employee_debt_cash_out_rupiah = 0
+```
+
+But earlier 100M profile proof returned non-zero fixed cash-out values.
+
+This may mean one of:
+
+- peak aggregate command did not include non-transaction source seed in the actual local run;
+- non-transaction rows exist but their dates do not fall into 2026-06-01 through 2026-06-30;
+- report handler filters a different operational date field than expected;
+- local DB state used for report sanity does not match the intended full aggregate state.
+
+Required next proof:
+
+Count and sum operational expenses, payroll disbursements, and employee debt payments by date.
+Compare source-table values against GetOperationalProfitSummaryHandler output.
+Decide whether seed date alignment or aggregate target dependency needs patching.
+
+### PR-PEAK-002 - Clarify productless notes / service-only seed shape
+
+Question raised:
+
+Create nota may be understood as always taking products, but current create transaction seed supports productless notes for service-only and external-purchase flows.
+
+Current interpretation:
+
+A note with service-only work item and blank product_lines is technically valid.
+A note with external purchase may have blank store-stock product_lines but non-empty external_purchase_lines.
+Store-stock and package rows are the product-backed flows.
+
+Open decision:
+
+Confirm whether owner-readable peak dataset may contain productless service-only notes.
+If productless notes confuse UI/report review, adjust seed mix or add clearer owner-readable labeling.
+Do not treat productless notes as a runtime bug until the domain expectation is explicitly locked.
+
+Required next proof:
+
+Query peak notes by item shape:
+
+- service-only count;
+- store-stock count;
+- external purchase count;
+- package count;
+- notes with no store-stock product line;
+- notes with neither store-stock nor external purchase.
+
+Decide whether the peak profile remains valid or needs seed-shape adjustment.
+
 ## Active Blueprint Promotion
 
 Peak/stress scale planning was promoted from chat-only planning into:
@@ -673,22 +872,21 @@ L5 refund scaffold: planned separately
 
 ## NEXT ACTIVE STEP
 
-Patch peak 500 juta/month seeder files only.
+Investigate peak 500M report and seed-shape ambiguity.
 
 Goal:
 
-Implement the first peak 500 juta/month seeder slice from the promoted blueprint.
-Keep existing weekly, monthly-normal small, and monthly-normal 100M profiles intact.
-Patch only the three new peak seeder/factory files before touching make targets.
+Close PR-PEAK-001 by proving why non-transaction cash-out is zero in peak report sanity.
+Close or classify PR-PEAK-002 by proving whether productless notes are valid owner-readable seed rows.
+Do not continue to PDF/XLSX export proof until the ambiguity is classified.
 
 Scope:
 
-Add database/seeders/CreateOnly/CreateTransactionMonthPeak500MSeeder.php.
-Add database/seeders/CreateOnly/Support/CreateTransactionMonthPeak500MPayloadFactory.php.
-Add database/seeders/CreateOnly/Support/CreateTransactionMonthPeak500MItemFactory.php.
-Verify syntax and line count only.
+Query source tables for operational expenses, payroll disbursements, and employee debt payments by date.
+Query peak note/work item shape distribution.
+Compare source rows against GetOperationalProfitSummaryHandler output.
+Decide whether peak seed shape or aggregate target needs patching.
 
-Do not patch mk/seed.mk until the three files pass syntax and line-count proof.
 Do not start stress 6-8 miliar/month, 10 miliar/month, refund scaffold, or report wording patch in the same step.
 
 ## Opening Prompt For Next Session
@@ -774,7 +972,7 @@ Duration: 83.03s.
 
 Mulai dari NEXT ACTIVE STEP di handoff:
 
-Patch peak 500 juta/month seeder files only.
+Investigate peak 500M report and seed-shape ambiguity.
 
 Target sesi berikutnya:
 
@@ -788,3 +986,35 @@ database/seeders/CreateOnly/Support/CreateTransactionMonthPeak500MItemFactory.ph
 Jalankan syntax dan line-count proof.
 Jangan mulai stress 6-8 miliar/month, 10 miliar/month, refund scaffold, atau report wording patch di step yang sama.
 Setelah 3 file peak seeder valid, baru next response boleh wire make target.
+
+Additional current-session facts to preserve:
+
+Peak 500M aggregate proof:
+
+notes = 314
+work_items = 314
+customer_payments = 295
+note_history_projection = 314
+notes_total_sum = 604140000
+customer_payments_sum = 550265000
+
+Peak 500M report sanity:
+
+cash_in_rupiah = 550265000
+product_purchase_cost_rupiah = 113674444
+operational_expense_rupiah = 0
+payroll_disbursement_rupiah = 0
+employee_debt_cash_out_rupiah = 0
+cash_operational_profit_rupiah = 436590556
+
+make verify:
+
+phpstan [OK] No errors
+audit-lines SUCCESS
+contract audit passed
+Tests: 2 skipped, 1140 passed, 6466 assertions
+
+Open PR:
+
+PR-PEAK-001: investigate zero non-transaction cash-out in peak report sanity.
+PR-PEAK-002: clarify productless notes / service-only seed shape.
