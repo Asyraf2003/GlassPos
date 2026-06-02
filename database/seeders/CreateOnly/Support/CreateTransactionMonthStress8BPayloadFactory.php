@@ -36,7 +36,8 @@ final class CreateTransactionMonthStress8BPayloadFactory
         }
 
         for ($seq = 801; $seq <= 1800; $seq++) {
-            $payloads[] = $this->payload($seq, 'Seed nota sparepart toko stress 8B.', $items->storeStock($this->takeProduct(2)), $this->payment($seq, $seq - 800, 700, 180, 2200000, 1700000));
+            $item = $items->storeStock($this->takeProduct(2));
+            $payloads[] = $this->payload($seq, 'Seed nota sparepart toko stress 8B.', $item, $this->payment($seq, $seq - 800, 700, 180, 2200000, 1700000));
         }
 
         for ($seq = 1801; $seq <= 2700; $seq++) {
@@ -46,7 +47,8 @@ final class CreateTransactionMonthStress8BPayloadFactory
         for ($seq = 2701; $seq <= 3200; $seq++) {
             $a = $this->takeProduct(1);
             $b = $this->takeProduct(1, $a->id);
-            $payloads[] = $this->payload($seq, 'Seed nota paket stress 8B.', $items->packageStoreStock($a, $b), $this->payment($seq, $seq - 2700, 350, 90, 3800000, 2900000));
+            $item = $items->packageStoreStock($a, $b);
+            $payloads[] = $this->payload($seq, 'Seed nota paket stress 8B.', $item, $this->payment($seq, $seq - 2700, 350, 90, 3800000, 2900000));
         }
 
         return $payloads;
