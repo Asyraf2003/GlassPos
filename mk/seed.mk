@@ -121,6 +121,10 @@ seed-transaction-month-normal:
 seed-transaction-month-normal-100m:
 	php artisan db:seed --class='Database\Seeders\CreateOnly\CreateTransactionMonthNormal100MSeeder'
 
+.PHONY: seed-transaction-month-peak-500m
+seed-transaction-month-peak-500m:
+	php artisan db:seed --class='Database\Seeders\CreateOnly\CreateTransactionMonthPeak500MSeeder'
+
 .PHONY: payroll-disbursement
 payroll-disbursement: seed-payroll-disbursement
 	$(MAKE) seed-audit-baseline
@@ -182,6 +186,7 @@ help:
 	@echo "  make seed-transaction-week        Source-only transaction notes weekly seed"
 	@echo "  make seed-transaction-month-normal Source-only transaction notes monthly normal seed"
 	@echo "  make seed-transaction-month-normal-100m Source-only transaction notes monthly normal 100M seed"
+	@echo "  make seed-transaction-month-peak-500m Source-only transaction notes monthly peak 500M seed"
 	@echo ""
 	@echo "Audit baseline:"
 	@echo "  make audit-baseline               Rebuild/create deterministic audit_events, snapshots, employee_versions, supplier_invoice_versions for existing seed rows"
