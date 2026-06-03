@@ -8,6 +8,7 @@ use App\Adapters\In\Http\Controllers\Admin\Note\NoteHistoryTableDataController a
 use App\Adapters\In\Http\Controllers\Admin\Note\CreateNoteRevisionSurplusRefundDueController as AdminCreateNoteRevisionSurplusRefundDueController;
 use App\Adapters\In\Http\Controllers\Admin\Note\RecordNoteRevisionSurplusRefundPaymentController as AdminRecordNoteRevisionSurplusRefundPaymentController;
 use App\Adapters\In\Http\Controllers\Admin\Note\ReopenClosedNoteController as AdminReopenClosedNoteController;
+use App\Adapters\In\Http\Controllers\Cashier\Note\CreateTransactionWorkspaceMobileUiLabPageController;
 use App\Adapters\In\Http\Controllers\Cashier\Note\CreateTransactionWorkspacePageController;
 use App\Adapters\In\Http\Controllers\Cashier\Note\EditTransactionWorkspacePageController;
 use App\Adapters\In\Http\Controllers\Cashier\Note\GetTransactionWorkspaceDraftController;
@@ -78,6 +79,7 @@ Route::middleware(['auth', EnsureCashierAreaAccess::class, EnsureTransactionEntr
         Route::get('/workspace/draft', GetTransactionWorkspaceDraftController::class)->name('workspace.draft.show');
         Route::post('/workspace/draft', SaveTransactionWorkspaceDraftController::class)->name('workspace.draft.save');
         Route::get('/workspace/create', CreateTransactionWorkspacePageController::class)->name('workspace.create');
+        Route::get('/workspace/mobile-ui-lab', CreateTransactionWorkspaceMobileUiLabPageController::class)->name('workspace.mobile-ui-lab');
 
         Route::middleware(EnsureCashierNoteAccess::class)->group(function (): void {
             Route::post('/{noteId}/refunds', RecordClosedNoteRefundController::class)->name('refunds.store');

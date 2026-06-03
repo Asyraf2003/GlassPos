@@ -12,7 +12,6 @@
 /.vscode
 /.zed
 /auth.json
-/docs/04_lifecycle/db_schema_parity
 /node_modules
 /public/build
 /public/hot
@@ -25,3 +24,6 @@ Homestead.yaml
 Thumbs.db
 
 /tmp
+
+# Local/private DB schema parity proof artifacts
+/docs/04_lifecycle/db_schema_parity/
