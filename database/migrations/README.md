@@ -960,3 +960,48 @@ Forbidden claim after proof:
 - Production data was synchronized.
 - Production PostgreSQL cutover is ready.
 - Full application correctness is proven from schema parity alone.
+
+## Production Schema Parity Closure - 2026-06-03
+
+Status: Closed for structure metadata parity.
+
+Scope:
+
+- Structure-only parity.
+- Local target schema was used as reference.
+- Production schema was patched to match the known target metadata shape.
+- No table data was synchronized.
+- No row-count parity was used as a target.
+- No transaction, product, or user data was copied.
+
+Final metadata parity result:
+
+| Metric | Status |
+|---|---|
+| Tables | matched |
+| Columns | matched |
+| Indexes | matched |
+| Foreign keys | matched |
+| Table constraints | matched |
+| Check constraints | matched |
+
+Applied schema categories:
+
+- Added missing target column.
+- Added missing unique constraints.
+- Added missing JSON-valid check constraints.
+- Removed approved production-only legacy backup artifacts.
+- Removed approved production-only extra timestamp columns.
+
+Safety notes:
+
+- Production backup was taken before destructive cleanup.
+- Rollback SQL existed during execution.
+- Verification queries passed after patch and cleanup.
+- Detailed production proof artifacts are intentionally not kept in the public repository.
+
+Boundary:
+
+- This closure does not prove data parity.
+- This closure does not prove row-count parity.
+- This closure does not include production data content.
