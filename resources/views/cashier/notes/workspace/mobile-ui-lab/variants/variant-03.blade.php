@@ -1,28 +1,22 @@
-<section class="screen">
-    <div class="band">
-        <small>03 / POS Keypad</small>
-        <h2>Input Cepat Kasir</h2>
-    </div>
+<main class="pos-page">
+    <section class="pos-panel">
+        <h2>Buat Nota</h2>
+        <div class="field"><label>Customer</label><input placeholder="Nama customer"></div>
+        <div class="field"><label>Catatan</label><input placeholder="Keluhan singkat"></div>
+    </section>
 
-    <div class="stack">
-        <section class="card">
-            <h3>Nominal Servis</h3>
-            <div class="total" data-keypad-output data-value="">Rp 0</div>
-            <div class="keypad">
-                @foreach (['1','2','3','4','5','6','7','8','9','C','0','000'] as $key)
-                    <button class="btn" data-key="{{ $key }}" type="button">{{ $key }}</button>
-                @endforeach
-            </div>
-        </section>
+    <section class="pos-panel">
+        <h2>Pilih Produk / Servis</h2>
+        <div class="product-grid" data-products></div>
+    </section>
 
-        <section class="card">
-            <h3>Aksi Cepat</h3>
-            <div class="grid">
-                <button class="btn alt" type="button">Servis</button>
-                <button class="btn alt" type="button">Produk</button>
-                <button class="btn alt" type="button">Paket</button>
-                <button class="btn" type="button">Proses</button>
-            </div>
-        </section>
-    </div>
-</section>
+    <section class="pos-panel">
+        <h2>Cart Nota</h2>
+        <div class="cart-list" data-cart></div>
+    </section>
+
+    <section class="total-bar">
+        <div><small>Total</small><span class="total" data-total>Rp 0</span></div>
+        <button class="btn" type="button">Bayar</button>
+    </section>
+</main>

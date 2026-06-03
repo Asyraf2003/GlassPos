@@ -11,16 +11,9 @@ final class CreateTransactionWorkspaceMobileUiLabPageController extends Controll
 {
     /** @var array<string, string> */
     private const VARIANTS = [
-        '01' => 'Google Form Picker',
-        '02' => 'Stepper Wizard',
-        '03' => 'POS Keypad',
-        '04' => 'Bottom Sheet Checkout',
-        '05' => 'Accordion Checklist',
-        '06' => 'Service Package Builder',
-        '07' => 'Chat Style Intake',
-        '08' => 'Live Receipt Split View',
-        '09' => 'One-Hand Thumb UI',
-        '10' => 'Dense Table Power User',
+        '01' => 'Google Form Classic',
+        '02' => 'Stepper Nota Mobile',
+        '03' => 'POS Cart Hybrid',
     ];
 
     public function __invoke(string $variant = '01'): View
@@ -30,9 +23,8 @@ final class CreateTransactionWorkspaceMobileUiLabPageController extends Controll
         abort_unless(array_key_exists($activeVariant, self::VARIANTS), 404);
 
         return view('cashier.notes.workspace.mobile-ui-lab', [
-            'pageTitle' => 'Create Transaction UI Lab',
+            'pageTitle' => self::VARIANTS[$activeVariant],
             'activeVariant' => $activeVariant,
-            'variants' => self::VARIANTS,
         ]);
     }
 }

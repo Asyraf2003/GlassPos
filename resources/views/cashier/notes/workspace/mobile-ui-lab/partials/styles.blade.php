@@ -1,5 +1,5 @@
 <style>
-@include('cashier.notes.workspace.mobile-ui-lab.partials.styles.ui.base')
-@include('cashier.notes.workspace.mobile-ui-lab.partials.styles.ui.components')
-@include('cashier.notes.workspace.mobile-ui-lab.partials.styles.ui.variants')
+@include('cashier.notes.workspace.mobile-ui-lab.partials.styles.clean.base')
+@include('cashier.notes.workspace.mobile-ui-lab.partials.styles.clean.form')
+@include('cashier.notes.workspace.mobile-ui-lab.partials.styles.clean.pos')
 </style>

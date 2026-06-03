@@ -79,7 +79,7 @@ Route::middleware(['auth', EnsureCashierAreaAccess::class, EnsureTransactionEntr
         Route::get('/workspace/draft', GetTransactionWorkspaceDraftController::class)->name('workspace.draft.show');
         Route::post('/workspace/draft', SaveTransactionWorkspaceDraftController::class)->name('workspace.draft.save');
         Route::get('/workspace/create', CreateTransactionWorkspacePageController::class)->name('workspace.create');
-        Route::get('/workspace/mobile-ui-lab/{variant?}', CreateTransactionWorkspaceMobileUiLabPageController::class)->where('variant', '0?[1-9]|10')->name('workspace.mobile-ui-lab');
+        Route::get('/workspace/mobile-ui-lab/{variant?}', CreateTransactionWorkspaceMobileUiLabPageController::class)->where('variant', '0?[1-3]')->name('workspace.mobile-ui-lab');
 
         Route::middleware(EnsureCashierNoteAccess::class)->group(function (): void {
             Route::post('/{noteId}/refunds', RecordClosedNoteRefundController::class)->name('refunds.store');

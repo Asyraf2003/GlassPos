@@ -709,3 +709,37 @@ The dummy UI may use local fake JavaScript for:
 ### Review Rule
 
 Client review should compare the 10 separate pages and select the most comfortable direction before any production create page replacement is planned.
+
+---
+
+## ADDENDUM - Reset To 3 Sterile Create UI Pages
+
+### FACT
+
+The 10-variant preview added too much lab chrome and too many similar alternatives.
+
+### DECISION
+
+Reset the UI lab to 3 sterile standalone create-transaction UI pages only.
+
+No lab header.
+No variant navigation.
+No Mazer layout.
+No backend submit.
+No production create page replacement.
+
+Switching variants is done only by changing URL:
+
+- `/cashier/notes/workspace/mobile-ui-lab/01`
+- `/cashier/notes/workspace/mobile-ui-lab/02`
+- `/cashier/notes/workspace/mobile-ui-lab/03`
+
+### Final Variants
+
+- 01: Google Form Classic
+- 02: Stepper Nota Mobile
+- 03: POS Cart Hybrid
+
+### Goal
+
+Let client test the clean mobile create-transaction UI direction without distraction.
