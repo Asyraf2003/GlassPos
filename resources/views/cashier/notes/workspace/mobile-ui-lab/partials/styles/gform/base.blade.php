@@ -2,6 +2,10 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     margin: 0;
     background: #f0ebf8;
@@ -12,61 +16,58 @@ body {
 .gform-page {
     width: min(100%, 720px);
     margin: 0 auto;
-    padding: 16px 12px 40px;
+    padding: 16px 12px 48px;
 }
 
-.gform-header {
-    overflow: hidden;
-    margin-bottom: 12px;
+.gform-preview-head,
+.gform-header,
+.gform-card,
+.gform-total,
+.gform-review {
     border: 1px solid #dadce0;
     border-radius: 8px;
     background: #fff;
 }
 
-.gform-header__bar {
-    height: 10px;
-    background: #673ab7;
+.gform-preview-head {
+    margin-bottom: 12px;
+    padding: 22px 24px;
 }
 
-.gform-header__body {
-    padding: 22px 24px 18px;
+.gform-preview-head span,
+.gform-kicker {
+    color: #673ab7;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
 }
 
+.gform-preview-head h1,
 .gform-header h1 {
-    margin: 0 0 10px;
-    font-size: 2rem;
+    margin: 6px 0 10px;
     font-weight: 400;
     line-height: 1.2;
 }
 
-.gform-header p {
+.gform-preview-head h1 {
+    font-size: 1.7rem;
+}
+
+.gform-header h1 {
+    font-size: 2rem;
+}
+
+.gform-preview-head p,
+.gform-header p,
+.gform-help {
     margin: 0;
     color: #5f6368;
-    font-size: .95rem;
+    font-size: .93rem;
     line-height: 1.45;
 }
 
-.gform-card {
-    margin-bottom: 12px;
-    padding: 22px 24px;
-    border: 1px solid #dadce0;
-    border-radius: 8px;
-    background: #fff;
-}
-
-.gform-card h2 {
-    margin: 0 0 8px;
-    font-size: 1rem;
-    font-weight: 500;
-}
-
-.gform-help {
-    margin: 0 0 18px;
-    color: #5f6368;
-    font-size: .88rem;
-    line-height: 1.45;
-}
-
-.gform-required {
-    color: #d93025;
+.gform-variant {
+    margin: 18px 0 34px;
+    scroll-margin-top: 12px;
 }

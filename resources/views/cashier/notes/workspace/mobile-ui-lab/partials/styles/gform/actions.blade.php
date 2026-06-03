@@ -1,16 +1,34 @@
+.gform-option-list {
+    display: grid;
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.gform-option {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    min-height: 32px;
+}
+
+.gform-radio {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 auto;
+    border: 2px solid #5f6368;
+    border-radius: 999px;
+}
+
 .gform-total {
     display: flex;
     justify-content: space-between;
     gap: 12px;
     align-items: center;
     margin-bottom: 12px;
-    padding: 18px 24px;
-    border: 1px solid #dadce0;
-    border-radius: 8px;
-    background: #fff;
 }
 
-.gform-total span {
+.gform-total span,
+.gform-mini {
     display: block;
     color: #5f6368;
     font-size: .82rem;
@@ -33,22 +51,7 @@
     font-weight: 500;
 }
 
-.gform-footer-note {
-    margin: 14px 4px 0;
-    color: #5f6368;
-    font-size: .78rem;
-    text-align: center;
-}
-
-@media (max-width: 520px) {
-    .gform-header__body,
-    .gform-card,
-    .gform-total {
-        padding-left: 18px;
-        padding-right: 18px;
-    }
-
-    .gform-header h1 {
-        font-size: 1.65rem;
-    }
+.gform-button--ghost {
+    background: #ede7f6;
+    color: #673ab7;
 }

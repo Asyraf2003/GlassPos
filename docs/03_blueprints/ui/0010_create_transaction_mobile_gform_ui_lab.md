@@ -617,3 +617,37 @@ The UI should resemble Google Forms:
 ### Next Active Step
 
 Review Variant 01 as a pure Google Form-like preview before continuing to other variants.
+
+---
+
+## ADDENDUM - Google Form UI Variants 02-10 Preview Batch
+
+### FACT
+
+Variant 01 has been corrected into a standalone Google Form-like visual preview.
+
+### DECISION
+
+Variants 02 through 10 will be implemented as UI-only Blade partials in the same standalone preview page.
+
+These variants are not backend forms.
+
+They do not use Laravel request field names, workspace JavaScript hooks, product lookup, payment handlers, or production create transaction layout.
+
+### Variants Added
+
+- Variant 02: Step Cards
+- Variant 03: Fast Entry
+- Variant 04: Sticky Total Bottom Bar
+- Variant 05: Accordion Sections
+- Variant 06: Service Store Stock First
+- Variant 07: Card Per Item
+- Variant 08: Review Before Payment
+- Variant 09: One Hand Mode
+- Variant 10: Dense Mobile Power User
+
+### Review Rule
+
+The preview page may show all variants in one scrollable page with local anchor navigation.
+
+After visual review, choose one candidate before any production create page replacement is planned.
