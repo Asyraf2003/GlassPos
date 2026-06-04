@@ -2,6 +2,7 @@
   const NS = (window.CashierNoteWorkspace = window.CashierNoteWorkspace || {});
   const timers = new WeakMap();
   const requestTokens = new WeakMap();
+  const activeChoiceIndexes = new WeakMap();
 
   const digits = (value) =>
     Number.parseInt(String(value || "").replace(/\D+/g, "") || "0", 10);
@@ -73,6 +74,24 @@
     if (!results) return;
     results.innerHTML = "";
     results.classList.add("d-none");
+    activeChoiceIndexes.set(row, -1);
+  };
+
+  const resultButtons = (row) =>
+    Array.from(serviceResults(row)?.querySelectorAll("[data-service-choice]") || []);
+
+  const setActiveChoice = (row, index) => {
+    const buttons = resultButtons(row);
+    if (!buttons.length) {
+      activeChoiceIndexes.set(row, -1);
+      return;
+    }
+
+    const nextIndex = Math.max(0, Math.min(index, buttons.length - 1));
+    activeChoiceIndexes.set(row, nextIndex);
+    buttons.forEach((button, buttonIndex) => {
+      button.classList.toggle("active", buttonIndex === nextIndex);
+    });
   };
 
   const selectService = (row, item, forceDisplay = true) => {
@@ -95,29 +114,36 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = "list-group-item list-group-item-action";
+      button.dataset.serviceChoice = "1";
       button.textContent = `${item.label} · ${format(item.default_price_rupiah)}`;
       button.addEventListener("click", () => selectService(row, item, true));
       results.appendChild(button);
     });
 
     results.classList.toggle("d-none", items.length === 0);
+    setActiveChoice(row, 0);
   };
 
   const fetchServices = async (row, query) => {
     const endpoint = NS.config?.serviceLookupEndpoint;
     const input = serviceNameInput(row);
-    if (!endpoint || !input || query.trim().length < 2) return [];
+    if (!endpoint || !input) return [];
 
     const token = Symbol("service-search");
     requestTokens.set(input, token);
 
-    const response = await fetch(`${endpoint}?q=${encodeURIComponent(query)}`, {
-      headers: { Accept: "application/json" },
-    });
-    const payload = await response.json();
+    try {
+      const response = await fetch(`${endpoint}?q=${encodeURIComponent(query)}`, {
+        headers: { Accept: "application/json" },
+      });
+      const payload = await response.json();
 
-    if (requestTokens.get(input) !== token) return [];
-    return payload?.data?.rows || [];
+      if (requestTokens.get(input) !== token) return [];
+      return payload?.data?.rows || [];
+    } catch (_error) {
+      if (requestTokens.get(input) === token) clearResults(row);
+      return [];
+    }
   };
 
   const exactMatch = async (row) => {
@@ -191,6 +217,22 @@
     });
 
     input.addEventListener("focus", async () => renderResults(row, await fetchServices(row, input.value)));
+    input.addEventListener("keydown", (event) => {
+      const buttons = resultButtons(row);
+      if (!buttons.length) return;
+
+      const current = activeChoiceIndexes.get(row) ?? 0;
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setActiveChoice(row, current + 1);
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setActiveChoice(row, current - 1);
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        buttons[activeChoiceIndexes.get(row) ?? 0]?.click();
+      }
+    });
     input.addEventListener("blur", () => setTimeout(() => void ensureCatalog(row), 150));
 
     serviceDisplay(row)?.addEventListener("input", () => {
