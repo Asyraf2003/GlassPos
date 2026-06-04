@@ -26,9 +26,9 @@
             @include('layouts.partials.sidebar-cashier')
         @endif
 
-        <div id="main">
+        <div id="main" class="d-flex flex-column min-vh-100">
 
-            <div class="page-content">
+            <div class="page-content flex-grow-1">
                 @include('layouts.partials.alerts')
 
                 @hasSection('heading')
