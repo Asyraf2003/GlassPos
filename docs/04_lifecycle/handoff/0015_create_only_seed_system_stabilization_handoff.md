@@ -1835,3 +1835,41 @@ edit/refund lifecycle
 
 Do not continue to 10B unless the optional ceiling profile is explicitly reopened.
 Do not start refund scaffold unless it is explicitly opened as its own active step.
+
+### SEEDER-NEXT-DIRECTION-001 - Seeder ladder next direction clarification
+
+Local date: 2026-06-04.
+
+Context:
+
+Stress 8B closure has already been recorded and verified.
+
+Blueprint ladder after Stress 8B lists:
+
+```text
+L4 = create-all-month-stress-10b
+L5 = refund scaffold
+```
+
+Decision:
+
+create-all-month-stress-10b is the next seeder in the blueprint ladder, but it is an optional ceiling profile.
+Do not continue to 10B automatically.
+Do not start refund scaffold automatically.
+Refund scaffold remains planned separately because it changes report/refund semantics.
+
+Current valid work direction remains:
+
+```text
+create transaction
+reports
+edit/refund lifecycle
+```
+
+If seeder work is explicitly reopened later, open only one active step:
+
+```text
+Either create-all-month-stress-10b optional ceiling blueprint execution,
+or refund scaffold blueprint execution,
+but not both in the same step.
+```
