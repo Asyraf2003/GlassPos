@@ -229,7 +229,7 @@
         <summary class="note-detail-mobile-summary">
           <span class="note-detail-mobile-number">4</span>
           <div>
-            <h4 class="note-detail-mobile-title">Versioning & Revisi</h4>
+            <h4 class="note-detail-mobile-title">Versioning &amp; Revisi</h4>
             <p class="note-detail-mobile-help">Riwayat perubahan nota terbaru.</p>
           </div>
           <span class="note-detail-mobile-toggle" aria-hidden="true">

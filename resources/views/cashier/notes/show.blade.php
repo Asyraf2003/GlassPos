@@ -317,7 +317,7 @@
         <summary class="cashier-note-detail-header">
           <span class="cashier-note-detail-number">4</span>
           <div>
-            <h5 class="cashier-note-detail-title">Versioning & Revisi</h5>
+            <h5 class="cashier-note-detail-title">Versioning &amp; Revisi</h5>
             <p class="cashier-note-detail-help">Riwayat perubahan nota dan koreksi yang pernah dicatat.</p>
           </div>
           <span class="cashier-note-detail-toggle" aria-hidden="true">
