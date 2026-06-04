@@ -11,17 +11,32 @@ return new class extends Migration
     public function up(): void
     {
         foreach ($this->rows() as $row) {
-            DB::table('service_catalog_items')->updateOrInsert(
-                ['normalized_name' => $row['normalized_name']],
-                [
-                    'id' => (string) Str::uuid(),
-                    'name' => $row['name'],
-                    'default_price_rupiah' => $row['default_price_rupiah'],
-                    'is_active' => true,
-                    'updated_at' => now(),
-                    'created_at' => now(),
-                ],
-            );
+            $existing = DB::table('service_catalog_items')
+                ->where('normalized_name', $row['normalized_name'])
+                ->exists();
+
+            if ($existing) {
+                DB::table('service_catalog_items')
+                    ->where('normalized_name', $row['normalized_name'])
+                    ->update([
+                        'name' => $row['name'],
+                        'default_price_rupiah' => $row['default_price_rupiah'],
+                        'is_active' => true,
+                        'updated_at' => now(),
+                    ]);
+
+                continue;
+            }
+
+            DB::table('service_catalog_items')->insert([
+                'id' => (string) Str::uuid(),
+                'name' => $row['name'],
+                'normalized_name' => $row['normalized_name'],
+                'default_price_rupiah' => $row['default_price_rupiah'],
+                'is_active' => true,
+                'updated_at' => now(),
+                'created_at' => now(),
+            ]);
         }
     }
 
