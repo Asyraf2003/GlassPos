@@ -12,19 +12,26 @@
         <input type="hidden" name="items[__INDEX__][part_source]" value="store_stock">
         <input type="hidden" name="items[__INDEX__][pay_now]" value="0" data-pay-now>
         <input type="hidden" name="items[__INDEX__][pricing_mode]" value="package_auto_split" data-pricing-mode>
-        <input type="hidden" name="items[__INDEX__][service][price_rupiah]" value="0" data-money-raw>
+        <input type="hidden" name="items[__INDEX__][service][price_rupiah]" value="0" data-money-raw data-service-price-raw>
         <input type="hidden" name="items[__INDEX__][service][notes]" value="">
+        <input type="hidden" value="" data-service-catalog-id>
+        <input type="hidden" value="" data-service-default-fee-rupiah>
 
         <div class="workspace-answer-field">
             <div>
                 <label class="form-label small mb-1">Nama Servis</label>
-                <input
-                    type="text"
-                    name="items[__INDEX__][service][name]"
-                    value=""
-                    class="form-control form-control-sm"
-                    placeholder="Ganti Kampas Rem"
-                >
+                <div class="position-relative">
+                    <input
+                        type="text"
+                        name="items[__INDEX__][service][name]"
+                        value=""
+                        class="form-control form-control-sm"
+                        placeholder="Sok Kopling Besar"
+                        autocomplete="off"
+                        data-service-name
+                    >
+                    <div class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 20;" data-service-results></div>
+                </div>
             </div>
 
             <div class="mt-3">

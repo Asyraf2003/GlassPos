@@ -12,16 +12,29 @@
         <input type="hidden" name="items[__INDEX__][part_source]" value="none">
         <input type="hidden" name="items[__INDEX__][pay_now]" value="0" data-pay-now>
         <input type="hidden" name="items[__INDEX__][service][notes]" value="">
+        <input type="hidden" value="" data-service-catalog-id>
+        <input type="hidden" value="" data-service-default-fee-rupiah>
 
         <div class="workspace-answer-field">
             <label class="form-label">Nama Servis</label>
-            <input type="text" name="items[__INDEX__][service][name]" value="" class="form-control" placeholder="Contoh: Servis Karburator">
+            <div class="position-relative">
+                <input
+                    type="text"
+                    name="items[__INDEX__][service][name]"
+                    value=""
+                    class="form-control"
+                    placeholder="Contoh: Sok Kopling Besar"
+                    autocomplete="off"
+                    data-service-name
+                >
+                <div class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 20;" data-service-results></div>
+            </div>
         </div>
 
         <div class="workspace-answer-field" data-money-input-group>
             <label class="form-label">Harga Servis (Rupiah)</label>
-            <input type="hidden" name="items[__INDEX__][service][price_rupiah]" value="" data-money-raw>
-            <input type="text" inputmode="numeric" value="" class="form-control" placeholder="Contoh: 75.000" data-money-display>
+            <input type="hidden" name="items[__INDEX__][service][price_rupiah]" value="" data-money-raw data-service-price-raw>
+            <input type="text" inputmode="numeric" value="" class="form-control" placeholder="Contoh: 75.000" data-money-display data-service-price-display>
         </div>
     </div>
 </template>
