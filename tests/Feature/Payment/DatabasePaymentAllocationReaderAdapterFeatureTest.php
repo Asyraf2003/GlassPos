@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Payment;
 
 use App\Adapters\Out\Payment\DatabasePaymentAllocationReaderAdapter;
+use App\Adapters\Out\Payment\Queries\DatabaseNotePaymentAmountByNoteIdQuery;
 use App\Core\Note\WorkItem\WorkItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -72,7 +73,7 @@ final class DatabasePaymentAllocationReaderAdapterFeatureTest extends TestCase
             'refund_priority' => 1,
         ]);
 
-        $reader = new DatabasePaymentAllocationReaderAdapter();
+        $reader = new DatabasePaymentAllocationReaderAdapter(new DatabaseNotePaymentAmountByNoteIdQuery());
 
         self::assertSame(
             265000,
@@ -160,7 +161,7 @@ final class DatabasePaymentAllocationReaderAdapterFeatureTest extends TestCase
             ],
         ]);
 
-        $reader = new DatabasePaymentAllocationReaderAdapter();
+        $reader = new DatabasePaymentAllocationReaderAdapter(new DatabaseNotePaymentAmountByNoteIdQuery());
 
         self::assertSame(
             265000,
@@ -219,7 +220,7 @@ final class DatabasePaymentAllocationReaderAdapterFeatureTest extends TestCase
             'refund_priority' => 1,
         ]);
 
-        $reader = new DatabasePaymentAllocationReaderAdapter();
+        $reader = new DatabasePaymentAllocationReaderAdapter(new DatabaseNotePaymentAmountByNoteIdQuery());
 
         self::assertSame(
             50000,

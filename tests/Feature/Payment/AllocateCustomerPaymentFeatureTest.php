@@ -11,6 +11,7 @@ use App\Adapters\Out\Note\DatabaseNoteReaderAdapter;
 use App\Adapters\Out\Note\DatabaseNoteWorkItemDetailLoader;
 use App\Adapters\Out\Payment\DatabaseCustomerPaymentReaderAdapter;
 use App\Adapters\Out\Payment\DatabasePaymentAllocationReaderAdapter;
+use App\Adapters\Out\Payment\Queries\DatabaseNotePaymentAmountByNoteIdQuery;
 use App\Adapters\Out\Payment\DatabasePaymentAllocationWriterAdapter;
 use App\Core\Payment\Policies\PaymentAllocationPolicy;
 use App\Ports\Out\AuditLogPort;
@@ -76,7 +77,7 @@ final class AllocateCustomerPaymentFeatureTest extends TestCase
     {
         return new AllocateCustomerPaymentHandler(
             new DatabaseCustomerPaymentReaderAdapter(),
-            new DatabasePaymentAllocationReaderAdapter(),
+            new DatabasePaymentAllocationReaderAdapter(new DatabaseNotePaymentAmountByNoteIdQuery()),
             new DatabasePaymentAllocationWriterAdapter(),
             new DatabaseNoteReaderAdapter(
                 new DatabaseNoteWorkItemDetailLoader(),
