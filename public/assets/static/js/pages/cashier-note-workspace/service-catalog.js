@@ -1,0 +1,218 @@
+(() => {
+  const NS = (window.CashierNoteWorkspace = window.CashierNoteWorkspace || {});
+  const timers = new WeakMap();
+  const requestTokens = new WeakMap();
+
+  const digits = (value) =>
+    Number.parseInt(String(value || "").replace(/\D+/g, "") || "0", 10);
+  const format = (value) => Number(value || 0).toLocaleString("id-ID");
+  const normalize = (value) =>
+    String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const serviceNameInput = (row) => row.querySelector("[data-service-name]");
+  const serviceResults = (row) => row.querySelector("[data-service-results]");
+  const serviceRaw = (row) => row.querySelector("[data-service-price-raw]");
+  const serviceDisplay = (row) => row.querySelector("[data-service-price-display]");
+  const defaultFeeInput = (row) => row.querySelector("[data-service-default-fee-rupiah]");
+  const catalogIdInput = (row) => row.querySelector("[data-service-catalog-id]");
+  const packageRaw = (row) => row.querySelector('input[name$="[package_total_rupiah]"]');
+  const packageDisplay = (row) => row.querySelector("[data-package-total-input]");
+
+  const setMoney = (raw, display, amount) => {
+    if (raw) raw.value = amount > 0 ? String(amount) : "";
+    if (display) display.value = amount > 0 ? format(amount) : "";
+  };
+
+  const setDefaultFee = (row, amount, forceDisplay = false) => {
+    defaultFeeInput(row)?.setAttribute("value", amount > 0 ? String(amount) : "");
+    if (defaultFeeInput(row)) defaultFeeInput(row).value = amount > 0 ? String(amount) : "";
+
+    const raw = serviceRaw(row);
+    const display = serviceDisplay(row);
+    const displayEmpty = !display || digits(display.value) <= 0;
+
+    if (forceDisplay || displayEmpty || row.dataset.servicePriceManual !== "1") {
+      setMoney(raw, display, amount);
+    }
+
+    window.AdminMoneyInput?.bindBySelector?.(row);
+  };
+
+  const rowProductTotal = (row) =>
+    typeof NS.rowProductTotal === "function" ? NS.rowProductTotal(row) : 0;
+
+  const setPackageTotal = (row, amount) => {
+    setMoney(packageRaw(row), packageDisplay(row), amount);
+    row.dataset.servicePackageAutofilled = "1";
+  };
+
+  const currentPackageTotal = (row) =>
+    digits(packageRaw(row)?.value || packageDisplay(row)?.value || "");
+
+  const syncPackageTotal = (row, force = false) => {
+    if ((row.dataset.itemType || "") !== "service_store_stock") return;
+
+    const fee = digits(defaultFeeInput(row)?.value || serviceRaw(row)?.value || "");
+    const productTotal = rowProductTotal(row);
+    if (fee <= 0 || productTotal <= 0) return;
+
+    const current = currentPackageTotal(row);
+    const shouldSync = force || row.dataset.servicePackageAutofilled === "1" || current <= 0;
+    if (!shouldSync) return;
+
+    setPackageTotal(row, fee + productTotal);
+  };
+
+  const clearResults = (row) => {
+    const results = serviceResults(row);
+    if (!results) return;
+    results.innerHTML = "";
+    results.classList.add("d-none");
+  };
+
+  const selectService = (row, item, forceDisplay = true) => {
+    const input = serviceNameInput(row);
+    if (input) input.value = item.label || "";
+    if (catalogIdInput(row)) catalogIdInput(row).value = item.id || "";
+
+    setDefaultFee(row, digits(item.default_price_rupiah), forceDisplay);
+    syncPackageTotal(row, true);
+    clearResults(row);
+    NS.updateSummary?.();
+  };
+
+  const renderResults = (row, items) => {
+    const results = serviceResults(row);
+    if (!results) return;
+
+    results.innerHTML = "";
+    items.forEach((item) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "list-group-item list-group-item-action";
+      button.textContent = `${item.label} · ${format(item.default_price_rupiah)}`;
+      button.addEventListener("click", () => selectService(row, item, true));
+      results.appendChild(button);
+    });
+
+    results.classList.toggle("d-none", items.length === 0);
+  };
+
+  const fetchServices = async (row, query) => {
+    const endpoint = NS.config?.serviceLookupEndpoint;
+    const input = serviceNameInput(row);
+    if (!endpoint || !input || query.trim().length < 2) return [];
+
+    const token = Symbol("service-search");
+    requestTokens.set(input, token);
+
+    const response = await fetch(`${endpoint}?q=${encodeURIComponent(query)}`, {
+      headers: { Accept: "application/json" },
+    });
+    const payload = await response.json();
+
+    if (requestTokens.get(input) !== token) return [];
+    return payload?.data?.rows || [];
+  };
+
+  const exactMatch = async (row) => {
+    const name = serviceNameInput(row)?.value || "";
+    const rows = await fetchServices(row, name);
+    return rows.find((item) => normalize(item.normalized_name || item.label) === normalize(name));
+  };
+
+  const feeForCreate = (row) => {
+    const stored = digits(defaultFeeInput(row)?.value || "");
+    if (stored > 0) return stored;
+
+    if ((row.dataset.itemType || "") === "service_store_stock") {
+      return Math.max(currentPackageTotal(row) - rowProductTotal(row), 0);
+    }
+
+    return digits(serviceRaw(row)?.value || serviceDisplay(row)?.value || "");
+  };
+
+  const ensureCatalog = async (row) => {
+    const name = serviceNameInput(row)?.value?.trim() || "";
+    if (name.length < 2) return;
+
+    const price = feeForCreate(row);
+    if (price <= 0) {
+      const matched = await exactMatch(row);
+      if (matched) selectService(row, matched, false);
+      return;
+    }
+
+    const endpoint = NS.config?.serviceStoreEndpoint;
+    if (!endpoint) return;
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": String(NS.config?.csrfToken || ""),
+      },
+      credentials: "same-origin",
+      body: JSON.stringify({ name, default_price_rupiah: price }),
+    });
+    const payload = await response.json();
+    const rowData = payload?.data?.row;
+    if (response.ok && rowData) selectService(row, rowData, row.dataset.servicePriceManual !== "1");
+  };
+
+  NS.syncServiceDefaults = (row, options = {}) => {
+    if (!(row instanceof HTMLElement)) return;
+
+    const existingFee = digits(defaultFeeInput(row)?.value || "");
+    const rawFee = digits(serviceRaw(row)?.value || "");
+    if (existingFee <= 0 && rawFee > 0) setDefaultFee(row, rawFee, false);
+
+    syncPackageTotal(row, options.force === true);
+  };
+
+  NS.bindServiceCatalog = (row) => {
+    if (!(row instanceof HTMLElement) || row.dataset.serviceCatalogBound === "1") return;
+    row.dataset.serviceCatalogBound = "1";
+
+    const input = serviceNameInput(row);
+    if (!(input instanceof HTMLInputElement)) return;
+
+    input.addEventListener("input", () => {
+      catalogIdInput(row)?.setAttribute("value", "");
+      if (catalogIdInput(row)) catalogIdInput(row).value = "";
+      clearTimeout(timers.get(input));
+      timers.set(input, setTimeout(async () => renderResults(row, await fetchServices(row, input.value)), 250));
+    });
+
+    input.addEventListener("focus", async () => renderResults(row, await fetchServices(row, input.value)));
+    input.addEventListener("blur", () => setTimeout(() => void ensureCatalog(row), 150));
+
+    serviceDisplay(row)?.addEventListener("input", () => {
+      row.dataset.servicePriceManual = "1";
+      setTimeout(() => void ensureCatalog(row), 0);
+    });
+
+    packageDisplay(row)?.addEventListener("input", () => {
+      row.dataset.servicePackageAutofilled = "0";
+      setTimeout(() => void ensureCatalog(row), 0);
+    });
+
+    row.addEventListener("input", (event) => {
+      if (event.target instanceof Element && event.target.matches("[data-qty-input]")) {
+        syncPackageTotal(row, false);
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!row.contains(event.target)) clearResults(row);
+    });
+
+    NS.syncServiceDefaults(row);
+  };
+})();

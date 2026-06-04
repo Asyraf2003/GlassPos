@@ -147,6 +147,7 @@
     NS.syncFloorPriceGuard?.(row);
     clearResults(scope);
     NS.syncQtyGuard?.(row);
+    NS.syncServiceDefaults?.(row);
     NS.updateSummary?.();
     focusElement(qty);
   };

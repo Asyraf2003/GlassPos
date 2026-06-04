@@ -101,6 +101,7 @@
 
     window.AdminMoneyInput?.bindBySelector?.(scope);
     NS.bindProductSearch?.(row);
+    NS.syncServiceDefaults?.(row);
     NS.syncFloorPriceGuard?.(row);
     NS.syncQtyGuard?.(row);
     NS.updateSummary?.();
@@ -143,6 +144,7 @@
       reindexProductLines(row);
       NS.syncFloorPriceGuard?.(row);
       NS.syncQtyGuard?.(row);
+      NS.syncServiceDefaults?.(row);
       NS.updateSummary?.();
     });
   };
@@ -221,6 +223,7 @@
     NS.applyInitialValues(row, type, initial);
     window.AdminMoneyInput?.bindBySelector?.(row);
     NS.bindProductSearch?.(row);
+    NS.bindServiceCatalog?.(row);
     NS.bindQtyControls?.(row);
     NS.bindProductLines?.(row);
     NS.renumberRows();
@@ -245,6 +248,7 @@
     set('textarea[name$="[description]"]', item?.description || "");
     set("[data-pay-now]", item?.pay_now || "0");
     set('input[name$="[service][name]"]', item?.service?.name || "");
+    set("[data-service-default-fee-rupiah]", item?.service?.price_rupiah || "");
     set("[data-pricing-mode]", item?.pricing_mode || "package_auto_split");
     set('input[name$="[package_total_rupiah]"]', item?.package_total_rupiah || "");
     set('input[name$="[external_purchase_lines][0][label]"]', item?.external_purchase_lines?.[0]?.label || "");
