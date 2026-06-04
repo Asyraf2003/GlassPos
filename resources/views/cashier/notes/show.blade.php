@@ -309,10 +309,6 @@
         <div class="cashier-note-detail-body">
           <div class="ui-card-stack">
             @include('cashier.notes.partials.payment-actions')
-
-            @if ($note['can_show_workspace_panel'] ?? false)
-              @include('cashier.notes.partials.add-rows-form')
-            @endif
           </div>
         </div>
       </details>

@@ -74,22 +74,6 @@
                     </div>
                 </div>
 
-                <div class="ui-form-actions mt-3">
-                    @if ($note['can_edit_workspace'] ?? false)
-                        <a
-                            href="{{ route('cashier.notes.workspace.edit', ['noteId' => $note['id']]) }}"
-                            class="btn btn-primary"
-                        >
-                            Edit Nota
-                        </a>
-                    @else
-                        <button type="button" class="btn btn-light-secondary" disabled>
-                            Workspace Nonaktif
-                        </button>
-                    @endif
-                </div>
-
-                <div class="small text-muted mt-2">Gunakan edit hanya saat rincian nota perlu direvisi.</div>
             </div>
         </div>
     </div>
