@@ -29,6 +29,9 @@ final class CashierNoteRevisionInlinePaymentContractTest extends TestCase
         self::assertIsInt($settlementPosition);
         self::assertLessThan($paymentPosition, $applyPosition);
         self::assertLessThan($settlementPosition, $paymentPosition);
-        self::assertStringContainsString('withPaymentSummary($result, $paymentSummary)', $workflow);
+        self::assertStringContainsString(
+            '$this->paymentResults->withPaymentSummary($result, $paymentSummary)',
+            $workflow,
+        );
     }
 }

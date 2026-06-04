@@ -24,6 +24,7 @@ final class CreateNoteRevisionWorkflow
         private readonly ApplyNoteRevisionAsActiveReplacement $applier,
         private readonly BuildCreateNoteRevisionSettlement $settlements,
         private readonly CreateTransactionWorkspaceInlinePaymentRecorder $payments,
+        private readonly CreateNoteRevisionPaymentResultFactory $paymentResults,
         private readonly EditableWorkspaceNoteGuard $guard,
         private readonly ClockPort $clock,
     ) {
@@ -89,33 +90,6 @@ final class CreateNoteRevisionWorkflow
             $settlement,
         );
 
-        return $this->withPaymentSummary($result, $paymentSummary);
-    }
-
-    /**
-     * @param array{decision:string,amount_paid_rupiah:int,change_rupiah:int} $paymentSummary
-     */
-    private function withPaymentSummary(CreateNoteRevisionResult $result, array $paymentSummary): CreateNoteRevisionResult
-    {
-        if ($result->isFailure()) {
-            return $result;
-        }
-
-        $data = $result->data();
-        $data['inline_payment'] = $paymentSummary;
-
-        if (($paymentSummary['decision'] ?? 'skip') === 'skip') {
-            return CreateNoteRevisionResult::success($data, $result->message());
-        }
-
-        if (($paymentSummary['change_rupiah'] ?? 0) > 0) {
-            return CreateNoteRevisionResult::success(
-                $data,
-                'Revisi nota dan pembayaran berhasil dicatat. Kembalian: '
-                    . number_format((int) $paymentSummary['change_rupiah'], 0, ',', '.')
-            );
-        }
-
-        return CreateNoteRevisionResult::success($data, 'Revisi nota dan pembayaran berhasil dicatat.');
+        return $this->paymentResults->withPaymentSummary($result, $paymentSummary);
     }
 }
