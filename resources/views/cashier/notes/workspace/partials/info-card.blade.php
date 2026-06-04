@@ -15,7 +15,9 @@
                 </span>
             </div>
         </div>
-        <span class="workspace-details-toggle">Lipat</span>
+        <span class="workspace-details-toggle" aria-hidden="true">
+            <i class="bi bi-chevron-down"></i>
+        </span>
     </summary>
 
     <div class="workspace-step-body">

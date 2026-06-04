@@ -8,8 +8,9 @@
                     <p class="workspace-step-help">Setiap rincian tampil seperti jawaban form yang bisa ditambah sesuai kebutuhan.</p>
                 </div>
 
-                <div class="position-relative">
-                    <button type="button" class="btn btn-primary w-100" id="workspace-add-button">
+                <div class="position-relative workspace-add-question-wrap">
+                    <button type="button" class="btn workspace-add-question-button w-100" id="workspace-add-button">
+                        <span class="workspace-add-question-icon" aria-hidden="true">+</span>
                         Tambah Rincian
                     </button>
                     @include('cashier.notes.workspace.partials.item-type-menu')
@@ -21,7 +22,7 @@
     <div class="workspace-step-body">
         <div id="workspace-line-items" data-next-index="{{ count($oldItems) }}"></div>
 
-        <div id="workspace-empty-state" class="border rounded p-4 text-center text-muted">
+        <div id="workspace-empty-state" class="workspace-empty-answer text-center text-muted">
             Belum ada rincian. Tekan tombol tambah dan pilih jenis rincian yang sesuai.
         </div>
     </div>

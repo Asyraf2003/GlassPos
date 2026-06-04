@@ -1,4 +1,4 @@
-<div class="workspace-step-card workspace-total-action">
+<div class="workspace-step-card">
     <div class="workspace-step-header">
         <span class="workspace-step-number">4</span>
         <div class="flex-grow-1">
