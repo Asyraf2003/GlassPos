@@ -150,6 +150,7 @@
             <div class="workspace-step-list">
                 @include('cashier.notes.workspace.partials.info-card')
                 @include('cashier.notes.workspace.partials.rincian-card')
+                @include('cashier.notes.workspace.partials.review-payment-card')
             </div>
 
             @include('cashier.notes.workspace.partials.payment-modal')
