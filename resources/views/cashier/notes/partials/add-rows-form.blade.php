@@ -13,7 +13,7 @@
             <div class="ui-form-actions">
                 <a
                     href="{{ route('cashier.notes.workspace.edit', ['noteId' => $note['id']]) }}"
-                    class="btn btn-light-primary"
+                    class="btn btn-outline-primary"
                 >
                     Lanjut Edit Nota
                 </a>

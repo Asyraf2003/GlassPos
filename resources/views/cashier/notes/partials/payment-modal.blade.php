@@ -173,7 +173,7 @@
 
         <div class="modal-footer">
           <div class="ui-form-actions w-100 justify-content-between" id="detail-payment-footer-main">
-            <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
             <div class="d-flex gap-2">
               <button type="submit" class="btn btn-outline-primary" id="detail-payment-submit-transfer">
                 Bayar Transfer
@@ -185,7 +185,7 @@
           </div>
 
           <div class="ui-form-actions w-100 justify-content-between d-none" id="detail-payment-footer-cash">
-            <button type="button" class="btn btn-light-secondary" id="detail-payment-back-cash">Kembali</button>
+            <button type="button" class="btn btn-outline-secondary" id="detail-payment-back-cash">Kembali</button>
             <button type="submit" class="btn btn-primary" id="detail-payment-submit-cash">
               Simpan Cash
             </button>

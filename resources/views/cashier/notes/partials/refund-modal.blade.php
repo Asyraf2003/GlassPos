@@ -107,7 +107,7 @@
 
         <div class="modal-footer">
           <div class="ui-form-actions w-100 justify-content-between">
-            <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
             <button type="submit" class="btn btn-danger" id="note-refund-submit" disabled>Catat Refund / Batalkan Line</button>
           </div>
         </div>
