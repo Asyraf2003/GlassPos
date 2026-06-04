@@ -219,6 +219,7 @@
         }
 
         .cashier-workspace-stepper .workspace-add-question-wrap {
+            width: 100%;
             min-width: min(100%, 20rem);
         }
 
@@ -327,6 +328,10 @@
             }
 
             .cashier-workspace-stepper .workspace-add-question-wrap {
+                width: 100%;
+            }
+
+            .cashier-workspace-stepper .workspace-add-question-button {
                 width: 100%;
             }
         }

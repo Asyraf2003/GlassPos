@@ -30,7 +30,7 @@
 
     @if ($note['can_show_refund_form'] ?? false)
       <div class="border rounded p-3 mt-3 bg-light">
-        <div class="fw-semibold mb-1">Refund Rincian</div>
+        <div class="fw-semibold mb-1">Status Refund</div>
         <div class="small text-muted">Klik rincian pada tabel untuk mengaktifkan tombol refund.</div>
         <div class="small text-muted mt-2">Rincian terpilih akan ditandai lebih jelas.</div>
       </div>

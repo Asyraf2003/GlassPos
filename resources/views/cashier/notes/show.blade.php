@@ -46,6 +46,15 @@
       border-bottom: 1px solid rgba(15, 23, 42, .07);
     }
 
+    summary.cashier-note-detail-header {
+      cursor: pointer;
+      list-style: none;
+    }
+
+    summary.cashier-note-detail-header::-webkit-details-marker {
+      display: none;
+    }
+
     .cashier-note-detail-number {
       width: 2.25rem;
       height: 2.25rem;
@@ -73,6 +82,23 @@
       color: var(--detail-muted);
       font-size: .9rem;
       line-height: 1.55;
+    }
+
+    .cashier-note-detail-toggle {
+      width: 2.25rem;
+      height: 2.25rem;
+      flex: 0 0 2.25rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: auto;
+      border-radius: 50%;
+      color: var(--detail-accent);
+      transition: transform .15s ease;
+    }
+
+    .cashier-note-detail-step[open] .cashier-note-detail-toggle {
+      transform: rotate(180deg);
     }
 
     .cashier-note-detail-body {
@@ -165,6 +191,12 @@
       font-weight: 800;
     }
 
+    .cashier-note-detail .d-grid .btn,
+    .cashier-note-detail .ui-form-actions .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
     .cashier-note-detail .btn-primary {
       border-color: var(--detail-accent);
       background: var(--detail-accent);
@@ -212,37 +244,36 @@
     </div>
 
     <div class="cashier-note-detail-shell">
-      <div class="cashier-note-detail-step">
-        <div class="cashier-note-detail-header">
+      <details class="cashier-note-detail-step" open>
+        <summary class="cashier-note-detail-header">
           <span class="cashier-note-detail-number">1</span>
           <div>
             <h5 class="cashier-note-detail-title">Info Nota</h5>
             <p class="cashier-note-detail-help">Identitas customer, tanggal, status, dan ringkasan pembayaran.</p>
           </div>
-        </div>
+          <span class="cashier-note-detail-toggle" aria-hidden="true">
+            <i class="bi bi-chevron-down"></i>
+          </span>
+        </summary>
 
         <div class="cashier-note-detail-body">
           <div class="ui-card-stack">
             @include('cashier.notes.partials.note-overview')
-            @include('cashier.notes.partials.note-revision-timeline', [
-              'revision' => $note['revision_timeline'] ?? ['current' => [], 'baseline' => [], 'timeline' => []],
-              'currentRevision' => ($note['revision_timeline']['current'] ?? []),
-              'baselineRevision' => ($note['revision_timeline']['baseline'] ?? []),
-              'timelineRevisions' => ($note['revision_timeline']['timeline'] ?? []),
-            ])
-            @include('cashier.notes.partials.correction-history')
           </div>
         </div>
-      </div>
+      </details>
 
-      <div class="cashier-note-detail-step">
-        <div class="cashier-note-detail-header">
+      <details class="cashier-note-detail-step" open>
+        <summary class="cashier-note-detail-header">
           <span class="cashier-note-detail-number">2</span>
           <div>
             <h5 class="cashier-note-detail-title">Rincian Nota</h5>
             <p class="cashier-note-detail-help">Daftar item, status, sisa tagihan, dan dampak refund per rincian.</p>
           </div>
-        </div>
+          <span class="cashier-note-detail-toggle" aria-hidden="true">
+            <i class="bi bi-chevron-down"></i>
+          </span>
+        </summary>
 
         <div class="cashier-note-detail-body">
           <div class="ui-card-stack">
@@ -250,16 +281,19 @@
             @include('cashier.notes.partials.billing-table')
           </div>
         </div>
-      </div>
+      </details>
 
-      <div class="cashier-note-detail-step">
-        <div class="cashier-note-detail-header">
+      <details class="cashier-note-detail-step" open>
+        <summary class="cashier-note-detail-header">
           <span class="cashier-note-detail-number">3</span>
           <div>
-            <h5 class="cashier-note-detail-title">Review & Tindakan</h5>
+            <h5 class="cashier-note-detail-title">Status & Aksi</h5>
             <p class="cashier-note-detail-help">Lanjut edit atau refund setelah rincian nota dicek.</p>
           </div>
-        </div>
+          <span class="cashier-note-detail-toggle" aria-hidden="true">
+            <i class="bi bi-chevron-down"></i>
+          </span>
+        </summary>
 
         <div class="cashier-note-detail-body">
           <div class="ui-card-stack">
@@ -270,7 +304,32 @@
             @endif
           </div>
         </div>
-      </div>
+      </details>
+
+      <details class="cashier-note-detail-step">
+        <summary class="cashier-note-detail-header">
+          <span class="cashier-note-detail-number">4</span>
+          <div>
+            <h5 class="cashier-note-detail-title">Versioning & Revisi</h5>
+            <p class="cashier-note-detail-help">Riwayat perubahan nota dan koreksi yang pernah dicatat.</p>
+          </div>
+          <span class="cashier-note-detail-toggle" aria-hidden="true">
+            <i class="bi bi-chevron-down"></i>
+          </span>
+        </summary>
+
+        <div class="cashier-note-detail-body">
+          <div class="ui-card-stack">
+            @include('cashier.notes.partials.note-revision-timeline', [
+              'revision' => $note['revision_timeline'] ?? ['current' => [], 'baseline' => [], 'timeline' => []],
+              'currentRevision' => ($note['revision_timeline']['current'] ?? []),
+              'baselineRevision' => ($note['revision_timeline']['baseline'] ?? []),
+              'timelineRevisions' => ($note['revision_timeline']['timeline'] ?? []),
+            ])
+            @include('cashier.notes.partials.correction-history')
+          </div>
+        </div>
+      </details>
     </div>
   </div>
 

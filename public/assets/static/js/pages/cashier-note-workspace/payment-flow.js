@@ -495,13 +495,12 @@
 
     title.textContent = "Proses Nota";
     subtitle.textContent =
-      "Pilih aksi nota, cek ringkasan transaksi, lalu lanjutkan dengan tombol aksi.";
+      "Cek ringkasan transaksi, lalu lanjutkan dengan metode pembayaran.";
   };
 
   const updateModeText = () => {
     const standardModeText = byId("workspace-payment-mode-text");
     const cashModeText = byId("workspace-cash-mode-text");
-    const hint = byId("workspace-payment-action-hint");
 
     const standardLabel =
       NS.paymentState.mode === "full"
@@ -519,17 +518,6 @@
     if (cashModeText) {
       cashModeText.textContent =
         NS.paymentState.mode === "partial" ? "Bayar Sebagian" : "Bayar Penuh";
-    }
-
-    if (hint) {
-      hint.textContent =
-        NS.paymentState.mode === "full"
-          ? "Pilih Bayar Transfer atau Bayar Cash."
-          : NS.paymentState.mode === "partial"
-            ? "Isi nominal lalu pilih Bayar Transfer atau Bayar Cash."
-            : NS.paymentState.mode === "skip"
-              ? "Simpan nota tanpa pembayaran."
-              : "Pilih aksi nota terlebih dahulu.";
     }
   };
 
