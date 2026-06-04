@@ -40,24 +40,34 @@
     }
 
     .note-detail-mobile-summary {
-      display: flex;
+      display: grid !important;
+      grid-template-columns: 2.25rem minmax(0, 1fr) 2.25rem;
       align-items: flex-start;
-      gap: .85rem;
+      column-gap: .85rem;
+      row-gap: 0;
       padding: 1rem 1rem .75rem;
       cursor: pointer;
       list-style: none;
       border-bottom: 1px solid var(--note-detail-border);
     }
 
-    .note-detail-mobile-summary > .flex-grow-1 {
-      min-width: 0;
-    }
-
     .note-detail-mobile-summary::-webkit-details-marker {
       display: none;
     }
 
+    .note-detail-mobile-heading {
+      grid-column: 2;
+      grid-row: 1;
+      min-width: 0;
+    }
+
+    .note-detail-mobile-summary > .flex-grow-1 {
+      min-width: 0;
+    }
+
     .note-detail-mobile-number {
+      grid-column: 1;
+      grid-row: 1;
       width: 2.25rem;
       height: 2.25rem;
       flex: 0 0 2.25rem;
@@ -87,13 +97,16 @@
     }
 
     .note-detail-mobile-toggle {
+      grid-column: 3;
+      grid-row: 1;
+      justify-self: end;
       width: 2.25rem;
       height: 2.25rem;
       flex: 0 0 2.25rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      margin-left: auto;
+      margin-left: 0;
       border-radius: 50%;
       color: var(--note-detail-accent);
       transition: transform .15s ease;
@@ -105,6 +118,43 @@
 
     .note-detail-mobile-body {
       padding: 1rem;
+    }
+
+    .note-detail-readonly-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .note-detail-readonly-field {
+      display: grid;
+      gap: .45rem;
+    }
+
+    .note-detail-readonly-label {
+      margin: 0;
+      color: var(--note-detail-text);
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .note-detail-readonly-control {
+      min-height: 2.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      width: 100%;
+      border: 1px solid var(--note-detail-border);
+      border-radius: .25rem;
+      background: transparent;
+      color: var(--note-detail-text);
+      padding: .68rem .75rem;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .note-detail-readonly-control .badge {
+      flex: 0 0 auto;
     }
 
     .note-detail-mobile-stack .card {
@@ -250,7 +300,7 @@
       <details class="note-detail-mobile-step" open>
         <summary class="note-detail-mobile-summary">
           <span class="note-detail-mobile-number">1</span>
-          <div class="flex-grow-1">
+          <div class="note-detail-mobile-heading flex-grow-1">
             <h4 class="note-detail-mobile-title">Info Nota</h4>
             <p class="note-detail-mobile-help">Identitas customer, tanggal, dan status nota.</p>
           </div>
@@ -266,7 +316,7 @@
       <details class="note-detail-mobile-step" open>
         <summary class="note-detail-mobile-summary">
           <span class="note-detail-mobile-number">2</span>
-          <div class="flex-grow-1">
+          <div class="note-detail-mobile-heading flex-grow-1">
             <h4 class="note-detail-mobile-title">Rincian Nota</h4>
             <p class="note-detail-mobile-help">Daftar rincian nota dan status setiap line.</p>
           </div>
@@ -282,7 +332,7 @@
       <details class="note-detail-mobile-step" open>
         <summary class="note-detail-mobile-summary">
           <span class="note-detail-mobile-number">3</span>
-          <div class="flex-grow-1">
+          <div class="note-detail-mobile-heading flex-grow-1">
             <h4 class="note-detail-mobile-title">Review &amp; Pembayaran</h4>
             <p class="note-detail-mobile-help">Edit, pembayaran, dan refund setelah rincian nota dicek.</p>
           </div>
@@ -298,7 +348,7 @@
       <details class="note-detail-mobile-step">
         <summary class="note-detail-mobile-summary">
           <span class="note-detail-mobile-number">4</span>
-          <div class="flex-grow-1">
+          <div class="note-detail-mobile-heading flex-grow-1">
             <h4 class="note-detail-mobile-title">Riwayat Nota</h4>
             <p class="note-detail-mobile-help">Riwayat perubahan nota terbaru.</p>
           </div>
