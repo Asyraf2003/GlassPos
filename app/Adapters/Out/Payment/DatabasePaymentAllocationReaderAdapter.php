@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Adapters\Out\Payment;
 
+use App\Adapters\Out\Payment\Queries\DatabaseNotePaymentAmountByNoteIdQuery;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\Payment\PaymentAllocationReaderPort;
@@ -11,6 +12,11 @@ use Illuminate\Support\Facades\DB;
 
 final class DatabasePaymentAllocationReaderAdapter implements PaymentAllocationReaderPort
 {
+    public function __construct(
+        private readonly DatabaseNotePaymentAmountByNoteIdQuery $notePaymentAmounts,
+    ) {
+    }
+
     public function getTotalAllocatedAmountByNoteId(string $noteId): Money
     {
         $normalizedNoteId = $this->normalize($noteId, 'Note id pada payment allocation wajib ada.');
@@ -33,29 +39,7 @@ final class DatabasePaymentAllocationReaderAdapter implements PaymentAllocationR
 
     public function getTotalPaymentAmountByNoteId(string $noteId): Money
     {
-        $normalizedNoteId = $this->normalize($noteId, 'Note id pada payment allocation wajib ada.');
-
-        $legacyPaymentIds = DB::table('payment_allocations')
-            ->where('note_id', $normalizedNoteId)
-            ->pluck('customer_payment_id');
-
-        $componentPaymentIds = DB::table('payment_component_allocations')
-            ->where('note_id', $normalizedNoteId)
-            ->pluck('customer_payment_id');
-
-        $paymentIds = $legacyPaymentIds
-            ->merge($componentPaymentIds)
-            ->filter(static fn (mixed $id): bool => trim((string) $id) !== '')
-            ->unique()
-            ->values();
-
-        if ($paymentIds->isEmpty()) {
-            return Money::zero();
-        }
-
-        return Money::fromInt((int) DB::table('customer_payments')
-            ->whereIn('id', $paymentIds->all())
-            ->sum('amount_rupiah'));
+        return $this->notePaymentAmounts->total($noteId);
     }
 
     public function getTotalAllocatedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money
