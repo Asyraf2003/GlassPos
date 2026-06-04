@@ -61,8 +61,8 @@ final class NotePaymentGrossSettlementResolverTest extends TestCase
     {
         return new class($note) implements NoteReaderPort {
             public function __construct(private readonly Note $note) {}
-            public function getById(string $id): ?Note { return $this->note; }
-            public function getByIdForUpdate(string $id): ?Note { return $this->note; }
+            public function getById(string $id): ?Note { return trim($id) === $this->note->id() ? $this->note : null; }
+            public function getByIdForUpdate(string $id): ?Note { return $this->getById($id); }
             public function countAll(): int { return 1; }
         };
     }
