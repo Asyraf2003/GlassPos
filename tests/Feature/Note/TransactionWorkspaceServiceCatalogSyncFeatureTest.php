@@ -88,7 +88,7 @@ final class TransactionWorkspaceServiceCatalogSyncFeatureTest extends TestCase
             'note' => [
                 'customer_name' => 'Budi Service Catalog',
                 'customer_phone' => '08123',
-                'transaction_date' => '2026-03-15',
+                'transaction_date' => date('Y-m-d'),
             ],
             'items' => [array_replace_recursive([
                 'entry_mode' => 'service',
@@ -122,7 +122,7 @@ final class TransactionWorkspaceServiceCatalogSyncFeatureTest extends TestCase
         DB::table('notes')->insert([
             'id' => 'note-service-catalog-1',
             'customer_name' => 'Budi Lama',
-            'transaction_date' => '2026-03-14',
+            'transaction_date' => date('Y-m-d'),
             'total_rupiah' => 50000,
             'note_state' => 'open',
         ]);
