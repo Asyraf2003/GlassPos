@@ -339,17 +339,25 @@ wc -l resources/views/cashier/dashboard/*.blade.php resources/views/cashier/note
 - Cashier workspace shell first pass has been patched to consume cashier theme tokens.
 - Cashier workspace partials first pass has replaced light-only button/badge classes with theme-safe outline or semantic classes.
 - Cashier workspace JS first pass has removed runtime `btn-light` and `text-dark` inactive-state toggles from the active modular payment flow.
+- Cashier note detail shell first pass has been patched to consume cashier theme tokens.
+- Shared note detail shell first pass has been patched to consume cashier theme tokens for cashier-rendered shared detail pages.
+- Cashier note detail partials first pass has removed light-only badge, panel, and modal button classes from the active detail surface.
 - Targeted HTTP proof has passed for cashier dashboard access and cashier note history page/table.
 - Targeted workspace grep proof found no remaining `bg-light`, `text-dark`, or `btn-light` in `resources/views/cashier/notes/workspace` and `public/assets/static/js/pages/cashier-note-workspace`.
 - Targeted workspace test proof passed:
   - `php artisan test tests/Feature/Note/CashierWorkspacePaymentFlowJavascriptContractTest.php`
   - `php artisan test tests/Feature/Note/CreateTransactionWorkspaceTemplateContractFeatureTest.php`
   - `php artisan test tests/Feature/Note/CreateTransactionWorkspaceSkipFeatureTest.php tests/Feature/Note/CreateTransactionWorkspacePartialCashFeatureTest.php`
+- Targeted note detail grep proof found no remaining `bg-light`, `text-dark`, `btn-light`, or known hardcoded light palette values in active cashier/shared note detail Blade and payment/refund JS.
+- Targeted note detail test proof passed:
+  - `php artisan test tests/Feature/Note/CashierNoteDetailAccessGuardFeatureTest.php`
+  - `php artisan test tests/Feature/Note/CashierNoteDetailSimplePaymentModalUxFeatureTest.php`
+  - `php artisan test tests/Feature/Note/CashierDetailRenderedBillingRowsPaymentFeatureTest.php tests/Feature/Note/CashierClosedNoteRefundViewFeatureTest.php tests/Feature/Note/CashierNoteDetailUsesCurrentRevisionLinesFeatureTest.php tests/Feature/Note/CashierNoteDetailBillingUsesCurrentRevisionFeatureTest.php`
 - Full test suite proof has not been completed because PHP exhausted the 128MB memory limit in `routes/console_audit.php`.
 - Browser visual proof has not been run yet.
 
 ## Next Active Step
 
-Continue implementation with the cashier note detail shell and detail partials.
+Continue with browser visual proof for cashier dashboard, note index, workspace, and note detail in light and dark themes.
 
-The note detail area is the next active theme area because it remains the largest proven light-only surface and includes payment, refund, correction, billing, and shared note partials that must be patched carefully.
+Browser proof is the next active step because the main cashier theme surfaces now have token-based first-pass patches and need visual confirmation across theme states and mobile/desktop viewports.
