@@ -336,8 +336,8 @@ wc -l resources/views/cashier/dashboard/*.blade.php resources/views/cashier/note
 - Cashier theme token foundation has been added in `public/assets/static/css/ui-foundation.css`.
 - Cashier dashboard first pass has been patched to consume cashier theme tokens.
 - Cashier note index and filter drawer first pass has been patched to consume cashier theme tokens.
-- No test or browser proof has been run yet.
 - Targeted HTTP proof has passed for cashier dashboard access and cashier note history page/table.
+- Full test suite proof has not been completed because PHP exhausted the 128MB memory limit in `routes/console_audit.php`.
 - Browser visual proof has not been run yet.
 
 ## Next Active Step
