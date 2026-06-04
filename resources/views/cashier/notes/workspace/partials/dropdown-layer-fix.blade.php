@@ -10,7 +10,8 @@
                 overflow: visible !important;
             }
 
-            #cashier-note-workspace-form [data-product-results] {
+            #cashier-note-workspace-form [data-product-results],
+            #cashier-note-workspace-form [data-service-results] {
                 z-index: 1085 !important;
                 max-height: min(18rem, 45vh);
                 overflow-y: auto;

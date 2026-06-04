@@ -16,10 +16,6 @@ final class ServiceCatalogLookupController extends Controller
     {
         $query = trim((string) $request->query('q', ''));
 
-        if (mb_strlen($query) < 2) {
-            return $this->rows([]);
-        }
-
         return $this->rows($services->search($query));
     }
 

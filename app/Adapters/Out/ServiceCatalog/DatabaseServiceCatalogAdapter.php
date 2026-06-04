@@ -33,8 +33,10 @@ final class DatabaseServiceCatalogAdapter implements ServiceCatalogReaderPort, S
         $normalized = $this->normalizer->normalize($query);
         $builder = DB::table('service_catalog_items')->where('is_active', true);
 
-        if ($normalized !== '') {
-            $builder->where('normalized_name', 'like', '%' . $normalized . '%');
+        foreach (explode(' ', $normalized) as $token) {
+            if ($token !== '') {
+                $builder->where('normalized_name', 'like', '%' . $token . '%');
+            }
         }
 
         return $builder->orderBy('name')->limit(max(1, $limit))->get()

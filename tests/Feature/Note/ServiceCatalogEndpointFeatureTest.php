@@ -23,6 +23,26 @@ final class ServiceCatalogEndpointFeatureTest extends TestCase
             ->assertJsonPath('data.rows.0.default_price_rupiah', 120000);
     }
 
+    public function test_cashier_can_lookup_service_by_partial_words(): void
+    {
+        $this->loginAsKasir();
+        $this->seedService('svc-1', 'Sok Kopling (Besar)', 'sok kopling besar', 120000);
+
+        $this->getJson(route('cashier.notes.services.lookup', ['q' => 'sok besar']))
+            ->assertOk()
+            ->assertJsonPath('data.rows.0.label', 'Sok Kopling (Besar)');
+    }
+
+    public function test_cashier_can_open_service_lookup_without_query(): void
+    {
+        $this->loginAsKasir();
+        $this->seedService('svc-1', 'Setting In (Kecil)', 'setting in kecil', 70000);
+
+        $this->getJson(route('cashier.notes.services.lookup'))
+            ->assertOk()
+            ->assertJsonPath('data.rows.0.label', 'Setting In (Kecil)');
+    }
+
     public function test_cashier_create_if_missing_does_not_update_existing_default_price(): void
     {
         $this->loginAsKasir();
