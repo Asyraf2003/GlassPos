@@ -20,13 +20,13 @@ use PHPUnit\Framework\TestCase;
 
 final class BuildCreateNoteRevisionSettlementTest extends TestCase
 {
-    public function test_it_uses_component_payment_and_refund_totals_when_component_settlement_exists(): void
+    public function test_it_uses_combined_payment_and_refund_totals_when_component_settlement_exists(): void
     {
         $settlement = $this->builder(
             componentPaid: 300000,
             componentRefunded: 100000,
-            legacyPaid: 999000,
-            legacyRefunded: 888000,
+            legacyPaid: 300000,
+            legacyRefunded: 100000,
         )->build('set-1', 'rev-1', 'note-1', 200000, $this->time());
 
         $this->assertSame(NoteRevisionSettlement::STATUS_PAID, $settlement->settlementStatus);
@@ -34,6 +34,23 @@ final class BuildCreateNoteRevisionSettlementTest extends TestCase
         $this->assertSame(100000, $settlement->carryForwardRefundedRupiah);
         $this->assertSame(200000, $settlement->netPaidRupiah);
         $this->assertSame(0, $settlement->outstandingRupiah);
+        $this->assertSame(0, $settlement->surplusRupiah);
+    }
+
+    public function test_it_keeps_legacy_money_when_component_payment_is_added_later(): void
+    {
+        $settlement = $this->builder(
+            componentPaid: 30000,
+            componentRefunded: 10000,
+            legacyPaid: 50000,
+            legacyRefunded: 15000,
+        )->build('set-1', 'rev-1', 'note-1', 100000, $this->time());
+
+        $this->assertSame(NoteRevisionSettlement::STATUS_UNDERPAID, $settlement->settlementStatus);
+        $this->assertSame(50000, $settlement->carryForwardPaidRupiah);
+        $this->assertSame(15000, $settlement->carryForwardRefundedRupiah);
+        $this->assertSame(35000, $settlement->netPaidRupiah);
+        $this->assertSame(65000, $settlement->outstandingRupiah);
         $this->assertSame(0, $settlement->surplusRupiah);
     }
 

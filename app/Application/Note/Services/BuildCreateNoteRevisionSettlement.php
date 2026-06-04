@@ -41,15 +41,15 @@ final class BuildCreateNoteRevisionSettlement
             ->getTotalRefundedAmountByNoteId($noteRootId)
             ->amount();
 
-        $hasComponentSettlement = $componentPaid > 0 || $componentRefunded > 0;
+        $carryForwardPaid = max(
+            $this->legacyPayments->getTotalAllocatedAmountByNoteId($noteRootId)->amount(),
+            $componentPaid,
+        );
 
-        $carryForwardPaid = $hasComponentSettlement
-            ? $componentPaid
-            : $this->legacyPayments->getTotalAllocatedAmountByNoteId($noteRootId)->amount();
-
-        $ordinaryRefunded = $hasComponentSettlement
-            ? $componentRefunded
-            : $this->legacyRefunds->getTotalRefundedAmountByNoteId($noteRootId)->amount();
+        $ordinaryRefunded = max(
+            $this->legacyRefunds->getTotalRefundedAmountByNoteId($noteRootId)->amount(),
+            $componentRefunded,
+        );
 
         $surplusRefundPaid = $this->surplusRefundPayments
             ->sumActiveAmountByNoteRootId($noteRootId);

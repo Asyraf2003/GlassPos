@@ -17,14 +17,6 @@ final class StoreNoteRevisionRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $normalized = UpdateTransactionWorkspaceInputNormalizer::normalize($this->all());
-        $normalized['inline_payment'] = [
-            'decision' => 'skip',
-            'payment_method' => null,
-            'paid_at' => null,
-            'amount_paid_rupiah' => null,
-            'amount_received_rupiah' => null,
-            'notes' => null,
-        ];
 
         $reason = $this->input('reason');
         $defaultReason = $this->routeIs('admin.notes.*')

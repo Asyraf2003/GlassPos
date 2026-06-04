@@ -18,13 +18,16 @@ final class DatabaseCustomerRefundReaderAdapter implements CustomerRefundReaderP
             ->where('note_id', $normalizedNoteId)
             ->sum('refunded_amount_rupiah');
 
-        if ($componentTotal > 0) {
-            return Money::fromInt($componentTotal);
-        }
-
-        return Money::fromInt((int) DB::table('customer_refunds')
+        $componentRefundIds = DB::table('refund_component_allocations')
             ->where('note_id', $normalizedNoteId)
-            ->sum('amount_rupiah'));
+            ->select('customer_refund_id');
+
+        $legacyTotal = (int) DB::table('customer_refunds')
+            ->where('note_id', $normalizedNoteId)
+            ->whereNotIn('id', $componentRefundIds)
+            ->sum('amount_rupiah');
+
+        return Money::fromInt($componentTotal + $legacyTotal);
     }
 
     public function getTotalCurrentRefundedAmountByNoteId(string $noteId): Money
@@ -67,14 +70,18 @@ final class DatabaseCustomerRefundReaderAdapter implements CustomerRefundReaderP
             ->where('note_id', $normalizedNoteId)
             ->sum('refunded_amount_rupiah');
 
-        if ($componentTotal > 0) {
-            return Money::fromInt($componentTotal);
-        }
-
-        return Money::fromInt((int) DB::table('customer_refunds')
+        $componentRefundIds = DB::table('refund_component_allocations')
             ->where('customer_payment_id', $paymentId)
             ->where('note_id', $normalizedNoteId)
-            ->sum('amount_rupiah'));
+            ->select('customer_refund_id');
+
+        $legacyTotal = (int) DB::table('customer_refunds')
+            ->where('customer_payment_id', $paymentId)
+            ->where('note_id', $normalizedNoteId)
+            ->whereNotIn('id', $componentRefundIds)
+            ->sum('amount_rupiah');
+
+        return Money::fromInt($componentTotal + $legacyTotal);
     }
 
     private function normalize(string $value, string $message): string

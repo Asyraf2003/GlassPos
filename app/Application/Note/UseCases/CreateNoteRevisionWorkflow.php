@@ -6,6 +6,7 @@ namespace App\Application\Note\UseCases;
 
 use App\Application\Note\Services\ApplyNoteRevisionAsActiveReplacement;
 use App\Application\Note\Services\BuildCreateNoteRevisionSettlement;
+use App\Application\Note\Services\CreateTransactionWorkspaceInlinePaymentRecorder;
 use App\Application\Note\Services\EditableWorkspaceNoteGuard;
 use App\Application\Note\Services\NoteCurrentRevisionResolver;
 use App\Application\Note\Services\NoteRevisionBootstrapFactory;
@@ -22,6 +23,7 @@ final class CreateNoteRevisionWorkflow
         private readonly CreateNoteRevisionCommitter $committer,
         private readonly ApplyNoteRevisionAsActiveReplacement $applier,
         private readonly BuildCreateNoteRevisionSettlement $settlements,
+        private readonly CreateTransactionWorkspaceInlinePaymentRecorder $payments,
         private readonly EditableWorkspaceNoteGuard $guard,
         private readonly ClockPort $clock,
     ) {
@@ -56,15 +58,17 @@ final class CreateNoteRevisionWorkflow
 
         $revisionId = sprintf('%s-r%03d', $root->id(), $number);
         $createdAt = $this->clock->now();
+
+        $this->applier->apply($root, $replacement, $payload['items'] ?? []);
+        $paymentSummary = $this->payments->record($root, $payload['inline_payment'] ?? []);
+
         $settlement = $this->settlements->build(
             sprintf('%s-settlement', $revisionId),
             $revisionId,
             $root->id(),
-            $replacement->totalRupiah()->amount(),
+            $root->totalRupiah()->amount(),
             $createdAt,
         );
-
-        $this->applier->apply($root, $replacement, $payload['items'] ?? []);
 
         $revision = $this->factory->createNextRevision(
             $revisionId,
@@ -76,7 +80,7 @@ final class CreateNoteRevisionWorkflow
             $reason,
         );
 
-        return $this->committer->commit(
+        $result = $this->committer->commit(
             $root->id(),
             $current->id(),
             $actorId,
@@ -84,5 +88,34 @@ final class CreateNoteRevisionWorkflow
             $revision,
             $settlement,
         );
+
+        return $this->withPaymentSummary($result, $paymentSummary);
+    }
+
+    /**
+     * @param array{decision:string,amount_paid_rupiah:int,change_rupiah:int} $paymentSummary
+     */
+    private function withPaymentSummary(CreateNoteRevisionResult $result, array $paymentSummary): CreateNoteRevisionResult
+    {
+        if ($result->isFailure()) {
+            return $result;
+        }
+
+        $data = $result->data();
+        $data['inline_payment'] = $paymentSummary;
+
+        if (($paymentSummary['decision'] ?? 'skip') === 'skip') {
+            return CreateNoteRevisionResult::success($data, $result->message());
+        }
+
+        if (($paymentSummary['change_rupiah'] ?? 0) > 0) {
+            return CreateNoteRevisionResult::success(
+                $data,
+                'Revisi nota dan pembayaran berhasil dicatat. Kembalian: '
+                    . number_format((int) $paymentSummary['change_rupiah'], 0, ',', '.')
+            );
+        }
+
+        return CreateNoteRevisionResult::success($data, 'Revisi nota dan pembayaran berhasil dicatat.');
     }
 }
