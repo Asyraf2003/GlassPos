@@ -6,6 +6,7 @@ namespace Tests\Feature\Note;
 
 use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Ports\Out\AuditLogPort;
+use App\Ports\Out\UuidPort;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -15,7 +16,25 @@ final class CreateTransactionWorkspaceDuplicateSubmitFeatureTest extends TestCas
 {
     use RefreshDatabase;
 
-    public function test_duplicate_create_workspace_submit_currently_creates_duplicate_notes_without_idempotency_guard(): void
+    public function test_workspace_create_page_renders_hidden_idempotency_key_for_normal_submit(): void
+    {
+        $this->loginAsKasir();
+
+        $this->app->instance(UuidPort::class, new class () implements UuidPort {
+            public function generate(): string
+            {
+                return 'workspace-create-idempotency-render-key';
+            }
+        });
+
+        $response = $this->get(route('cashier.notes.workspace.create'));
+
+        $response->assertOk();
+        $response->assertSee('name="idempotency_key"', false);
+        $response->assertSee('value="workspace-create-idempotency-render-key"', false);
+    }
+
+    public function test_create_workspace_submit_without_idempotency_key_is_rejected_without_creating_financial_rows(): void
     {
         $this->loginAsKasir();
 
@@ -65,25 +84,27 @@ final class CreateTransactionWorkspaceDuplicateSubmitFeatureTest extends TestCas
             ],
         ];
 
-        $firstResponse = $this->actingAs($user)->post(route('notes.workspace.store'), $payload);
-        $secondResponse = $this->actingAs($user)->post(route('notes.workspace.store'), $payload);
+        $response = $this->actingAs($user)
+            ->from(route('cashier.notes.workspace.create'))
+            ->post(route('notes.workspace.store'), $payload);
 
-        $firstResponse->assertRedirect(route('cashier.notes.index'));
-        $secondResponse->assertRedirect(route('cashier.notes.index'));
+        $response->assertRedirect(route('cashier.notes.workspace.create'));
+        $response->assertSessionHasErrors(['idempotency_key']);
 
         $this->assertSame(
-            2,
+            0,
             DB::table('notes')->where('customer_name', 'Duplicate Submit Customer')->count(),
-            'Current create workspace behavior creates duplicate notes for duplicate submits.'
+            'Create workspace must reject direct submits that bypass the form idempotency key.'
         );
 
-        $this->assertSame(2, DB::table('work_items')->count());
-        $this->assertSame(2, DB::table('work_item_service_details')->count());
-        $this->assertSame(2, DB::table('customer_payments')->count());
-        $this->assertSame(2, DB::table('customer_payment_cash_details')->count());
-        $this->assertSame(2, DB::table('payment_component_allocations')->count());
-        $this->assertSame(2, DB::table('note_history_projection')->count());
+        $this->assertSame(0, DB::table('work_items')->count());
+        $this->assertSame(0, DB::table('work_item_service_details')->count());
+        $this->assertSame(0, DB::table('customer_payments')->count());
+        $this->assertSame(0, DB::table('customer_payment_cash_details')->count());
+        $this->assertSame(0, DB::table('payment_component_allocations')->count());
+        $this->assertSame(0, DB::table('note_history_projection')->count());
     }
+
     public function test_duplicate_create_workspace_submit_with_same_idempotency_key_and_same_payload_should_not_create_duplicate_note(): void
     {
         $this->loginAsKasir();
