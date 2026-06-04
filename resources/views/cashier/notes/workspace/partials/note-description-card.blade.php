@@ -1,5 +1,5 @@
-<div class="workspace-step-card">
-    <div class="workspace-step-header">
+<details class="workspace-step-card" open>
+    <summary class="workspace-step-header workspace-details-summary">
         <span class="workspace-step-number">3</span>
         <div class="flex-grow-1">
             <h4 class="workspace-step-title">Alasan & Keterangan Nota</h4>
@@ -7,7 +7,10 @@
                 Isi setelah rincian dibuat supaya catatan mengikuti konteks transaksi.
             </p>
         </div>
-    </div>
+        <span class="workspace-details-toggle" aria-hidden="true">
+            <i class="bi bi-chevron-down"></i>
+        </span>
+    </summary>
 
     <div class="workspace-step-body">
         <div class="workspace-note-card">
@@ -21,4 +24,4 @@
             >{{ $oldNote['operational_note'] ?? '' }}</textarea>
         </div>
     </div>
-</div>
+</details>

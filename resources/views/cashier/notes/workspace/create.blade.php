@@ -223,6 +223,17 @@
             min-width: min(100%, 20rem);
         }
 
+        .cashier-workspace-stepper .ui-form-actions,
+        .cashier-workspace-stepper .ui-form-actions .btn {
+            width: 100%;
+        }
+
+        .cashier-workspace-stepper .ui-form-actions .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .cashier-workspace-stepper .workspace-add-question-button {
             border: 1px dashed #b39ddb;
             color: var(--workspace-accent);

@@ -1,5 +1,5 @@
-<div class="workspace-step-card">
-    <div class="workspace-step-header">
+<details class="workspace-step-card" open>
+    <summary class="workspace-step-header workspace-details-summary">
         <span class="workspace-step-number">4</span>
         <div class="flex-grow-1">
             <h4 class="workspace-step-title">Review & Pembayaran</h4>
@@ -7,7 +7,10 @@
                 Cek total, lalu pilih bayar penuh, bayar sebagian, atau simpan tanpa pembayaran.
             </p>
         </div>
-    </div>
+        <span class="workspace-details-toggle" aria-hidden="true">
+            <i class="bi bi-chevron-down"></i>
+        </span>
+    </summary>
 
     <div class="workspace-step-body">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
@@ -33,4 +36,4 @@
             </div>
         </div>
     </div>
-</div>
+</details>

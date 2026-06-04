@@ -191,8 +191,19 @@
       font-weight: 800;
     }
 
+    .cashier-note-detail .d-grid,
+    .cashier-note-detail .ui-form-actions {
+      width: 100%;
+    }
+
     .cashier-note-detail .d-grid .btn,
-    .cashier-note-detail .ui-form-actions .btn {
+    .cashier-note-detail .ui-form-actions .btn,
+    .cashier-note-detail .card-body > .btn,
+    .cashier-note-detail a.btn,
+    .cashier-note-detail button.btn {
+      display: flex;
+      align-items: center;
+      text-align: center;
       width: 100%;
       justify-content: center;
     }
@@ -248,7 +259,7 @@
         <summary class="cashier-note-detail-header">
           <span class="cashier-note-detail-number">1</span>
           <div>
-            <h5 class="cashier-note-detail-title">Info Nota</h5>
+            <h5 class="cashier-note-detail-title">Header</h5>
             <p class="cashier-note-detail-help">Identitas customer, tanggal, status, dan ringkasan pembayaran.</p>
           </div>
           <span class="cashier-note-detail-toggle" aria-hidden="true">
@@ -267,7 +278,7 @@
         <summary class="cashier-note-detail-header">
           <span class="cashier-note-detail-number">2</span>
           <div>
-            <h5 class="cashier-note-detail-title">Rincian Nota</h5>
+            <h5 class="cashier-note-detail-title">List Line</h5>
             <p class="cashier-note-detail-help">Daftar item, status, sisa tagihan, dan dampak refund per rincian.</p>
           </div>
           <span class="cashier-note-detail-toggle" aria-hidden="true">
@@ -287,7 +298,7 @@
         <summary class="cashier-note-detail-header">
           <span class="cashier-note-detail-number">3</span>
           <div>
-            <h5 class="cashier-note-detail-title">Status & Aksi</h5>
+            <h5 class="cashier-note-detail-title">Status Aksi</h5>
             <p class="cashier-note-detail-help">Lanjut edit atau refund setelah rincian nota dicek.</p>
           </div>
           <span class="cashier-note-detail-toggle" aria-hidden="true">
