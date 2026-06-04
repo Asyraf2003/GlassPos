@@ -133,13 +133,6 @@
     </style>
 
     <div class="cashier-note-index">
-        <div class="ui-page-intro">
-            <div class="small text-muted text-uppercase fw-semibold">Riwayat Nota Kasir</div>
-            <h4 class="ui-page-intro-title">{{ $pageTitle }}</h4>
-            <p class="ui-page-intro-subtitle">
-                Cari nota, pakai filter line, lalu buka detail untuk lanjut kerja.
-            </p>
-        </div>
 
         <div class="cashier-note-index-shell">
             <div class="cashier-note-step-card">
