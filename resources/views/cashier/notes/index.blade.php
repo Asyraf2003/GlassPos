@@ -4,15 +4,149 @@
 
 @section('content')
 <section class="section">
-    <div class="card">
-        <div class="card-header">
-            <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
-                <div>
-                    <h4 class="card-title mb-1">Area kerja kasir untuk memilih nota hari ini dan kemarin, lalu lanjut ke panel kerja per line</h4>
+    <style>
+        .cashier-note-index {
+            --note-card: #ffffff;
+            --note-border: rgba(15, 23, 42, .10);
+            --note-muted: #64748b;
+            --note-text: #0f172a;
+            --note-primary-soft: rgba(var(--bs-primary-rgb), .10);
+            --note-primary-border: rgba(var(--bs-primary-rgb), .24);
+            --note-shadow: 0 .85rem 1.8rem rgba(15, 23, 42, .06);
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        .cashier-note-index-shell {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .cashier-note-step-card {
+            border: 1px solid var(--note-border);
+            border-radius: 1rem;
+            background: var(--note-card);
+            box-shadow: var(--note-shadow);
+            overflow: hidden;
+        }
+
+        .cashier-note-step-header {
+            display: flex;
+            align-items: flex-start;
+            gap: .85rem;
+            padding: 1rem 1rem .75rem;
+            border-bottom: 1px solid rgba(15, 23, 42, .07);
+        }
+
+        .cashier-note-step-number {
+            width: 2.25rem;
+            height: 2.25rem;
+            flex: 0 0 2.25rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            color: var(--bs-primary);
+            background: var(--note-primary-soft);
+            border: 1px solid var(--note-primary-border);
+            font-weight: 800;
+        }
+
+        .cashier-note-step-title {
+            margin: 0;
+            color: var(--note-text);
+            font-size: 1rem;
+            font-weight: 800;
+            line-height: 1.35;
+        }
+
+        .cashier-note-step-help {
+            margin: .18rem 0 0;
+            color: var(--note-muted);
+            font-size: .9rem;
+            line-height: 1.55;
+        }
+
+        .cashier-note-step-body {
+            padding: 1rem;
+        }
+
+        .cashier-note-index .btn,
+        .cashier-note-index .form-control {
+            min-height: 2.75rem;
+        }
+
+        .cashier-note-index .form-control {
+            border-radius: .85rem;
+            border-color: var(--note-border);
+        }
+
+        .cashier-note-action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .75rem;
+        }
+
+        .cashier-note-action-grid .btn {
+            border-radius: .85rem;
+            font-weight: 800;
+        }
+
+        .cashier-note-table-wrap {
+            border: 1px solid rgba(15, 23, 42, .08);
+            border-radius: .85rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .cashier-note-table-wrap table {
+            margin-bottom: 0;
+            min-width: 900px;
+        }
+
+        .cashier-note-index .pagination {
+            flex-wrap: wrap;
+            gap: .25rem;
+        }
+
+        @media (max-width: 575.98px) {
+            .cashier-note-index {
+                max-width: none;
+            }
+
+            .cashier-note-action-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cashier-note-step-header,
+            .cashier-note-step-body {
+                padding-inline: .9rem;
+            }
+        }
+    </style>
+
+    <div class="cashier-note-index">
+        <div class="ui-page-intro">
+            <div class="small text-muted text-uppercase fw-semibold">Riwayat Nota Kasir</div>
+            <h4 class="ui-page-intro-title">{{ $pageTitle }}</h4>
+            <p class="ui-page-intro-subtitle">
+                Cari nota, pakai filter line, lalu buka detail untuk lanjut kerja.
+            </p>
+        </div>
+
+        <div class="cashier-note-index-shell">
+            <div class="cashier-note-step-card">
+                <div class="cashier-note-step-header">
+                    <span class="cashier-note-step-number">1</span>
+                    <div>
+                        <h5 class="cashier-note-step-title">Cari & Aksi</h5>
+                        <p class="cashier-note-step-help">Daftar kasir memakai window hari ini dan kemarin.</p>
+                    </div>
                 </div>
 
-                <div class="d-flex flex-column flex-md-row gap-2">
-                    <form class="d-flex flex-column gap-1" id="cashier-note-search-form">
+                <div class="cashier-note-step-body">
+                    <form class="mb-3" id="cashier-note-search-form">
+                        <label for="cashier-note-search-input" class="form-label fw-semibold">Cari Nota</label>
                         <input
                             type="text"
                             id="cashier-note-search-input"
@@ -23,53 +157,67 @@
                         >
                     </form>
 
-                    <button type="button" id="open-cashier-note-filter" class="btn btn-primary">
-                        Filter
-                    </button>
+                    <div class="cashier-note-action-grid">
+                        <button type="button" id="open-cashier-note-filter" class="btn btn-outline-primary">
+                            <i class="bi bi-funnel me-2"></i>
+                            Filter
+                        </button>
 
-                    <a href="{{ route('cashier.notes.workspace.create') }}" class="btn btn-primary">
-                        Buat Nota
-                    </a>
+                        <a href="{{ route('cashier.notes.workspace.create') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Buat Nota
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cashier-note-step-card">
+                <div class="cashier-note-step-header">
+                    <span class="cashier-note-step-number">2</span>
+                    <div>
+                        <h5 class="cashier-note-step-title">Daftar Nota</h5>
+                        <p class="cashier-note-step-help">Geser tabel ke samping di layar kecil untuk melihat nominal dan aksi.</p>
+                    </div>
+                </div>
+
+                <div class="cashier-note-step-body">
+                    <div class="cashier-note-table-wrap">
+                        <table class="table table-lg" id="cashier-note-table">
+                            <thead>
+                                <tr class="text-nowrap">
+                                    <th style="width: 64px;">No</th>
+                                    <th>Tanggal</th>
+                                    <th>Nota</th>
+                                    <th>Customer</th>
+                                    <th class="text-end">Grand Total</th>
+                                    <th class="text-end">Sudah Dibayar</th>
+                                    <th class="text-end">Sisa Tagihan</th>
+                                    <th>Ringkasan Line</th>
+                                    <th style="width: 120px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cashier-note-table-body">
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted py-4">
+                                        Sedang menyiapkan daftar nota kasir...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-3">
+                        <small id="cashier-note-table-summary" class="text-muted">
+                            Memuat ringkasan daftar nota kasir...
+                        </small>
+                        <div id="cashier-note-table-pagination"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-lg" id="cashier-note-table">
-                    <thead>
-                        <tr class="text-nowrap">
-                            <th style="width: 64px;">No</th>
-                            <th>Tanggal</th>
-                            <th>Nota</th>
-                            <th>Customer</th>
-                            <th class="text-end">Grand Total</th>
-                            <th class="text-end">Sudah Dibayar</th>
-                            <th class="text-end">Sisa Tagihan</th>
-                            <th>Ringkasan Line</th>
-                            <th style="width: 120px;">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cashier-note-table-body">
-                        <tr>
-                            <td colspan="9" class="text-center text-muted py-4">
-                                Sedang menyiapkan daftar nota kasir...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-3">
-                <small id="cashier-note-table-summary" class="text-muted">
-                    Memuat ringkasan daftar nota kasir...
-                </small>
-                <div id="cashier-note-table-pagination"></div>
-            </div>
-        </div>
+        @include('cashier.notes.partials.filter-drawer')
     </div>
-
-    @include('cashier.notes.partials.filter-drawer')
 </section>
 
 <script id="cashier-note-index-config" type="application/json">@json([
