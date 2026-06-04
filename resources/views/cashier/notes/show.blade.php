@@ -108,6 +108,7 @@
     }
 
     .cashier-note-detail .ui-card-stack {
+      display: grid;
       gap: .85rem;
     }
 
@@ -118,22 +119,23 @@
     }
 
     .cashier-note-detail .card {
-      border: 1px solid var(--detail-border);
-      border-radius: .5rem;
-      background: var(--detail-card);
+      border: 0;
+      border-radius: 0;
+      background: transparent;
       color: var(--detail-text);
       box-shadow: none !important;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .cashier-note-detail .card-header {
       border-bottom: 1px solid var(--detail-border);
-      background: var(--detail-card);
-      padding: 1rem;
+      background: transparent;
+      padding: 0 0 .85rem;
+      margin-bottom: .85rem;
     }
 
     .cashier-note-detail .card-body {
-      padding: 1rem;
+      padding: 0;
     }
 
     .cashier-note-detail .card-title {
@@ -340,7 +342,7 @@
         <summary class="cashier-note-detail-header">
           <span class="cashier-note-detail-number">2</span>
           <div>
-            <h5 class="cashier-note-detail-title">List Line</h5>
+            <h5 class="cashier-note-detail-title">Rincian Nota</h5>
             <p class="cashier-note-detail-help">Daftar item, status, sisa tagihan, dan dampak refund per rincian.</p>
           </div>
           <span class="cashier-note-detail-toggle" aria-hidden="true">
@@ -360,8 +362,8 @@
         <summary class="cashier-note-detail-header">
           <span class="cashier-note-detail-number">3</span>
           <div>
-            <h5 class="cashier-note-detail-title">Status Aksi</h5>
-            <p class="cashier-note-detail-help">Lanjut edit atau refund setelah rincian nota dicek.</p>
+            <h5 class="cashier-note-detail-title">Review &amp; Pembayaran</h5>
+            <p class="cashier-note-detail-help">Lanjut edit, pembayaran, atau refund setelah rincian nota dicek.</p>
           </div>
           <span class="cashier-note-detail-toggle" aria-hidden="true">
             <i class="bi bi-chevron-down"></i>
@@ -379,7 +381,7 @@
         <summary class="cashier-note-detail-header">
           <span class="cashier-note-detail-number">4</span>
           <div>
-            <h5 class="cashier-note-detail-title">Versioning &amp; Revisi</h5>
+            <h5 class="cashier-note-detail-title">Riwayat Nota</h5>
             <p class="cashier-note-detail-help">Riwayat perubahan nota dan koreksi yang pernah dicatat.</p>
           </div>
           <span class="cashier-note-detail-toggle" aria-hidden="true">
