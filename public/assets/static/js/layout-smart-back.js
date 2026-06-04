@@ -131,6 +131,6 @@
         prunedStack.push(target);
         writeStack(prunedStack);
 
-        window.location.replace(target);
+        window.location.assign(target);
     });
 })();
