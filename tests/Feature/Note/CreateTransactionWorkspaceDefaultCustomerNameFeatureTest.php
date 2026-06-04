@@ -29,6 +29,7 @@ final class CreateTransactionWorkspaceDefaultCustomerNameFeatureTest extends Tes
         ]);
 
         $storeResponse = $this->actingAs($user)->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'create-workspace-default-customer-idem-001',
             'note' => [
                 'customer_name' => 'Budi',
                 'customer_phone' => '08123',

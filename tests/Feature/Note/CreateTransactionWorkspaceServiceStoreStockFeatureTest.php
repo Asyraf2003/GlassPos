@@ -49,6 +49,7 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
         ]);
 
         $response = $this->actingAs($user)->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'create-workspace-service-store-stock-idem-001',
             'note' => [
                 'customer_name' => 'Budi',
                 'customer_phone' => '08123',
@@ -162,6 +163,7 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
         ]);
 
         $response = $this->actingAs($user)->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'create-workspace-service-store-stock-package-idem-001',
             'note' => [
                 'customer_name' => 'Budi',
                 'customer_phone' => '08123',
@@ -287,6 +289,7 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
         ]);
 
         $response = $this->actingAs($user)->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'create-workspace-service-store-stock-multi-package-idem-001',
             'note' => [
                 'customer_name' => 'Budi Multi Package',
                 'customer_phone' => '08123',
@@ -467,6 +470,7 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
         $response = $this->actingAs($user)
             ->from(route('cashier.notes.workspace.create'))
             ->post(route('notes.workspace.store'), [
+                'idempotency_key' => 'create-workspace-service-store-stock-duplicate-idem-001',
                 'note' => [
                     'customer_name' => 'Budi Duplicate Package',
                     'customer_phone' => '08123',
@@ -558,6 +562,7 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
         ]);
 
         $response = $this->actingAs($user)->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'create-workspace-service-store-stock-equal-package-idem-001',
             'note' => [
                 'customer_name' => 'Budi',
                 'customer_phone' => '08123',
@@ -662,6 +667,7 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
         $response = $this->actingAs($user)
             ->from(route('cashier.notes.workspace.create'))
             ->post(route('notes.workspace.store'), [
+                'idempotency_key' => 'create-workspace-service-store-stock-too-low-idem-001',
                 'note' => [
                     'customer_name' => 'Budi',
                     'customer_phone' => '08123',
@@ -749,6 +755,7 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
         $response = $this->actingAs($user)
             ->from(route('cashier.notes.workspace.create'))
             ->post(route('notes.workspace.store'), [
+                'idempotency_key' => 'create-workspace-service-store-stock-browser-idem-001',
                 'note' => [
                     'customer_name' => 'Budi Browser Contract',
                     'customer_phone' => '08123',

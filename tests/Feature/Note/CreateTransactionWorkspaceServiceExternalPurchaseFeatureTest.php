@@ -29,6 +29,7 @@ final class CreateTransactionWorkspaceServiceExternalPurchaseFeatureTest extends
         ]);
 
         $response = $this->actingAs($user)->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'create-workspace-service-external-idem-001',
             'note' => [
                 'customer_name' => 'Budi',
                 'customer_phone' => '08123',
@@ -113,6 +114,7 @@ final class CreateTransactionWorkspaceServiceExternalPurchaseFeatureTest extends
         ]);
 
         $response = $this->actingAs($user)->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'create-workspace-service-external-package-idem-001',
             'note' => [
                 'customer_name' => 'Budi External Package',
                 'customer_phone' => '08123',

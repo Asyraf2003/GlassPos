@@ -29,6 +29,7 @@ final class CreateTransactionWorkspaceInlinePaymentLifecycleFeatureTest extends 
         ]);
 
         $response = $this->actingAs($user)->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'create-workspace-lifecycle-full-cash-idem-001',
             'note' => [
                 'customer_name' => 'Lifecycle Create Customer',
                 'customer_phone' => '081234567890',
@@ -160,6 +161,7 @@ final class CreateTransactionWorkspaceInlinePaymentLifecycleFeatureTest extends 
         ]);
 
         $response = $this->actingAs($user)->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'create-workspace-lifecycle-partial-cash-idem-001',
             'note' => [
                 'customer_name' => 'Lifecycle Partial Create Customer',
                 'customer_phone' => '081234567891',
@@ -289,6 +291,7 @@ final class CreateTransactionWorkspaceInlinePaymentLifecycleFeatureTest extends 
         ]);
 
         $response = $this->actingAs($user)->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'create-workspace-lifecycle-debt-idem-001',
             'note' => [
                 'customer_name' => 'Lifecycle Debt Create Customer',
                 'customer_phone' => '081234567892',
@@ -395,6 +398,7 @@ final class CreateTransactionWorkspaceInlinePaymentLifecycleFeatureTest extends 
         ]);
 
         $response = $this->actingAs($user)->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'create-workspace-lifecycle-full-transfer-idem-001',
             'note' => [
                 'customer_name' => 'Lifecycle Transfer Create Customer',
                 'customer_phone' => '081234567893',
@@ -521,6 +525,7 @@ final class CreateTransactionWorkspaceInlinePaymentLifecycleFeatureTest extends 
         ]);
 
         $response = $this->actingAs($user)->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'create-workspace-lifecycle-partial-transfer-idem-001',
             'note' => [
                 'customer_name' => 'Lifecycle Partial Transfer Create Customer',
                 'customer_phone' => '081234567894',

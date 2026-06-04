@@ -43,6 +43,7 @@ final class CreateTransactionWorkspaceRollbackFeatureTest extends TestCase
 
         try {
             $this->actingAs($user)->post(route('notes.workspace.store'), [
+                'idempotency_key' => 'create-workspace-rollback-idem-001',
                 'note' => [
                     'customer_name' => 'Rollback Create Customer',
                     'customer_phone' => '081234567899',

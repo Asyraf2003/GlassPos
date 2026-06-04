@@ -84,6 +84,7 @@ final class TransactionWorkspaceServiceCatalogSyncFeatureTest extends TestCase
     private function payload(array $item): array
     {
         return [
+            'idempotency_key' => 'transaction-workspace-service-catalog-idem-001',
             'note' => [
                 'customer_name' => 'Budi Service Catalog',
                 'customer_phone' => '08123',

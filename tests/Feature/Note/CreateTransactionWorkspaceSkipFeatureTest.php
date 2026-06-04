@@ -20,6 +20,7 @@ final class CreateTransactionWorkspaceSkipFeatureTest extends TestCase
         DB::table('actor_accesses')->insert(['actor_id' => (string) $user->getAuthIdentifier(), 'role' => 'kasir']);
 
         $response = $this->actingAs($user)->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'create-workspace-skip-idem-001',
             'note' => ['customer_name' => 'Budi', 'customer_phone' => '08123', 'transaction_date' => '2026-03-15'],
             'items' => [[
                 'entry_mode' => 'service', 'part_source' => 'none', 'pay_now' => 0,

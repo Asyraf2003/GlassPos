@@ -49,6 +49,7 @@ final class CreateTransactionWorkspacePackageAllocationAuditFeatureTest extends 
         ]);
 
         $response = $this->actingAs($user)->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'create-workspace-package-allocation-audit-idem-001',
             'note' => [
                 'customer_name' => 'Budi Audit',
                 'customer_phone' => '08123',

@@ -30,6 +30,7 @@ final class CreateTransactionWorkspacePartialCashFeatureTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'create-workspace-partial-cash-idem-001',
             'note' => [
                 'customer_name' => 'Budi',
                 'customer_phone' => '08123',
