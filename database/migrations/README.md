@@ -398,6 +398,51 @@ Forbidden claim:
 
 The live system is already PostgreSQL-ready for production cutover.
 
+## Service Catalog Migration Slice
+
+Status: Focused verified.
+
+FACT:
+
+- `database/migrations/2026_06_04_000100_create_service_catalog_items_table.php` creates `service_catalog_items`.
+- `database/migrations/2026_06_04_000200_seed_default_service_catalog_items.php` backfills the 12 default motorcycle service catalog rows.
+- The service catalog table is a default/suggestion source for cashier create/edit note UI.
+- The transaction note/work item remains the financial source of truth.
+- Existing catalog default prices are not overwritten by cashier transaction input.
+- A missing development table caused service autocomplete to render no list until `php artisan migrate` was run.
+
+PostgreSQL-readiness assessment:
+
+- The create-table migration uses portable Laravel schema-builder primitives:
+  - `string` primary key
+  - `string` unique normalized name
+  - `integer` rupiah default price
+  - `boolean` active flag
+  - `timestamps`
+- The data backfill migration uses query builder operations and `Str::uuid()`.
+- No new MySQL-only migration constructs are introduced:
+  - no `unsignedInteger` / `unsignedBigInteger`
+  - no MySQL `enum`
+  - no `after()`
+  - no `change()`
+  - no raw MySQL DDL
+  - no auto-increment domain identity
+
+Allowed claim:
+
+- This service catalog slice is PostgreSQL-aligned as a fresh-schema migration slice.
+
+Forbidden claim:
+
+- This slice does not prove the full system is ready for PostgreSQL production cutover.
+- PostgreSQL cutover still requires PostgreSQL migration execution proof, row-count parity, rupiah reconciliation, inventory reconciliation, audit/projection rebuild proof, application tests against PostgreSQL, and rollback runbook.
+
+Operational note:
+
+- Existing MySQL environments should run normal pending migrations.
+- Do not use `migrate:fresh` on live data.
+- If service autocomplete shows no saved services in a browser, first verify the environment has run the service catalog migrations and that `service_catalog_items` has rows.
+
 ## Research Schema To Live Transition Model
 
 Status: Active working model
