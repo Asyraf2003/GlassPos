@@ -21,18 +21,18 @@
             display: flex;
             min-height: 9.5rem;
             padding: 1rem;
-            border: 1px solid rgba(15, 23, 42, .10);
+            border: 1px solid var(--cashier-border);
             border-radius: 1rem;
-            background: #fff;
-            color: #0f172a;
+            background: var(--cashier-surface);
+            color: var(--cashier-text);
             text-decoration: none;
-            box-shadow: 0 .85rem 1.8rem rgba(15, 23, 42, .06);
+            box-shadow: var(--cashier-shadow);
         }
 
         .cashier-home-card:focus,
         .cashier-home-card:hover {
-            color: #0f172a;
-            border-color: rgba(var(--bs-primary-rgb), .28);
+            color: var(--cashier-text);
+            border-color: var(--cashier-accent-border);
         }
 
         .cashier-home-card-inner {
@@ -52,7 +52,7 @@
 
         .cashier-home-desc {
             margin: .25rem 0 0;
-            color: #64748b;
+            color: var(--cashier-muted);
             font-size: .9rem;
             line-height: 1.5;
         }
@@ -64,8 +64,8 @@
             width: 100%;
             min-height: 2.75rem;
             border-radius: .85rem;
-            background: rgba(var(--bs-primary-rgb), .10);
-            color: var(--bs-primary);
+            background: var(--cashier-accent-soft);
+            color: var(--cashier-accent);
             font-weight: 800;
         }
 
