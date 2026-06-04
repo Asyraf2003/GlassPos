@@ -32,6 +32,23 @@
         }
     };
 
+    const normalizedPath = (value) => {
+        try {
+            const path = new URL(value, window.location.origin).pathname.replace(/\/+$/, '');
+
+            return path === '' ? '/' : path;
+        } catch (error) {
+            return '';
+        }
+    };
+
+    const isSamePath = (left, right) => {
+        const leftPath = normalizedPath(left);
+        const rightPath = normalizedPath(right);
+
+        return leftPath !== '' && leftPath === rightPath;
+    };
+
     const readStack = () => {
         try {
             const parsed = JSON.parse(window.sessionStorage.getItem(storageKey) || '[]');
@@ -72,7 +89,7 @@
         for (let index = stack.length - 1; index >= 0; index -= 1) {
             const candidate = stack[index];
 
-            if (candidate === current) {
+            if (candidate === current || isSamePath(candidate, current)) {
                 continue;
             }
 
