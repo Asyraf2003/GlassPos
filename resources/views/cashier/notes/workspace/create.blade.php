@@ -362,6 +362,8 @@
             @csrf
             @if (($workspaceMode ?? 'create') === 'edit')
                 @method('PATCH')
+            @else
+                <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', $idempotencyKey ?? '') }}">
             @endif
 
             <div class="workspace-step-list">

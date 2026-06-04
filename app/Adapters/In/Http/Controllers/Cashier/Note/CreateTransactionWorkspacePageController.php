@@ -6,6 +6,7 @@ namespace App\Adapters\In\Http\Controllers\Cashier\Note;
 
 use App\Application\Note\Services\CreateTransactionWorkspacePageDataBuilder;
 use App\Application\Note\Services\TransactionWorkspaceDraftData;
+use App\Ports\Out\UuidPort;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -16,12 +17,17 @@ final class CreateTransactionWorkspacePageController extends Controller
         Request $request,
         CreateTransactionWorkspacePageDataBuilder $builder,
         TransactionWorkspaceDraftData $draftData,
+        UuidPort $uuid,
     ): View {
         $page = $builder->build();
         $defaultCustomerName = (string) $page['defaultCustomerName'];
         $productLookupEndpoint = route('cashier.notes.products.lookup');
         $serviceLookupEndpoint = route('cashier.notes.services.lookup');
         $serviceStoreEndpoint = route('cashier.notes.services.store');
+        $oldIdempotencyKey = $request->old('idempotency_key');
+        $idempotencyKey = is_string($oldIdempotencyKey) && trim($oldIdempotencyKey) !== ''
+            ? trim($oldIdempotencyKey)
+            : $uuid->generate();
 
         $sessionHasOldInput = is_array($request->session()->get('_old_input', [])) && $request->session()->get('_old_input', []) !== [];
         $draftPayload = $this->loadDraftPayload($request, $draftData, $sessionHasOldInput);
@@ -60,6 +66,7 @@ final class CreateTransactionWorkspacePageController extends Controller
             'productLookupEndpoint' => $productLookupEndpoint,
             'serviceLookupEndpoint' => $serviceLookupEndpoint,
             'serviceStoreEndpoint' => $serviceStoreEndpoint,
+            'idempotencyKey' => $idempotencyKey,
             'hasOldInput' => $sessionHasOldInput || $draftPayload !== [],
         ] + $page);
     }
