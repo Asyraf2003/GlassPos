@@ -14,6 +14,8 @@ final class EditTransactionWorkspaceRouteNames
      *   show: string,
      *   refunds_store: string,
      *   products_lookup: string,
+     *   services_lookup: string,
+     *   services_store: string,
      *   draft_show: string,
      *   draft_save: string
      * }
@@ -26,6 +28,8 @@ final class EditTransactionWorkspaceRouteNames
                 'show' => 'admin.notes.show',
                 'refunds_store' => 'admin.notes.refunds.store',
                 'products_lookup' => 'admin.notes.products.lookup',
+                'services_lookup' => 'admin.notes.services.lookup',
+                'services_store' => 'admin.notes.services.store',
                 'draft_show' => 'admin.notes.workspace.draft.show',
                 'draft_save' => 'admin.notes.workspace.draft.save',
             ],
@@ -34,6 +38,8 @@ final class EditTransactionWorkspaceRouteNames
                 'show' => 'cashier.notes.show',
                 'refunds_store' => 'cashier.notes.refunds.store',
                 'products_lookup' => 'cashier.notes.products.lookup',
+                'services_lookup' => 'cashier.notes.services.lookup',
+                'services_store' => 'cashier.notes.services.store',
                 'draft_show' => 'cashier.notes.workspace.draft.show',
                 'draft_save' => 'cashier.notes.workspace.draft.save',
             ],

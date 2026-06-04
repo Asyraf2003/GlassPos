@@ -20,6 +20,8 @@ final class CreateTransactionWorkspacePageController extends Controller
         $page = $builder->build();
         $defaultCustomerName = (string) $page['defaultCustomerName'];
         $productLookupEndpoint = route('cashier.notes.products.lookup');
+        $serviceLookupEndpoint = route('cashier.notes.services.lookup');
+        $serviceStoreEndpoint = route('cashier.notes.services.store');
 
         $sessionHasOldInput = is_array($request->session()->get('_old_input', [])) && $request->session()->get('_old_input', []) !== [];
         $draftPayload = $this->loadDraftPayload($request, $draftData, $sessionHasOldInput);
@@ -56,6 +58,8 @@ final class CreateTransactionWorkspacePageController extends Controller
             'oldInlinePayment' => $resolvedInlinePayment,
             'defaultCustomerName' => $defaultCustomerName,
             'productLookupEndpoint' => $productLookupEndpoint,
+            'serviceLookupEndpoint' => $serviceLookupEndpoint,
+            'serviceStoreEndpoint' => $serviceStoreEndpoint,
             'hasOldInput' => $sessionHasOldInput || $draftPayload !== [],
         ] + $page);
     }

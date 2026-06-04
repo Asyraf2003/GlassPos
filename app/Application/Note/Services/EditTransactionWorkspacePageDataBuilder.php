@@ -52,6 +52,8 @@ final class EditTransactionWorkspacePageDataBuilder
         $routeNames = $this->routes->resolve($routeArea);
         $today = $this->clock->now()->format('Y-m-d');
         $productLookupEndpoint = $this->urls->route($routeNames['products_lookup']);
+        $serviceLookupEndpoint = $this->urls->route($routeNames['services_lookup']);
+        $serviceStoreEndpoint = $this->urls->route($routeNames['services_store']);
 
         $oldNote = [
             'customer_name' => $currentRevision->customerName(),
@@ -76,12 +78,16 @@ final class EditTransactionWorkspacePageDataBuilder
             'oldItems' => $oldItems,
             'defaultCustomerName' => $oldNote['customer_name'],
             'productLookupEndpoint' => $productLookupEndpoint,
+            'serviceLookupEndpoint' => $serviceLookupEndpoint,
+            'serviceStoreEndpoint' => $serviceStoreEndpoint,
             'draftLoadEndpoint' => $this->urls->route($routeNames['draft_show']),
             'draftSaveEndpoint' => $this->urls->route($routeNames['draft_save']),
             'workspaceConfigJson' => json_encode([
                 'oldItems' => $oldItems,
                 'defaultCustomerName' => $oldNote['customer_name'],
                 'productLookupEndpoint' => $productLookupEndpoint,
+                'serviceLookupEndpoint' => $serviceLookupEndpoint,
+                'serviceStoreEndpoint' => $serviceStoreEndpoint,
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}',
         ] + $this->options->build();
     }
