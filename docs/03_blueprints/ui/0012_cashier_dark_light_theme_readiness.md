@@ -336,12 +336,20 @@ wc -l resources/views/cashier/dashboard/*.blade.php resources/views/cashier/note
 - Cashier theme token foundation has been added in `public/assets/static/css/ui-foundation.css`.
 - Cashier dashboard first pass has been patched to consume cashier theme tokens.
 - Cashier note index and filter drawer first pass has been patched to consume cashier theme tokens.
+- Cashier workspace shell first pass has been patched to consume cashier theme tokens.
+- Cashier workspace partials first pass has replaced light-only button/badge classes with theme-safe outline or semantic classes.
+- Cashier workspace JS first pass has removed runtime `btn-light` and `text-dark` inactive-state toggles from the active modular payment flow.
 - Targeted HTTP proof has passed for cashier dashboard access and cashier note history page/table.
+- Targeted workspace grep proof found no remaining `bg-light`, `text-dark`, or `btn-light` in `resources/views/cashier/notes/workspace` and `public/assets/static/js/pages/cashier-note-workspace`.
+- Targeted workspace test proof passed:
+  - `php artisan test tests/Feature/Note/CashierWorkspacePaymentFlowJavascriptContractTest.php`
+  - `php artisan test tests/Feature/Note/CreateTransactionWorkspaceTemplateContractFeatureTest.php`
+  - `php artisan test tests/Feature/Note/CreateTransactionWorkspaceSkipFeatureTest.php tests/Feature/Note/CreateTransactionWorkspacePartialCashFeatureTest.php`
 - Full test suite proof has not been completed because PHP exhausted the 128MB memory limit in `routes/console_audit.php`.
 - Browser visual proof has not been run yet.
 
 ## Next Active Step
 
-Continue implementation with the cashier workspace shell and workspace partials.
+Continue implementation with the cashier note detail shell and detail partials.
 
-The workspace is the next active theme area because it is the main create/edit transaction surface and already has local light-only variables that can be migrated to the cashier token contract.
+The note detail area is the next active theme area because it remains the largest proven light-only surface and includes payment, refund, correction, billing, and shared note partials that must be patched carefully.
