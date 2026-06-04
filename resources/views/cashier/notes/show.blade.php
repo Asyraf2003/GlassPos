@@ -7,28 +7,34 @@
 @section('content')
 <section class="section">
   <style>
+    .section:has(.cashier-note-detail) {
+      background: #f0ebf8;
+      padding-block: 1rem 2rem;
+    }
+
     .cashier-note-detail {
       --detail-card: #ffffff;
-      --detail-border: rgba(15, 23, 42, .10);
-      --detail-muted: #64748b;
-      --detail-text: #0f172a;
-      --detail-primary-soft: rgba(var(--bs-primary-rgb), .10);
-      --detail-primary-border: rgba(var(--bs-primary-rgb), .24);
-      --detail-shadow: 0 .85rem 1.8rem rgba(15, 23, 42, .06);
-      max-width: 860px;
+      --detail-border: #dadce0;
+      --detail-muted: #5f6368;
+      --detail-text: #202124;
+      --detail-accent: #673ab7;
+      --detail-accent-soft: #ede7f6;
+      --detail-accent-border: #d1c4e9;
+      max-width: 720px;
       margin: 0 auto;
     }
 
     .cashier-note-detail-shell {
       display: grid;
-      gap: 1rem;
+      gap: .85rem;
     }
 
     .cashier-note-detail-step {
       border: 1px solid var(--detail-border);
-      border-radius: 1rem;
+      border-radius: .5rem;
       background: var(--detail-card);
-      box-shadow: var(--detail-shadow);
+      border-top: .45rem solid var(--detail-accent);
+      box-shadow: none;
       overflow: visible;
     }
 
@@ -47,10 +53,10 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border-radius: 999px;
-      color: var(--bs-primary);
-      background: var(--detail-primary-soft);
-      border: 1px solid var(--detail-primary-border);
+      border-radius: 50%;
+      color: var(--detail-accent);
+      background: var(--detail-accent-soft);
+      border: 1px solid var(--detail-accent-border);
       font-weight: 800;
     }
 
@@ -74,25 +80,116 @@
     }
 
     .cashier-note-detail .ui-card-stack {
-      gap: 1rem;
+      gap: .85rem;
     }
 
     .cashier-note-detail .card {
-      border-color: rgba(15, 23, 42, .08);
-      border-radius: .9rem;
-      box-shadow: none;
+      border: 1px solid var(--detail-border);
+      border-radius: .5rem;
+      box-shadow: none !important;
       overflow: hidden;
     }
 
+    .cashier-note-detail .card-header {
+      border-bottom: 1px solid #eceff1;
+      background: #fff;
+      padding: 1rem;
+    }
+
+    .cashier-note-detail .card-body {
+      padding: 1rem;
+    }
+
+    .cashier-note-detail .card-title {
+      color: var(--detail-text);
+      font-size: 1rem;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .cashier-note-detail .badge {
+      border-color: #dadce0 !important;
+      border-radius: 999px;
+      background: #fff !important;
+      color: #3c4043 !important;
+      font-weight: 700;
+    }
+
+    .cashier-note-detail .border.rounded,
+    .cashier-note-detail .bg-light {
+      border-color: #dadce0 !important;
+      border-radius: .5rem !important;
+      background: #fff !important;
+    }
+
+    .cashier-note-detail .ui-key-value {
+      border-bottom: 1px solid #eceff1 !important;
+      padding-block: .85rem !important;
+    }
+
+    .cashier-note-detail .ui-key-value small,
+    .cashier-note-detail .text-muted {
+      color: var(--detail-muted) !important;
+    }
+
     .cashier-note-detail .table-responsive {
-      border-radius: .85rem;
+      border: 1px solid #dadce0;
+      border-radius: .5rem;
       -webkit-overflow-scrolling: touch;
+    }
+
+    .cashier-note-detail .table {
+      margin-bottom: 0;
+      --bs-table-striped-bg: #fff;
+      --bs-table-bg: #fff;
+    }
+
+    .cashier-note-detail .table thead th {
+      border-bottom: 1px solid #dadce0;
+      background: #fff;
+      color: var(--detail-muted);
+      font-size: .78rem;
+      font-weight: 800;
+      text-transform: none;
+      white-space: nowrap;
+    }
+
+    .cashier-note-detail .table tbody td {
+      border-color: #eceff1;
+      vertical-align: top;
     }
 
     .cashier-note-detail .btn {
       min-height: 2.75rem;
-      border-radius: .85rem;
+      border-radius: .35rem;
       font-weight: 800;
+    }
+
+    .cashier-note-detail .btn-primary {
+      border-color: var(--detail-accent);
+      background: var(--detail-accent);
+      color: #fff;
+    }
+
+    .cashier-note-detail .btn-primary:hover,
+    .cashier-note-detail .btn-primary:focus {
+      border-color: #512da8;
+      background: #512da8;
+      color: #fff;
+    }
+
+    .cashier-note-detail .btn-outline-secondary,
+    .cashier-note-detail .btn-light-secondary,
+    .cashier-note-detail .btn-light-primary {
+      border-color: #dadce0;
+      background: #fff;
+      color: var(--detail-accent);
+    }
+
+    .cashier-note-detail .btn-outline-warning {
+      border-color: #fbbc04;
+      background: #fff;
+      color: #8a5d00;
     }
 
     @media (max-width: 575.98px) {
@@ -110,8 +207,8 @@
   <div class="cashier-note-detail">
     <div class="ui-page-intro">
       <div class="small text-muted text-uppercase fw-semibold">Workspace Nota Kasir</div>
-      <h4 class="ui-page-intro-title">Detail Nota Root + Revision</h4>
-      <p class="ui-page-intro-subtitle">Baca konteks nota, cek line, lalu pilih aksi pembayaran atau refund.</p>
+      <h4 class="ui-page-intro-title">Detail Nota</h4>
+      <p class="ui-page-intro-subtitle">Baca info nota, rincian, lalu lanjutkan aksi pembayaran atau refund.</p>
     </div>
 
     <div class="cashier-note-detail-shell">
@@ -119,8 +216,8 @@
         <div class="cashier-note-detail-header">
           <span class="cashier-note-detail-number">1</span>
           <div>
-            <h5 class="cashier-note-detail-title">Konteks Nota</h5>
-            <p class="cashier-note-detail-help">Identitas, ringkasan angka, dan status revision saat ini.</p>
+            <h5 class="cashier-note-detail-title">Info Nota</h5>
+            <p class="cashier-note-detail-help">Identitas customer, tanggal, status, dan ringkasan pembayaran.</p>
           </div>
         </div>
 
@@ -142,8 +239,8 @@
         <div class="cashier-note-detail-header">
           <span class="cashier-note-detail-number">2</span>
           <div>
-            <h5 class="cashier-note-detail-title">Line & Billing</h5>
-            <p class="cashier-note-detail-help">Klik line yang eligible untuk menyiapkan refund; billing dipakai untuk pembayaran.</p>
+            <h5 class="cashier-note-detail-title">Rincian Nota</h5>
+            <p class="cashier-note-detail-help">Daftar item, status, sisa tagihan, dan dampak refund per rincian.</p>
           </div>
         </div>
 
@@ -159,8 +256,8 @@
         <div class="cashier-note-detail-header">
           <span class="cashier-note-detail-number">3</span>
           <div>
-            <h5 class="cashier-note-detail-title">Aksi Nota</h5>
-            <p class="cashier-note-detail-help">Lanjut edit, bayar, atau refund sesuai status note dan line terpilih.</p>
+            <h5 class="cashier-note-detail-title">Review & Tindakan</h5>
+            <p class="cashier-note-detail-help">Lanjut edit atau refund setelah rincian nota dicek.</p>
           </div>
         </div>
 

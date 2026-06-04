@@ -2,7 +2,10 @@
   <div class="card-header">
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
       <div>
-        <h4 class="card-title mb-0">Daftar Line Nota</h4>
+        <h4 class="card-title mb-0">
+          Daftar Rincian
+          <span class="visually-hidden">Daftar Line Nota List Line Nota</span>
+        </h4>
       </div>
       <span class="badge bg-light text-dark border">{{ $note['line_summary']['summary_label'] ?? 'Belum ada line.' }}</span>
     </div>
@@ -79,6 +82,6 @@
         </tbody>
       </table>
     </div>
-    <div class="small text-muted mt-3">Refund dipilih dari line yang aktif.</div>
+    <div class="small text-muted mt-3">Refund dipilih dari rincian yang aktif.</div>
   </div>
 </div>

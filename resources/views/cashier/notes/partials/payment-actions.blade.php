@@ -1,7 +1,7 @@
 <div class="card">
   <div class="card-header">
-    <h4 class="card-title mb-1">Panel Tindakan Nota</h4>
-    <p class="mb-0 text-muted">Aksi utama hidup di level note. Refund dipilih dari line detail yang diklik.</p>
+    <h4 class="card-title mb-1">Tindakan Nota</h4>
+    <p class="mb-0 text-muted">Edit nota atau pilih refund dari rincian yang diklik.</p>
   </div>
   <div class="card-body">
     <div class="d-grid gap-2">
@@ -30,9 +30,9 @@
 
     @if ($note['can_show_refund_form'] ?? false)
       <div class="border rounded p-3 mt-3 bg-light">
-        <div class="fw-semibold mb-1">Kontrak Refund</div>
-        <div class="small text-muted">Klik line pada tabel untuk memilih refund. Tombol refund tetap burem sampai ada line dipilih.</div>
-        <div class="small text-muted mt-2">Hover hanya menandakan row bisa dipilih. Row terpilih akan jauh lebih gelap.</div>
+        <div class="fw-semibold mb-1">Refund Rincian</div>
+        <div class="small text-muted">Klik rincian pada tabel untuk mengaktifkan tombol refund.</div>
+        <div class="small text-muted mt-2">Rincian terpilih akan ditandai lebih jelas.</div>
       </div>
     @endif
   </div>

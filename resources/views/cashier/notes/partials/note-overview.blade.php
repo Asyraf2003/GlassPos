@@ -4,9 +4,12 @@
             <div class="card-header">
                 <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
                     <div>
-                        <h4 class="card-title mb-1">Header Nota</h4>
+                        <h4 class="card-title mb-1">
+                            Info Customer
+                            <span class="visually-hidden">Header Nota</span>
+                        </h4>
                         <p class="mb-0 text-muted">
-                            Ringkasan identitas note root dan komposisi line dari current revision untuk membaca konteks transaksi saat ini.
+                            Identitas customer dan status nota saat ini.
                         </p>
                     </div>
 
@@ -16,7 +19,7 @@
                 </div>
 
                 <p class="mt-2 mb-0 text-muted small">
-                    Detail note sekarang memisahkan pembacaan line domain, billing projection, dan revision timeline agar kerja kasir tetap jelas.
+                    Rincian di bawah memakai data nota terbaru.
                 </p>
             </div>
 
@@ -86,9 +89,7 @@
                     @endif
                 </div>
 
-                <div class="small text-muted mt-2">
-                    Edit nota sekarang disimpan sebagai revision baru pada root note yang sama.
-                </div>
+                <div class="small text-muted mt-2">Gunakan edit hanya saat rincian nota perlu direvisi.</div>
             </div>
         </div>
     </div>
@@ -96,9 +97,9 @@
     <div class="col-12 col-xl-6">
         <div class="card h-100">
             <div class="card-header">
-                <h4 class="card-title mb-1">Ringkasan Angka</h4>
+                <h4 class="card-title mb-1">Ringkasan Pembayaran</h4>
                 <p class="mb-0 text-muted">
-                    Angka utama note untuk membaca posisi pembayaran, refund, dan sisa tagihan saat ini.
+                    Total, pembayaran, refund, dan sisa tagihan nota.
                 </p>
             </div>
 

@@ -2,8 +2,8 @@
   <div class="card-header">
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
       <div>
-        <h4 class="card-title mb-1">Billing Projection</h4>
-        <p class="mb-0 text-muted">Layer ini dipakai untuk membaca dan memilih tagihan pembayaran. Domain line tetap utuh di tabel line nota.</p>
+        <h4 class="card-title mb-1">Rincian Tagihan</h4>
+        <p class="mb-0 text-muted">Urutan tagihan yang dipakai saat pembayaran nota.</p>
       </div>
       <span class="badge bg-light text-dark border">{{ count($note['billing_rows'] ?? []) }} Billing Row</span>
     </div>
@@ -60,6 +60,6 @@
         </tbody>
       </table>
     </div>
-    <div class="small text-muted mt-3">Selection pembayaran memakai billing row, tetapi submit tetap diterjemahkan ke contract row existing agar route dan request tidak berubah di fase ini.</div>
+    <div class="small text-muted mt-3">Pembayaran mengikuti urutan tagihan yang masih aktif.</div>
   </div>
 </div>
