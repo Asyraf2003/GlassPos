@@ -152,8 +152,6 @@
     }
 
     .cashier-note-detail .border.rounded,
-    .cashier-note-detail .bg-light,
-    .cashier-note-detail .bg-light-subtle,
     .cashier-note-detail .bg-body {
       border-color: var(--detail-border) !important;
       border-radius: .5rem !important;

@@ -151,8 +151,6 @@
     }
 
     .note-detail-mobile-stack .border.rounded,
-    .note-detail-mobile-stack .bg-light,
-    .note-detail-mobile-stack .bg-light-subtle,
     .note-detail-mobile-stack .bg-body {
       border-color: var(--note-detail-border) !important;
       background: var(--note-detail-surface-subtle) !important;
