@@ -112,6 +112,55 @@ final class NotePaidStatusPolicyTest extends TestCase
         $this->assertTrue($policy->isPaid($note));
     }
 
+    public function test_it_treats_gross_payment_as_paid_when_active_allocations_are_capped(): void
+    {
+        $policy = new NotePaidStatusPolicy(
+            new class () implements PaymentAllocationReaderPort {
+                public function getTotalAllocatedAmountByNoteId(string $noteId): Money
+                {
+                    return Money::fromInt(200000);
+                }
+
+                public function getTotalPaymentAmountByNoteId(string $noteId): Money
+                {
+                    return Money::fromInt(300000);
+                }
+
+                public function getTotalAllocatedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money
+                {
+                    return Money::zero();
+                }
+            },
+            new class () implements CustomerRefundReaderPort {
+                public function getTotalRefundedAmountByNoteId(string $noteId): Money
+                {
+                    return Money::zero();
+                }
+
+                public function getTotalCurrentRefundedAmountByNoteId(string $noteId): Money
+                {
+                    return Money::zero();
+                }
+
+                public function getTotalRefundedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money
+                {
+                    return Money::zero();
+                }
+            },
+        );
+
+        $note = Note::rehydrate(
+            'note-1',
+            'Budi Santoso',
+            null,
+            new DateTimeImmutable('2026-03-16'),
+            Money::fromInt(250000),
+            [],
+        );
+
+        $this->assertTrue($policy->isPaid($note));
+    }
+
     public function test_it_treats_note_as_not_paid_when_current_refund_reduces_settlement_below_total(): void
     {
         $policy = new NotePaidStatusPolicy(

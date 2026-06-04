@@ -21,6 +21,7 @@ final class NoteOperationalStatusResolverTest extends TestCase
         $refunds = $this->createMock(CustomerRefundReaderPort::class);
 
         $allocations->method('getTotalAllocatedAmountByNoteId')->with('note-1')->willReturn(Money::fromInt(20000));
+        $allocations->method('getTotalPaymentAmountByNoteId')->with('note-1')->willReturn(Money::fromInt(20000));
         $refunds->method('getTotalRefundedAmountByNoteId')->with('note-1')->willReturn(Money::zero());
 
         $service = new NoteOperationalStatusResolver(
@@ -61,6 +62,7 @@ final class NoteOperationalStatusResolverTest extends TestCase
         $refunds = $this->createMock(CustomerRefundReaderPort::class);
 
         $allocations->method('getTotalAllocatedAmountByNoteId')->with('note-1')->willReturn(Money::fromInt(50000));
+        $allocations->method('getTotalPaymentAmountByNoteId')->with('note-1')->willReturn(Money::fromInt(50000));
         $refunds->method('getTotalRefundedAmountByNoteId')->with('note-1')->willReturn(Money::zero());
 
         $service = new NoteOperationalStatusResolver(
@@ -97,6 +99,7 @@ final class NoteOperationalStatusResolverTest extends TestCase
         $refunds = $this->createMock(CustomerRefundReaderPort::class);
 
         $allocations->method('getTotalAllocatedAmountByNoteId')->with('note-1')->willReturn(Money::fromInt(50000));
+        $allocations->method('getTotalPaymentAmountByNoteId')->with('note-1')->willReturn(Money::fromInt(50000));
         $refunds->method('getTotalRefundedAmountByNoteId')->with('note-1')->willReturn(Money::fromInt(10000));
 
         $service = new NoteOperationalStatusResolver(
@@ -126,5 +129,29 @@ final class NoteOperationalStatusResolverTest extends TestCase
         $this->assertFalse($result['is_close']);
         $this->assertSame(40000, $result['net_paid_rupiah']);
         $this->assertSame(10000, $result['outstanding_rupiah']);
+    }
+
+    public function test_it_uses_gross_payment_when_active_allocations_are_capped(): void
+    {
+        $allocations = $this->createMock(PaymentAllocationReaderPort::class);
+        $refunds = $this->createMock(CustomerRefundReaderPort::class);
+
+        $allocations->method('getTotalAllocatedAmountByNoteId')->with('note-1')->willReturn(Money::fromInt(200000));
+        $allocations->method('getTotalPaymentAmountByNoteId')->with('note-1')->willReturn(Money::fromInt(300000));
+        $refunds->method('getTotalRefundedAmountByNoteId')->with('note-1')->willReturn(Money::zero());
+
+        $service = new NoteOperationalStatusResolver($allocations, $refunds, new NoteOperationalStatusEvaluator());
+
+        $result = $service->resolve(Note::rehydrate(
+            'note-1',
+            'Budi',
+            null,
+            new DateTimeImmutable('2026-04-15'),
+            Money::fromInt(250000),
+        ));
+
+        $this->assertSame('close', $result['operational_status']);
+        $this->assertSame(300000, $result['net_paid_rupiah']);
+        $this->assertSame(0, $result['outstanding_rupiah']);
     }
 }
