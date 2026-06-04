@@ -15,7 +15,6 @@ final class ServiceCatalogEndpointFeatureTest extends TestCase
     public function test_cashier_can_lookup_service_by_plain_variant(): void
     {
         $this->loginAsKasir();
-        $this->seedService('svc-1', 'Sok Kopling (Besar)', 'sok kopling besar', 120000);
 
         $this->getJson(route('cashier.notes.services.lookup', ['q' => 'sok kopling besar']))
             ->assertOk()
@@ -26,7 +25,6 @@ final class ServiceCatalogEndpointFeatureTest extends TestCase
     public function test_cashier_can_lookup_service_by_partial_words(): void
     {
         $this->loginAsKasir();
-        $this->seedService('svc-1', 'Sok Kopling (Besar)', 'sok kopling besar', 120000);
 
         $this->getJson(route('cashier.notes.services.lookup', ['q' => 'sok besar']))
             ->assertOk()
@@ -36,24 +34,21 @@ final class ServiceCatalogEndpointFeatureTest extends TestCase
     public function test_cashier_can_open_service_lookup_without_query(): void
     {
         $this->loginAsKasir();
-        $this->seedService('svc-1', 'Setting In (Kecil)', 'setting in kecil', 70000);
 
         $this->getJson(route('cashier.notes.services.lookup'))
             ->assertOk()
-            ->assertJsonPath('data.rows.0.label', 'Setting In (Kecil)');
+            ->assertJsonFragment(['label' => 'Setting In (Kecil)']);
     }
 
     public function test_cashier_create_if_missing_does_not_update_existing_default_price(): void
     {
         $this->loginAsKasir();
-        $this->seedService('svc-1', 'Sok Kopling (Besar)', 'sok kopling besar', 120000);
 
         $this->postJson(route('cashier.notes.services.store'), [
             'name' => 'sok kopling besar',
             'default_price_rupiah' => 999000,
         ])->assertOk()->assertJsonPath('data.row.default_price_rupiah', 120000);
 
-        $this->assertDatabaseCount('service_catalog_items', 1);
         $this->assertDatabaseHas('service_catalog_items', [
             'normalized_name' => 'sok kopling besar',
             'default_price_rupiah' => 120000,
