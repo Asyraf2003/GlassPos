@@ -6,9 +6,7 @@ namespace App\Application\Note\Services;
 
 use App\Application\Inventory\Services\IssueInventoryOperation;
 use App\Core\Note\Note\Note;
-use App\Core\Note\WorkItem\WorkItem;
 use App\Ports\Out\Note\WorkItemWriterPort;
-use App\Ports\Out\ServiceCatalog\ServiceCatalogWriterPort;
 
 final class CreateTransactionWorkspaceWorkItemPersister
 {
@@ -18,7 +16,7 @@ final class CreateTransactionWorkspaceWorkItemPersister
         private readonly WorkItemFactory $factory,
         private readonly CreateTransactionWorkspaceWorkItemPayloadMapper $mapper,
         private readonly CreateTransactionWorkspacePackageAllocationAuditMapper $packageAudits,
-        private readonly ServiceCatalogWriterPort $serviceCatalog,
+        private readonly ServiceCatalogFromWorkItemSync $serviceCatalogSync,
     ) {
     }
 
@@ -45,7 +43,7 @@ final class CreateTransactionWorkspaceWorkItemPersister
 
             $note->addWorkItem($workItem);
             $this->workItems->create($workItem);
-            $this->syncServiceCatalog($workItem);
+            $this->serviceCatalogSync->sync($workItem);
 
             foreach ($workItem->storeStockLines() as $line) {
                 $this->issueInventory->execute(
@@ -66,19 +64,5 @@ final class CreateTransactionWorkspaceWorkItemPersister
         }
 
         return new CreateTransactionWorkspacePersistResult($created, $packageAllocations);
-    }
-
-    private function syncServiceCatalog(WorkItem $workItem): void
-    {
-        $service = $workItem->serviceDetail();
-
-        if ($service === null || $service->servicePriceRupiah()->amount() <= 0) {
-            return;
-        }
-
-        $this->serviceCatalog->createIfMissing(
-            $service->serviceName(),
-            $service->servicePriceRupiah()->amount()
-        );
     }
 }

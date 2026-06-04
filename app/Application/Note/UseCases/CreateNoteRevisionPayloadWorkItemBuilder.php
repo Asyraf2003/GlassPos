@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace App\Application\Note\UseCases;
 
 use App\Application\Note\Services\CreateTransactionWorkspaceWorkItemPayloadMapper;
+use App\Application\Note\Services\ServiceCatalogFromWorkItemSync;
 use App\Application\Note\Services\WorkItemFactory;
 use App\Core\Note\WorkItem\WorkItem;
-use App\Ports\Out\ServiceCatalog\ServiceCatalogWriterPort;
 
 final class CreateNoteRevisionPayloadWorkItemBuilder
 {
     public function __construct(
         private readonly CreateTransactionWorkspaceWorkItemPayloadMapper $mapper,
         private readonly WorkItemFactory $factory,
-        private readonly ServiceCatalogWriterPort $serviceCatalog,
+        private readonly ServiceCatalogFromWorkItemSync $serviceCatalogSync,
     ) {
     }
 
@@ -43,25 +43,11 @@ final class CreateNoteRevisionPayloadWorkItemBuilder
                 $store,
             );
 
-            $this->syncServiceCatalog($workItem);
+            $this->serviceCatalogSync->sync($workItem);
             $workItems[] = $workItem;
             $lineNo++;
         }
 
         return $workItems;
-    }
-
-    private function syncServiceCatalog(WorkItem $workItem): void
-    {
-        $service = $workItem->serviceDetail();
-
-        if ($service === null || $service->servicePriceRupiah()->amount() <= 0) {
-            return;
-        }
-
-        $this->serviceCatalog->createIfMissing(
-            $service->serviceName(),
-            $service->servicePriceRupiah()->amount()
-        );
     }
 }
