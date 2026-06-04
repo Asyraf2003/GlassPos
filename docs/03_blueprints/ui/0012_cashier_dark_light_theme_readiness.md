@@ -253,6 +253,67 @@ The implementation should prefer these tokens over page-specific hardcoded varia
 8. Run targeted grep proof for remaining light-only tokens.
 9. Run browser visual proof for light and dark on mobile and desktop.
 
+## Script Reference Audit
+
+Current Blade references prove these cashier scripts are active:
+
+- `resources/views/cashier/dashboard/product-search.blade.php` references `public/assets/static/js/pages/cashier-dashboard.js`.
+- `resources/views/cashier/notes/index.blade.php` references `public/assets/static/js/pages/cashier-note-index.js`.
+- `resources/views/cashier/notes/show.blade.php` references `public/assets/static/js/pages/cashier-note-payment.js`.
+- `resources/views/cashier/notes/show.blade.php` references `public/assets/static/js/pages/cashier-note-refund.js`.
+- `resources/views/shared/notes/show.blade.php` references `public/assets/static/js/pages/cashier-note-payment.js`.
+- `resources/views/shared/notes/show.blade.php` references `public/assets/static/js/pages/cashier-note-refund.js`.
+- `resources/views/cashier/notes/workspace/create.blade.php` references the modular workspace scripts under `public/assets/static/js/pages/cashier-note-workspace/`.
+
+Current Blade references did not show direct usage of these older root scripts:
+
+- `public/assets/static/js/pages/cashier-note-create.js`
+- `public/assets/static/js/pages/cashier-note-add-rows.js`
+- `public/assets/static/js/pages/cashier-note-workspace.js`
+
+Decision: treat the older root scripts as possible legacy files until route/view usage is fully proven. Do not remove them during the theme-readiness patch unless a separate cleanup step proves they are unreachable.
+
+## Implementation Map
+
+| Area | Files | Issue | Patch Type | Risk |
+| --- | --- | --- | --- | --- |
+| Theme shell | `resources/views/layouts/app.blade.php`, `resources/views/layouts/partials/sidebar-cashier.blade.php`, `public/assets/static/js/components/dark.js` | Global theme works, but fallback buttons still use light-flavored classes | Minor Blade class review | Low |
+| Cashier theme foundation | New or existing shared CSS loaded by `layouts.app` | No cashier semantic dark/light token contract yet | CSS token layer | Medium |
+| Dashboard cards | `resources/views/cashier/dashboard/index.blade.php` | Hardcoded `#fff`, `#0f172a`, `#64748b`, light shadows | CSS token replacement | Low |
+| Product search | `resources/views/cashier/dashboard/product-search.blade.php`, `public/assets/static/js/pages/cashier-dashboard.js` | Hardcoded light cards and result text | CSS token replacement, JS markup review | Low |
+| Account preferences | `resources/views/cashier/dashboard/account-preferences.blade.php` | Hardcoded light card, label, value colors | CSS token replacement | Low |
+| Note index | `resources/views/cashier/notes/index.blade.php`, `resources/views/cashier/notes/partials/filter-drawer.blade.php`, `public/assets/static/js/pages/cashier-note-index.js` | Light-only local variables, light buttons, AJAX text classes | CSS token replacement, Blade class replacement, JS class review | Medium |
+| Workspace shell | `resources/views/cashier/notes/workspace/create.blade.php` | Light-only workspace variables and hardcoded Google-form palette | CSS token replacement | High |
+| Workspace partials | `resources/views/cashier/notes/workspace/partials/*.blade.php`, `resources/views/cashier/notes/workspace/partials/templates/*.blade.php` | Light badges/buttons and modal panels | Blade class replacement, shared component classes | High |
+| Workspace JS | `public/assets/static/js/pages/cashier-note-workspace/boot.js`, `public/assets/static/js/pages/cashier-note-workspace/payment-flow.js`, `public/assets/static/js/pages/cashier-note-workspace/rows.js`, `public/assets/static/js/pages/cashier-note-workspace/search.js` | Runtime `btn-light` and `text-dark` toggles, dynamic result rendering | JS class replacement | High |
+| Note detail shell | `resources/views/cashier/notes/show.blade.php` | Forces page/card/table/badge/button light colors with `!important` | CSS token replacement | High |
+| Detail partials | `resources/views/cashier/notes/partials/*.blade.php` | Repeated `bg-light`, `text-dark`, `btn-light-*`, light panels | Blade class replacement, scoped utility classes | High |
+| Shared note show | `resources/views/shared/notes/show.blade.php` | Similar light-only detail shell used by shared note view | CSS token replacement with reuse-safety check | High |
+| Shared note partials | `resources/views/shared/notes/partials/*.blade.php` | Shared badges and status labels use light classes | Scoped replacement to avoid admin regression | Medium |
+| Detail payment/refund JS | `public/assets/static/js/pages/cashier-note-payment.js`, `public/assets/static/js/pages/cashier-note-refund.js` | Dynamic summaries render Bootstrap text utility classes | JS markup class review | Medium |
+| Legacy candidate JS | `public/assets/static/js/pages/cashier-note-create.js`, `public/assets/static/js/pages/cashier-note-add-rows.js`, `public/assets/static/js/pages/cashier-note-workspace.js` | Light classes exist but no current Blade reference was found | Defer or cleanup proof first | Low |
+
+## Verification Plan
+
+Run from repo root after implementation:
+
+```bash
+rg -n "bg-light text-dark|btn-light|background:\s*#fff|#ffffff|#f0ebf8|#202124|#0f172a|#64748b|#5f6368" resources/views/cashier resources/views/shared/notes public/assets/static/js/pages/cashier-dashboard.js public/assets/static/js/pages/cashier-note-* public/assets/static/js/pages/cashier-note-workspace --glob '!vendor'
+```
+
+```bash
+php artisan test
+```
+
+Browser proof needed after the code patch:
+
+- Cashier dashboard in light and dark.
+- Cashier product search in light and dark.
+- Cashier note index and filter drawer in light and dark.
+- Cashier workspace create/edit in light and dark.
+- Cashier note detail payment/refund/correction surfaces in light and dark.
+- Mobile viewport proof for the same cashier pages.
+
 ## Audit Commands Used
 
 Run from repo root:
