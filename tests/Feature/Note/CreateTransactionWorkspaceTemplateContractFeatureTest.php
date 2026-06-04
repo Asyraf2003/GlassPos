@@ -64,4 +64,19 @@ final class CreateTransactionWorkspaceTemplateContractFeatureTest extends TestCa
         $response->assertSee('data-add-product-line', false);
         $response->assertSee('data-remove-product-line', false);
     }
+
+    public function test_workspace_create_page_embeds_service_catalog_contract(): void
+    {
+        $this->loginAsKasir();
+
+        $response = $this->get(route('cashier.notes.workspace.create'));
+
+        $response->assertOk();
+        $response->assertSee('serviceLookupEndpoint', false);
+        $response->assertSee('serviceStoreEndpoint', false);
+        $response->assertSee('service-catalog.js', false);
+        $response->assertSee('data-service-name', false);
+        $response->assertSee('data-service-results', false);
+        $response->assertSee('data-service-default-fee-rupiah', false);
+    }
 }
