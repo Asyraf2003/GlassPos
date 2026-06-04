@@ -41,8 +41,17 @@ final class BuildCreateNoteRevisionSettlement
             ->getTotalRefundedAmountByNoteId($noteRootId)
             ->amount();
 
+        $allocatedPaid = $this->legacyPayments
+            ->getTotalAllocatedAmountByNoteId($noteRootId)
+            ->amount();
+
+        $grossLinkedPaid = $this->legacyPayments
+            ->getTotalPaymentAmountByNoteId($noteRootId)
+            ->amount();
+
         $carryForwardPaid = max(
-            $this->legacyPayments->getTotalAllocatedAmountByNoteId($noteRootId)->amount(),
+            $allocatedPaid,
+            $grossLinkedPaid,
             $componentPaid,
         );
 

@@ -10,5 +10,7 @@ interface PaymentAllocationReaderPort
 {
     public function getTotalAllocatedAmountByNoteId(string $noteId): Money;
 
+    public function getTotalPaymentAmountByNoteId(string $noteId): Money;
+
     public function getTotalAllocatedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money;
 }

@@ -23,6 +23,11 @@ final class NotePaidStatusPolicyTest extends TestCase
                     return Money::fromInt(100000);
                 }
 
+                public function getTotalPaymentAmountByNoteId(string $noteId): Money
+                {
+                    return $this->getTotalAllocatedAmountByNoteId($noteId);
+                }
+
                 public function getTotalAllocatedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money
                 {
                     return Money::zero();
@@ -65,6 +70,11 @@ final class NotePaidStatusPolicyTest extends TestCase
                 public function getTotalAllocatedAmountByNoteId(string $noteId): Money
                 {
                     return Money::fromInt(50000);
+                }
+
+                public function getTotalPaymentAmountByNoteId(string $noteId): Money
+                {
+                    return $this->getTotalAllocatedAmountByNoteId($noteId);
                 }
 
                 public function getTotalAllocatedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money
@@ -111,6 +121,11 @@ final class NotePaidStatusPolicyTest extends TestCase
                     return Money::fromInt(50000);
                 }
 
+                public function getTotalPaymentAmountByNoteId(string $noteId): Money
+                {
+                    return $this->getTotalAllocatedAmountByNoteId($noteId);
+                }
+
                 public function getTotalAllocatedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money
                 {
                     return Money::zero();
@@ -153,6 +168,11 @@ final class NotePaidStatusPolicyTest extends TestCase
                 public function getTotalAllocatedAmountByNoteId(string $noteId): Money
                 {
                     return Money::fromInt(200000);
+                }
+
+                public function getTotalPaymentAmountByNoteId(string $noteId): Money
+                {
+                    return $this->getTotalAllocatedAmountByNoteId($noteId);
                 }
 
                 public function getTotalAllocatedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money

@@ -165,6 +165,7 @@ final class BuildCreateNoteRevisionSettlementTest extends TestCase
         return new class($amount) implements PaymentComponentAllocationReaderPort {
             public function __construct(private readonly int $amount) {}
             public function getTotalAllocatedAmountByNoteId(string $noteId): Money { return Money::fromInt($this->amount); }
+            public function getTotalPaymentAmountByNoteId(string $noteId): Money { return Money::fromInt($this->amount); }
             public function getTotalAllocatedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money { return Money::zero(); }
             public function getTotalAllocatedAmountByWorkItemId(string $workItemId): Money { return Money::zero(); }
             public function listByNoteId(string $noteId): array { return []; }
@@ -208,6 +209,7 @@ final class BuildCreateNoteRevisionSettlementTest extends TestCase
         return new class($amount) implements PaymentAllocationReaderPort {
             public function __construct(private readonly int $amount) {}
             public function getTotalAllocatedAmountByNoteId(string $noteId): Money { return Money::fromInt($this->amount); }
+            public function getTotalPaymentAmountByNoteId(string $noteId): Money { return Money::fromInt($this->amount); }
             public function getTotalAllocatedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money { return Money::zero(); }
         };
     }
