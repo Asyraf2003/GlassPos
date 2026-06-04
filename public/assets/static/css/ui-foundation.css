@@ -4,6 +4,33 @@
     --ui-card-radius: 1rem;
     --ui-control-radius: 0.875rem;
     --ui-soft-radius: 0.875rem;
+    --cashier-page-bg: var(--bs-body-bg);
+    --cashier-surface: var(--bs-body-bg);
+    --cashier-surface-subtle: rgba(67, 94, 190, 0.08);
+    --cashier-border: rgba(15, 23, 42, 0.10);
+    --cashier-border-strong: rgba(15, 23, 42, 0.16);
+    --cashier-text: #0f172a;
+    --cashier-muted: #64748b;
+    --cashier-accent: var(--bs-primary);
+    --cashier-accent-soft: rgba(var(--bs-primary-rgb), 0.10);
+    --cashier-accent-border: rgba(var(--bs-primary-rgb), 0.24);
+    --cashier-danger-soft: rgba(var(--bs-danger-rgb), 0.12);
+    --cashier-warning-soft: rgba(var(--bs-warning-rgb), 0.14);
+    --cashier-success-soft: rgba(var(--bs-success-rgb), 0.12);
+    --cashier-shadow: 0 0.85rem 1.8rem rgba(15, 23, 42, 0.06);
+}
+
+html[data-bs-theme="dark"] {
+    --cashier-page-bg: var(--bs-body-bg);
+    --cashier-surface: #1b1b29;
+    --cashier-surface-subtle: rgba(255, 255, 255, 0.04);
+    --cashier-border: #35354f;
+    --cashier-border-strong: #4b4b68;
+    --cashier-text: #f2f2f7;
+    --cashier-muted: #a8a8c2;
+    --cashier-accent-soft: rgba(var(--bs-primary-rgb), 0.22);
+    --cashier-accent-border: rgba(var(--bs-primary-rgb), 0.38);
+    --cashier-shadow: none;
 }
 
 .page-content {
