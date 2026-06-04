@@ -9,17 +9,20 @@
 @section('content')
 <section class="section">
     <style>
+        .section:has(.cashier-workspace-stepper) {
+            background: #f6f3ff;
+            padding-block: 1rem 2rem;
+        }
+
         .cashier-workspace-stepper {
-            --workspace-bg: #f7f8fb;
             --workspace-card: #ffffff;
-            --workspace-border: rgba(15, 23, 42, .10);
-            --workspace-muted: #64748b;
-            --workspace-text: #0f172a;
-            --workspace-primary-soft: rgba(var(--bs-primary-rgb), .10);
-            --workspace-primary-border: rgba(var(--bs-primary-rgb), .24);
-            --workspace-radius: 1rem;
-            --workspace-shadow: 0 .85rem 1.8rem rgba(15, 23, 42, .06);
-            max-width: 860px;
+            --workspace-border: #dadce0;
+            --workspace-muted: #5f6368;
+            --workspace-text: #202124;
+            --workspace-accent: #673ab7;
+            --workspace-accent-soft: #ede7f6;
+            --workspace-radius: .5rem;
+            max-width: 760px;
             margin: 0 auto;
             padding-bottom: 5.5rem;
         }
@@ -30,15 +33,15 @@
 
         .cashier-workspace-stepper .workspace-step-list {
             display: grid;
-            gap: 1rem;
+            gap: .85rem;
         }
 
         .cashier-workspace-stepper .workspace-step-card {
             border: 1px solid var(--workspace-border);
             border-radius: var(--workspace-radius);
             background: var(--workspace-card);
-            box-shadow: var(--workspace-shadow);
             overflow: visible;
+            border-top: .45rem solid var(--workspace-accent);
         }
 
         .cashier-workspace-stepper .workspace-step-header {
@@ -56,10 +59,10 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 999px;
-            color: var(--bs-primary);
-            background: var(--workspace-primary-soft);
-            border: 1px solid var(--workspace-primary-border);
+            border-radius: 50%;
+            color: var(--workspace-accent);
+            background: var(--workspace-accent-soft);
+            border: 1px solid #d1c4e9;
             font-weight: 800;
         }
 
@@ -86,6 +89,7 @@
         .cashier-workspace-stepper .form-select,
         .cashier-workspace-stepper .btn {
             min-height: 2.75rem;
+            border-radius: .35rem;
         }
 
         .cashier-workspace-stepper .workspace-total-action {
@@ -93,10 +97,10 @@
             bottom: .75rem;
             z-index: 30;
             margin-top: 1rem;
-            border: 1px solid var(--workspace-primary-border);
-            border-radius: 1rem;
+            border: 1px solid #d1c4e9;
+            border-radius: .5rem;
             background: rgba(255, 255, 255, .96);
-            box-shadow: 0 1rem 2.5rem rgba(15, 23, 42, .16);
+            box-shadow: 0 .5rem 1.2rem rgba(60, 64, 67, .16);
             backdrop-filter: blur(10px);
         }
 
@@ -105,8 +109,55 @@
         }
 
         .cashier-workspace-stepper [data-line-item] {
-            border-radius: .9rem !important;
+            border-radius: .5rem !important;
             background: #fff;
+        }
+
+        .cashier-workspace-stepper details.workspace-step-card {
+            padding: 0;
+        }
+
+        .cashier-workspace-stepper .workspace-details-summary {
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .cashier-workspace-stepper .workspace-details-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .cashier-workspace-stepper .workspace-details-toggle {
+            color: var(--workspace-accent);
+            font-size: .86rem;
+            font-weight: 800;
+        }
+
+        .cashier-workspace-stepper .workspace-note-card {
+            border: 1px solid var(--workspace-border);
+            border-radius: .5rem;
+            background: #fff;
+            padding: 1rem;
+        }
+
+        #workspace-payment-modal .modal-content {
+            border-radius: .75rem;
+            border-top: .45rem solid var(--workspace-accent, #673ab7);
+        }
+
+        #workspace-payment-modal .workspace-gform-panel {
+            border: 1px solid #dadce0;
+            border-radius: .5rem;
+            background: #fff;
+            padding: 1rem;
+        }
+
+        #workspace-payment-line-summary {
+            display: grid;
+            gap: .65rem;
+            min-height: auto !important;
+            max-height: min(52vh, 34rem);
+            overflow-y: auto;
+            border: 0 !important;
         }
 
         @media (max-width: 575.98px) {
@@ -150,6 +201,7 @@
             <div class="workspace-step-list">
                 @include('cashier.notes.workspace.partials.info-card')
                 @include('cashier.notes.workspace.partials.rincian-card')
+                @include('cashier.notes.workspace.partials.note-description-card')
                 @include('cashier.notes.workspace.partials.review-payment-card')
             </div>
 

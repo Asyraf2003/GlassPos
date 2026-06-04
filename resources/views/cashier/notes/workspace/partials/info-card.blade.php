@@ -1,5 +1,5 @@
-<div class="workspace-step-card">
-    <div class="workspace-step-header">
+<details class="workspace-step-card" open>
+    <summary class="workspace-step-header workspace-details-summary">
         <span class="workspace-step-number">1</span>
         <div class="flex-grow-1">
             <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
@@ -15,7 +15,8 @@
                 </span>
             </div>
         </div>
-    </div>
+        <span class="workspace-details-toggle">Lipat</span>
+    </summary>
 
     <div class="workspace-step-body">
         <div class="row g-3">
@@ -54,17 +55,6 @@
                     class="form-control"
                 >
             </div>
-
-            <div class="col-12">
-                <label for="note_operational_note" class="form-label">Alasan Nota</label>
-                <textarea
-                    id="note_operational_note"
-                    name="note[operational_note]"
-                    rows="2"
-                    class="form-control"
-                    placeholder="Contoh: alasan, keluhan, instruksi, atau catatan umum nota"
-                >{{ $oldNote['operational_note'] ?? '' }}</textarea>
-            </div>
         </div>
 
         @if (($workspaceMode ?? 'create') === 'edit')
@@ -73,4 +63,4 @@
             </div>
         @endif
     </div>
-</div>
+</details>

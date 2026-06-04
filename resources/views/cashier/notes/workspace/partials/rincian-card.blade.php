@@ -4,8 +4,8 @@
         <div class="flex-grow-1">
             <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-start gap-3">
                 <div>
-                    <h4 class="workspace-step-title">Rincian Nota</h4>
-                    <p class="workspace-step-help">Tambah produk, servis, atau paket sesuai kasus customer.</p>
+                    <h4 class="workspace-step-title">Buat Rincian Nota</h4>
+                    <p class="workspace-step-help">Setiap rincian tampil seperti jawaban form yang bisa ditambah sesuai kebutuhan.</p>
                 </div>
 
                 <div class="position-relative">
