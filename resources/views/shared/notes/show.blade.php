@@ -102,21 +102,22 @@
     }
 
     .note-detail-mobile-stack .card {
-      border: 1px solid var(--note-detail-border);
-      border-radius: .5rem;
-      background: var(--note-detail-card);
+      border: 0;
+      border-radius: 0;
+      background: transparent;
       color: var(--note-detail-text);
       box-shadow: none !important;
     }
 
     .note-detail-mobile-stack .card-header {
       border-bottom: 1px solid var(--note-detail-border);
-      background: var(--note-detail-card);
-      padding: 1rem;
+      background: transparent;
+      padding: 0 0 .85rem;
+      margin-bottom: .85rem;
     }
 
     .note-detail-mobile-stack .card-body {
-      padding: 1rem;
+      padding: 0;
     }
 
     .note-detail-mobile-stack .card-title {
@@ -126,6 +127,7 @@
     }
 
     .note-detail-mobile-stack .ui-card-stack {
+      display: grid;
       gap: .85rem;
     }
 
@@ -243,7 +245,7 @@
         <summary class="note-detail-mobile-summary">
           <span class="note-detail-mobile-number">1</span>
           <div>
-            <h4 class="note-detail-mobile-title">Header</h4>
+            <h4 class="note-detail-mobile-title">Info Nota</h4>
             <p class="note-detail-mobile-help">Identitas customer, tanggal, dan status nota.</p>
           </div>
           <span class="note-detail-mobile-toggle" aria-hidden="true">
@@ -259,7 +261,7 @@
         <summary class="note-detail-mobile-summary">
           <span class="note-detail-mobile-number">2</span>
           <div>
-            <h4 class="note-detail-mobile-title">List Line</h4>
+            <h4 class="note-detail-mobile-title">Rincian Nota</h4>
             <p class="note-detail-mobile-help">Daftar rincian nota dan status setiap line.</p>
           </div>
           <span class="note-detail-mobile-toggle" aria-hidden="true">
@@ -275,8 +277,8 @@
         <summary class="note-detail-mobile-summary">
           <span class="note-detail-mobile-number">3</span>
           <div>
-            <h4 class="note-detail-mobile-title">Status Aksi</h4>
-            <p class="note-detail-mobile-help">Edit, pembayaran, dan refund setelah line dicek.</p>
+            <h4 class="note-detail-mobile-title">Review &amp; Pembayaran</h4>
+            <p class="note-detail-mobile-help">Edit, pembayaran, dan refund setelah rincian nota dicek.</p>
           </div>
           <span class="note-detail-mobile-toggle" aria-hidden="true">
             <i class="bi bi-chevron-down"></i>
@@ -291,7 +293,7 @@
         <summary class="note-detail-mobile-summary">
           <span class="note-detail-mobile-number">4</span>
           <div>
-            <h4 class="note-detail-mobile-title">Versioning &amp; Revisi</h4>
+            <h4 class="note-detail-mobile-title">Riwayat Nota</h4>
             <p class="note-detail-mobile-help">Riwayat perubahan nota terbaru.</p>
           </div>
           <span class="note-detail-mobile-toggle" aria-hidden="true">

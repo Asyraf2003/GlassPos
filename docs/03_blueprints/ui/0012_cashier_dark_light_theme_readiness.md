@@ -342,6 +342,10 @@ wc -l resources/views/cashier/dashboard/*.blade.php resources/views/cashier/note
 - Cashier note detail shell first pass has been patched to consume cashier theme tokens.
 - Shared note detail shell first pass has been patched to consume cashier theme tokens for cashier-rendered shared detail pages.
 - Cashier note detail partials first pass has removed light-only badge, panel, and modal button classes from the active detail surface.
+- Cashier note detail accordion and layout first pass has been aligned with create/edit workspace terminology and structure:
+  - Step labels now use `Info Nota`, `Rincian Nota`, `Review & Pembayaran`, and `Riwayat Nota`.
+  - Inner detail cards are flattened inside the accordion body so the detail page no longer reads as nested cards inside step cards.
+  - Shared note detail uses the same step labels and flattened card treatment.
 - Targeted HTTP proof has passed for cashier dashboard access and cashier note history page/table.
 - Targeted workspace grep proof found no remaining `bg-light`, `text-dark`, or `btn-light` in `resources/views/cashier/notes/workspace` and `public/assets/static/js/pages/cashier-note-workspace`.
 - Targeted workspace test proof passed:
@@ -353,6 +357,8 @@ wc -l resources/views/cashier/dashboard/*.blade.php resources/views/cashier/note
   - `php artisan test tests/Feature/Note/CashierNoteDetailAccessGuardFeatureTest.php`
   - `php artisan test tests/Feature/Note/CashierNoteDetailSimplePaymentModalUxFeatureTest.php`
   - `php artisan test tests/Feature/Note/CashierDetailRenderedBillingRowsPaymentFeatureTest.php tests/Feature/Note/CashierClosedNoteRefundViewFeatureTest.php tests/Feature/Note/CashierNoteDetailUsesCurrentRevisionLinesFeatureTest.php tests/Feature/Note/CashierNoteDetailBillingUsesCurrentRevisionFeatureTest.php`
+- Targeted note detail layout proof passed:
+  - `php artisan test tests/Feature/Note/CashierClosedNoteRefundViewFeatureTest.php tests/Feature/Note/CashierNoteDetailSimplePaymentModalUxFeatureTest.php tests/Feature/Note/CashierDetailRenderedBillingRowsPaymentFeatureTest.php tests/Feature/Note/CashierNoteDetailUsesCurrentRevisionLinesFeatureTest.php tests/Feature/Note/CashierNoteDetailBillingUsesCurrentRevisionFeatureTest.php`
 - Full test suite proof has not been completed because PHP exhausted the 128MB memory limit in `routes/console_audit.php`.
 - Browser visual proof has not been run yet.
 
