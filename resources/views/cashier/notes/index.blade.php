@@ -6,13 +6,13 @@
 <section class="section">
     <style>
         .cashier-note-index {
-            --note-card: #ffffff;
-            --note-border: rgba(15, 23, 42, .10);
-            --note-muted: #64748b;
-            --note-text: #0f172a;
-            --note-primary-soft: rgba(var(--bs-primary-rgb), .10);
-            --note-primary-border: rgba(var(--bs-primary-rgb), .24);
-            --note-shadow: 0 .85rem 1.8rem rgba(15, 23, 42, .06);
+            --note-card: var(--cashier-surface);
+            --note-border: var(--cashier-border);
+            --note-muted: var(--cashier-muted);
+            --note-text: var(--cashier-text);
+            --note-primary-soft: var(--cashier-accent-soft);
+            --note-primary-border: var(--cashier-accent-border);
+            --note-shadow: var(--cashier-shadow);
             max-width: 860px;
             margin: 0 auto;
         }
@@ -35,7 +35,7 @@
             align-items: flex-start;
             gap: .85rem;
             padding: 1rem 1rem .75rem;
-            border-bottom: 1px solid rgba(15, 23, 42, .07);
+            border-bottom: 1px solid var(--note-border);
         }
 
         .cashier-note-step-number {
@@ -46,7 +46,7 @@
             align-items: center;
             justify-content: center;
             border-radius: 999px;
-            color: var(--bs-primary);
+            color: var(--cashier-accent);
             background: var(--note-primary-soft);
             border: 1px solid var(--note-primary-border);
             font-weight: 800;
@@ -81,6 +81,10 @@
             border-color: var(--note-border);
         }
 
+        .cashier-note-index .text-muted {
+            color: var(--note-muted) !important;
+        }
+
         .cashier-note-action-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -93,7 +97,7 @@
         }
 
         .cashier-note-table-wrap {
-            border: 1px solid rgba(15, 23, 42, .08);
+            border: 1px solid var(--note-border);
             border-radius: .85rem;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
@@ -102,6 +106,9 @@
         .cashier-note-table-wrap table {
             margin-bottom: 0;
             min-width: 900px;
+            --bs-table-bg: var(--note-card);
+            --bs-table-color: var(--note-text);
+            --bs-table-border-color: var(--note-border);
         }
 
         .cashier-note-index .pagination {
