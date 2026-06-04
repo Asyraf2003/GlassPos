@@ -129,19 +129,10 @@
             color: #fff;
         }
 
-        .cashier-workspace-stepper .btn-light-primary,
         .cashier-workspace-stepper [data-add-product-line] {
             border: 1px solid var(--workspace-accent-border);
             background: var(--workspace-accent-soft);
             color: var(--workspace-accent) !important;
-            font-weight: 700;
-        }
-
-        .cashier-workspace-stepper .btn-light-secondary,
-        .cashier-workspace-stepper .btn-light-danger {
-            border: 1px solid var(--workspace-border);
-            background: var(--workspace-card);
-            color: var(--workspace-text) !important;
             font-weight: 700;
         }
 
