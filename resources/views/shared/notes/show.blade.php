@@ -8,17 +8,19 @@
 <section class="section">
   <style>
     .section:has(.note-detail-mobile-stack) {
-      background: #f0ebf8;
+      --note-detail-card: var(--cashier-surface);
+      --note-detail-surface-subtle: var(--cashier-surface-subtle);
+      --note-detail-border: var(--cashier-border);
+      --note-detail-muted: var(--cashier-muted);
+      --note-detail-text: var(--cashier-text);
+      --note-detail-accent: var(--cashier-accent);
+      --note-detail-accent-soft: var(--cashier-accent-soft);
+      --note-detail-accent-border: var(--cashier-accent-border);
+      background: var(--cashier-page-bg);
       padding-block: 1rem 2rem;
     }
 
     .note-detail-mobile-stack {
-      --note-detail-card: #ffffff;
-      --note-detail-border: #dadce0;
-      --note-detail-muted: #5f6368;
-      --note-detail-text: #202124;
-      --note-detail-accent: #673ab7;
-      --note-detail-accent-soft: #ede7f6;
       max-width: 720px;
       margin: 0 auto;
     }
@@ -43,7 +45,7 @@
       padding: 1rem 1rem .75rem;
       cursor: pointer;
       list-style: none;
-      border-bottom: 1px solid #eceff1;
+      border-bottom: 1px solid var(--note-detail-border);
     }
 
     .note-detail-mobile-summary::-webkit-details-marker {
@@ -60,7 +62,7 @@
       border-radius: 50%;
       color: var(--note-detail-accent);
       background: var(--note-detail-accent-soft);
-      border: 1px solid #d1c4e9;
+      border: 1px solid var(--note-detail-accent-border);
       font-weight: 800;
     }
 
@@ -102,12 +104,14 @@
     .note-detail-mobile-stack .card {
       border: 1px solid var(--note-detail-border);
       border-radius: .5rem;
+      background: var(--note-detail-card);
+      color: var(--note-detail-text);
       box-shadow: none !important;
     }
 
     .note-detail-mobile-stack .card-header {
-      border-bottom: 1px solid #eceff1;
-      background: #fff;
+      border-bottom: 1px solid var(--note-detail-border);
+      background: var(--note-detail-card);
       padding: 1rem;
     }
 
@@ -139,28 +143,88 @@
     }
 
     .note-detail-mobile-stack .badge {
-      border-color: #dadce0 !important;
+      border-color: var(--note-detail-border) !important;
       border-radius: 999px;
-      background: #fff !important;
-      color: #3c4043 !important;
+      background: var(--note-detail-surface-subtle) !important;
+      color: var(--note-detail-text) !important;
       font-weight: 700;
     }
 
+    .note-detail-mobile-stack .border.rounded,
+    .note-detail-mobile-stack .bg-light,
+    .note-detail-mobile-stack .bg-light-subtle,
+    .note-detail-mobile-stack .bg-body {
+      border-color: var(--note-detail-border) !important;
+      background: var(--note-detail-surface-subtle) !important;
+      color: var(--note-detail-text) !important;
+    }
+
+    .note-detail-mobile-stack .text-muted {
+      color: var(--note-detail-muted) !important;
+    }
+
     .note-detail-mobile-stack .table-responsive {
-      border: 1px solid #dadce0;
+      border: 1px solid var(--note-detail-border);
       border-radius: .5rem;
       -webkit-overflow-scrolling: touch;
     }
 
     .note-detail-mobile-stack .table {
-      --bs-table-striped-bg: #fff;
-      --bs-table-bg: #fff;
+      --bs-table-striped-bg: var(--note-detail-surface-subtle);
+      --bs-table-bg: var(--note-detail-card);
+      --bs-table-color: var(--note-detail-text);
+      --bs-table-border-color: var(--note-detail-border);
       margin-bottom: 0;
     }
 
     .note-detail-mobile-stack .table thead th,
     .note-detail-mobile-stack .table tbody td {
-      border-color: #eceff1;
+      border-color: var(--note-detail-border);
+    }
+
+    .note-detail-mobile-stack .form-control,
+    .note-detail-mobile-stack .form-select,
+    #note-payment-modal .form-control,
+    #note-payment-modal .form-select,
+    #note-refund-modal .form-control,
+    #note-refund-modal .form-select {
+      border-color: var(--note-detail-border);
+      background: var(--note-detail-card);
+      color: var(--note-detail-text);
+    }
+
+    #note-payment-modal .modal-content,
+    #note-refund-modal .modal-content {
+      border: 1px solid var(--note-detail-border);
+      background: var(--note-detail-card);
+      color: var(--note-detail-text);
+    }
+
+    #note-payment-modal .modal-header,
+    #note-payment-modal .modal-footer,
+    #note-refund-modal .modal-header,
+    #note-refund-modal .modal-footer {
+      border-color: var(--note-detail-border);
+      background: var(--note-detail-card);
+    }
+
+    #note-payment-modal .border.rounded,
+    #note-refund-modal .border.rounded {
+      border-color: var(--note-detail-border) !important;
+      background: var(--note-detail-surface-subtle);
+      color: var(--note-detail-text);
+    }
+
+    #note-payment-modal .badge,
+    #note-refund-modal .badge {
+      border-color: var(--note-detail-border) !important;
+      background: var(--note-detail-surface-subtle) !important;
+      color: var(--note-detail-text) !important;
+    }
+
+    #note-payment-modal .text-muted,
+    #note-refund-modal .text-muted {
+      color: var(--note-detail-muted) !important;
     }
 
     @media (max-width: 575.98px) {
