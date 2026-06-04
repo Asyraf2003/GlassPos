@@ -376,8 +376,7 @@
 
       button.classList.toggle("btn-primary", active);
       button.classList.toggle("text-white", active);
-      button.classList.toggle("btn-light", !active);
-      button.classList.toggle("text-dark", !active);
+      button.classList.toggle("btn-outline-secondary", !active);
       button.classList.toggle("shadow-sm", active);
     });
   };

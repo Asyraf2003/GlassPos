@@ -10,7 +10,7 @@
                     </p>
                 </div>
 
-                <span class="badge bg-light text-dark border">
+                <span class="badge workspace-soft-badge">
                     {{ ($workspaceMode ?? 'create') === 'edit' ? 'Mode Edit' : 'Mode Buat' }}
                 </span>
             </div>

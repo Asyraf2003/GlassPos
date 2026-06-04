@@ -32,7 +32,6 @@
 
     const syncMenuButtonState = () => {
       menuButtons().forEach((button) => {
-        button.classList.add("btn-light", "text-dark");
         button.classList.remove("btn-primary", "text-white", "shadow-sm");
       });
     };

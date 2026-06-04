@@ -5,7 +5,7 @@
                 <h6 class="mb-0" data-line-title>Rincian</h6>
                 <small class="text-muted">Servis biasa tanpa sparepart toko.</small>
             </div>
-            <button type="button" class="btn btn-sm btn-light-danger" data-remove-line>Hapus</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" data-remove-line>Hapus</button>
         </div>
 
         <input type="hidden" name="items[__INDEX__][entry_mode]" value="service">

@@ -25,12 +25,12 @@
                 </button>
 
                 @if (($workspaceMode ?? 'create') === 'edit' && ($canShowRefundModal ?? false))
-                    <button type="button" class="btn btn-light-primary" data-bs-toggle="modal" data-bs-target="#workspace-refund-modal">
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#workspace-refund-modal">
                         Refund
                     </button>
                 @endif
 
-                <a href="{{ $cancelAction ?? route('cashier.notes.index') }}" class="btn btn-light-secondary">
+                <a href="{{ $cancelAction ?? route('cashier.notes.index') }}" class="btn btn-outline-secondary">
                     Batal
                 </a>
             </div>

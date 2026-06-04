@@ -1,6 +1,6 @@
 <div class="modal-footer">
     <div class="w-100 d-flex justify-content-between align-items-center gap-2" id="workspace-payment-footer-main">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
 
         <div class="d-flex flex-wrap gap-2 justify-content-end">
             <button
@@ -30,7 +30,7 @@
     </div>
 
     <div class="w-100 d-none justify-content-between align-items-center gap-2" id="workspace-payment-footer-cash">
-        <button type="button" class="btn btn-light" id="workspace-payment-back-cash">Kembali</button>
+        <button type="button" class="btn btn-outline-secondary" id="workspace-payment-back-cash">Kembali</button>
 
         <button
             type="submit"

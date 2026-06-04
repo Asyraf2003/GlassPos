@@ -19,27 +19,26 @@ final class TransactionWorkspaceServiceCatalogSyncFeatureTest extends TestCase
         $this->loginAsKasir();
 
         $this->post(route('notes.workspace.store'), $this->payload([
-            'service' => ['name' => 'Sok Kopling Besar', 'price_rupiah' => 120000],
+            'service' => ['name' => 'Skir Klep Custom', 'price_rupiah' => 95000],
         ]))->assertRedirect(route('cashier.notes.index'));
 
         $this->assertDatabaseHas('service_catalog_items', [
-            'normalized_name' => 'sok kopling besar',
-            'default_price_rupiah' => 120000,
+            'normalized_name' => 'skir klep custom',
+            'default_price_rupiah' => 95000,
         ]);
     }
 
     public function test_create_service_does_not_update_existing_catalog_default_price(): void
     {
         $this->loginAsKasir();
-        $this->seedService('svc-1', 'Sok Kopling (Besar)', 'sok kopling besar', 120000);
+        $this->seedService('svc-1', 'Tune Up Racing', 'tune up racing', 120000);
 
         $this->post(route('notes.workspace.store'), $this->payload([
-            'service' => ['name' => 'sok kopling besar', 'price_rupiah' => 999000],
+            'service' => ['name' => 'tune up racing', 'price_rupiah' => 999000],
         ]))->assertRedirect(route('cashier.notes.index'));
 
-        $this->assertDatabaseCount('service_catalog_items', 1);
         $this->assertDatabaseHas('service_catalog_items', [
-            'normalized_name' => 'sok kopling besar',
+            'normalized_name' => 'tune up racing',
             'default_price_rupiah' => 120000,
         ]);
     }

@@ -5,7 +5,7 @@
                 <h6 class="mb-0 small fw-semibold" data-line-title>Rincian</h6>
                 <small class="text-muted">Produk dari stok toko.</small>
             </div>
-            <button type="button" class="btn btn-sm btn-light-danger py-1" data-remove-line>Hapus</button>
+            <button type="button" class="btn btn-sm btn-outline-danger py-1" data-remove-line>Hapus</button>
         </div>
 
         <input type="hidden" name="items[__INDEX__][entry_mode]" value="product">

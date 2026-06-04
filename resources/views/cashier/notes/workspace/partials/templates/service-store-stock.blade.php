@@ -5,7 +5,7 @@
                 <h6 class="mb-0 small fw-semibold" data-line-title>Rincian</h6>
                 <small class="text-muted">Servis + sparepart toko, total paket auto split.</small>
             </div>
-            <button type="button" class="btn btn-sm btn-light-danger py-1" data-remove-line>Hapus</button>
+            <button type="button" class="btn btn-sm btn-outline-danger py-1" data-remove-line>Hapus</button>
         </div>
 
         <input type="hidden" name="items[__INDEX__][entry_mode]" value="service">
@@ -85,7 +85,7 @@
                 </div>
 
                 <div class="mt-3">
-                    <button type="button" class="btn btn-sm btn-light-danger d-none" data-remove-product-line>Hapus sparepart</button>
+                    <button type="button" class="btn btn-sm btn-outline-danger d-none" data-remove-product-line>Hapus sparepart</button>
                 </div>
 
                 <div class="mt-3">
@@ -131,7 +131,7 @@
                 </div>
 
                 <div class="mt-3">
-                    <button type="button" class="btn btn-sm btn-light-danger" data-remove-product-line>Hapus sparepart</button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-remove-product-line>Hapus sparepart</button>
                 </div>
 
                 <div class="mt-3">
@@ -143,7 +143,7 @@
             </div>
         </template>
 
-        <button type="button" class="btn btn-sm btn-light-primary mt-2" data-add-product-line>
+        <button type="button" class="btn btn-sm btn-outline-primary mt-2" data-add-product-line>
             Tambah sparepart
         </button>
     </div>

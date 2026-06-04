@@ -8,7 +8,7 @@
         <div class="d-grid gap-2 mb-3" id="workspace-payment-choice-list">
             <button
                 type="button"
-                class="btn btn-light text-start"
+                class="btn btn-outline-secondary text-start"
                 id="workspace-payment-choice-full"
                 data-payment-choice="full"
             >
@@ -17,7 +17,7 @@
 
             <button
                 type="button"
-                class="btn btn-light text-start"
+                class="btn btn-outline-secondary text-start"
                 id="workspace-payment-choice-partial"
                 data-payment-choice="partial"
             >
@@ -26,7 +26,7 @@
 
             <button
                 type="button"
-                class="btn btn-light text-start"
+                class="btn btn-outline-secondary text-start"
                 id="workspace-payment-choice-skip"
                 data-payment-choice="skip"
             >
