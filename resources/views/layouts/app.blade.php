@@ -7,6 +7,11 @@
     <title>@yield('title', 'AsyrafCloud')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <meta name="theme-color" content="#435ebe">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="HyperPOS Kasir">
+    <link rel="apple-touch-icon" href="{{ asset('assets/static/pwa/hyperpos-icon-192.png') }}">
 
     <link rel="shortcut icon" href="{{ asset('assets/compiled/svg/favicon.svg') }}" type="image/x-icon">
     <link rel="stylesheet" href="{{ asset('assets/compiled/css/app.css') }}?v={{ config('app.asset_version') }}">
