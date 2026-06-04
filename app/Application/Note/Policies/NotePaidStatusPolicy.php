@@ -27,13 +27,15 @@ final class NotePaidStatusPolicy
         $allocated = $this->allocations->getTotalAllocatedAmountByNoteId($note->id());
         $allocated->ensureNotNegative('Total alokasi pada note tidak boleh negatif.');
 
+        $grossPaid = $this->allocations->getTotalPaymentAmountByNoteId($note->id());
+        $grossPaid->ensureNotNegative('Total pembayaran pada note tidak boleh negatif.');
+
         $refunded = $this->refunds->getTotalCurrentRefundedAmountByNoteId($note->id());
         $refunded->ensureNotNegative('Total refund current pada note tidak boleh negatif.');
 
-        $netSettlement = $allocated->subtract($refunded);
-        $netSettlement->ensureNotNegative('Net settlement pada note tidak boleh negatif.');
+        $netSettlement = max(max($allocated->amount(), $grossPaid->amount()) - $refunded->amount(), 0);
 
-        return $netSettlement->greaterThanOrEqual($note->totalRupiah());
+        return $netSettlement >= $note->totalRupiah()->amount();
     }
 
     public function assertNotPaidForStandardMutation(Note $note): void

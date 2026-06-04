@@ -36,13 +36,16 @@ final class NoteOperationalStatusResolver
         $allocated = $this->allocations->getTotalAllocatedAmountByNoteId($note->id());
         $allocated->ensureNotNegative('Total alokasi pada note tidak boleh negatif.');
 
+        $grossPaid = $this->allocations->getTotalPaymentAmountByNoteId($note->id());
+        $grossPaid->ensureNotNegative('Total pembayaran pada note tidak boleh negatif.');
+
         $refunded = $this->refunds->getTotalRefundedAmountByNoteId($note->id());
         $refunded->ensureNotNegative('Total refund pada note tidak boleh negatif.');
 
-        $netPaid = $allocated->subtract($refunded);
-        $netPaid->ensureNotNegative('Net settlement pada note tidak boleh negatif.');
+        $paidBasis = max($allocated->amount(), $grossPaid->amount());
+        $netPaidRupiah = max($paidBasis - $refunded->amount(), 0);
 
-        $status = $this->statuses->resolve($grandTotal, $netPaid->amount());
+        $status = $this->statuses->resolve($grandTotal, $netPaidRupiah);
 
         return [
             'operational_status' => $status,
@@ -51,8 +54,8 @@ final class NoteOperationalStatusResolver
             'grand_total_rupiah' => $grandTotal,
             'total_allocated_rupiah' => $allocated->amount(),
             'total_refunded_rupiah' => $refunded->amount(),
-            'net_paid_rupiah' => $netPaid->amount(),
-            'outstanding_rupiah' => max($grandTotal - $netPaid->amount(), 0),
+            'net_paid_rupiah' => $netPaidRupiah,
+            'outstanding_rupiah' => max($grandTotal - $netPaidRupiah, 0),
         ];
     }
 
