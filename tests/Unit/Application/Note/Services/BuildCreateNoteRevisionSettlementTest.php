@@ -86,6 +86,23 @@ final class BuildCreateNoteRevisionSettlementTest extends TestCase
         $this->assertSame(50000, $settlement->surplusRupiah);
     }
 
+    public function test_it_preserves_gross_payment_when_allocations_are_capped_after_downward_revision(): void
+    {
+        $settlement = $this->builder(
+            componentPaid: 200000,
+            componentRefunded: 0,
+            legacyPaid: 200000,
+            legacyRefunded: 0,
+            grossPaid: 300000,
+        )->build('set-1', 'rev-1', 'note-1', 200000, $this->time());
+
+        $this->assertSame(NoteRevisionSettlement::STATUS_OVERPAID_PENDING, $settlement->settlementStatus);
+        $this->assertSame(300000, $settlement->carryForwardPaidRupiah);
+        $this->assertSame(300000, $settlement->netPaidRupiah);
+        $this->assertSame(0, $settlement->outstandingRupiah);
+        $this->assertSame(100000, $settlement->surplusRupiah);
+    }
+
     public function test_it_treats_active_surplus_refund_paid_as_cash_out_when_building_later_revision(): void
     {
         $settlement = $this->builder(
@@ -148,10 +165,11 @@ final class BuildCreateNoteRevisionSettlementTest extends TestCase
         int $legacyRefunded,
         int $surplusRefundPaid = 0,
         int $refundDue = 0,
+        ?int $grossPaid = null,
     ): BuildCreateNoteRevisionSettlement {
         return new BuildCreateNoteRevisionSettlement(
             $this->componentPayments($componentPaid),
-            $this->legacyPayments($legacyPaid),
+            $this->legacyPayments($legacyPaid, $grossPaid ?? $legacyPaid),
             $this->componentRefunds($componentRefunded),
             $this->legacyRefunds($legacyRefunded),
             $this->surplusRefundPayments($surplusRefundPaid),
@@ -204,12 +222,12 @@ final class BuildCreateNoteRevisionSettlementTest extends TestCase
         };
     }
 
-    private function legacyPayments(int $amount): PaymentAllocationReaderPort
+    private function legacyPayments(int $allocated, int $gross): PaymentAllocationReaderPort
     {
-        return new class($amount) implements PaymentAllocationReaderPort {
-            public function __construct(private readonly int $amount) {}
-            public function getTotalAllocatedAmountByNoteId(string $noteId): Money { return Money::fromInt($this->amount); }
-            public function getTotalPaymentAmountByNoteId(string $noteId): Money { return Money::fromInt($this->amount); }
+        return new class($allocated, $gross) implements PaymentAllocationReaderPort {
+            public function __construct(private readonly int $allocated, private readonly int $gross) {}
+            public function getTotalAllocatedAmountByNoteId(string $noteId): Money { return Money::fromInt($this->allocated); }
+            public function getTotalPaymentAmountByNoteId(string $noteId): Money { return Money::fromInt($this->gross); }
             public function getTotalAllocatedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money { return Money::zero(); }
         };
     }

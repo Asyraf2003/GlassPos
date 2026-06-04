@@ -6,12 +6,14 @@ namespace App\Application\Note\Services;
 
 use App\Core\Note\Note\Note;
 use App\Core\Shared\Exceptions\DomainException;
+use App\Ports\Out\Payment\CustomerRefundReaderPort;
 use App\Ports\Out\Payment\PaymentAllocationReaderPort;
 
 final class CreateTransactionWorkspaceInlinePaymentAmountResolver
 {
     public function __construct(
         private readonly PaymentAllocationReaderPort $allocations,
+        private readonly CustomerRefundReaderPort $refunds,
     ) {
     }
 
@@ -63,10 +65,20 @@ final class CreateTransactionWorkspaceInlinePaymentAmountResolver
 
     private function outstandingAmount(Note $note): int
     {
-        $existingAllocated = $this->allocations
+        $allocated = $this->allocations
             ->getTotalAllocatedAmountByNoteId($note->id())
             ->amount();
 
-        return max($note->totalRupiah()->amount() - $existingAllocated, 0);
+        $grossPaid = $this->allocations
+            ->getTotalPaymentAmountByNoteId($note->id())
+            ->amount();
+
+        $refunded = $this->refunds
+            ->getTotalRefundedAmountByNoteId($note->id())
+            ->amount();
+
+        $netPaid = max(max($allocated, $grossPaid) - $refunded, 0);
+
+        return max($note->totalRupiah()->amount() - $netPaid, 0);
     }
 }

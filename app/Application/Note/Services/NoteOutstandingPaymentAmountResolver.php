@@ -28,8 +28,9 @@ final class NoteOutstandingPaymentAmountResolver
 
         $grandTotal = $note->totalRupiah()->amount();
         $allocated = $this->allocations->getTotalAllocatedAmountByNoteId($note->id())->amount();
+        $grossPaid = $this->allocations->getTotalPaymentAmountByNoteId($note->id())->amount();
         $refunded = $this->refunds->getTotalRefundedAmountByNoteId($note->id())->amount();
-        $netPaid = max($allocated - $refunded, 0);
+        $netPaid = max(max($allocated, $grossPaid) - $refunded, 0);
         $outstanding = max($grandTotal - $netPaid, 0);
 
         if ($outstanding <= 0) {
