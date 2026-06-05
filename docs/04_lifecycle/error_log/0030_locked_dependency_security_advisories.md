@@ -1,6 +1,6 @@
 # 030 - Locked dependency security advisories remain open
 
-Status: Reported
+Status: Strict Fixed
 Keparahan: High
 Klasifikasi: dependency security / supply-chain hygiene
 
@@ -104,8 +104,103 @@ Setelah update, ulangi:
 
 ## Verification gap
 
-Belum ada patch dependency.
+Tidak ada verification gap tersisa untuk scope 0030 setelah dependency update, clean Composer audit, platform check, dan full verification gate.
 
-Belum ada proof bahwa `composer audit --locked` menjadi bersih setelah update.
+## Patch Proof
 
-Belum ada proof regresi setelah dependency update.
+Command:
+
+```text
+composer update \
+  laravel/framework \
+  symfony/http-foundation \
+  symfony/http-kernel \
+  symfony/mailer \
+  symfony/mime \
+  symfony/polyfill-intl-idn \
+  symfony/routing \
+  symfony/yaml \
+  --with-all-dependencies
+```
+
+Result:
+
+```text
+lock file operations: 0 installs, 44 updates, 0 removals;
+laravel/framework upgraded from 12.53.0 to 12.61.1;
+symfony/http-foundation upgraded from 7.4.7 to 7.4.13;
+symfony/http-kernel upgraded from 7.4.7 to 7.4.13;
+symfony/mailer upgraded from 7.4.6 to 7.4.12;
+symfony/mime upgraded from 7.4.7 to 7.4.13;
+symfony/polyfill-intl-idn upgraded from 1.33.0 to 1.38.1;
+symfony/routing upgraded from 7.4.6 to 7.4.13;
+symfony/yaml upgraded from 8.0.6 to 8.1.0;
+Composer completed package discovery;
+Composer reported No security vulnerability advisories found.
+```
+
+## Post-Patch Audit Proof
+
+Command:
+
+```text
+composer audit --locked
+```
+
+Result:
+
+```text
+No security vulnerability advisories found.
+```
+
+Meaning:
+
+the previously reported dependency advisories are no longer present in the locked dependency set.
+
+## Platform Proof
+
+Command:
+
+```text
+composer check-platform-reqs --lock
+```
+
+Result:
+
+```text
+Composer platform requirement check returned success for PHP, Composer APIs, and required PHP extensions.
+```
+
+Meaning:
+
+the updated lock file remains compatible with the current local PHP platform.
+
+## Full Verification Proof
+
+Command:
+
+```text
+make verify
+```
+
+Result:
+
+```text
+local operator reported make verify green after dependency update.
+```
+
+Meaning:
+
+dependency update did not break the repository verification gate in the local environment.
+
+## Strict Closure Decision
+
+0030 ditutup sebagai Strict Fixed.
+
+Dasar closure:
+
+dependency update executed successfully;
+vulnerable locked package versions were upgraded beyond the affected ranges recorded in this log;
+composer audit --locked now reports no security vulnerability advisories;
+composer check-platform-reqs --lock passes;
+make verify reported green after the dependency update.
