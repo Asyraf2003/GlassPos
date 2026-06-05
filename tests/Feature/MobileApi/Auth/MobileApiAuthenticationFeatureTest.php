@@ -103,6 +103,29 @@ final class MobileApiAuthenticationFeatureTest extends TestCase
         ]);
     }
 
+    public function test_mobile_api_login_is_rate_limited_after_repeated_invalid_attempts(): void
+    {
+        $this->createUserWithRole(
+            email: 'mobile-throttle@example.test',
+            role: 'admin',
+            name: 'Mobile Throttle',
+        );
+
+        for ($attempt = 1; $attempt <= 5; $attempt++) {
+            $this->postJson('/api/v1/auth/login', [
+                'email' => 'mobile-throttle@example.test',
+                'password' => 'wrong-password',
+                'device_name' => 'Redmi 12',
+            ])->assertStatus(422);
+        }
+
+        $this->postJson('/api/v1/auth/login', [
+            'email' => 'mobile-throttle@example.test',
+            'password' => 'wrong-password',
+            'device_name' => 'Redmi 12',
+        ])->assertStatus(429);
+    }
+
     public function test_user_without_actor_access_is_rejected_for_mobile_api_login(): void
     {
         User::query()->create([

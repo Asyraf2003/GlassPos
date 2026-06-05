@@ -1,72 +1,79 @@
 # 033 - Web and mobile login endpoints lack explicit rate limiting
 
-Status: Reported
+Status: Strict Fixed
 Keparahan: Medium
 Klasifikasi: authentication hardening / brute-force resistance
 
 ## Ringkasan
 
-Web login dan mobile API login tidak terlihat memiliki throttle middleware atau rate limiter eksplisit.
+Web login dan mobile API login sebelumnya tidak memiliki throttle middleware atau rate limiter eksplisit.
 
-Invalid credential handling sudah mengembalikan pesan aman, tetapi tidak ada proof bahwa percobaan login berulang akan dibatasi dengan response `429` atau lockout window.
+Patch sekarang menambahkan named rate limiter untuk dua boundary login:
 
-Ini membuka risiko brute force dan credential stuffing terhadap endpoint login.
+- `web-login` untuk `POST /login`;
+- `mobile-login` untuk `POST /api/v1/auth/login`.
 
-## Bukti awal
+Kedua limiter memakai batas `5` request per menit dengan key `email ternormalisasi + IP address`.
 
-Route web auth:
+## Strict-Fixed-Scope
+
+Scope yang ditutup:
+
+- web login route `POST /login`;
+- mobile API login route `POST /api/v1/auth/login`;
+- repeated invalid login attempts dari email dan IP yang sama;
+- response `429` setelah limit terlampaui;
+- existing safe invalid-credential responses tetap dipertahankan.
+
+Out of scope untuk log ini:
+
+- MFA;
+- captcha;
+- IP reputation;
+- account lockout persisten di database;
+- device fingerprinting;
+- distributed credential stuffing dari banyak IP.
+
+## Root Cause
+
+Route web auth sebelumnya hanya memakai middleware `web` dan `app.shell`.
+
+Route mobile API login sebelumnya berada di luar `mobile.api.auth`, tetapi juga tidak memiliki throttle sendiri.
+
+Controller login web dan mobile sudah mengembalikan pesan invalid credential yang aman, tetapi tidak ada request counter atau `429` proof untuk repeated attempts.
+
+## Source Reality Setelah Patch
+
+`app/Providers/IdentityAccessServiceProvider.php`
+
+- mendefinisikan `LOGIN_MAX_ATTEMPTS_PER_MINUTE = 5`;
+- register `RateLimiter::for('web-login', ...)`;
+- register `RateLimiter::for('mobile-login', ...)`;
+- key limiter dibuat dari `mb_strtolower(trim(email))` dan `$request->ip()`;
+- jika email kosong, key memakai fallback `missing-email`;
+- jika IP tidak tersedia, key memakai fallback `unknown-ip`.
 
 `routes/web/auth.php`
 
-- Route group memakai middleware `web` dan `app.shell`.
-- `POST /login` diarahkan ke `AuthenticateController`.
-- Tidak ada `throttle` middleware pada route login.
-
-Route mobile API auth:
+- `POST /login` sekarang memakai middleware `throttle:web-login`.
 
 `routes/api.php`
 
-- `POST /api/v1/auth/login` diarahkan ke `LoginMobileApiController`.
-- Route ini berada di luar middleware `mobile.api.auth`.
-- Tidak ada `throttle` middleware pada route login.
+- `POST /api/v1/auth/login` sekarang memakai middleware `throttle:mobile-login`.
 
-Web login controller:
+`tests/Feature/Auth/WebAuthenticationFeatureTest.php`
 
-`app/Adapters/In/Http/Controllers/Auth/AuthenticateController.php`
+- menambahkan regression test `test_web_login_is_rate_limited_after_repeated_invalid_attempts()`;
+- 5 invalid attempts masih redirect ke login dengan error aman;
+- attempt ke-6 menghasilkan `429`.
 
-- memakai `Auth::attempt(...)`;
-- jika gagal, langsung redirect back dengan error;
-- tidak ada `RateLimiter`, `tooManyAttempts`, atau lockout handling.
+`tests/Feature/MobileApi/Auth/MobileApiAuthenticationFeatureTest.php`
 
-Mobile login controller dan handler:
+- menambahkan regression test `test_mobile_api_login_is_rate_limited_after_repeated_invalid_attempts()`;
+- 5 invalid attempts masih menghasilkan safe payload `422`;
+- attempt ke-6 menghasilkan `429`.
 
-`app/Adapters/In/Http/Controllers/Api/V1/Auth/LoginMobileApiController.php`
-
-`app/Application/MobileApi/Auth/UseCases/LoginMobileApiUserHandler.php`
-
-- handler memanggil credential verifier;
-- jika gagal, return invalid credentials;
-- tidak ada rate limiter.
-
-Search lokal:
-
-`rg -n "Throttle|throttle|RateLimiter|tooManyAttempts|Limit::|login" app routes tests config bootstrap`
-
-Output relevan hanya menemukan password reset throttle config, route login, controller login, dan test invalid login. Tidak ditemukan implementasi login throttling pada auth flow.
-
-Route list:
-
-`php artisan route:list --except-vendor | rg 'login|auth/login'`
-
-Output menampilkan:
-
-- `POST api/v1/auth/login`
-- `GET|HEAD login`
-- `POST login`
-
-Tidak ada proof middleware throttle dari source route.
-
-## Jalur rentan
+## Jalur Rentan Sebelum Patch
 
 Attacker mengirim banyak request login dengan kombinasi email/password ke web login atau mobile API login -> aplikasi memproses setiap attempt tanpa counter rate-limit yang terlihat -> attacker dapat melakukan brute force atau credential stuffing sampai dibatasi oleh kontrol eksternal.
 
@@ -78,35 +85,124 @@ Attacker mengirim banyak request login dengan kombinasi email/password ke web lo
 
 Keparahan Medium karena issue ini tidak membuktikan bypass autentikasi, tetapi menghilangkan kontrol dasar pada boundary login.
 
-## Kontrol yang sudah ada
+## RED Proof
 
-- Invalid login web tidak membocorkan detail selain pesan umum.
-- Invalid mobile API login mengembalikan safe payload menurut test yang ada.
-- Session regeneration dilakukan setelah web login berhasil.
-- Mobile API memakai token setelah login berhasil.
+Command:
 
-Kontrol tersebut tidak menggantikan rate limiting.
+```bash
+php artisan test tests/Feature/Auth/WebAuthenticationFeatureTest.php tests/Feature/MobileApi/Auth/MobileApiAuthenticationFeatureTest.php
+```
 
-## Remediasi yang disarankan
+Hasil saat route login belum memakai throttle middleware:
 
-Candidate patch direction:
+- exit code `1`;
+- `2 failed, 12 passed, 65 assertions`;
+- web attempt ke-6 expected `429`, actual `302`;
+- mobile attempt ke-6 expected `429`, actual `422`;
+- web masih mengembalikan error aman `Email atau password tidak valid.`;
+- mobile masih mengembalikan safe payload `AUTH_FAILED`;
+- failure membuktikan repeated attempts belum dibatasi di boundary route.
 
-- Tambahkan throttle untuk `POST /login` dan `POST /api/v1/auth/login`.
-- Gunakan key kombinasi email normalized dan IP address.
-- Pertahankan pesan error umum untuk invalid credentials.
-- Tambahkan tests yang membuktikan attempt berulang menghasilkan `429`.
-- Pastikan successful login membersihkan counter untuk key yang relevan bila menggunakan manual `RateLimiter`.
+Catatan eksekusi:
 
-## Keputusan owner yang mungkin dibutuhkan
+- test DB sempat menolak koneksi ke `127.0.0.1:3306`;
+- MariaDB lokal dinyalakan dengan `sudo systemctl start mariadb`;
+- setelah DB hidup, RED/GREEN proof dapat dijalankan normal.
 
-- Limit web login dan mobile login disamakan atau dibedakan.
-- Lockout window yang diterima operasional, misalnya `5 attempts / minute` atau `10 attempts / 5 minutes`.
-- Apakah perlu IP-only fallback saat email kosong/invalid.
+## Targeted GREEN Proof
 
-## Verification gap
+Command:
 
-Belum ada patch.
+```bash
+php artisan test tests/Feature/Auth/WebAuthenticationFeatureTest.php tests/Feature/MobileApi/Auth/MobileApiAuthenticationFeatureTest.php
+```
 
-Belum ada test web login throttle.
+Hasil setelah patch:
 
-Belum ada test mobile API login throttle.
+- `PASS`;
+- `14 passed, 66 assertions`.
+
+Coverage targeted:
+
+- web admin login tetap sukses;
+- web kasir login tetap sukses;
+- invalid web login tetap redirect aman;
+- web repeated invalid attempts menghasilkan `429` pada attempt ke-6;
+- mobile admin login tetap sukses;
+- mobile kasir login tetap sukses;
+- invalid mobile login tetap safe payload;
+- mobile repeated invalid attempts menghasilkan `429` pada attempt ke-6;
+- mobile token me/logout behavior tetap hijau.
+
+## Focused Blast-Radius Proof
+
+Command:
+
+```bash
+php artisan test tests/Feature/Auth tests/Feature/MobileApi
+```
+
+Hasil:
+
+- `PASS`;
+- `39 passed, 151 assertions`.
+
+## Full Verification Proof
+
+Command:
+
+```bash
+make verify
+```
+
+Hasil:
+
+- PHPStan `1794/1794`, `[OK] No errors`;
+- line-count audit passed;
+- Blade audit passed;
+- contract audit passed;
+- Pest `1175 passed, 6650 assertions`;
+- duration `51.43s`;
+- exit code `0`.
+
+## Negative Search
+
+Command:
+
+```bash
+rg -n "RateLimiter::for|throttle:web-login|throttle:mobile-login|LOGIN_MAX_ATTEMPTS_PER_MINUTE|loginRateLimiterKey" app/Providers/IdentityAccessServiceProvider.php routes/web/auth.php routes/api.php
+```
+
+Hasil relevan:
+
+- `RateLimiter::for('web-login', ...)` ditemukan;
+- `RateLimiter::for('mobile-login', ...)` ditemukan;
+- `POST /login` memakai `throttle:web-login`;
+- `POST /api/v1/auth/login` memakai `throttle:mobile-login`;
+- limiter key builder ada di provider.
+
+## Remaining Gaps
+
+Route-level throttle menghitung semua POST login untuk email+IP yang sama, termasuk successful login dan validation-error request.
+
+Gap ini tidak membuka ulang status 0033 karena:
+
+- brute-force boundary sekarang menghasilkan `429`;
+- invalid credential response tetap aman;
+- limiter window pendek, `5` request per menit;
+- jika UX masa depan membutuhkan invalid-only counter dan clear-on-success, implementasi bisa dipindah ke manual login rate limiter di controller/service.
+
+Belum ada kontrol untuk distributed credential stuffing dari banyak IP. Itu membutuhkan desain tambahan seperti IP reputation, account-level lockout, MFA, atau captcha, dan berada di luar scope 0033.
+
+## Strict Closure Decision
+
+0033 ditutup sebagai `Strict Fixed` untuk web login dan mobile API login rate limiting.
+
+Dasar closure:
+
+- RED membuktikan endpoint sebelumnya tidak menghasilkan `429`;
+- named limiter sudah dipasang di web dan mobile login route;
+- key limiter memakai email normalized + IP;
+- targeted auth regression hijau;
+- focused Auth + MobileApi suite hijau;
+- global `make verify` hijau.

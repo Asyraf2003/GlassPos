@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
     Route::post('/auth/login', LoginMobileApiController::class)
+        ->middleware('throttle:mobile-login')
         ->name('api.v1.auth.login');
 
     Route::middleware('mobile.api.auth')->group(function (): void {

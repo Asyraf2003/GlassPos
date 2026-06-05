@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Reporting\Exports;
 
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 final class InventoryStockValueReportExcelSnapshotSheetWriter
@@ -34,11 +35,11 @@ final class InventoryStockValueReportExcelSnapshotSheetWriter
         foreach (array_values($rows) as $rowIndex => $row) {
             $excelRow = $rowIndex + 2;
 
-            $sheet->setCellValue('A'.$excelRow, $row['product_id'] ?? null);
-            $sheet->setCellValue('B'.$excelRow, $row['kode_barang'] ?? null);
-            $sheet->setCellValue('C'.$excelRow, $row['nama_barang'] ?? null);
-            $sheet->setCellValue('D'.$excelRow, $row['merek'] ?? null);
-            $sheet->setCellValue('E'.$excelRow, $row['ukuran'] ?? null);
+            $this->setStringCell($sheet, 'A'.$excelRow, $row['product_id'] ?? null);
+            $this->setStringCell($sheet, 'B'.$excelRow, $row['kode_barang'] ?? null);
+            $this->setStringCell($sheet, 'C'.$excelRow, $row['nama_barang'] ?? null);
+            $this->setStringCell($sheet, 'D'.$excelRow, $row['merek'] ?? null);
+            $this->setStringCell($sheet, 'E'.$excelRow, $row['ukuran'] ?? null);
             $sheet->setCellValue('F'.$excelRow, $this->int($row['current_qty_on_hand'] ?? 0));
             $sheet->setCellValue('G'.$excelRow, $this->int($row['current_avg_cost_rupiah'] ?? 0));
             $sheet->setCellValue('H'.$excelRow, $this->int($row['current_inventory_value_rupiah'] ?? 0));
@@ -56,5 +57,10 @@ final class InventoryStockValueReportExcelSnapshotSheetWriter
     private function int(mixed $value): int
     {
         return is_numeric($value) ? (int) $value : 0;
+    }
+
+    private function setStringCell(Worksheet $sheet, string $coordinate, mixed $value): void
+    {
+        $sheet->setCellValueExplicit($coordinate, $value === null ? '' : (string) $value, DataType::TYPE_STRING);
     }
 }

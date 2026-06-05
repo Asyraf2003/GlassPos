@@ -80,6 +80,35 @@ final class WebAuthenticationFeatureTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_web_login_is_rate_limited_after_repeated_invalid_attempts(): void
+    {
+        User::query()->create([
+            'name' => 'Throttled Login User',
+            'email' => 'web-throttle@example.test',
+            'password' => 'password123',
+        ]);
+
+        for ($attempt = 1; $attempt <= 5; $attempt++) {
+            $this
+                ->from(route('login'))
+                ->post(route('login.attempt'), [
+                    'email' => 'web-throttle@example.test',
+                    'password' => 'wrong-password',
+                ])
+                ->assertRedirect(route('login'));
+        }
+
+        $this
+            ->from(route('login'))
+            ->post(route('login.attempt'), [
+                'email' => 'web-throttle@example.test',
+                'password' => 'wrong-password',
+            ])
+            ->assertStatus(429);
+
+        $this->assertGuest();
+    }
+
     public function test_user_without_actor_access_is_logged_out_and_redirected_back_to_login(): void
     {
         User::query()->create([

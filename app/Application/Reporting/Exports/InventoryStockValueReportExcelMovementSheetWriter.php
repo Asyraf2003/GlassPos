@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Reporting\Exports;
 
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 final class InventoryStockValueReportExcelMovementSheetWriter
@@ -40,9 +41,9 @@ final class InventoryStockValueReportExcelMovementSheetWriter
         foreach (array_values($rows) as $rowIndex => $row) {
             $excelRow = $rowIndex + 2;
 
-            $sheet->setCellValue('A'.$excelRow, $row['product_id'] ?? null);
-            $sheet->setCellValue('B'.$excelRow, $row['kode_barang'] ?? null);
-            $sheet->setCellValue('C'.$excelRow, $row['nama_barang'] ?? null);
+            $this->setStringCell($sheet, 'A'.$excelRow, $row['product_id'] ?? null);
+            $this->setStringCell($sheet, 'B'.$excelRow, $row['kode_barang'] ?? null);
+            $this->setStringCell($sheet, 'C'.$excelRow, $row['nama_barang'] ?? null);
             $sheet->setCellValue('D'.$excelRow, $this->int($row['supply_in_qty'] ?? 0));
             $sheet->setCellValue('E'.$excelRow, $this->int($row['sale_out_qty'] ?? 0));
             $sheet->setCellValue('F'.$excelRow, $this->int($row['refund_reversal_qty'] ?? 0));
@@ -68,5 +69,10 @@ final class InventoryStockValueReportExcelMovementSheetWriter
     private function int(mixed $value): int
     {
         return is_numeric($value) ? (int) $value : 0;
+    }
+
+    private function setStringCell(Worksheet $sheet, string $coordinate, mixed $value): void
+    {
+        $sheet->setCellValueExplicit($coordinate, $value === null ? '' : (string) $value, DataType::TYPE_STRING);
     }
 }
