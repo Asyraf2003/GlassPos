@@ -4,29 +4,29 @@ declare(strict_types=1);
 
 namespace App\Application\Note\Services;
 
-use App\Core\Inventory\ProductInventory\ProductInventory;
-use App\Core\ProductCatalog\Product\Product;
-use App\Ports\Out\Inventory\ProductInventoryReaderPort;
-use App\Ports\Out\ProductCatalog\ProductReaderPort;
+use App\Application\ProductCatalog\DTO\ProductLookupRow;
+use App\Ports\Out\ProductCatalog\ProductLookupReaderPort;
 
 final class CashierNoteProductLookupData
 {
     public function __construct(
-        private readonly ProductReaderPort $products,
-        private readonly ProductInventoryReaderPort $inventories,
+        private readonly ProductLookupReaderPort $products,
     ) {
     }
 
     /**
-     * @return array<int, Product>
+     * @return list<ProductLookupRow>
      */
-    public function searchProducts(string $query): array
+    public function searchAvailableProducts(string $query, int $limit = ProductLookupReaderPort::DEFAULT_LIMIT): array
     {
-        return $this->products->search(trim($query));
+        return $this->products->search(trim($query), $limit, onlyInStock: true);
     }
 
-    public function getInventoryByProductId(string $productId): ?ProductInventory
+    /**
+     * @return list<ProductLookupRow>
+     */
+    public function searchProducts(string $query, int $limit = ProductLookupReaderPort::DEFAULT_LIMIT): array
     {
-        return $this->inventories->getByProductId($productId);
+        return $this->products->search(trim($query), $limit);
     }
 }
