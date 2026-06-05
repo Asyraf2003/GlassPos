@@ -7,6 +7,7 @@ namespace Tests\Feature\ReportingExports;
 use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Tests\TestCase;
 
@@ -134,6 +135,76 @@ final class InventoryStockValueReportExcelExportFeatureTest extends TestCase
         $this->assertSame('Vario', $movement->getCell('C3')->getValue());
         $this->assertSame(36000, $movement->getCell('M3')->getValue());
         $this->assertNull($movement->getCell('C4')->getValue());
+
+        unlink($path);
+        $spreadsheet->disconnectWorksheets();
+    }
+
+    public function test_inventory_stock_value_excel_export_writes_formula_like_product_text_as_literal_strings(): void
+    {
+        $this->seedProduct('=1+1', '=2+2', '=3+3', '=4+4', 100, 15000);
+
+        DB::table('inventory_movements')->insert([
+            [
+                'id' => 'formula-movement-1',
+                'product_id' => '=1+1',
+                'movement_type' => 'stock_in',
+                'source_type' => 'supplier_receipt_line',
+                'source_id' => 'formula-receipt-line-1',
+                'tanggal_mutasi' => '2030-01-07',
+                'qty_delta' => 10,
+                'unit_cost_rupiah' => 10000,
+                'total_cost_rupiah' => 100000,
+            ],
+        ]);
+
+        DB::table('product_inventory')->insert([
+            ['product_id' => '=1+1', 'qty_on_hand' => 10],
+        ]);
+
+        DB::table('product_inventory_costing')->insert([
+            ['product_id' => '=1+1', 'avg_cost_rupiah' => 10000, 'inventory_value_rupiah' => 100000],
+        ]);
+
+        $response = $this->actingAs($this->user('admin'))->get(
+            route('admin.reports.inventory_stock_value.export_excel', [
+                'period_mode' => 'monthly',
+                'reference_date' => '2030-01-31',
+            ])
+        );
+
+        $response->assertOk();
+
+        $path = tempnam(sys_get_temp_dir(), 'inventory-stock-value-formula-injection-');
+        file_put_contents($path, $response->streamedContent());
+
+        $spreadsheet = IOFactory::load($path);
+        $snapshot = $spreadsheet->getSheetByName('Snapshot Stok');
+        $movement = $spreadsheet->getSheetByName('Mutasi Periode');
+
+        $this->assertNotNull($snapshot);
+        $this->assertNotNull($movement);
+
+        $this->assertSame('=1+1', $snapshot->getCell('A2')->getValue());
+        $this->assertSame(DataType::TYPE_STRING, $snapshot->getCell('A2')->getDataType());
+
+        $this->assertSame('=2+2', $snapshot->getCell('B2')->getValue());
+        $this->assertSame(DataType::TYPE_STRING, $snapshot->getCell('B2')->getDataType());
+
+        $this->assertSame('=3+3', $snapshot->getCell('C2')->getValue());
+        $this->assertSame(DataType::TYPE_STRING, $snapshot->getCell('C2')->getDataType());
+
+        $this->assertSame('=4+4', $snapshot->getCell('D2')->getValue());
+        $this->assertSame(DataType::TYPE_STRING, $snapshot->getCell('D2')->getDataType());
+
+        $this->assertSame('=1+1', $movement->getCell('A2')->getValue());
+        $this->assertSame(DataType::TYPE_STRING, $movement->getCell('A2')->getDataType());
+
+        $this->assertSame('=2+2', $movement->getCell('B2')->getValue());
+        $this->assertSame(DataType::TYPE_STRING, $movement->getCell('B2')->getDataType());
+
+        $this->assertSame('=3+3', $movement->getCell('C2')->getValue());
+        $this->assertSame(DataType::TYPE_STRING, $movement->getCell('C2')->getDataType());
 
         unlink($path);
         $spreadsheet->disconnectWorksheets();
