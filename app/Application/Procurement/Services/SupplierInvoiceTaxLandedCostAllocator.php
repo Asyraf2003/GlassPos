@@ -103,6 +103,28 @@ final class SupplierInvoiceTaxLandedCostAllocator
 
         ksort($allocatedLines);
 
-        return array_values($allocatedLines);
+        $allocatedLines = array_values($allocatedLines);
+        $this->assertAllocatedLinesPreserveUnitCostInvariant($allocatedLines);
+
+        return $allocatedLines;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $lines
+     */
+    private function assertAllocatedLinesPreserveUnitCostInvariant(array $lines): void
+    {
+        foreach ($lines as $line) {
+            $qtyPcs = (int) ($line['qty_pcs'] ?? 0);
+            $lineTotal = (int) ($line['line_total_rupiah'] ?? 0);
+
+            if ($qtyPcs < 1) {
+                throw new InvalidArgumentException('Qty supplier invoice harus lebih dari 0 untuk alokasi pajak.');
+            }
+
+            if ($lineTotal % $qtyPcs !== 0) {
+                throw new InvalidArgumentException('Alokasi pajak supplier invoice membuat total line tidak habis dibagi qty.');
+            }
+        }
     }
 }
