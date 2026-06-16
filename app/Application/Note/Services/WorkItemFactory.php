@@ -45,14 +45,14 @@ final class WorkItemFactory
         return array_map(function($p) {
             $prod = $this->products->getById((string)$p['product_id']) ?? throw new DomainException('Product tidak ditemukan.');
             $total = Money::fromInt((int)$p['line_total_rupiah']);
+            $taxAmount = Money::fromInt((int) ($p['tax_amount_rupiah'] ?? 0));
+            $baseTotal = Money::fromInt((int) ($p['base_total_rupiah'] ?? max($total->amount() - $taxAmount->amount(), 0)));
             $isTrustedRevisionSnapshot = ($p['_server_trusted_revision_snapshot'] ?? false) === true;
 
             if (! $isTrustedRevisionSnapshot) {
-                $this->pricePolicy->assertAllowed($prod, (int)$p['qty'], $total);
+                $this->pricePolicy->assertAllowed($prod, (int)$p['qty'], $baseTotal);
             }
 
-            $taxAmount = Money::fromInt((int) ($p['tax_amount_rupiah'] ?? 0));
-            $baseTotal = Money::fromInt((int) ($p['base_total_rupiah'] ?? max($total->amount() - $taxAmount->amount(), 0)));
 
             return StoreStockLine::create(
                 $this->uuid->generate(),
