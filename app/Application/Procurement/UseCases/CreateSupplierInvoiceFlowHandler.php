@@ -32,6 +32,7 @@ final class CreateSupplierInvoiceFlowHandler
         ?string $performedByActorId = null,
         ?string $performedByActorRole = null,
         string $sourceChannel = 'http',
+        null|string|int $taxInput = null,
     ): Result {
         $started = false;
 
@@ -51,6 +52,7 @@ final class CreateSupplierInvoiceFlowHandler
                 $pt,
                 $tglKirim,
                 $lines,
+                $taxInput,
                 $autoRec,
                 $tglTerima,
             );

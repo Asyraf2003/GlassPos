@@ -11,6 +11,7 @@ final class CreateSupplierInvoicePostValidator
 {
     public function __construct(
         private readonly CreateSupplierInvoiceDuplicateNumberPostValidation $duplicateNumberValidation,
+        private readonly CreateSupplierInvoiceTaxPostValidation $taxValidation,
     ) {
     }
 
@@ -29,5 +30,6 @@ final class CreateSupplierInvoicePostValidator
 
         (new CreateSupplierInvoiceDatePostValidation())->validate($request, $validator);
         (new CreateSupplierInvoiceLinesPostValidation())->validate($request, $validator);
+        $this->taxValidation->validate($request, $validator);
     }
 }

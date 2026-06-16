@@ -24,6 +24,7 @@ final class StoreSupplierInvoiceController extends Controller
             $data['lines'],
             $this->resolveAutoReceive($data),
             $this->resolveTanggalTerima($data),
+            taxInput: $this->resolveTaxInput($data),
         );
 
         if ($result->isFailure()) {
@@ -38,6 +39,20 @@ final class StoreSupplierInvoiceController extends Controller
             ->route('admin.procurement.supplier-invoices.index')
             ->with('success', $result->message() ?? 'Nota supplier berhasil dibuat.')
             ->with('clear_procurement_create_draft', true);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function resolveTaxInput(array $data): ?string
+    {
+        if (! array_key_exists('tax_input', $data) || $data['tax_input'] === null) {
+            return null;
+        }
+
+        $value = trim((string) $data['tax_input']);
+
+        return $value === '' ? null : $value;
     }
 
     /**

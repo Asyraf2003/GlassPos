@@ -20,7 +20,23 @@ final class CreateSupplierInvoiceInputNormalizer
             'tanggal_pengiriman' => $this->trimOrNull($input['tanggal_pengiriman'] ?? null),
             'tanggal_terima' => $this->trimOrNull($input['tanggal_terima'] ?? null),
             'auto_receive' => is_bool($autoReceive) ? $autoReceive : $this->toNullableBool($autoReceive),
+            'tax_input' => $this->trimScalarOrNull($input['tax_input'] ?? null),
         ];
+    }
+
+    private function trimScalarOrNull(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (! is_string($value) && ! is_int($value)) {
+            return null;
+        }
+
+        $trimmed = trim((string) $value);
+
+        return $trimmed === '' ? null : $trimmed;
     }
 
     private function trimOrNull(mixed $value): ?string

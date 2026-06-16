@@ -25,6 +25,7 @@ final class CreateSupplierInvoiceController
             $data['lines'],
             $this->resolveAutoReceive($data),
             $this->resolveTanggalTerima($data),
+            taxInput: $this->resolveTaxInput($data),
         );
 
         if ($result->isFailure()) {
@@ -32,6 +33,20 @@ final class CreateSupplierInvoiceController
         }
 
         return $presenter->success($result);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function resolveTaxInput(array $data): ?string
+    {
+        if (! array_key_exists('tax_input', $data) || $data['tax_input'] === null) {
+            return null;
+        }
+
+        $value = trim((string) $data['tax_input']);
+
+        return $value === '' ? null : $value;
     }
 
     /**
