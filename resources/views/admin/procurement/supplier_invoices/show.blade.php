@@ -115,6 +115,19 @@
                         <hr>
 
                         <div class="mb-3">
+                            <small class="text-muted d-block">Subtotal Sebelum Pajak</small>
+                            <strong>{{ $summaryView['subtotal_before_tax_label'] }}</strong>
+                        </div>
+
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Pajak Supplier</small>
+                            <strong>{{ $summaryView['tax_amount_label'] }}</strong>
+                            @if (($summaryView['tax_input'] ?? null) !== null)
+                                <small class="text-muted d-block">Input: {{ $summaryView['tax_input'] }}</small>
+                            @endif
+                        </div>
+
+                        <div class="mb-3">
                             <small class="text-muted d-block">Total Nota</small>
                             <strong>{{ $summaryView['grand_total_label'] }}</strong>
                         </div>

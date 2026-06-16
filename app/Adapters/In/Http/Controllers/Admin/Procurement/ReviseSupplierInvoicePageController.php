@@ -47,6 +47,7 @@ final class ReviseSupplierInvoicePageController extends Controller
                 'nomor_faktur' => old('nomor_faktur', (string) ($summary['nomor_faktur'] ?? '')),
                 'nama_pt_pengirim' => old('nama_pt_pengirim', (string) ($summary['supplier_nama_pt_pengirim_snapshot'] ?? '')),
                 'tanggal_pengiriman' => old('tanggal_pengiriman', (string) ($summary['shipment_date'] ?? '')),
+                'tax_input' => old('tax_input', (string) ($summary['tax_input'] ?? '')),
             ],
             'lineItemsView' => $this->lineItems->build($lines),
             'returnRouteName' => 'admin.procurement.supplier-invoices.revise',

@@ -341,6 +341,25 @@
                                 </div>
 
                                 <div class="form-group">
+                                    <label for="tax_input" class="form-label">Pajak Supplier</label>
+                                    <input
+                                        type="text"
+                                        id="tax_input"
+                                        name="tax_input"
+                                        value="{{ old('tax_input') }}"
+                                        class="form-control @error('tax_input') is-invalid @enderror"
+                                        placeholder="Contoh: 11% atau 15000"
+                                        data-procurement-header-field
+                                    >
+                                    <small class="text-muted d-block mt-1">
+                                        Pajak faktur supplier akan masuk ke landed cost stok. Kosongkan jika tidak ada pajak.
+                                    </small>
+                                    @error('tax_input')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
                                     <label class="form-label d-block">Mode Penerimaan</label>
 
                                     <div class="d-flex flex-column gap-2">
