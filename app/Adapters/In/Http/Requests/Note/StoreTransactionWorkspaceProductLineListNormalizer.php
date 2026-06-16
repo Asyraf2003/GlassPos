@@ -39,7 +39,6 @@ final class StoreTransactionWorkspaceProductLineListNormalizer
             'qty' => null,
             'unit_price_rupiah' => null,
             'price_basis' => null,
-            'tax_input' => null,
         ];
     }
 
@@ -48,7 +47,7 @@ final class StoreTransactionWorkspaceProductLineListNormalizer
      */
     private static function hasAnyValue(array $line): bool
     {
-        foreach (['product_id', 'qty', 'unit_price_rupiah', 'price_basis', 'tax_input'] as $key) {
+        foreach (['product_id', 'qty', 'unit_price_rupiah', 'price_basis'] as $key) {
             if (($line[$key] ?? null) !== null) {
                 return true;
             }

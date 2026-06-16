@@ -40,13 +40,6 @@ final class NoteWorkspacePanelDataBuilder
             $revision->transactionDate()->format('Y-m-d'),
             $revision->grandTotalRupiah(),
             $rows,
-            [
-                'subtotal_before_note_tax_rupiah' => $revision->subtotalBeforeNoteTaxRupiah(),
-                'note_tax_input' => $revision->noteTaxInput(),
-                'note_tax_mode' => $revision->noteTaxMode(),
-                'note_tax_rate_basis_points' => $revision->noteTaxRateBasisPoints(),
-                'note_tax_amount_rupiah' => $revision->noteTaxAmountRupiah(),
-            ],
         );
     }
 }

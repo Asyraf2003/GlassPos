@@ -25,8 +25,7 @@ final class NoteRevisionBootstrapFactory
         DateTimeImmutable $createdAt,
         ?string $reason = 'Bootstrap initial revision from current root note state',
     ): NoteRevision {
-        [$lines] = $this->buildLinesAndGrandTotal(trim($revisionId), $note->workItems());
-        $grandTotal = $note->totalRupiah()->amount();
+        [$lines, $grandTotal] = $this->buildLinesAndGrandTotal(trim($revisionId), $note->workItems());
 
         return NoteRevision::create(
             trim($revisionId),
@@ -41,11 +40,6 @@ final class NoteRevisionBootstrapFactory
             $grandTotal,
             $lines,
             $createdAt,
-            $note->subtotalBeforeNoteTaxRupiah()->amount(),
-            $note->noteTaxInput(),
-            $note->noteTaxMode(),
-            $note->noteTaxRateBasisPoints(),
-            $note->noteTaxAmountRupiah()->amount(),
         );
     }
 
@@ -58,8 +52,7 @@ final class NoteRevisionBootstrapFactory
         DateTimeImmutable $createdAt,
         ?string $reason,
     ): NoteRevision {
-        [$lines] = $this->buildLinesAndGrandTotal(trim($revisionId), $note->workItems());
-        $grandTotal = $note->totalRupiah()->amount();
+        [$lines, $grandTotal] = $this->buildLinesAndGrandTotal(trim($revisionId), $note->workItems());
 
         return NoteRevision::create(
             trim($revisionId),
@@ -74,11 +67,6 @@ final class NoteRevisionBootstrapFactory
             $grandTotal,
             $lines,
             $createdAt,
-            $note->subtotalBeforeNoteTaxRupiah()->amount(),
-            $note->noteTaxInput(),
-            $note->noteTaxMode(),
-            $note->noteTaxRateBasisPoints(),
-            $note->noteTaxAmountRupiah()->amount(),
         );
     }
 }

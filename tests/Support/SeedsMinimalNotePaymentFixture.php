@@ -55,11 +55,6 @@ trait SeedsMinimalNotePaymentFixture
                 'reopened_at' => null,
                 'reopened_by_actor_id' => null,
                 'total_rupiah' => $totalRupiah,
-                'subtotal_before_note_tax_rupiah' => $totalRupiah,
-                'note_tax_input' => null,
-                'note_tax_mode' => 'none',
-                'note_tax_rate_basis_points' => null,
-                'note_tax_amount_rupiah' => 0,
             ]
         );
     }
@@ -113,11 +108,6 @@ trait SeedsMinimalNotePaymentFixture
                 'work_item_id' => $workItemId,
                 'product_id' => $productId,
                 'qty' => $qty,
-                'base_total_rupiah' => $lineTotalRupiah,
-                'tax_input' => null,
-                'tax_mode' => 'none',
-                'tax_rate_basis_points' => null,
-                'tax_amount_rupiah' => 0,
                 'line_total_rupiah' => $lineTotalRupiah,
             ]
         );
@@ -281,11 +271,6 @@ trait SeedsMinimalNotePaymentFixture
                 'customer_phone' => $customerPhone,
                 'transaction_date' => $transactionDate,
                 'grand_total_rupiah' => $grandTotalRupiah,
-                'subtotal_before_note_tax_rupiah' => $grandTotalRupiah,
-                'note_tax_input' => null,
-                'note_tax_mode' => 'none',
-                'note_tax_rate_basis_points' => null,
-                'note_tax_amount_rupiah' => 0,
                 'line_count' => count($lines),
                 'created_at' => now()->format('Y-m-d H:i:s'),
                 'updated_at' => null,

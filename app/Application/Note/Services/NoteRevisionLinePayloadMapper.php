@@ -80,11 +80,6 @@ final class NoteRevisionLinePayloadMapper
             'id' => $line->id(),
             'product_id' => $productId,
             'qty' => $line->qty(),
-            'base_total_rupiah' => $line->baseTotalRupiah()->amount(),
-            'tax_input' => $line->taxInput(),
-            'tax_mode' => $line->taxMode(),
-            'tax_rate_basis_points' => $line->taxRateBasisPoints(),
-            'tax_amount_rupiah' => $line->taxAmountRupiah()->amount(),
             'line_total_rupiah' => $line->lineTotalRupiah()->amount(),
         ];
 

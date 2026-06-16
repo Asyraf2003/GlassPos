@@ -59,31 +59,6 @@ trait NoteRevisionAccessors
         return $this->grandTotalRupiah;
     }
 
-    public function subtotalBeforeNoteTaxRupiah(): int
-    {
-        return $this->subtotalBeforeNoteTaxRupiah;
-    }
-
-    public function noteTaxInput(): ?string
-    {
-        return $this->noteTaxInput;
-    }
-
-    public function noteTaxMode(): string
-    {
-        return $this->noteTaxMode;
-    }
-
-    public function noteTaxRateBasisPoints(): ?int
-    {
-        return $this->noteTaxRateBasisPoints;
-    }
-
-    public function noteTaxAmountRupiah(): int
-    {
-        return $this->noteTaxAmountRupiah;
-    }
-
     /**
      * @return list<NoteRevisionLineSnapshot>
      */

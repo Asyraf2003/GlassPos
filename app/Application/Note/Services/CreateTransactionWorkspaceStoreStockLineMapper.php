@@ -8,13 +8,6 @@ use App\Core\Shared\Exceptions\DomainException;
 
 final class CreateTransactionWorkspaceStoreStockLineMapper
 {
-    private TaxInputCalculator $taxInputCalculator;
-
-    public function __construct(?TaxInputCalculator $taxInputCalculator = null)
-    {
-        $this->taxInputCalculator = $taxInputCalculator ?? new TaxInputCalculator();
-    }
-
     /**
      * @param array<string, mixed> $item
      * @return array<string, mixed>
@@ -48,23 +41,11 @@ final class CreateTransactionWorkspaceStoreStockLineMapper
     {
         $qty = $this->requiredInt($line['qty'] ?? null, 'Qty produk wajib diisi.');
         $unitPrice = $this->requiredInt($line['unit_price_rupiah'] ?? null, 'Harga satuan produk wajib diisi.');
-        $baseTotal = $qty * $unitPrice;
-
-        try {
-            $tax = $this->taxInputCalculator->calculate($line['tax_input'] ?? null, $baseTotal);
-        } catch (\InvalidArgumentException $e) {
-            throw new DomainException($e->getMessage());
-        }
 
         return [
             'product_id' => $this->requiredString($line['product_id'] ?? null, 'Product wajib dipilih.'),
             'qty' => $qty,
-            'base_total_rupiah' => $baseTotal,
-            'tax_input' => $tax->taxInput(),
-            'tax_mode' => $tax->taxMode(),
-            'tax_rate_basis_points' => $tax->taxRateBasisPoints(),
-            'tax_amount_rupiah' => $tax->taxAmountRupiah(),
-            'line_total_rupiah' => $baseTotal + $tax->taxAmountRupiah(),
+            'line_total_rupiah' => $qty * $unitPrice,
             'price_basis' => $this->priceBasis($line['price_basis'] ?? null),
             '_server_trusted_revision_snapshot' => ($line['_server_trusted_revision_snapshot'] ?? false) === true,
         ];

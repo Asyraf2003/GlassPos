@@ -60,26 +60,11 @@ final class DatabaseNoteWorkItemDetailLoader
         $result = [];
 
         foreach (DB::table('work_item_store_stock_lines')->whereIn('work_item_id', $ids)->orderBy('id')->get() as $row) {
-            $taxAmount = Money::fromInt((int) ($row->tax_amount_rupiah ?? 0));
-            $lineTotal = Money::fromInt((int) $row->line_total_rupiah);
-            $storedBaseTotal = property_exists($row, 'base_total_rupiah')
-                ? (int) $row->base_total_rupiah
-                : 0;
-            $resolvedBaseTotal = $storedBaseTotal > 0
-                ? $storedBaseTotal
-                : max($lineTotal->amount() - $taxAmount->amount(), 0);
-            $baseTotal = Money::fromInt($resolvedBaseTotal);
-
             $result[(string) $row->work_item_id][] = StoreStockLine::rehydrate(
                 (string) $row->id,
                 (string) $row->product_id,
                 (int) $row->qty,
-                $lineTotal,
-                $baseTotal,
-                isset($row->tax_input) ? (string) $row->tax_input : null,
-                (string) ($row->tax_mode ?? StoreStockLine::TAX_MODE_NONE),
-                isset($row->tax_rate_basis_points) ? (int) $row->tax_rate_basis_points : null,
-                $taxAmount,
+                Money::fromInt((int) $row->line_total_rupiah),
             );
         }
 

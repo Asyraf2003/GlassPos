@@ -27,11 +27,6 @@ final class DatabaseNoteWriterAdapter implements NoteWriterPort
             'reopened_at' => $note->reopenedAt()?->format('Y-m-d H:i:s'),
             'reopened_by_actor_id' => $note->reopenedByActorId(),
             'total_rupiah' => $note->totalRupiah()->amount(),
-            'subtotal_before_note_tax_rupiah' => $note->subtotalBeforeNoteTaxRupiah()->amount(),
-            'note_tax_input' => $note->noteTaxInput(),
-            'note_tax_mode' => $note->noteTaxMode(),
-            'note_tax_rate_basis_points' => $note->noteTaxRateBasisPoints(),
-            'note_tax_amount_rupiah' => $note->noteTaxAmountRupiah()->amount(),
             'created_at' => $now,
             'updated_at' => $now,
         ]);
@@ -53,11 +48,6 @@ final class DatabaseNoteWriterAdapter implements NoteWriterPort
     {
         DB::table('notes')->where('id', $note->id())->update([
             'total_rupiah' => $note->totalRupiah()->amount(),
-            'subtotal_before_note_tax_rupiah' => $note->subtotalBeforeNoteTaxRupiah()->amount(),
-            'note_tax_input' => $note->noteTaxInput(),
-            'note_tax_mode' => $note->noteTaxMode(),
-            'note_tax_rate_basis_points' => $note->noteTaxRateBasisPoints(),
-            'note_tax_amount_rupiah' => $note->noteTaxAmountRupiah()->amount(),
             'updated_at' => now()->format('Y-m-d H:i:s'),
         ]);
     }

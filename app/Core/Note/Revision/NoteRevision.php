@@ -10,10 +10,6 @@ use DateTimeImmutable;
 
 final class NoteRevision
 {
-    public const TAX_MODE_NONE = 'none';
-    public const TAX_MODE_PERCENT = 'percent';
-    public const TAX_MODE_FIXED = 'fixed';
-
     use NoteRevisionAccessors;
     use NoteRevisionValidation;
 
@@ -33,11 +29,6 @@ final class NoteRevision
         private int $grandTotalRupiah,
         private array $lines,
         private DateTimeImmutable $createdAt,
-        private int $subtotalBeforeNoteTaxRupiah,
-        private ?string $noteTaxInput,
-        private string $noteTaxMode,
-        private ?int $noteTaxRateBasisPoints,
-        private int $noteTaxAmountRupiah,
     ) {
     }
 
@@ -57,16 +48,10 @@ final class NoteRevision
         int $grandTotalRupiah,
         array $lines,
         DateTimeImmutable $createdAt,
-        ?int $subtotalBeforeNoteTaxRupiah = null,
-        ?string $noteTaxInput = null,
-        string $noteTaxMode = self::TAX_MODE_NONE,
-        ?int $noteTaxRateBasisPoints = null,
-        int $noteTaxAmountRupiah = 0,
     ): self {
         $id = trim($id);
         $noteRootId = trim($noteRootId);
         $customerName = trim($customerName);
-        $subtotalBeforeNoteTaxRupiah ??= max($grandTotalRupiah - $noteTaxAmountRupiah, 0);
 
         self::assertValidState(
             $id,
@@ -75,13 +60,6 @@ final class NoteRevision
             $customerName,
             $grandTotalRupiah,
             $lines,
-        );
-
-        self::assertValidTaxSnapshot(
-            $subtotalBeforeNoteTaxRupiah,
-            $noteTaxMode,
-            $noteTaxRateBasisPoints,
-            $noteTaxAmountRupiah,
         );
 
         return new self(
@@ -97,22 +75,6 @@ final class NoteRevision
             $grandTotalRupiah,
             array_values($lines),
             $createdAt,
-            $subtotalBeforeNoteTaxRupiah,
-            self::normalizeTaxInput($noteTaxInput),
-            $noteTaxMode,
-            $noteTaxRateBasisPoints,
-            $noteTaxAmountRupiah,
         );
-    }
-
-    private static function normalizeTaxInput(?string $taxInput): ?string
-    {
-        if ($taxInput === null) {
-            return null;
-        }
-
-        $taxInput = trim($taxInput);
-
-        return $taxInput === '' ? null : $taxInput;
     }
 }

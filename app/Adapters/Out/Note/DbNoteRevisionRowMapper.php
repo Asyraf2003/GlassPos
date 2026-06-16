@@ -37,11 +37,6 @@ final class DbNoteRevisionRowMapper
             (int) $row->grand_total_rupiah,
             $mappedLines,
             new DateTimeImmutable((string) $row->created_at),
-            property_exists($row, 'subtotal_before_note_tax_rupiah') ? (int) $row->subtotal_before_note_tax_rupiah : null,
-            property_exists($row, 'note_tax_input') && $row->note_tax_input !== null ? (string) $row->note_tax_input : null,
-            property_exists($row, 'note_tax_mode') && $row->note_tax_mode !== null ? (string) $row->note_tax_mode : NoteRevision::TAX_MODE_NONE,
-            property_exists($row, 'note_tax_rate_basis_points') && $row->note_tax_rate_basis_points !== null ? (int) $row->note_tax_rate_basis_points : null,
-            property_exists($row, 'note_tax_amount_rupiah') ? (int) $row->note_tax_amount_rupiah : 0,
         );
     }
 
@@ -61,11 +56,6 @@ final class DbNoteRevisionRowMapper
             'customer_phone' => $revision->customerPhone(),
             'transaction_date' => $revision->transactionDate()->format('Y-m-d'),
             'grand_total_rupiah' => $revision->grandTotalRupiah(),
-            'subtotal_before_note_tax_rupiah' => $revision->subtotalBeforeNoteTaxRupiah(),
-            'note_tax_input' => $revision->noteTaxInput(),
-            'note_tax_mode' => $revision->noteTaxMode(),
-            'note_tax_rate_basis_points' => $revision->noteTaxRateBasisPoints(),
-            'note_tax_amount_rupiah' => $revision->noteTaxAmountRupiah(),
             'line_count' => $revision->lineCount(),
             'created_at' => $revision->createdAt()->format('Y-m-d H:i:s'),
             'updated_at' => null,

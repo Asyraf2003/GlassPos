@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Core\Note\Revision\Concerns;
 
-use App\Core\Note\Revision\NoteRevision;
 use App\Core\Note\Revision\NoteRevisionLineSnapshot;
 use App\Core\Shared\Exceptions\DomainException;
 
@@ -49,37 +48,6 @@ trait NoteRevisionValidation
             if ($line->noteRevisionId() !== $id) {
                 throw new DomainException('Semua line revision wajib belong ke note revision yang sama.');
             }
-        }
-    }
-
-    private static function assertValidTaxSnapshot(
-        int $subtotalBeforeNoteTaxRupiah,
-        string $noteTaxMode,
-        ?int $noteTaxRateBasisPoints,
-        int $noteTaxAmountRupiah,
-    ): void {
-        if ($subtotalBeforeNoteTaxRupiah < 0) {
-            throw new DomainException('Subtotal sebelum pajak revision tidak boleh negatif.');
-        }
-
-        if ($noteTaxAmountRupiah < 0) {
-            throw new DomainException('Pajak revision tidak boleh negatif.');
-        }
-
-        if (! in_array($noteTaxMode, [NoteRevision::TAX_MODE_NONE, NoteRevision::TAX_MODE_PERCENT, NoteRevision::TAX_MODE_FIXED], true)) {
-            throw new DomainException('Tax mode revision tidak valid.');
-        }
-
-        if ($noteTaxMode === NoteRevision::TAX_MODE_PERCENT && ($noteTaxRateBasisPoints === null || $noteTaxRateBasisPoints < 0)) {
-            throw new DomainException('Tax rate basis points revision tidak valid.');
-        }
-
-        if ($noteTaxMode !== NoteRevision::TAX_MODE_PERCENT && $noteTaxRateBasisPoints !== null) {
-            throw new DomainException('Tax rate basis points revision hanya boleh ada untuk mode percent.');
-        }
-
-        if ($noteTaxMode === NoteRevision::TAX_MODE_NONE && $noteTaxAmountRupiah !== 0) {
-            throw new DomainException('Pajak revision harus nol ketika tax mode none.');
         }
     }
 }

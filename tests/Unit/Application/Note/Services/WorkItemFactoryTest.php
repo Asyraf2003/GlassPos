@@ -104,34 +104,6 @@ final class WorkItemFactoryTest extends TestCase
         $this->assertSame(300000, $item->subtotalRupiah()->amount());
     }
 
-
-    public function test_store_stock_tax_amount_does_not_bypass_minimum_selling_price(): void
-    {
-        $factory = $this->factoryWithProductHargaJual(100000);
-
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('Harga jual pada store stock line tidak boleh di bawah harga jual minimum.');
-
-        $factory->build(
-            'note-1',
-            1,
-            WorkItem::TYPE_STORE_STOCK_SALE_ONLY,
-            [],
-            [],
-            [[
-                'product_id' => 'product-1',
-                'qty' => 1,
-                'base_total_rupiah' => 50000,
-                'tax_input' => '50000',
-                'tax_mode' => 'fixed',
-                'tax_rate_basis_points' => null,
-                'tax_amount_rupiah' => 50000,
-                'line_total_rupiah' => 100000,
-                'price_basis' => 'current_catalog',
-            ]]
-        );
-    }
-
     private function factoryWithProductHargaJual(int $hargaJual): WorkItemFactory
     {
         $product = Product::create(

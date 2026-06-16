@@ -35,8 +35,6 @@ final class NoteMapper
             ? (string) $row->operational_note
             : null;
 
-        $noteTaxAmount = Money::fromInt((int) ($row->note_tax_amount_rupiah ?? 0));
-
         return Note::rehydrate(
             (string) $row->id,
             (string) $row->customer_name,
@@ -55,49 +53,16 @@ final class NoteMapper
                 : null,
             $dueDate,
             $operationalNote,
-            self::resolveSubtotalBeforeNoteTax($row, $items, $noteTaxAmount),
-            property_exists($row, 'note_tax_input') && $row->note_tax_input !== null ? (string) $row->note_tax_input : null,
-            property_exists($row, 'note_tax_mode') && $row->note_tax_mode !== null ? (string) $row->note_tax_mode : Note::TAX_MODE_NONE,
-            property_exists($row, 'note_tax_rate_basis_points') && $row->note_tax_rate_basis_points !== null ? (int) $row->note_tax_rate_basis_points : null,
-            $noteTaxAmount,
         );
     }
 
     /** @param list<WorkItem> $items */
     private static function resolveMappedTotal(stdClass $row, array $items): Money
     {
-        if (property_exists($row, 'total_rupiah')) {
-            return Money::fromInt((int) $row->total_rupiah);
+        if ($items === []) {
+            return Money::fromInt((int) ($row->total_rupiah ?? 0));
         }
 
-        return self::resolveWorkItemsSubtotal($items);
-    }
-
-    /** @param list<WorkItem> $items */
-    private static function resolveSubtotalBeforeNoteTax(stdClass $row, array $items, Money $noteTaxAmount): Money
-    {
-        $workItemsSubtotal = $items !== [] ? self::resolveWorkItemsSubtotal($items) : null;
-
-        if (property_exists($row, 'subtotal_before_note_tax_rupiah')) {
-            $storedSubtotal = (int) $row->subtotal_before_note_tax_rupiah;
-
-            if ($storedSubtotal > 0 || $workItemsSubtotal === null || $workItemsSubtotal->isZero()) {
-                return Money::fromInt($storedSubtotal);
-            }
-
-            return $workItemsSubtotal;
-        }
-
-        if ($workItemsSubtotal !== null) {
-            return $workItemsSubtotal;
-        }
-
-        return Money::fromInt(max((int) ($row->total_rupiah ?? 0) - $noteTaxAmount->amount(), 0));
-    }
-
-    /** @param list<WorkItem> $items */
-    private static function resolveWorkItemsSubtotal(array $items): Money
-    {
         $total = Money::zero();
 
         foreach ($items as $item) {

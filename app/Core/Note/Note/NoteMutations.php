@@ -34,7 +34,7 @@ trait NoteMutations
         $this->assertNoDuplicateWorkItems($workItems);
 
         $this->workItems = array_values($workItems);
-        $this->resetNoteTaxToSubtotal(self::calculateTotalFromWorkItems($this->workItems));
+        $this->totalRupiah = self::calculateTotalFromWorkItems($this->workItems);
     }
 
     public function addWorkItem(WorkItem $item): void
@@ -54,48 +54,13 @@ trait NoteMutations
         }
 
         $this->workItems[] = $item;
-        $this->resetNoteTaxToSubtotal(self::calculateTotalFromWorkItems($this->workItems));
+        $this->totalRupiah = $this->totalRupiah->add($item->subtotalRupiah());
     }
 
     public function syncTotalRupiah(Money $total): void
     {
         $total->ensureNotNegative('Total note tidak boleh negatif.');
-        $this->resetNoteTaxToSubtotal($total);
-    }
-
-    public function syncNoteTax(
-        Money $subtotalBeforeNoteTaxRupiah,
-        ?string $noteTaxInput,
-        string $noteTaxMode,
-        ?int $noteTaxRateBasisPoints,
-        Money $noteTaxAmountRupiah,
-    ): void {
-        self::assertValidNoteTaxBreakdown(
-            $subtotalBeforeNoteTaxRupiah,
-            self::normalizeTaxInput($noteTaxInput),
-            $noteTaxMode,
-            $noteTaxRateBasisPoints,
-            $noteTaxAmountRupiah,
-        );
-
-        $this->subtotalBeforeNoteTaxRupiah = $subtotalBeforeNoteTaxRupiah;
-        $this->noteTaxInput = self::normalizeTaxInput($noteTaxInput);
-        $this->noteTaxMode = $noteTaxMode;
-        $this->noteTaxRateBasisPoints = $noteTaxRateBasisPoints;
-        $this->noteTaxAmountRupiah = $noteTaxAmountRupiah;
-        $this->totalRupiah = $subtotalBeforeNoteTaxRupiah->add($noteTaxAmountRupiah);
-    }
-
-    private function resetNoteTaxToSubtotal(Money $subtotal): void
-    {
-        $subtotal->ensureNotNegative('Subtotal note tidak boleh negatif.');
-
-        $this->subtotalBeforeNoteTaxRupiah = $subtotal;
-        $this->noteTaxInput = null;
-        $this->noteTaxMode = Note::TAX_MODE_NONE;
-        $this->noteTaxRateBasisPoints = null;
-        $this->noteTaxAmountRupiah = Money::zero();
-        $this->totalRupiah = $subtotal;
+        $this->totalRupiah = $total;
     }
 
     /** @param list<WorkItem> $workItems */

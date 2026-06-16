@@ -45,26 +45,13 @@ final class WorkItemFactory
         return array_map(function($p) {
             $prod = $this->products->getById((string)$p['product_id']) ?? throw new DomainException('Product tidak ditemukan.');
             $total = Money::fromInt((int)$p['line_total_rupiah']);
-            $taxAmount = Money::fromInt((int) ($p['tax_amount_rupiah'] ?? 0));
-            $baseTotal = Money::fromInt((int) ($p['base_total_rupiah'] ?? max($total->amount() - $taxAmount->amount(), 0)));
             $isTrustedRevisionSnapshot = ($p['_server_trusted_revision_snapshot'] ?? false) === true;
 
             if (! $isTrustedRevisionSnapshot) {
-                $this->pricePolicy->assertAllowed($prod, (int)$p['qty'], $baseTotal);
+                $this->pricePolicy->assertAllowed($prod, (int)$p['qty'], $total);
             }
 
-
-            return StoreStockLine::create(
-                $this->uuid->generate(),
-                $prod->id(),
-                (int) $p['qty'],
-                $total,
-                $baseTotal,
-                isset($p['tax_input']) ? (string) $p['tax_input'] : null,
-                (string) ($p['tax_mode'] ?? StoreStockLine::TAX_MODE_NONE),
-                array_key_exists('tax_rate_basis_points', $p) && $p['tax_rate_basis_points'] !== null ? (int) $p['tax_rate_basis_points'] : null,
-                $taxAmount,
-            );
+            return StoreStockLine::create($this->uuid->generate(), $prod->id(), (int)$p['qty'], $total);
         }, $payload);
     }
 }

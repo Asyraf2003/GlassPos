@@ -18,7 +18,6 @@ final class NoteWorkspacePanelPayloadFactory
         string $transactionDate,
         int $grandTotal,
         array $rows,
-        array $noteTax = [],
     ): array {
         $summary = $this->lineSummary->build($rows);
 
@@ -34,8 +33,6 @@ final class NoteWorkspacePanelPayloadFactory
             $outstanding += (int) ($row['outstanding_rupiah'] ?? 0);
         }
 
-        $outstanding = max($grandTotal - $netPaid, 0);
-
         return [
             'note_header' => [
                 'id' => $noteId,
@@ -45,11 +42,6 @@ final class NoteWorkspacePanelPayloadFactory
             ],
             'note_totals' => [
                 'grand_total_rupiah' => $grandTotal,
-                'subtotal_before_note_tax_rupiah' => (int) ($noteTax['subtotal_before_note_tax_rupiah'] ?? $grandTotal),
-                'note_tax_input' => $noteTax['note_tax_input'] ?? null,
-                'note_tax_mode' => (string) ($noteTax['note_tax_mode'] ?? 'none'),
-                'note_tax_rate_basis_points' => $noteTax['note_tax_rate_basis_points'] ?? null,
-                'note_tax_amount_rupiah' => (int) ($noteTax['note_tax_amount_rupiah'] ?? 0),
                 'total_allocated_rupiah' => $allocated,
                 'total_refunded_rupiah' => $refunded,
                 'net_paid_rupiah' => $netPaid,

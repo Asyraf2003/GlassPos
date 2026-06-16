@@ -29,21 +29,6 @@
             <small>Jumlah Rincian</small>
             <div class="text-end">{{ (int) ($currentRevision['line_count'] ?? 0) }}</div>
           </div>
-          @if ((int) ($currentRevision['note_tax_amount_rupiah'] ?? 0) > 0)
-            <div class="ui-key-value d-flex justify-content-between py-2 border-bottom">
-              <small>Subtotal Sebelum Pajak</small>
-              <div class="text-end">{{ number_format((int) ($currentRevision['subtotal_before_note_tax_rupiah'] ?? 0), 0, ',', '.') }}</div>
-            </div>
-            <div class="ui-key-value d-flex justify-content-between py-2 border-bottom">
-              <small>
-                Pajak Nota
-                @if (!empty($currentRevision['note_tax_input']))
-                  ({{ $currentRevision['note_tax_input'] }})
-                @endif
-              </small>
-              <div class="text-end">{{ number_format((int) ($currentRevision['note_tax_amount_rupiah'] ?? 0), 0, ',', '.') }}</div>
-            </div>
-          @endif
           <div class="ui-key-value d-flex justify-content-between py-2 border-bottom">
             <small>Grand Total</small>
             <div class="text-end">{{ number_format((int) ($currentRevision['grand_total_rupiah'] ?? 0), 0, ',', '.') }}</div>
@@ -76,21 +61,6 @@
             <small>Jumlah Rincian</small>
             <div class="text-end">{{ (int) ($baselineRevision['line_count'] ?? 0) }}</div>
           </div>
-          @if ((int) ($baselineRevision['note_tax_amount_rupiah'] ?? 0) > 0)
-            <div class="ui-key-value d-flex justify-content-between py-2 border-bottom">
-              <small>Subtotal Sebelum Pajak</small>
-              <div class="text-end">{{ number_format((int) ($baselineRevision['subtotal_before_note_tax_rupiah'] ?? 0), 0, ',', '.') }}</div>
-            </div>
-            <div class="ui-key-value d-flex justify-content-between py-2 border-bottom">
-              <small>
-                Pajak Nota
-                @if (!empty($baselineRevision['note_tax_input']))
-                  ({{ $baselineRevision['note_tax_input'] }})
-                @endif
-              </small>
-              <div class="text-end">{{ number_format((int) ($baselineRevision['note_tax_amount_rupiah'] ?? 0), 0, ',', '.') }}</div>
-            </div>
-          @endif
           <div class="ui-key-value d-flex justify-content-between py-2 border-bottom">
             <small>Grand Total</small>
             <div class="text-end">{{ number_format((int) ($baselineRevision['grand_total_rupiah'] ?? 0), 0, ',', '.') }}</div>
