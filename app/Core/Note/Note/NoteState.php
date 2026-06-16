@@ -20,6 +20,11 @@ trait NoteState
         private ?string $operationalNote,
         private array $workItems,
         private Money $totalRupiah,
+        private Money $subtotalBeforeNoteTaxRupiah,
+        private ?string $noteTaxInput,
+        private string $noteTaxMode,
+        private ?int $noteTaxRateBasisPoints,
+        private Money $noteTaxAmountRupiah,
         private string $noteState,
         private ?DateTimeImmutable $closedAt,
         private ?string $closedByActorId,
@@ -39,6 +44,12 @@ trait NoteState
     public function workItems(): array { return $this->workItems; }
 
     public function totalRupiah(): Money { return $this->totalRupiah; }
+    public function subtotalBeforeNoteTaxRupiah(): Money { return $this->subtotalBeforeNoteTaxRupiah; }
+    public function noteTaxInput(): ?string { return $this->noteTaxInput; }
+    public function noteTaxMode(): string { return $this->noteTaxMode; }
+    public function noteTaxRateBasisPoints(): ?int { return $this->noteTaxRateBasisPoints; }
+    public function noteTaxAmountRupiah(): Money { return $this->noteTaxAmountRupiah; }
+
     public function noteState(): string { return $this->noteState; }
     public function closedAt(): ?DateTimeImmutable { return $this->closedAt; }
     public function closedByActorId(): ?string { return $this->closedByActorId; }

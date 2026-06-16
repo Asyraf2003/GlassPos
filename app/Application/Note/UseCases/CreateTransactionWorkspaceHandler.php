@@ -11,6 +11,7 @@ use App\Application\Note\Services\CreateTransactionWorkspaceNoteFactory;
 use App\Application\Note\Services\CreateTransactionWorkspaceResultBuilder;
 use App\Application\Note\Services\CreateTransactionWorkspaceWorkItemPersister;
 use App\Application\Note\Services\NoteHistoryProjectionService;
+use App\Application\Note\Services\NoteTaxApplier;
 use App\Application\Shared\DTO\Result;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Ports\Out\AuditLogPort;
@@ -26,6 +27,7 @@ final class CreateTransactionWorkspaceHandler
         private readonly TransactionManagerPort $transactions,
         private readonly CreateTransactionWorkspaceNoteFactory $noteFactory,
         private readonly CreateTransactionWorkspaceWorkItemPersister $items,
+        private readonly NoteTaxApplier $noteTaxApplier,
         private readonly CreateTransactionWorkspaceInlinePaymentRecorder $payments,
         private readonly CreateTransactionWorkspaceAuditPayloadBuilder $auditPayloads,
         private readonly CreateTransactionWorkspaceResultBuilder $results,
@@ -59,6 +61,7 @@ final class CreateTransactionWorkspaceHandler
             $this->notes->create($note);
 
             $persistedItems = $this->items->persist($note, $payload['items'] ?? []);
+            $this->noteTaxApplier->apply($note, $payload['note']['tax_input'] ?? null);
             $this->notes->updateTotal($note);
 
             $paymentSummary = $this->payments->record($note, $payload['inline_payment'] ?? []);

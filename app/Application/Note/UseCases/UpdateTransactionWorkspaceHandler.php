@@ -7,6 +7,7 @@ namespace App\Application\Note\UseCases;
 use App\Application\Note\Services\CreateTransactionWorkspaceInlinePaymentRecorder;
 use App\Application\Note\Services\EditableWorkspaceNoteGuard;
 use App\Application\Note\Services\NoteHistoryProjectionService;
+use App\Application\Note\Services\NoteTaxApplier;
 use App\Application\Note\Services\UpdateTransactionWorkspaceResultBuilder;
 use App\Application\Note\Services\UpdateTransactionWorkspaceWorkItemPersister;
 use App\Application\Shared\DTO\Result;
@@ -25,6 +26,7 @@ final class UpdateTransactionWorkspaceHandler
         private readonly NoteReaderPort $notes,
         private readonly NoteWriterPort $noteWriter,
         private readonly UpdateTransactionWorkspaceWorkItemPersister $items,
+        private readonly NoteTaxApplier $noteTaxApplier,
         private readonly CreateTransactionWorkspaceInlinePaymentRecorder $payments,
         private readonly TransactionManagerPort $transactions,
         private readonly AuditLogPort $audit,
@@ -64,6 +66,7 @@ final class UpdateTransactionWorkspaceHandler
 
             $this->noteWriter->updateHeader($note);
             $itemsCount = $this->items->persist($note, $payload['items'] ?? [], $note->transactionDate());
+            $this->noteTaxApplier->apply($note, $noteData['tax_input'] ?? null);
             $this->noteWriter->updateTotal($note);
 
             $paymentSummary = $this->payments->record($note, $payload['inline_payment'] ?? []);
