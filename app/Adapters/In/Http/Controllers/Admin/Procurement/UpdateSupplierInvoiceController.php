@@ -75,6 +75,4 @@ final class UpdateSupplierInvoiceController extends Controller
 
         return $value === '' ? null : $value;
     }
-
-    }
 }
