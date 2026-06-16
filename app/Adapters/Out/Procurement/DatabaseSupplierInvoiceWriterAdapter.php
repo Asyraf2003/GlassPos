@@ -50,6 +50,11 @@ final class DatabaseSupplierInvoiceWriterAdapter implements SupplierInvoiceWrite
             'superseded_by_supplier_invoice_id' => $supplierInvoice->supersededBySupplierInvoiceId(),
             'tanggal_pengiriman' => $supplierInvoice->tanggalPengiriman()->format('Y-m-d'),
             'jatuh_tempo' => $supplierInvoice->jatuhTempo()->format('Y-m-d'),
+            'subtotal_before_tax_rupiah' => $supplierInvoice->subtotalBeforeTaxRupiah()->amount(),
+            'tax_input' => $supplierInvoice->taxInput(),
+            'tax_mode' => $supplierInvoice->taxMode(),
+            'tax_rate_basis_points' => $supplierInvoice->taxRateBasisPoints(),
+            'tax_amount_rupiah' => $supplierInvoice->taxAmountRupiah()->amount(),
             'grand_total_rupiah' => $supplierInvoice->grandTotalRupiah()->amount(),
             'updated_at' => $timestamp,
         ];

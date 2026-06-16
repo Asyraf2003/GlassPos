@@ -6,6 +6,7 @@ namespace App\Adapters\Out\Procurement;
 
 use App\Core\Procurement\SupplierInvoice\SupplierInvoice;
 use App\Core\Procurement\SupplierInvoice\SupplierInvoiceLine;
+use App\Core\Procurement\SupplierInvoice\SupplierInvoiceTaxSummary;
 use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\Procurement\SupplierInvoiceReaderPort;
 use DateTimeImmutable;
@@ -37,6 +38,11 @@ final class DatabaseSupplierInvoiceReaderAdapter implements SupplierInvoiceReade
                 'superseded_by_supplier_invoice_id',
                 'tanggal_pengiriman',
                 'jatuh_tempo',
+                'subtotal_before_tax_rupiah',
+                'tax_input',
+                'tax_mode',
+                'tax_rate_basis_points',
+                'tax_amount_rupiah',
             ])
             ->where('id', $supplierInvoiceId);
 
@@ -95,6 +101,13 @@ final class DatabaseSupplierInvoiceReaderAdapter implements SupplierInvoiceReade
             new DateTimeImmutable((string) $invoiceRow->tanggal_pengiriman),
             new DateTimeImmutable((string) $invoiceRow->jatuh_tempo),
             $lines,
+            SupplierInvoiceTaxSummary::rehydrate(
+                (int) ($invoiceRow->subtotal_before_tax_rupiah ?? 0),
+                $invoiceRow->tax_input !== null ? (string) $invoiceRow->tax_input : null,
+                (string) ($invoiceRow->tax_mode ?? SupplierInvoiceTaxSummary::MODE_NONE),
+                $invoiceRow->tax_rate_basis_points !== null ? (int) $invoiceRow->tax_rate_basis_points : null,
+                (int) ($invoiceRow->tax_amount_rupiah ?? 0),
+            ),
         );
     }
 }

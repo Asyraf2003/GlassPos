@@ -23,6 +23,7 @@ trait SupplierInvoiceState
         private DateTimeImmutable $jatuhTempo,
         private array $lines,
         private Money $grandTotalRupiah,
+        private SupplierInvoiceTaxSummary $taxSummary,
     ) {
     }
 
@@ -42,6 +43,12 @@ trait SupplierInvoiceState
     public function lines(): array { return $this->lines; }
 
     public function grandTotalRupiah(): Money { return $this->grandTotalRupiah; }
+    public function subtotalBeforeTaxRupiah(): Money { return $this->taxSummary->subtotalBeforeTaxRupiah(); }
+    public function taxInput(): ?string { return $this->taxSummary->taxInput(); }
+    public function taxMode(): string { return $this->taxSummary->taxMode(); }
+    public function taxRateBasisPoints(): ?int { return $this->taxSummary->taxRateBasisPoints(); }
+    public function taxAmountRupiah(): Money { return $this->taxSummary->taxAmountRupiah(); }
+    public function taxSummary(): SupplierInvoiceTaxSummary { return $this->taxSummary; }
 
     private static function normalizeNullableString(?string $value): ?string
     {

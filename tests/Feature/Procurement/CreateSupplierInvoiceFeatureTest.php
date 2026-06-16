@@ -66,6 +66,11 @@ final class CreateSupplierInvoiceFeatureTest extends TestCase
             'lifecycle_status' => 'active',
             'tanggal_pengiriman' => '2026-03-12',
             'jatuh_tempo' => '2026-04-12',
+            'subtotal_before_tax_rupiah' => 50000,
+            'tax_input' => null,
+            'tax_mode' => 'none',
+            'tax_rate_basis_points' => null,
+            'tax_amount_rupiah' => 0,
             'grand_total_rupiah' => 50000,
             'last_revision_no' => 1,
         ]);

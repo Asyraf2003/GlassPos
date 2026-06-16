@@ -18,9 +18,14 @@ final class SupplierInvoice
         string $supplierNamaPtPengirimSnapshot,
         string $nomorFaktur,
         DateTimeImmutable $tanggalPengiriman,
-        array $lines
+        array $lines,
+        ?SupplierInvoiceTaxSummary $taxSummary = null,
     ): self {
         self::assertValid($id, $supplierId, $supplierNamaPtPengirimSnapshot, $nomorFaktur, $lines);
+
+        $grandTotalRupiah = self::calculateGrandTotalRupiah($lines);
+        $resolvedTaxSummary = $taxSummary ?? SupplierInvoiceTaxSummary::none($grandTotalRupiah->amount());
+        self::assertTaxSummaryMatchesGrandTotal($resolvedTaxSummary, $grandTotalRupiah);
 
         return new self(
             trim($id),
@@ -34,7 +39,8 @@ final class SupplierInvoice
             $tanggalPengiriman,
             self::calculateJatuhTempo($tanggalPengiriman),
             array_values($lines),
-            self::calculateGrandTotalRupiah($lines)
+            $grandTotalRupiah,
+            $resolvedTaxSummary,
         );
     }
 
@@ -50,9 +56,14 @@ final class SupplierInvoice
         ?string $supersededBySupplierInvoiceId,
         DateTimeImmutable $tanggalPengiriman,
         DateTimeImmutable $jatuhTempo,
-        array $lines
+        array $lines,
+        ?SupplierInvoiceTaxSummary $taxSummary = null,
     ): self {
         self::assertValid($id, $supplierId, $supplierNamaPtPengirimSnapshot, $nomorFaktur, $lines);
+
+        $grandTotalRupiah = self::calculateGrandTotalRupiah($lines);
+        $resolvedTaxSummary = $taxSummary ?? SupplierInvoiceTaxSummary::none($grandTotalRupiah->amount());
+        self::assertTaxSummaryMatchesGrandTotal($resolvedTaxSummary, $grandTotalRupiah);
 
         return new self(
             trim($id),
@@ -66,7 +77,8 @@ final class SupplierInvoice
             $tanggalPengiriman,
             $jatuhTempo,
             array_values($lines),
-            self::calculateGrandTotalRupiah($lines)
+            $grandTotalRupiah,
+            $resolvedTaxSummary,
         );
     }
 }
