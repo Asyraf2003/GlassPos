@@ -62,7 +62,13 @@ final class DatabaseNoteWorkItemDetailLoader
         foreach (DB::table('work_item_store_stock_lines')->whereIn('work_item_id', $ids)->orderBy('id')->get() as $row) {
             $taxAmount = Money::fromInt((int) ($row->tax_amount_rupiah ?? 0));
             $lineTotal = Money::fromInt((int) $row->line_total_rupiah);
-            $baseTotal = Money::fromInt((int) ($row->base_total_rupiah ?? max($lineTotal->amount() - $taxAmount->amount(), 0)));
+            $storedBaseTotal = property_exists($row, 'base_total_rupiah')
+                ? (int) $row->base_total_rupiah
+                : 0;
+            $resolvedBaseTotal = $storedBaseTotal > 0
+                ? $storedBaseTotal
+                : max($lineTotal->amount() - $taxAmount->amount(), 0);
+            $baseTotal = Money::fromInt($resolvedBaseTotal);
 
             $result[(string) $row->work_item_id][] = StoreStockLine::rehydrate(
                 (string) $row->id,

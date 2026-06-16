@@ -113,6 +113,11 @@ trait SeedsMinimalNotePaymentFixture
                 'work_item_id' => $workItemId,
                 'product_id' => $productId,
                 'qty' => $qty,
+                'base_total_rupiah' => $lineTotalRupiah,
+                'tax_input' => null,
+                'tax_mode' => 'none',
+                'tax_rate_basis_points' => null,
+                'tax_amount_rupiah' => 0,
                 'line_total_rupiah' => $lineTotalRupiah,
             ]
         );
