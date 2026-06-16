@@ -60,6 +60,8 @@ final class UpdateSupplierInvoiceController extends Controller
         return redirect()
             ->route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => $supplierInvoiceId])
             ->with('success', $result->message() ?? 'Nota supplier berhasil diperbarui.');
+    }
+
     /**
      * @param array<string, mixed> $data
      */
