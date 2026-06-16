@@ -76,12 +76,20 @@ final class NoteMapper
     /** @param list<WorkItem> $items */
     private static function resolveSubtotalBeforeNoteTax(stdClass $row, array $items, Money $noteTaxAmount): Money
     {
+        $workItemsSubtotal = $items !== [] ? self::resolveWorkItemsSubtotal($items) : null;
+
         if (property_exists($row, 'subtotal_before_note_tax_rupiah')) {
-            return Money::fromInt((int) $row->subtotal_before_note_tax_rupiah);
+            $storedSubtotal = (int) $row->subtotal_before_note_tax_rupiah;
+
+            if ($storedSubtotal > 0 || $workItemsSubtotal === null || $workItemsSubtotal->isZero()) {
+                return Money::fromInt($storedSubtotal);
+            }
+
+            return $workItemsSubtotal;
         }
 
-        if ($items !== []) {
-            return self::resolveWorkItemsSubtotal($items);
+        if ($workItemsSubtotal !== null) {
+            return $workItemsSubtotal;
         }
 
         return Money::fromInt(max((int) ($row->total_rupiah ?? 0) - $noteTaxAmount->amount(), 0));
