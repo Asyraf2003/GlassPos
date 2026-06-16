@@ -27,6 +27,28 @@
         </div>
       </div>
 
+      @if ((int) ($currentRevision['note_tax_amount_rupiah'] ?? 0) > 0)
+        <div class="border rounded p-2 mb-3 small bg-body">
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Subtotal Sebelum Pajak</span>
+            <span>{{ number_format((int) ($currentRevision['subtotal_before_note_tax_rupiah'] ?? 0), 0, ',', '.') }}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">
+              Pajak Nota
+              @if (!empty($currentRevision['note_tax_input']))
+                ({{ $currentRevision['note_tax_input'] }})
+              @endif
+            </span>
+            <span>{{ number_format((int) ($currentRevision['note_tax_amount_rupiah'] ?? 0), 0, ',', '.') }}</span>
+          </div>
+          <div class="d-flex justify-content-between fw-semibold">
+            <span>Grand Total</span>
+            <span>{{ number_format((int) ($currentRevision['grand_total_rupiah'] ?? 0), 0, ',', '.') }}</span>
+          </div>
+        </div>
+      @endif
+
       @if (!empty($currentRevision['line_snapshot_rows']))
         <div class="fw-semibold small mb-2 text-muted">Isi Revision Aktif</div>
         <div class="d-flex flex-column gap-2 mb-3">
@@ -41,6 +63,9 @@
                   <div class="small text-muted">
                     {{ $line['type_label'] ?? '-' }} · {{ $line['status'] ?? '-' }}
                   </div>
+                  @foreach (($line['details'] ?? []) as $detail)
+                    <div class="small text-muted">{{ $detail }}</div>
+                  @endforeach
                 </div>
                 <div class="fw-semibold text-end text-body">
                   {{ number_format((int) ($line['subtotal_rupiah'] ?? 0), 0, ',', '.') }}
@@ -100,6 +125,9 @@
                         <div class="small text-muted" style="font-size: 0.75rem;">
                           {{ $line['type_label'] ?? '-' }} · {{ $line['status'] ?? '-' }}
                         </div>
+                        @foreach (($line['details'] ?? []) as $detail)
+                          <div class="small text-muted" style="font-size: 0.75rem;">{{ $detail }}</div>
+                        @endforeach
                       </div>
                       <div class="small fw-bold text-end text-body">
                         {{ number_format((int) ($line['subtotal_rupiah'] ?? 0), 0, ',', '.') }}

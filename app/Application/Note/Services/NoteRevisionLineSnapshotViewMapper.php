@@ -45,6 +45,7 @@ final class NoteRevisionLineSnapshotViewMapper
     private function details(NoteRevisionLineSnapshot $line): array
     {
         $details = [];
+        $payload = $line->payload();
 
         if ($line->serviceLabel() !== null) {
             $details[] = sprintf(
@@ -53,6 +54,34 @@ final class NoteRevisionLineSnapshotViewMapper
                 $line->servicePriceRupiah() !== null
                     ? ' · ' . $this->money($line->servicePriceRupiah())
                     : ''
+            );
+        }
+
+        $storeLines = is_array($payload['store_stock_lines'] ?? null)
+            ? array_values(array_filter($payload['store_stock_lines'], 'is_array'))
+            : [];
+
+        foreach ($storeLines as $storeLine) {
+            $taxAmount = (int) ($storeLine['tax_amount_rupiah'] ?? 0);
+
+            if ($taxAmount <= 0) {
+                continue;
+            }
+
+            $productLabel = trim((string) (
+                $storeLine['product_name_snapshot']
+                ?? $storeLine['product_name']
+                ?? $storeLine['product_id']
+                ?? 'Produk'
+            ));
+
+            $taxInput = trim((string) ($storeLine['tax_input'] ?? ''));
+
+            $details[] = sprintf(
+                'Pajak Produk: %s%s · %s',
+                $productLabel !== '' ? $productLabel : 'Produk',
+                $taxInput !== '' ? ' · ' . $taxInput : '',
+                $this->money($taxAmount),
             );
         }
 

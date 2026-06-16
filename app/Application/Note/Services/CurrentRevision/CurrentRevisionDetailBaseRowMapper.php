@@ -48,7 +48,47 @@ final class CurrentRevisionDetailBaseRowMapper
             'store_stock_count' => $storeLineCount,
             'external_purchase_count' => $this->lineCount($payload, 'external_purchase_lines'),
             'package_breakdown' => $this->packages->map($line, $payload),
+            'tax_breakdown' => $this->taxBreakdown($payload),
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return list<array<string, mixed>>
+     */
+    private function taxBreakdown(array $payload): array
+    {
+        $storeLines = is_array($payload['store_stock_lines'] ?? null)
+            ? array_values(array_filter($payload['store_stock_lines'], 'is_array'))
+            : [];
+
+        $items = [];
+
+        foreach ($storeLines as $line) {
+            $taxAmount = (int) ($line['tax_amount_rupiah'] ?? 0);
+
+            if ($taxAmount <= 0) {
+                continue;
+            }
+
+            $items[] = [
+                'product_name' => trim((string) (
+                    $line['product_name_snapshot']
+                    ?? $line['product_name']
+                    ?? $line['product_id']
+                    ?? 'Produk'
+                )),
+                'product_id' => $line['product_id'] ?? null,
+                'tax_input' => $line['tax_input'] ?? null,
+                'tax_mode' => (string) ($line['tax_mode'] ?? 'none'),
+                'tax_rate_basis_points' => $line['tax_rate_basis_points'] ?? null,
+                'base_total_rupiah' => (int) ($line['base_total_rupiah'] ?? 0),
+                'tax_amount_rupiah' => $taxAmount,
+                'line_total_rupiah' => (int) ($line['line_total_rupiah'] ?? 0),
+            ];
+        }
+
+        return $items;
     }
 
     /** @param array<string, mixed> $payload */

@@ -88,6 +88,23 @@
             </div>
 
             <div class="card-body">
+                @if ((int) ($note['note_tax_amount_rupiah'] ?? 0) > 0)
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="text-muted">Subtotal Sebelum Pajak</span>
+                        <strong>{{ number_format((int) ($note['subtotal_before_note_tax_rupiah'] ?? 0), 0, ',', '.') }}</strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="text-muted">
+                            Pajak Nota
+                            @if (!empty($note['note_tax_input']))
+                                ({{ $note['note_tax_input'] }})
+                            @endif
+                        </span>
+                        <strong>{{ number_format((int) ($note['note_tax_amount_rupiah'] ?? 0), 0, ',', '.') }}</strong>
+                    </div>
+                @endif
+
                 <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                     <span class="text-muted">Grand Total</span>
                     <strong>{{ number_format($note['grand_total_rupiah'], 0, ',', '.') }}</strong>

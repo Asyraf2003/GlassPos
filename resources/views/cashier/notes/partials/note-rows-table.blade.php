@@ -43,6 +43,22 @@
                   <div class="small text-muted">{{ $row['line_subtitle'] }}</div>
                 @endif
                 @include('cashier.notes.partials.note-row-package-breakdown', ['row' => $row])
+
+                @if (!empty($row['tax_breakdown']))
+                  <div class="small text-muted mt-2">
+                    @foreach (($row['tax_breakdown'] ?? []) as $tax)
+                      <div>
+                        Pajak Produk:
+                        {{ $tax['product_name'] ?? $tax['product_id'] ?? 'Produk' }}
+                        @if (!empty($tax['tax_input']))
+                          · {{ $tax['tax_input'] }}
+                        @endif
+                        =
+                        Rp {{ number_format((int) ($tax['tax_amount_rupiah'] ?? 0), 0, ',', '.') }}
+                      </div>
+                    @endforeach
+                  </div>
+                @endif
               </td>
               <td>{{ $row['type_label'] }}</td>
               <td>
