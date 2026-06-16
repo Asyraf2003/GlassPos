@@ -35,6 +35,7 @@ final class UpdateSupplierInvoiceHandler
         ?string $performedByActorId = null,
         ?string $performedByActorRole = null,
         string $sourceChannel = 'web_admin',
+        null|string|int $taxInput = null,
     ): Result {
         $current = $this->reader->getById($supplierInvoiceId);
 
@@ -68,7 +69,8 @@ final class UpdateSupplierInvoiceHandler
                 $nomorFaktur,
                 $namaPtPengirim,
                 $tanggalPengiriman,
-                $lines
+                $lines,
+                $taxInput
             ): Result {
                 $result = $this->operation->execute(
                     $current,
@@ -77,6 +79,7 @@ final class UpdateSupplierInvoiceHandler
                     $namaPtPengirim,
                     $tanggalPengiriman,
                     $lines,
+                    $taxInput,
                 );
 
                 if (! $result->isFailure()) {

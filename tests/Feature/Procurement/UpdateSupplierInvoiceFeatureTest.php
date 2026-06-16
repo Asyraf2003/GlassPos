@@ -137,6 +137,11 @@ final class UpdateSupplierInvoiceFeatureTest extends TestCase
         DB::table('supplier_invoices')
             ->where('id', 'invoice-1')
             ->update([
+                'subtotal_before_tax_rupiah' => 35000,
+                'tax_input' => null,
+                'tax_mode' => 'none',
+                'tax_rate_basis_points' => null,
+                'tax_amount_rupiah' => 0,
                 'grand_total_rupiah' => 35000,
             ]);
 
@@ -168,6 +173,84 @@ final class UpdateSupplierInvoiceFeatureTest extends TestCase
             'grand_total_rupiah' => 20000,
             'last_revision_no' => 2,
         ]);
+
+        $this->assertDatabaseHas('supplier_invoice_versions', [
+            'supplier_invoice_id' => 'invoice-1',
+            'revision_no' => 2,
+            'event_name' => 'supplier_invoice_updated',
+        ]);
+    }
+
+    public function test_admin_can_update_supplier_invoice_with_tax_landed_cost(): void
+    {
+        $this->seedEditableInvoice();
+        $this->seedSecondProduct();
+
+        $response = $this->actingAs($this->user('admin'))
+            ->put(route('admin.procurement.supplier-invoices.update', [
+                'supplierInvoiceId' => 'invoice-1',
+            ]), $this->updatePayload([
+                'nomor_faktur' => 'INV-SUP-001-TAX',
+                'nama_pt_pengirim' => 'PT Sumber Makmur',
+                'tanggal_pengiriman' => '2026-03-20',
+                'tax_input' => '10%',
+                'lines' => [
+                    [
+                        'previous_line_id' => 'invoice-line-1',
+                        'line_no' => 1,
+                        'product_id' => 'product-1',
+                        'qty_pcs' => 2,
+                        'line_total_rupiah' => 20000,
+                    ],
+                    [
+                        'previous_line_id' => null,
+                        'line_no' => 2,
+                        'product_id' => 'product-2',
+                        'qty_pcs' => 3,
+                        'line_total_rupiah' => 30000,
+                    ],
+                ],
+            ]));
+
+        $response->assertRedirect(route('admin.procurement.supplier-invoices.show', [
+            'supplierInvoiceId' => 'invoice-1',
+        ]));
+        $response->assertSessionHas('success', 'Nota supplier berhasil diperbarui.');
+
+        $invoice = DB::table('supplier_invoices')
+            ->where('id', 'invoice-1')
+            ->first();
+
+        $this->assertNotNull($invoice);
+
+        $this->assertSame('INV-SUP-001-TAX', (string) $invoice->nomor_faktur);
+        $this->assertSame(50000, (int) $invoice->subtotal_before_tax_rupiah);
+        $this->assertSame('10%', (string) $invoice->tax_input);
+        $this->assertSame('percent', (string) $invoice->tax_mode);
+        $this->assertSame(1000, (int) $invoice->tax_rate_basis_points);
+        $this->assertSame(5000, (int) $invoice->tax_amount_rupiah);
+        $this->assertSame(55000, (int) $invoice->grand_total_rupiah);
+        $this->assertSame(2, (int) $invoice->last_revision_no);
+
+        $line1 = DB::table('supplier_invoice_lines')
+            ->where('supplier_invoice_id', 'invoice-1')
+            ->where('product_id', 'product-1')
+            ->where('is_current', 1)
+            ->first();
+
+        $line2 = DB::table('supplier_invoice_lines')
+            ->where('supplier_invoice_id', 'invoice-1')
+            ->where('product_id', 'product-2')
+            ->where('is_current', 1)
+            ->first();
+
+        $this->assertNotNull($line1);
+        $this->assertNotNull($line2);
+
+        $this->assertSame(22000, (int) $line1->line_total_rupiah);
+        $this->assertSame(11000, (int) $line1->unit_cost_rupiah);
+        $this->assertSame(33000, (int) $line2->line_total_rupiah);
+        $this->assertSame(11000, (int) $line2->unit_cost_rupiah);
 
         $this->assertDatabaseHas('supplier_invoice_versions', [
             'supplier_invoice_id' => 'invoice-1',
@@ -295,6 +378,11 @@ final class UpdateSupplierInvoiceFeatureTest extends TestCase
             'superseded_by_supplier_invoice_id' => null,
             'tanggal_pengiriman' => '2026-03-15',
             'jatuh_tempo' => '2026-04-14',
+            'subtotal_before_tax_rupiah' => 20000,
+            'tax_input' => null,
+            'tax_mode' => 'none',
+            'tax_rate_basis_points' => null,
+            'tax_amount_rupiah' => 0,
             'grand_total_rupiah' => 20000,
             'voided_at' => null,
             'void_reason' => null,

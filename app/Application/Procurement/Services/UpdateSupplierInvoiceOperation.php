@@ -27,8 +27,9 @@ final class UpdateSupplierInvoiceOperation
         string $namaPtPengirim,
         string $tanggalPengiriman,
         array $lines,
+        null|string|int $taxInput = null,
     ): Result {
-        $updated = $this->builder->build($current, $nomorFaktur, $namaPtPengirim, $tanggalPengiriman, $lines);
+        $updated = $this->builder->build($current, $nomorFaktur, $namaPtPengirim, $tanggalPengiriman, $lines, $taxInput);
         $context = $this->contextResolver->resolve($supplierInvoiceId, $updated);
 
         if ($updated->grandTotalRupiah()->amount() < $context->totalPaidRupiah()) {

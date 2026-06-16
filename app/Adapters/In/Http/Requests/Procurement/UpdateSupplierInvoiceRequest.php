@@ -47,6 +47,7 @@ final class UpdateSupplierInvoiceRequest extends FormRequest
             'nomor_faktur' => ['required', 'string'],
             'nama_pt_pengirim' => ['required', 'string'],
             'tanggal_pengiriman' => ['required', 'date_format:Y-m-d'],
+            'tax_input' => ['nullable', 'string', 'max:64'],
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.line_no' => ['required', 'integer', 'min:1'],
             'lines.*.previous_line_id' => ['nullable', 'string'],
@@ -66,6 +67,8 @@ final class UpdateSupplierInvoiceRequest extends FormRequest
             'expected_revision_no.integer' => 'Revision faktur harus berupa angka.',
             'expected_revision_no.min' => 'Revision faktur minimal 1.',
             'change_reason.required' => 'Alasan perubahan wajib diisi.',
+            'tax_input.string' => 'Pajak supplier invoice harus berupa teks.',
+            'tax_input.max' => 'Pajak supplier invoice maksimal 64 karakter.',
         ];
     }
 

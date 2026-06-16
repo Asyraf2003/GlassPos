@@ -32,6 +32,7 @@ final class UpdateSupplierInvoiceController extends Controller
             $actorId !== null ? (string) $actorId : null,
             null,
             'web_admin',
+            taxInput: $this->resolveTaxInput($data),
         );
 
         if ($result->isFailure()) {
@@ -59,5 +60,19 @@ final class UpdateSupplierInvoiceController extends Controller
         return redirect()
             ->route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => $supplierInvoiceId])
             ->with('success', $result->message() ?? 'Nota supplier berhasil diperbarui.');
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function resolveTaxInput(array $data): ?string
+    {
+        if (! array_key_exists('tax_input', $data) || $data['tax_input'] === null) {
+            return null;
+        }
+
+        $value = trim((string) $data['tax_input']);
+
+        return $value === '' ? null : $value;
+    }
+
     }
 }
