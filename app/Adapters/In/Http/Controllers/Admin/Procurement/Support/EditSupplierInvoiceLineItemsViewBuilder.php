@@ -35,7 +35,7 @@ final class EditSupplierInvoiceLineItemsViewBuilder
                     'line_no' => (string) ($line['line_no'] ?? ''),
                     'product_id' => (string) ($line['product_id'] ?? ''),
                     'qty_pcs' => (string) ($line['qty_pcs'] ?? '1'),
-                    'line_total_rupiah' => (string) ($line['line_total_rupiah'] ?? ''),
+                    'line_total_rupiah' => self::lineTotalInputRupiah($line),
                     'tax_input' => (string) ($line['tax_input'] ?? ''),
                 ],
                 $existingLines,
@@ -85,4 +85,16 @@ final class EditSupplierInvoiceLineItemsViewBuilder
         return $lineItems;
     }
 
+
+    /** @param array<string, mixed> $line */
+    private static function lineTotalInputRupiah(array $line): string
+    {
+        $subtotalBeforeTax = $line['line_subtotal_before_tax_rupiah'] ?? null;
+
+        if ($subtotalBeforeTax !== null && (int) $subtotalBeforeTax > 0) {
+            return (string) (int) $subtotalBeforeTax;
+        }
+
+        return isset($line['line_total_rupiah']) ? (string) $line['line_total_rupiah'] : '';
+    }
 }

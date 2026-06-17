@@ -110,6 +110,53 @@ final class SupplierInvoiceTaxUiFeatureTest extends TestCase
         $response->assertSee('Rp 111.000');
     }
 
+    public function test_edit_page_uses_before_tax_line_total_for_existing_line_tax_invoice(): void
+    {
+        $this->seedInvoiceWithLineTax();
+
+        $response = $this->actingAs($this->user('admin'))
+            ->get(route('admin.procurement.supplier-invoices.edit', [
+                'supplierInvoiceId' => 'invoice-line-tax-ui-1',
+            ]));
+
+        $response->assertOk();
+
+        $html = $response->getContent();
+
+        self::assertMatchesRegularExpression(
+            '/name="lines\\[0\\]\\[line_total_rupiah\\]"[^>]*value="100000"/s',
+            $html
+        );
+        self::assertDoesNotMatchRegularExpression(
+            '/name="lines\\[0\\]\\[line_total_rupiah\\]"[^>]*value="111000"/s',
+            $html
+        );
+    }
+
+    public function test_edit_page_uses_before_tax_line_total_for_existing_header_tax_invoice(): void
+    {
+        $this->seedInvoiceWithTax();
+
+        $response = $this->actingAs($this->user('admin'))
+            ->get(route('admin.procurement.supplier-invoices.edit', [
+                'supplierInvoiceId' => 'invoice-tax-ui-1',
+            ]));
+
+        $response->assertOk();
+
+        $html = $response->getContent();
+
+        self::assertMatchesRegularExpression(
+            '/name="lines\\[0\\]\\[line_total_rupiah\\]"[^>]*value="50000"/s',
+            $html
+        );
+        self::assertDoesNotMatchRegularExpression(
+            '/name="lines\\[0\\]\\[line_total_rupiah\\]"[^>]*value="55000"/s',
+            $html
+        );
+    }
+
+
     private function seedInvoiceWithTax(): void
     {
         DB::table('suppliers')->insert([
@@ -167,6 +214,11 @@ final class SupplierInvoiceTaxUiFeatureTest extends TestCase
             'qty_pcs' => 5,
             'line_total_rupiah' => 55000,
             'unit_cost_rupiah' => 11000,
+            'line_subtotal_before_tax_rupiah' => 50000,
+            'tax_input' => null,
+            'tax_mode' => 'none',
+            'tax_rate_basis_points' => null,
+            'tax_amount_rupiah' => 0,
         ]);
     }
 
