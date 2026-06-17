@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Procurement\Services;
 
 use App\Core\Procurement\SupplierInvoice\SupplierInvoiceLine;
+use App\Core\Procurement\SupplierInvoice\SupplierInvoiceTaxSummary;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\ProductCatalog\ProductReaderPort;
@@ -45,7 +46,12 @@ final class SupplierInvoiceFactory
                 $product->merek(),
                 $product->ukuran(),
                 (int) ($line['qty_pcs'] ?? 0),
-                Money::fromInt((int) ($line['line_total_rupiah'] ?? 0))
+                Money::fromInt((int) ($line['line_total_rupiah'] ?? 0)),
+                Money::fromInt((int) ($line['line_subtotal_before_tax_rupiah'] ?? ($line['line_total_rupiah'] ?? 0))),
+                isset($line['tax_input']) ? (string) $line['tax_input'] : null,
+                (string) ($line['tax_mode'] ?? SupplierInvoiceTaxSummary::MODE_NONE),
+                array_key_exists('tax_rate_basis_points', $line) && $line['tax_rate_basis_points'] !== null ? (int) $line['tax_rate_basis_points'] : null,
+                Money::fromInt((int) ($line['tax_amount_rupiah'] ?? 0))
             );
         }, $lines, array_keys($lines));
     }
