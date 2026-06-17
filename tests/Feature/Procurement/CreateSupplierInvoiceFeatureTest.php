@@ -531,7 +531,14 @@ final class CreateSupplierInvoiceFeatureTest extends TestCase
 
     public function test_create_supplier_invoice_endpoint_rejects_mixed_header_and_line_tax_input(): void
     {
-        $this->seedProduct('product-tax-mixed-1', 'TAX-MIX-001', 'Ban Tax Mixed', 'Federal', 90, 35000);
+        DB::table('products')->insert([
+            'id' => 'product-tax-mixed-1',
+            'kode_barang' => 'TAX-MIX-001',
+            'nama_barang' => 'Ban Tax Mixed',
+            'merek' => 'Federal',
+            'ukuran' => 90,
+            'harga_jual' => 35000,
+        ]);
 
         $payload = $this->validPayload([
             'tax_input' => '10%',

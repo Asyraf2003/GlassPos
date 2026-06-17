@@ -354,7 +354,12 @@ final class UpdateSupplierInvoiceFeatureTest extends TestCase
     {
         $this->seedEditableInvoice();
 
-        $payload = $this->validUpdatePayload([
+        $payload = [
+            'expected_revision_no' => 1,
+            'change_reason' => 'Validasi pajak dobel',
+            'nomor_faktur' => 'INV-SUP-001',
+            'nama_pt_pengirim' => 'PT Sumber Makmur',
+            'tanggal_pengiriman' => '2026-03-15',
             'tax_input' => '10%',
             'lines' => [
                 [
@@ -366,7 +371,7 @@ final class UpdateSupplierInvoiceFeatureTest extends TestCase
                     'tax_input' => '11%',
                 ],
             ],
-        ]);
+        ];
 
         $response = $this->actingAs($this->user('admin'))
             ->putJson(route('admin.procurement.supplier-invoices.update', [
