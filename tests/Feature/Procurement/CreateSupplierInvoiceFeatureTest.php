@@ -540,8 +540,13 @@ final class CreateSupplierInvoiceFeatureTest extends TestCase
             'harga_jual' => 35000,
         ]);
 
-        $payload = $this->validPayload([
+        $payload = [
+            'nomor_faktur' => 'INV-TAX-MIX-001',
+            'nama_pt_pengirim' => 'PT Tax Mixed',
+            'tanggal_pengiriman' => '2026-03-15',
+            'tanggal_terima' => '2026-03-15',
             'tax_input' => '10%',
+            'auto_receive' => '1',
             'lines' => [
                 [
                     'line_no' => 1,
@@ -551,7 +556,7 @@ final class CreateSupplierInvoiceFeatureTest extends TestCase
                     'tax_input' => '11%',
                 ],
             ],
-        ]);
+        ];
 
         $response = $this->actingAs($this->user('admin'))
             ->postJson(route('admin.procurement.supplier-invoices.store'), $payload);
