@@ -349,6 +349,34 @@ final class UpdateSupplierInvoiceFeatureTest extends TestCase
         ], $overrides);
     }
 
+
+    public function test_admin_update_supplier_invoice_rejects_mixed_header_and_line_tax_input(): void
+    {
+        $this->seedEditableInvoice();
+
+        $payload = $this->validUpdatePayload([
+            'tax_input' => '10%',
+            'lines' => [
+                [
+                    'previous_line_id' => 'invoice-line-1',
+                    'line_no' => 1,
+                    'product_id' => 'product-1',
+                    'qty_pcs' => 1,
+                    'line_total_rupiah' => 100000,
+                    'tax_input' => '11%',
+                ],
+            ],
+        ]);
+
+        $response = $this->actingAs($this->user('admin'))
+            ->putJson(route('admin.procurement.supplier-invoices.update', [
+                'supplierInvoiceId' => 'invoice-1',
+            ]), $payload);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors(['tax_input']);
+    }
+
     public function test_admin_can_update_supplier_invoice_with_line_tax_input(): void
     {
         $this->seedEditableInvoice();

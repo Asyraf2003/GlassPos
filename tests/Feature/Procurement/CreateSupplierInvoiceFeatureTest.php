@@ -528,6 +528,31 @@ final class CreateSupplierInvoiceFeatureTest extends TestCase
         $this->assertDatabaseCount('product_inventory_costing', 0);
     }
 
+
+    public function test_create_supplier_invoice_endpoint_rejects_mixed_header_and_line_tax_input(): void
+    {
+        $this->seedProduct('product-tax-mixed-1', 'TAX-MIX-001', 'Ban Tax Mixed', 'Federal', 90, 35000);
+
+        $payload = $this->validPayload([
+            'tax_input' => '10%',
+            'lines' => [
+                [
+                    'line_no' => 1,
+                    'product_id' => 'product-tax-mixed-1',
+                    'qty_pcs' => 1,
+                    'line_total_rupiah' => 100000,
+                    'tax_input' => '11%',
+                ],
+            ],
+        ]);
+
+        $response = $this->actingAs($this->user('admin'))
+            ->postJson(route('admin.procurement.supplier-invoices.store'), $payload);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors(['tax_input']);
+    }
+
     public function test_create_supplier_invoice_endpoint_accepts_line_tax_input(): void
     {
         $this->seedMinimalProduct('product-1', 'KB-001', 'Supra', 'Federal', 100, 15000);

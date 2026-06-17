@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Adapters\In\Http\Requests\Procurement;
 
 use App\Application\Procurement\Services\SupplierInvoiceTaxLandedCostAllocator;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Validator;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Request;
 use InvalidArgumentException;
 
 final class CreateSupplierInvoiceTaxPostValidation
@@ -16,43 +16,65 @@ final class CreateSupplierInvoiceTaxPostValidation
     ) {
     }
 
-    public function validate(FormRequest $request, Validator $validator): void
+    public function validate(Request $request, Validator $validator): void
     {
-        $lines = $request->input('lines');
-
-        if (! is_array($lines) || $lines === []) {
+        if ($validator->errors()->isNotEmpty()) {
             return;
         }
 
-        foreach ($lines as $line) {
-            if (! is_array($line)) {
-                return;
-            }
+        $lines = $request->input('lines');
 
-            if (! array_key_exists('qty_pcs', $line) || ! array_key_exists('line_total_rupiah', $line)) {
-                return;
-            }
+        if (! is_array($lines)) {
+            return;
+        }
 
-            if (! is_numeric($line['qty_pcs']) || ! is_numeric($line['line_total_rupiah'])) {
-                return;
-            }
+        if ($this->hasHeaderTax($request->input('tax_input')) && $this->hasLineTax($lines)) {
+            $validator->errors()->add(
+                'tax_input',
+                'Pilih salah satu: pajak supplier invoice atau pajak per rincian.'
+            );
+
+            return;
         }
 
         try {
             $this->allocator->allocate(array_values($lines), $request->input('tax_input'));
         } catch (InvalidArgumentException $exception) {
-            $validator->errors()->add($this->taxErrorKey($lines), $exception->getMessage());
+            $validator->errors()->add(
+                $this->taxErrorAttribute($lines),
+                $exception->getMessage()
+            );
         }
     }
-    /**
-     * @param array<int, array<string, mixed>> $lines
-     */
-    private function taxErrorKey(array $lines): string
+
+    /** @param array<int|string, mixed> $lines */
+    private function hasLineTax(array $lines): bool
+    {
+        foreach ($lines as $line) {
+            if (is_array($line) && $this->hasHeaderTax($line['tax_input'] ?? null)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function hasHeaderTax(mixed $value): bool
+    {
+        return trim((string) ($value ?? '')) !== '';
+    }
+
+    /** @param array<int|string, mixed> $lines */
+    private function taxErrorAttribute(array $lines): string
     {
         foreach ($lines as $index => $line) {
+            if (! is_array($line)) {
+                continue;
+            }
+
             $value = $line['tax_input'] ?? null;
 
-            if ($value !== null && trim((string) $value) !== '') {
+            if (trim((string) ($value ?? '')) !== '') {
                 return 'lines.' . $index . '.tax_input';
             }
         }
