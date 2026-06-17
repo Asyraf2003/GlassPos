@@ -36,4 +36,12 @@ trait BuildsProcurementInvoiceDetailLinesView
 
         return $lineViews;
     }
+
+    private function lineSubtotalBeforeTaxRupiah(array $line): int
+    {
+        $subtotal = (int) ($line['line_subtotal_before_tax_rupiah'] ?? 0);
+
+        return $subtotal > 0 ? $subtotal : (int) ($line['line_total_rupiah'] ?? 0);
+    }
 }
+

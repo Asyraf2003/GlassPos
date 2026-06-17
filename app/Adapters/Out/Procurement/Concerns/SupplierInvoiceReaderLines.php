@@ -48,7 +48,7 @@ trait SupplierInvoiceReaderLines
                 (int) $row->qty_pcs,
                 Money::fromInt((int) $row->line_total_rupiah),
                 Money::fromInt((int) $row->unit_cost_rupiah),
-                Money::fromInt((int) ($row->line_subtotal_before_tax_rupiah ?? $row->line_total_rupiah)),
+                Money::fromInt($this->lineSubtotalBeforeTaxRupiah($row)),
                 $row->tax_input !== null ? (string) $row->tax_input : null,
                 (string) ($row->tax_mode ?? 'none'),
                 $row->tax_rate_basis_points !== null ? (int) $row->tax_rate_basis_points : null,
@@ -58,4 +58,12 @@ trait SupplierInvoiceReaderLines
 
         return $lines;
     }
+
+    private function lineSubtotalBeforeTaxRupiah(object $row): int
+    {
+        $subtotal = (int) ($row->line_subtotal_before_tax_rupiah ?? 0);
+
+        return $subtotal > 0 ? $subtotal : (int) $row->line_total_rupiah;
+    }
+
 }
