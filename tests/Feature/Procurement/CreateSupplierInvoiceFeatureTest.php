@@ -558,7 +558,7 @@ final class CreateSupplierInvoiceFeatureTest extends TestCase
             ],
         ];
 
-        $response = $this->actingAs($this->user('admin'))
+        $response = $this->actingAs($this->loginAsAuthorizedAdmin())
             ->postJson(route('admin.procurement.supplier-invoices.store'), $payload);
 
         $response->assertUnprocessable();
