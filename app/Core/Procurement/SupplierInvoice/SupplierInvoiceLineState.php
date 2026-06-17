@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Procurement\SupplierInvoice;
 
-use App\Core\Shared\ValueObjects\Money;
+use App\Core\Support\Money;
 
 trait SupplierInvoiceLineState
 {
@@ -19,8 +19,12 @@ trait SupplierInvoiceLineState
         private int $qtyPcs,
         private Money $lineTotalRupiah,
         private Money $unitCostRupiah,
-    ) {
-    }
+        private Money $lineSubtotalBeforeTaxRupiah,
+        private ?string $taxInput,
+        private string $taxMode,
+        private ?int $taxRateBasisPoints,
+        private Money $taxAmountRupiah,
+    ) {}
 
     public function id(): string { return $this->id; }
     public function lineNo(): int { return $this->lineNo; }
@@ -32,12 +36,15 @@ trait SupplierInvoiceLineState
     public function qtyPcs(): int { return $this->qtyPcs; }
     public function lineTotalRupiah(): Money { return $this->lineTotalRupiah; }
     public function unitCostRupiah(): Money { return $this->unitCostRupiah; }
+    public function lineSubtotalBeforeTaxRupiah(): Money { return $this->lineSubtotalBeforeTaxRupiah; }
+    public function taxInput(): ?string { return $this->taxInput; }
+    public function taxMode(): string { return $this->taxMode; }
+    public function taxRateBasisPoints(): ?int { return $this->taxRateBasisPoints; }
+    public function taxAmountRupiah(): Money { return $this->taxAmountRupiah; }
 
     private static function normalizeNullableString(?string $value): ?string
     {
-        if ($value === null) {
-            return null;
-        }
+        if ($value === null) return null;
 
         $trimmed = trim($value);
 

@@ -57,6 +57,11 @@ trait SupplierInvoiceWritePayloads
                 'qty_pcs' => $line->qtyPcs(),
                 'line_total_rupiah' => $line->lineTotalRupiah()->amount(),
                 'unit_cost_rupiah' => $line->unitCostRupiah()->amount(),
+                'line_subtotal_before_tax_rupiah' => $line->lineSubtotalBeforeTaxRupiah()->amount(),
+                'tax_input' => $line->taxInput(),
+                'tax_mode' => $line->taxMode(),
+                'tax_rate_basis_points' => $line->taxRateBasisPoints(),
+                'tax_amount_rupiah' => $line->taxAmountRupiah()->amount(),
             ],
             $supplierInvoice->lines(),
         );
