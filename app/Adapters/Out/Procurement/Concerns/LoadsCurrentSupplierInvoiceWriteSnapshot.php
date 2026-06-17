@@ -9,6 +9,8 @@ use LogicException;
 
 trait LoadsCurrentSupplierInvoiceWriteSnapshot
 {
+    use MapsCurrentSupplierInvoiceWriteSnapshotLines;
+
     /**
      * @return array{
      *   last_revision_no:int,
@@ -59,25 +61,7 @@ trait LoadsCurrentSupplierInvoiceWriteSnapshot
                 'tax_rate_basis_points',
                 'tax_amount_rupiah',
             ])
-            ->map(static fn (object $line): array => [
-                'id' => (string) $line->id,
-                'line_no' => (int) $line->line_no,
-                'product_id' => (string) $line->product_id,
-                'product_kode_barang_snapshot' => $line->product_kode_barang_snapshot !== null ? (string) $line->product_kode_barang_snapshot : null,
-                'product_nama_barang_snapshot' => (string) $line->product_nama_barang_snapshot,
-                'product_merek_snapshot' => (string) $line->product_merek_snapshot,
-                'product_ukuran_snapshot' => $line->product_ukuran_snapshot !== null ? (int) $line->product_ukuran_snapshot : null,
-                'qty_pcs' => (int) $line->qty_pcs,
-                'line_total_rupiah' => (int) $line->line_total_rupiah,
-                'unit_cost_rupiah' => (int) $line->unit_cost_rupiah,
-                'line_subtotal_before_tax_rupiah' => (int) ($line->line_subtotal_before_tax_rupiah ?? 0),
-                'tax_input' => $line->tax_input !== null ? (string) $line->tax_input : null,
-                'tax_mode' => (string) ($line->tax_mode ?? 'none'),
-                'tax_rate_basis_points' => $line->tax_rate_basis_points !== null
-                    ? (int) $line->tax_rate_basis_points
-                    : null,
-                'tax_amount_rupiah' => (int) ($line->tax_amount_rupiah ?? 0),
-            ])
+            ->map(fn (object $line): array => $this->currentInvoiceLineSnapshot($line))
             ->all();
 
         return [
