@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Adapters\In\Http\Controllers\Admin\Procurement\Support;
 
 use App\Application\Procurement\Services\SupplierInvoiceProductOptionsData;
-use App\Core\ProductCatalog\Product\Product;
 
 final class EditSupplierInvoiceLineItemsViewBuilder
 {
     public function __construct(
         private readonly SupplierInvoiceProductOptionsData $productOptionsData,
+        private readonly SupplierInvoiceProductLabelBuilder $productLabelBuilder,
     ) {
     }
 
@@ -23,7 +23,7 @@ final class EditSupplierInvoiceLineItemsViewBuilder
         $productLabelsById = [];
 
         foreach ($this->productOptionsData->findAll() as $product) {
-            $productLabelsById[$product->id()] = $this->buildProductLabel($product);
+            $productLabelsById[$product->id()] = $this->productLabelBuilder->build($product);
         }
 
         $oldLines = old('lines');
@@ -36,6 +36,7 @@ final class EditSupplierInvoiceLineItemsViewBuilder
                     'product_id' => (string) ($line['product_id'] ?? ''),
                     'qty_pcs' => (string) ($line['qty_pcs'] ?? '1'),
                     'line_total_rupiah' => (string) ($line['line_total_rupiah'] ?? ''),
+                    'tax_input' => (string) ($line['tax_input'] ?? ''),
                 ],
                 $existingLines,
             );
@@ -48,6 +49,7 @@ final class EditSupplierInvoiceLineItemsViewBuilder
                 'product_id' => '',
                 'qty_pcs' => '1',
                 'line_total_rupiah' => '',
+                'tax_input' => '',
             ]];
         }
 
@@ -61,6 +63,7 @@ final class EditSupplierInvoiceLineItemsViewBuilder
             $selectedProductId = (string) ($line['product_id'] ?? '');
             $lineTotalRaw = isset($line['line_total_rupiah']) ? (string) $line['line_total_rupiah'] : '';
             $lineNo = isset($line['line_no']) ? (string) $line['line_no'] : (string) ((int) $index + 1);
+            $taxInput = isset($line['tax_input']) ? (string) $line['tax_input'] : '';
 
             $lineItems[] = [
                 'index' => (int) $index,
@@ -75,26 +78,11 @@ final class EditSupplierInvoiceLineItemsViewBuilder
                 'line_total_display' => $lineTotalRaw !== ''
                     ? number_format((int) $lineTotalRaw, 0, ',', '.')
                     : '',
+                'tax_input' => $taxInput,
             ];
         }
 
         return $lineItems;
     }
 
-    private function buildProductLabel(Product $product): string
-    {
-        $parts = [$product->namaBarang(), $product->merek()];
-
-        if ($product->ukuran() !== null) {
-            $parts[] = (string) $product->ukuran();
-        }
-
-        $label = implode(' - ', $parts);
-
-        if ($product->kodeBarang() !== null) {
-            $label .= ' (' . $product->kodeBarang() . ')';
-        }
-
-        return $label;
-    }
 }
