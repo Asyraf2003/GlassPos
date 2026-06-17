@@ -362,7 +362,6 @@
                                         value="{{ old('tanggal_terima', now()->format('Y-m-d')) }}"
                                         class="form-control @error('tanggal_terima') is-invalid @enderror"
                                         data-procurement-header-field
-                                        data-tax-header-input
                                     >
                                     @error('tanggal_terima')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -379,6 +378,7 @@
                                         class="form-control @error('tax_input') is-invalid @enderror"
                                         placeholder="Contoh: 11% atau 15000"
                                         data-procurement-header-field
+                                        data-tax-header-input
                                     >
                                     <small class="text-muted d-block mt-1">
                                         Isi ini untuk pajak faktur seragam. Jika terisi, pajak per rincian akan disembunyikan.

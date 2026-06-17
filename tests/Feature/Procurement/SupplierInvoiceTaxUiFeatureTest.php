@@ -22,6 +22,16 @@ final class SupplierInvoiceTaxUiFeatureTest extends TestCase
         $response->assertSee('Pajak Supplier');
         $response->assertSee('name="tax_input"', false);
         $response->assertSee('data-tax-header-input', false);
+        $response->assertSeeInOrder([
+            'for="tax_input"',
+            'name="tax_input"',
+            'data-tax-header-input',
+        ], false);
+        $response->assertSeeInOrder([
+            'for="tax_input"',
+            'name="tax_input"',
+            'data-tax-header-input',
+        ], false);
         $response->assertSee('Contoh: 11% atau 15000');
         $response->assertSee('Pajak Rincian');
         $response->assertSee('name="lines[0][tax_input]"', false);
