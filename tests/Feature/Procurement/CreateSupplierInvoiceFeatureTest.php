@@ -532,7 +532,9 @@ final class CreateSupplierInvoiceFeatureTest extends TestCase
     {
         $this->seedMinimalProduct('product-1', 'KB-001', 'Supra', 'Federal', 100, 15000);
 
-        $response = $this->actingAs($this->user('admin'))
+        $admin = $this->loginAsAuthorizedAdmin();
+
+        $response = $this->actingAs($admin)
             ->postJson(route('admin.procurement.supplier-invoices.store'), [
             'nomor_faktur' => 'INV-SUP-LINE-TAX-001',
             'nama_pt_pengirim' => 'PT Supplier Line Tax',
