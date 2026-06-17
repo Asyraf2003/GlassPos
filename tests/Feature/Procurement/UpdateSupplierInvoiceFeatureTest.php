@@ -360,6 +360,8 @@ final class UpdateSupplierInvoiceFeatureTest extends TestCase
                 'nomor_faktur' => 'INV-SUP-LINE-TAX-UPDATE',
                 'nama_pt_pengirim' => 'PT Supplier Line Tax Update',
                 'tanggal_pengiriman' => '2026-03-13',
+                'expected_revision' => 1,
+                'change_reason' => 'Menambahkan pajak per rincian supplier.',
                 'lines' => [
                     [
                         'previous_line_id' => 'invoice-line-1',
