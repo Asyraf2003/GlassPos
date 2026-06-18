@@ -8,6 +8,10 @@ Canonical ADR:
 
 - docs/02_architecture/adr/0031_service_product_template_fast_entry.md
 
+Implementation blueprint:
+
+- docs/03_blueprints/finance/0010_service_product_template_fast_entry.md
+
 ## Goal
 
 Implement service-product template fast entry without changing the existing product-only and package auto split invariants.
