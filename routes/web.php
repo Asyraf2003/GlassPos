@@ -15,6 +15,7 @@ require __DIR__.'/web/admin_employees.php';
 require __DIR__.'/web/admin_payrolls.php';
 require __DIR__.'/web/admin_employee_debts.php';
 require __DIR__.'/web/admin_expenses.php';
+require __DIR__.'/web/admin_service_catalog.php';
 require __DIR__.'/web/admin_service_product_templates.php';
 require __DIR__.'/web/admin_reporting.php';
 require __DIR__.'/web/admin_audit_logs.php';

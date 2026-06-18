@@ -67,6 +67,13 @@
                     </a>
                 </li>
 
+                <li class="sidebar-item {{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.services.index') }}" class="sidebar-link">
+                        <i class="bi bi-wrench-adjustable"></i>
+                        <span>Master Jasa</span>
+                    </a>
+                </li>
+
                 <li class="sidebar-item {{ request()->routeIs('admin.service-product-templates.*') ? 'active' : '' }}">
                     <a href="{{ route('admin.service-product-templates.index') }}" class="sidebar-link">
                         <i class="bi bi-tools"></i>
