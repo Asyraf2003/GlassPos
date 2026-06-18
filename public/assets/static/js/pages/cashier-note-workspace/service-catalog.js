@@ -208,12 +208,16 @@
   NS.applyServiceProductTemplate = (row, template) => {
     if (!(row instanceof HTMLElement)) return;
     if ((row.dataset.itemType || "") !== "service_store_stock") return;
-    if (!template || typeof template !== "object") return;
-
+    if (!template || typeof template !== "object") {
+      delete row.dataset.serviceTemplateDefaultPriceRupiah;
+      return;
+    }
     const canAutofillServiceIdentity = shouldAutofillServiceIdentity(row);
     const serviceName = String(template.service_name || "").trim();
     const serviceCatalogItemId = String(template.service_catalog_item_id || "").trim();
     const servicePrice = digits(template.default_service_price_rupiah);
+    row.dataset.serviceTemplateDefaultPriceRupiah =
+      servicePrice > 0 ? String(servicePrice) : "";
     const templatePackageTotal = digits(template.default_package_total_rupiah);
 
     if (canAutofillServiceIdentity && serviceName !== "") {
