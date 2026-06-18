@@ -66,12 +66,32 @@
     );
   };
 
+  const setTemplateDetailsVisible = (row, visible) => {
+    if (!(row instanceof HTMLElement)) return;
+    if ((row.dataset.itemType || "") !== "service_store_stock") return;
+
+    row.querySelectorAll("[data-template-selected-section]").forEach((section) => {
+      section.classList.toggle("d-none", !visible);
+    });
+
+    row.querySelectorAll("[data-template-empty-section]").forEach((section) => {
+      section.classList.toggle("d-none", visible);
+    });
+
+    const productName = row.querySelector("[data-template-product-name]");
+    const productSearch = row.querySelector("[data-product-search]");
+    if (productName) {
+      productName.textContent = visible && productSearch?.value ? productSearch.value : "-";
+    }
+  };
+
   const clearTemplateState = (row) => {
     if (!(row instanceof HTMLElement)) return;
     if ((row.dataset.itemType || "") !== "service_store_stock") return;
 
     row.dataset.serviceProductTemplateApplied = "0";
     row.dataset.serviceTemplateAutofilled = "0";
+    setTemplateDetailsVisible(row, false);
     delete row.dataset.serviceTemplateDefaultPriceRupiah;
 
     const input = serviceNameInput(row);
@@ -235,6 +255,7 @@
     }
 
     row.dataset.serviceProductTemplateApplied = "1";
+    setTemplateDetailsVisible(row, true);
     const canAutofillServiceIdentity = shouldAutofillServiceIdentity(row);
     const serviceName = String(template.service_name || "").trim();
     const serviceCatalogItemId = String(template.service_catalog_item_id || "").trim();
