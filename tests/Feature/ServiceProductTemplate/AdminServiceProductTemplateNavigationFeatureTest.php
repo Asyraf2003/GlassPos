@@ -20,8 +20,8 @@ final class AdminServiceProductTemplateNavigationFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Template Jasa + Produk', false);
-        $response->assertSee('admin.service-product-templates.*', false);
         $response->assertSee(route('admin.service-product-templates.index'), false);
+        $response->assertSee('bi bi-tools', false);
     }
 
     private function user(string $role): User
