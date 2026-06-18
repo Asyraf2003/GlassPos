@@ -38,6 +38,10 @@ final class ProductLookupController extends Controller
                 ? $serviceProductTemplates->findActiveByProductId($product->id)
                 : null;
 
+            if ($includeServiceProductTemplate && $template === null) {
+                continue;
+            }
+
             $rows[] = $this->toRow($product, $template, $includeServiceProductTemplate);
         }
 

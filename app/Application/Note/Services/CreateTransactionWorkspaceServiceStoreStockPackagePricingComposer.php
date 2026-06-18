@@ -22,11 +22,17 @@ final class CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer
      */
     public function compose(array $item): array
     {
-        if (($item['pricing_mode'] ?? null) !== 'package_auto_split') {
+        if (! $this->hasProductLine($item['product_lines'] ?? [])) {
             return $item;
         }
 
-        if (! $this->hasProductLine($item['product_lines'] ?? [])) {
+        $requiresServiceProductTemplate = $this->requiresServiceProductTemplate($item);
+
+        if (($item['pricing_mode'] ?? null) !== 'package_auto_split') {
+            if ($requiresServiceProductTemplate) {
+                throw new DomainException('Paket servis + produk wajib memakai template aktif.');
+            }
+
             return $item;
         }
 
@@ -35,6 +41,10 @@ final class CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer
             ->compose($item['product_lines'] ?? []);
         $sparepartTotal = $pricedLines['sparepart_total_rupiah'];
 
+        if ($requiresServiceProductTemplate && count($pricedLines['product_lines']) !== 1) {
+            throw new DomainException('Paket servis + produk hanya boleh memakai 1 produk template aktif.');
+        }
+
         if ($packageTotal < $sparepartTotal) {
             throw new DomainException('Harga paket tidak boleh lebih kecil dari total harga sparepart.');
         }
@@ -42,7 +52,7 @@ final class CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer
         $servicePrice = $packageTotal - $sparepartTotal;
         $minimumTemplateServicePrice = $this->minimumTemplateServicePrice(
             $pricedLines['product_lines'],
-            $this->requiresServiceProductTemplate($item),
+            $requiresServiceProductTemplate,
         );
 
         if ($minimumTemplateServicePrice > 0 && $servicePrice < $minimumTemplateServicePrice) {

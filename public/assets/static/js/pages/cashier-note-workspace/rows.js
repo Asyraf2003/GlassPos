@@ -78,6 +78,10 @@
   };
 
   const appendProductLine = (row, line = {}, focus = false) => {
+    if ((row?.dataset?.itemType || "") === "service_store_stock" && productLineScopes(row).length >= 1) {
+      return productLineScopes(row)[0] || null;
+    }
+
     const root = row.querySelector("[data-product-lines]");
     const template = row.querySelector("[data-product-line-template]");
 
@@ -257,10 +261,11 @@
     set('input[name$="[external_purchase_lines][0][unit_cost_rupiah]"]', item?.external_purchase_lines?.[0]?.unit_cost_rupiah || "");
 
     if (type === "service_store_stock") {
-      const productLines =
+      const productLines = (
         Array.isArray(item?.product_lines) && item.product_lines.length > 0
           ? item.product_lines
-          : [{}];
+          : [{}]
+      ).slice(0, 1);
 
       while (productLineScopes(row).length < productLines.length) {
         appendProductLine(row, {}, false);

@@ -36,6 +36,7 @@ verify-service-product-template:
 		tests/Feature/ServiceProductTemplate/ServiceProductTemplateLookupReaderFeatureTest.php \
 		tests/Feature/Note/CashierProductLookupServiceProductTemplateFeatureTest.php \
 		tests/Feature/Note/CashierWorkspaceServiceProductTemplateAutofillContractFeatureTest.php \
+		tests/Feature/Note/CashierWorkspaceServiceProductTemplateMinimumContractFeatureTest.php \
 		tests/Feature/Note/ProductLookupPerformanceFeatureTest.php \
 		tests/Feature/Note/CreateTransactionWorkspaceTemplateContractFeatureTest.php \
 		tests/Feature/Note/CreateTransactionWorkspaceServiceStoreStockFeatureTest.php \

@@ -28,6 +28,7 @@ final class StoreTransactionWorkspaceItemNormalizer
                 'description' => self::trimOrNull($item['description'] ?? null),
                 'part_source' => self::trimOrNull($item['part_source'] ?? null),
                 'pricing_mode' => self::trimOrNull($item['pricing_mode'] ?? null),
+                'requires_service_product_template' => self::boolOrFalse($item['requires_service_product_template'] ?? false),
                 'package_total_rupiah' => self::intOrNull($item['package_total_rupiah'] ?? null),
                 'service' => StoreTransactionWorkspaceServiceNormalizer::normalize($item['service'] ?? []),
                 'product_lines' => StoreTransactionWorkspaceProductLineNormalizer::normalizeMany($item['product_lines'] ?? []),
@@ -40,6 +41,23 @@ final class StoreTransactionWorkspaceItemNormalizer
         }
 
         return $items;
+    }
+
+    private static function boolOrFalse(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_int($value)) {
+            return $value === 1;
+        }
+
+        if (! is_string($value)) {
+            return false;
+        }
+
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }
 
     private static function trimOrNull(mixed $value): ?string

@@ -24,6 +24,7 @@ final class StoreTransactionWorkspaceRules
             'items.*.description' => ['nullable', 'string'],
             'items.*.part_source' => ['nullable', 'string', 'in:none,store_stock,customer_owned,external_purchase'],
             'items.*.pricing_mode' => ['nullable', 'string', 'in:manual_split,package_auto_split'],
+            'items.*.requires_service_product_template' => ['nullable', 'boolean'],
             'items.*.package_total_rupiah' => ['nullable', 'integer', 'min:1'],
 
             'items.*.service' => ['nullable', 'array'],

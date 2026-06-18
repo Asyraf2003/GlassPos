@@ -98,54 +98,8 @@
             </div>
         </div>
 
-        <template data-product-line-template>
-            <div class="workspace-answer-field" data-product-line>
-                <div>
-                    <label class="form-label small mb-1">Sparepart Toko</label>
-                    <div class="position-relative">
-                        <input type="hidden" name="items[__INDEX__][product_lines][__PRODUCT_INDEX__][product_id]" value="" data-product-id>
-                        <input type="hidden" name="items[__INDEX__][product_lines][__PRODUCT_INDEX__][price_basis]" value="current_catalog" data-price-basis>
-                        <input type="hidden" name="items[__INDEX__][product_lines][__PRODUCT_INDEX__][unit_price_rupiah]" value="" data-money-raw data-price-input>
-                        <input
-                            type="text"
-                            class="form-control form-control-sm"
-                            placeholder="Pilih produk dari pencarian"
-                            autocomplete="off"
-                            data-product-search
-                        >
-                        <div class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 20;" data-product-results></div>
-                    </div>
-                    <small class="text-muted">Wajib pilih dari hasil pencarian, bukan diketik manual.</small>
-                </div>
-
-                <div class="mt-3">
-                    <label class="form-label small mb-1">Qty</label>
-                    <input
-                        type="text"
-                        inputmode="numeric"
-                        name="items[__INDEX__][product_lines][__PRODUCT_INDEX__][qty]"
-                        value="1"
-                        class="form-control form-control-sm text-center px-1 fw-semibold"
-                        style="width: 3rem;"
-                        data-qty-input
-                    >
-                </div>
-
-                <div class="mt-3">
-                    <button type="button" class="btn btn-sm btn-outline-danger" data-remove-product-line>Hapus sparepart</button>
-                </div>
-
-                <div class="mt-3">
-                    <small class="text-muted me-3" data-stock-text>Stok tersedia: -</small>
-                    <small class="text-muted me-3" data-min-price-text>Harga produk mengikuti katalog.</small>
-                    <small class="text-danger d-none" data-stock-error>Qty melebihi stok tersedia.</small>
-                    <small class="text-danger d-none" data-min-price-warning>Harga tidak boleh di bawah minimum.</small>
-                </div>
-            </div>
-        </template>
-
-        <button type="button" class="btn btn-sm btn-outline-primary mt-2" data-add-product-line>
-            Tambah sparepart
-        </button>
+        <small class="text-muted d-block mt-2">
+            Mode ini dikunci untuk 1 produk yang punya template aktif. Untuk darurat tanpa template, input sebagai 2 baris terpisah: Servis biasa + Produk biasa.
+        </small>
     </div>
 </template>

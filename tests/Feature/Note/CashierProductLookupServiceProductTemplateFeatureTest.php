@@ -57,7 +57,7 @@ final class CashierProductLookupServiceProductTemplateFeatureTest extends TestCa
         $response->assertJsonPath('data.rows.0.service_product_template.default_package_total_rupiah', 200000);
     }
 
-    public function test_product_lookup_with_service_product_context_returns_null_template_when_no_active_template_exists(): void
+    public function test_product_lookup_with_service_product_context_excludes_products_without_active_template(): void
     {
         $this->loginAsKasir();
         $this->seedProductWithInventory('product-template-lookup-null', 'SPT-LOOKUP-NULL', 'Ban Template Null', 125000, 5);
@@ -69,9 +69,7 @@ final class CashierProductLookupServiceProductTemplateFeatureTest extends TestCa
 
         $response->assertOk();
         $response->assertJsonPath('success', true);
-        $response->assertJsonCount(1, 'data.rows');
-        $response->assertJsonPath('data.rows.0.id', 'product-template-lookup-null');
-        $response->assertJsonPath('data.rows.0.service_product_template', null);
+        $response->assertJsonCount(0, 'data.rows');
     }
 
     private function seedProductWithInventory(

@@ -209,9 +209,12 @@
     if (!(row instanceof HTMLElement)) return;
     if ((row.dataset.itemType || "") !== "service_store_stock") return;
     if (!template || typeof template !== "object") {
+      row.dataset.serviceProductTemplateApplied = "0";
       delete row.dataset.serviceTemplateDefaultPriceRupiah;
       return;
     }
+
+    row.dataset.serviceProductTemplateApplied = "1";
     const canAutofillServiceIdentity = shouldAutofillServiceIdentity(row);
     const serviceName = String(template.service_name || "").trim();
     const serviceCatalogItemId = String(template.service_catalog_item_id || "").trim();

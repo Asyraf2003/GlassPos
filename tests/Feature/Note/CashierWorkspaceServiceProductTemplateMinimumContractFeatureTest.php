@@ -23,6 +23,11 @@ final class CashierWorkspaceServiceProductTemplateMinimumContractFeatureTest ext
         $this->assertStringContainsString('Total paket tidak boleh membuat harga jasa di bawah default template', $paymentFlowJs);
         $this->assertStringContainsString('requiresServiceProductTemplate', $paymentFlowJs);
         $this->assertStringContainsString('Paket servis + produk wajib memakai template aktif.', $paymentFlowJs);
-        $this->assertStringContainsString('requires_service_product_template', (string) file_get_contents(resource_path('views/cashier/notes/workspace/partials/templates/service-store-stock.blade.php')));
+        $blade = (string) file_get_contents(resource_path('views/cashier/notes/workspace/partials/templates/service-store-stock.blade.php'));
+
+        $this->assertStringContainsString('requires_service_product_template', $blade);
+        $this->assertStringNotContainsString('data-add-product-line', $blade);
+        $this->assertStringNotContainsString('data-product-line-template', $blade);
+        $this->assertStringContainsString('1 produk yang punya template aktif', $blade);
     }
 }
