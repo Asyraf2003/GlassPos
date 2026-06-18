@@ -26,8 +26,12 @@ final class CashierWorkspaceServiceProductTemplateMinimumContractFeatureTest ext
         $blade = (string) file_get_contents(resource_path('views/cashier/notes/workspace/partials/templates/service-store-stock.blade.php'));
 
         $this->assertStringContainsString('requires_service_product_template', $blade);
+        $this->assertStringContainsString('Cari Produk Template', $blade);
+        $this->assertStringContainsString('Nama Paket/Jasa dari Template', $blade);
+        $this->assertStringContainsString('readonly', $blade);
+        $this->assertStringContainsString('Terisi otomatis setelah produk dipilih', $blade);
+        $this->assertStringNotContainsString('Sok Kopling Besar', $blade);
         $this->assertStringNotContainsString('data-add-product-line', $blade);
         $this->assertStringNotContainsString('data-product-line-template', $blade);
-        $this->assertStringContainsString('1 produk yang punya template aktif', $blade);
     }
 }

@@ -66,6 +66,27 @@
     );
   };
 
+  const clearTemplateState = (row) => {
+    if (!(row instanceof HTMLElement)) return;
+    if ((row.dataset.itemType || "") !== "service_store_stock") return;
+
+    row.dataset.serviceProductTemplateApplied = "0";
+    row.dataset.serviceTemplateAutofilled = "0";
+    delete row.dataset.serviceTemplateDefaultPriceRupiah;
+
+    const input = serviceNameInput(row);
+    if (input) input.value = "";
+
+    if (catalogIdInput(row)) catalogIdInput(row).value = "";
+
+    setMoney(serviceRaw(row), serviceDisplay(row), 0);
+    setMoney(packageRaw(row), packageDisplay(row), 0);
+    window.AdminMoneyInput?.bindBySelector?.(row);
+    NS.updateSummary?.();
+  };
+
+  NS.clearServiceProductTemplate = clearTemplateState;
+
   const syncPackageTotal = (row, force = false) => {
     if ((row.dataset.itemType || "") !== "service_store_stock") return;
 
@@ -209,8 +230,7 @@
     if (!(row instanceof HTMLElement)) return;
     if ((row.dataset.itemType || "") !== "service_store_stock") return;
     if (!template || typeof template !== "object") {
-      row.dataset.serviceProductTemplateApplied = "0";
-      delete row.dataset.serviceTemplateDefaultPriceRupiah;
+      clearTemplateState(row);
       return;
     }
 
@@ -269,6 +289,12 @@
 
     const input = serviceNameInput(row);
     if (!(input instanceof HTMLInputElement)) return;
+
+    if ((row.dataset.itemType || "") === "service_store_stock") {
+      input.readOnly = true;
+      NS.syncServiceDefaults(row);
+      return;
+    }
 
     input.addEventListener("input", () => {
       row.dataset.serviceNameManual = "1";

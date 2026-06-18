@@ -150,6 +150,12 @@
     NS.syncQtyGuard?.(row);
     NS.syncServiceDefaults?.(row);
     NS.updateSummary?.();
+
+    if ((row?.dataset?.itemType || "") === "service_store_stock") {
+      focusElement(row.querySelector("[data-package-total-input]") || qty);
+      return;
+    }
+
     focusElement(qty);
   };
 
@@ -217,6 +223,10 @@
       input.addEventListener("input", () => {
         if (hidden) {
           hidden.value = "";
+        }
+
+        if ((row?.dataset?.itemType || "") === "service_store_stock") {
+          NS.clearServiceProductTemplate?.(row);
         }
 
         const raw = scope.querySelector('[name$="[unit_price_rupiah]"]');
