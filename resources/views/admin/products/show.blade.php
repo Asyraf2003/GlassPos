@@ -90,12 +90,24 @@
                                                         @endif
                                                     </small>
 
+                                                    @php
+                                                        $packageServiceExtra = intdiv((int) $package['package_margin'], 5);
+                                                        $packageProfit = (int) $package['package_margin'] - $packageServiceExtra;
+                                                    @endphp
+
                                                     <div class="small text-muted mt-1">
                                                         Modal AVG:
                                                         {{ $package['average_cost'] !== null ? number_format($package['average_cost'], 0, ',', '.') : 'Belum tersedia' }}
                                                         · Margin produk:
                                                         {{ $package['product_gross_margin'] !== null ? number_format($package['product_gross_margin'], 0, ',', '.') : 'Belum tersedia' }}
                                                     </div>
+
+                                                    @if ($package['package_margin'] > 0)
+                                                        <div class="small text-muted mt-1">
+                                                            80% keuntungan {{ number_format($packageProfit, 0, ',', '.') }}
+                                                            · 20% jasa {{ number_format($packageServiceExtra, 0, ',', '.') }}
+                                                        </div>
+                                                    @endif
 
                                                     <div class="mt-2">
                                                         <span class="badge {{ $package['is_active'] ? 'bg-success' : 'bg-secondary' }}">

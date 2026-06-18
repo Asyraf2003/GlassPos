@@ -75,7 +75,7 @@
         >
 
         <small class="text-muted">
-            Total tidak boleh lebih kecil dari harga jual produk + harga jasa.
+            Total tidak boleh lebih kecil dari harga jual produk + harga jasa. Selisih di atas minimum dibaca sebagai 80% keuntungan paket dan 20% tambahan jasa.
         </small>
 
         @error('default_package_total_rupiah')

@@ -115,6 +115,61 @@
                 <div class="ui-card-stack">
                     <div class="card">
                         <div class="card-header">
+                            <h5 class="card-title mb-0">Pecahan 80/20 Selisih Paket</h5>
+                        </div>
+
+                        <div class="card-body">
+                            @php
+                                $packageMargin = (int) $template['package_margin'];
+                                $serviceExtra = intdiv($packageMargin, 5);
+                                $packageProfit = $packageMargin - $serviceExtra;
+                                $effectiveService = (int) $template['template_service_price'] + $serviceExtra;
+                            @endphp
+
+                            @if ($packageMargin <= 0)
+                                <p class="text-muted mb-0">
+                                    Total paket sama dengan minimum produk + jasa. Belum ada selisih untuk dipecah.
+                                </p>
+                            @else
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <div class="ui-key-value">
+                                            <small>Selisih Di Atas Produk + Jasa</small>
+                                            <div>{{ number_format($packageMargin, 0, ',', '.') }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <div class="ui-key-value">
+                                            <small>Keuntungan Paket 80%</small>
+                                            <div class="fw-semibold">{{ number_format($packageProfit, 0, ',', '.') }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <div class="ui-key-value">
+                                            <small>Tambahan Jasa 20%</small>
+                                            <div>{{ number_format($serviceExtra, 0, ',', '.') }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <div class="ui-key-value">
+                                            <small>Jasa Efektif</small>
+                                            <div>{{ number_format($effectiveService, 0, ',', '.') }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-light-info border mt-3 mb-0">
+                                    Breakdown ini masih tampilan master paket. Persistence transaksi 80/20 akan masuk slice berikutnya supaya total nota tetap utuh.
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
                             <h5 class="card-title mb-0">Produk Terhubung</h5>
                         </div>
 

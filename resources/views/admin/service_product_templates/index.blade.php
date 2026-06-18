@@ -68,12 +68,22 @@
                                     <td>{{ number_format($template['default_service_price_rupiah'], 0, ',', '.') }}</td>
                                     <td>
                                         <div class="fw-semibold">{{ number_format($packageTotal, 0, ',', '.') }}</div>
+                                        @php
+                                            $serviceExtra = intdiv($packageMargin, 5);
+                                            $packageProfit = $packageMargin - $serviceExtra;
+                                        @endphp
                                         <small class="text-muted">
                                             Min {{ number_format($minimumTotal, 0, ',', '.') }}
                                             @if ($packageMargin > 0)
                                                 · Selisih {{ number_format($packageMargin, 0, ',', '.') }}
                                             @endif
                                         </small>
+                                        @if ($packageMargin > 0)
+                                            <div class="small text-muted mt-1">
+                                                80% keuntungan {{ number_format($packageProfit, 0, ',', '.') }}
+                                                · 20% jasa {{ number_format($serviceExtra, 0, ',', '.') }}
+                                            </div>
+                                        @endif
                                     </td>
                                     <td>
                                         <span class="badge {{ $template['is_active'] ? 'bg-success' : 'bg-secondary' }}">
