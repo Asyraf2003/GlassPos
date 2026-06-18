@@ -67,6 +67,13 @@
                     </a>
                 </li>
 
+                <li class="sidebar-item {{ request()->routeIs('admin.service-product-templates.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.service-product-templates.index') }}" class="sidebar-link">
+                        <i class="bi bi-tools"></i>
+                        <span>Template Jasa + Produk</span>
+                    </a>
+                </li>
+
                 <li class="sidebar-item {{ request()->routeIs('admin.suppliers.*') ? 'active' : '' }}">
                     <a href="{{ route('admin.suppliers.index') }}" class="sidebar-link">
                         <i class="bi bi-truck"></i>
