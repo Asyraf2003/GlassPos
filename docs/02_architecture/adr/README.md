@@ -33,6 +33,31 @@ Use these status values:
 - Deprecated
   The decision should not guide new work, but may still explain history.
 
+## Implementation-Critical ADRs
+
+### ADR-0031
+
+Status:
+
+Accepted.
+
+Topic:
+
+Service product template fast entry keeps cashier input fast while preserving structured product and service pricing.
+
+File:
+
+- docs/02_architecture/adr/0031_service_product_template_fast_entry.md
+
+Implementation boundary:
+
+- Product `harga_jual` remains pure product sale price.
+- Service catalog remains pure service master data.
+- Service-product template only autofills cashier workflow.
+- Package auto split remains `package_total_rupiah - product_total_rupiah`.
+- 20/80 package explanation is not persisted as system logic.
+- Historical mixed-price notes are not auto-rewritten.
+
 ## Current Cleanup Notes
 
 ### ADR-0014
