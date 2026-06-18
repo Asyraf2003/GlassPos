@@ -892,4 +892,112 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
         ]);
     }
 
+
+    public function test_cashier_cannot_store_template_service_store_stock_package_below_default_service_price(): void
+    {
+        $this->loginAsKasir();
+
+        $user = User::query()->create([
+            'name' => 'Kasir Template Minimum',
+            'email' => 'service-store-stock-template-minimum@example.test',
+            'password' => 'password',
+        ]);
+
+        DB::table('actor_accesses')->insert([
+            'actor_id' => (string) $user->getAuthIdentifier(),
+            'role' => 'kasir',
+        ]);
+
+        DB::table('products')->insert([
+            'id' => 'product-template-minimum-1',
+            'kode_barang' => 'KB-TPL-MIN-001',
+            'nama_barang' => 'Oli Template Minimum',
+            'merek' => 'Federal',
+            'ukuran' => null,
+            'harga_jual' => 40000,
+        ]);
+
+        DB::table('product_inventory')->insert([
+            'product_id' => 'product-template-minimum-1',
+            'qty_on_hand' => 10,
+        ]);
+
+        DB::table('product_inventory_costing')->insert([
+            'product_id' => 'product-template-minimum-1',
+            'avg_cost_rupiah' => 25000,
+            'inventory_value_rupiah' => 250000,
+        ]);
+
+        DB::table('service_catalog_items')->insert([
+            'id' => 'service-template-minimum-1',
+            'name' => 'Ganti Oli Template Minimum',
+            'normalized_name' => 'ganti oli template minimum',
+            'default_price_rupiah' => 75000,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('service_product_templates')->insert([
+            'id' => 'service-product-template-minimum-1',
+            'product_id' => 'product-template-minimum-1',
+            'service_catalog_item_id' => 'service-template-minimum-1',
+            'default_service_price_rupiah' => 75000,
+            'default_package_total_rupiah' => 115000,
+            'is_active' => true,
+            'sort_order' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from(route('cashier.notes.workspace.create'))
+            ->post(route('notes.workspace.store'), [
+                'idempotency_key' => 'create-workspace-service-store-stock-template-minimum-idem-001',
+                'note' => [
+                    'customer_name' => 'Budi Template Minimum',
+                    'customer_phone' => '08123',
+                    'transaction_date' => '2026-03-15',
+                ],
+                'items' => [[
+                    'entry_mode' => 'service',
+                    'part_source' => 'store_stock',
+                    'pricing_mode' => 'package_auto_split',
+                    'package_total_rupiah' => 100000,
+                    'pay_now' => 0,
+                    'service' => [
+                        'name' => 'Ganti Oli Template Minimum',
+                        'price_rupiah' => 0,
+                        'notes' => '',
+                    ],
+                    'product_lines' => [[
+                        'product_id' => 'product-template-minimum-1',
+                        'qty' => 1,
+                        'unit_price_rupiah' => 40000,
+                    ]],
+                    'external_purchase_lines' => [[
+                        'label' => '',
+                        'qty' => '',
+                        'unit_cost_rupiah' => '',
+                    ]],
+                ]],
+                'inline_payment' => [
+                    'decision' => 'skip',
+                    'payment_method' => null,
+                    'paid_at' => '2026-03-15',
+                ],
+            ]);
+
+        $response->assertRedirect(route('cashier.notes.workspace.create'));
+        $response->assertSessionHasErrors([
+            'workspace' => 'Harga paket tidak boleh membuat harga jasa di bawah default template.',
+        ]);
+
+        $this->assertDatabaseCount('notes', 0);
+        $this->assertDatabaseCount('work_items', 0);
+        $this->assertDatabaseCount('work_item_service_details', 0);
+        $this->assertDatabaseCount('work_item_store_stock_lines', 0);
+        $this->assertDatabaseCount('inventory_movements', 0);
+    }
+
 }

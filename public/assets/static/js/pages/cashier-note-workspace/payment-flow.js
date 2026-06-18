@@ -273,6 +273,20 @@
       };
     }
 
+    const minimumTemplateServicePrice = digits(
+      row.dataset.serviceTemplateDefaultPriceRupiah || ""
+    );
+
+    if (
+      minimumTemplateServicePrice > 0 &&
+      packageTotal < sparepartTotal + minimumTemplateServicePrice
+    ) {
+      return {
+        message: `Total paket tidak boleh membuat harga jasa di bawah default template (${format(minimumTemplateServicePrice)}).`,
+        target: row.querySelector("[data-package-total-input]") || packageTotalInput,
+      };
+    }
+
     return null;
   };
 

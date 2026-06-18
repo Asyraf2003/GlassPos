@@ -6,11 +6,13 @@ namespace App\Application\Note\Services;
 
 use App\Core\Shared\Exceptions\DomainException;
 use App\Ports\Out\ProductCatalog\ProductReaderPort;
+use App\Ports\Out\ServiceProductTemplate\ServiceProductTemplateLookupReaderPort;
 
 final class CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer
 {
     public function __construct(
         private readonly ProductReaderPort $products,
+        private readonly ServiceProductTemplateLookupReaderPort $templates,
     ) {
     }
 
@@ -37,13 +39,52 @@ final class CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer
             throw new DomainException('Harga paket tidak boleh lebih kecil dari total harga sparepart.');
         }
 
+        $servicePrice = $packageTotal - $sparepartTotal;
+        $minimumTemplateServicePrice = $this->minimumTemplateServicePrice($pricedLines['product_lines']);
+
+        if ($minimumTemplateServicePrice > 0 && $servicePrice < $minimumTemplateServicePrice) {
+            throw new DomainException('Harga paket tidak boleh membuat harga jasa di bawah default template.');
+        }
+
         $service = is_array($item['service'] ?? null) ? $item['service'] : [];
-        $service['price_rupiah'] = $packageTotal - $sparepartTotal;
+        $service['price_rupiah'] = $servicePrice;
 
         $item['service'] = $service;
         $item['product_lines'] = $pricedLines['product_lines'];
 
         return $item;
+    }
+
+    /**
+     * @param mixed $productLines
+     */
+    private function minimumTemplateServicePrice(mixed $productLines): int
+    {
+        if (! is_array($productLines)) {
+            return 0;
+        }
+
+        $minimum = 0;
+
+        foreach ($productLines as $line) {
+            if (! is_array($line)) {
+                continue;
+            }
+
+            $productId = trim((string) ($line['product_id'] ?? ''));
+
+            if ($productId === '') {
+                continue;
+            }
+
+            $template = $this->templates->findActiveByProductId($productId);
+
+            if ($template !== null) {
+                $minimum = max($minimum, $template->defaultServicePriceRupiah);
+            }
+        }
+
+        return $minimum;
     }
 
     private function hasProductLine(mixed $value): bool
