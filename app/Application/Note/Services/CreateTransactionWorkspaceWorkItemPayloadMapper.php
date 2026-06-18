@@ -44,6 +44,9 @@ final class CreateTransactionWorkspaceWorkItemPayloadMapper
         $service = [
             'service_name' => $this->requiredString($item['service']['name'] ?? null, 'Nama servis wajib diisi.'),
             'service_price_rupiah' => $this->requiredServicePrice($item),
+            'package_profit_rupiah' => $this->optionalNonNegativeInt($item['service']['package_profit_rupiah'] ?? 0),
+            'package_base_service_price_rupiah' => $this->optionalNullableNonNegativeInt($item['service']['package_base_service_price_rupiah'] ?? null),
+            'package_service_extra_rupiah' => $this->optionalNonNegativeInt($item['service']['package_service_extra_rupiah'] ?? 0),
             'part_source' => 'none',
         ];
 
@@ -70,6 +73,20 @@ final class CreateTransactionWorkspaceWorkItemPayloadMapper
     /**
      * @param array<string, mixed> $item
      */
+    private function optionalNonNegativeInt(mixed $value): int
+    {
+        return is_int($value) && $value > 0 ? $value : 0;
+    }
+
+    private function optionalNullableNonNegativeInt(mixed $value): ?int
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return is_int($value) && $value >= 0 ? $value : null;
+    }
+
     private function requiredServicePrice(array $item): int
     {
         $value = $item['service']['price_rupiah'] ?? null;

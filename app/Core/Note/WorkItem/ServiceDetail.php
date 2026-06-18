@@ -16,6 +16,9 @@ final class ServiceDetail
         private string $serviceName,
         private Money $servicePriceRupiah,
         private string $partSource,
+        private Money $packageProfitRupiah,
+        private ?Money $packageBaseServicePriceRupiah,
+        private Money $packageServiceExtraRupiah,
     ) {
     }
 
@@ -23,13 +26,22 @@ final class ServiceDetail
         string $serviceName,
         Money $servicePriceRupiah,
         string $partSource,
+        ?Money $packageProfitRupiah = null,
+        ?Money $packageBaseServicePriceRupiah = null,
+        ?Money $packageServiceExtraRupiah = null,
     ): self {
-        self::assertValid($serviceName, $servicePriceRupiah, $partSource);
+        $profit = $packageProfitRupiah ?? Money::zero();
+        $extra = $packageServiceExtraRupiah ?? Money::zero();
+
+        self::assertValid($serviceName, $servicePriceRupiah, $partSource, $profit, $packageBaseServicePriceRupiah, $extra);
 
         return new self(
             trim($serviceName),
             $servicePriceRupiah,
             trim($partSource),
+            $profit,
+            $packageBaseServicePriceRupiah,
+            $extra,
         );
     }
 
@@ -37,13 +49,17 @@ final class ServiceDetail
         string $serviceName,
         Money $servicePriceRupiah,
         string $partSource,
+        ?Money $packageProfitRupiah = null,
+        ?Money $packageBaseServicePriceRupiah = null,
+        ?Money $packageServiceExtraRupiah = null,
     ): self {
-        self::assertValid($serviceName, $servicePriceRupiah, $partSource);
-
-        return new self(
-            trim($serviceName),
+        return self::create(
+            $serviceName,
             $servicePriceRupiah,
-            trim($partSource),
+            $partSource,
+            $packageProfitRupiah,
+            $packageBaseServicePriceRupiah,
+            $packageServiceExtraRupiah,
         );
     }
 
@@ -57,6 +73,26 @@ final class ServiceDetail
         return $this->servicePriceRupiah;
     }
 
+    public function packageProfitRupiah(): Money
+    {
+        return $this->packageProfitRupiah;
+    }
+
+    public function packageBaseServicePriceRupiah(): ?Money
+    {
+        return $this->packageBaseServicePriceRupiah;
+    }
+
+    public function packageServiceExtraRupiah(): Money
+    {
+        return $this->packageServiceExtraRupiah;
+    }
+
+    public function totalPriceRupiah(): Money
+    {
+        return $this->servicePriceRupiah->add($this->packageProfitRupiah);
+    }
+
     public function partSource(): string
     {
         return $this->partSource;
@@ -66,6 +102,9 @@ final class ServiceDetail
         string $serviceName,
         Money $servicePriceRupiah,
         string $partSource,
+        Money $packageProfitRupiah,
+        ?Money $packageBaseServicePriceRupiah,
+        Money $packageServiceExtraRupiah,
     ): void {
         if (trim($serviceName) === '') {
             throw new DomainException('Service name wajib ada.');
@@ -73,6 +112,18 @@ final class ServiceDetail
 
         if ($servicePriceRupiah->amount() < 0) {
             throw new DomainException('Service price rupiah tidak boleh negatif.');
+        }
+
+        if ($packageProfitRupiah->amount() < 0) {
+            throw new DomainException('Package profit rupiah tidak boleh negatif.');
+        }
+
+        if ($packageBaseServicePriceRupiah !== null && $packageBaseServicePriceRupiah->amount() < 0) {
+            throw new DomainException('Package base service price rupiah tidak boleh negatif.');
+        }
+
+        if ($packageServiceExtraRupiah->amount() < 0) {
+            throw new DomainException('Package service extra rupiah tidak boleh negatif.');
         }
 
         $normalizedPartSource = trim($partSource);

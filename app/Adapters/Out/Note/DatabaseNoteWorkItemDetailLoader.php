@@ -21,10 +21,15 @@ final class DatabaseNoteWorkItemDetailLoader
         $result = [];
 
         foreach (DB::table('work_item_service_details')->whereIn('work_item_id', $ids)->get() as $row) {
+            $baseServicePrice = $row->package_base_service_price_rupiah ?? null;
+
             $result[(string) $row->work_item_id] = ServiceDetail::rehydrate(
                 (string) $row->service_name,
                 Money::fromInt((int) $row->service_price_rupiah),
                 (string) $row->part_source,
+                Money::fromInt((int) ($row->package_profit_rupiah ?? 0)),
+                $baseServicePrice !== null ? Money::fromInt((int) $baseServicePrice) : null,
+                Money::fromInt((int) ($row->package_service_extra_rupiah ?? 0)),
             );
         }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Note\Services;
 
+use App\Application\ServiceProductTemplate\DTO\ServiceProductTemplateLookupRow;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Ports\Out\ProductCatalog\ProductReaderPort;
 use App\Ports\Out\ServiceProductTemplate\ServiceProductTemplateLookupReaderPort;
@@ -49,23 +50,67 @@ final class CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer
             throw new DomainException('Harga paket tidak boleh lebih kecil dari total harga sparepart.');
         }
 
-        $servicePrice = $packageTotal - $sparepartTotal;
-        $minimumTemplateServicePrice = $this->minimumTemplateServicePrice(
-            $pricedLines['product_lines'],
-            $requiresServiceProductTemplate,
-        );
-
-        if ($minimumTemplateServicePrice > 0 && $servicePrice < $minimumTemplateServicePrice) {
-            throw new DomainException('Harga paket tidak boleh membuat harga jasa di bawah default template.');
-        }
-
         $service = is_array($item['service'] ?? null) ? $item['service'] : [];
-        $service['price_rupiah'] = $servicePrice;
+
+        if ($requiresServiceProductTemplate) {
+            $template = $this->activeTemplateForSingleProductLine($pricedLines['product_lines']);
+            $baseServicePrice = $template->defaultServicePriceRupiah;
+            $minimumPackageTotal = $sparepartTotal + $baseServicePrice;
+
+            if ($packageTotal < $minimumPackageTotal) {
+                throw new DomainException('Harga paket tidak boleh membuat harga jasa di bawah default template.');
+            }
+
+            $extra = $packageTotal - $minimumPackageTotal;
+            $serviceExtra = intdiv($extra, 5);
+            $packageProfit = $extra - $serviceExtra;
+
+            $service['price_rupiah'] = $baseServicePrice + $serviceExtra;
+            $service['package_profit_rupiah'] = $packageProfit;
+            $service['package_base_service_price_rupiah'] = $baseServicePrice;
+            $service['package_service_extra_rupiah'] = $serviceExtra;
+        } else {
+            $servicePrice = $packageTotal - $sparepartTotal;
+            $minimumTemplateServicePrice = $this->minimumTemplateServicePrice(
+                $pricedLines['product_lines'],
+                false,
+            );
+
+            if ($minimumTemplateServicePrice > 0 && $servicePrice < $minimumTemplateServicePrice) {
+                throw new DomainException('Harga paket tidak boleh membuat harga jasa di bawah default template.');
+            }
+
+            $service['price_rupiah'] = $servicePrice;
+            $service['package_profit_rupiah'] = 0;
+            $service['package_base_service_price_rupiah'] = null;
+            $service['package_service_extra_rupiah'] = 0;
+        }
 
         $item['service'] = $service;
         $item['product_lines'] = $pricedLines['product_lines'];
 
         return $item;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $productLines
+     */
+    private function activeTemplateForSingleProductLine(array $productLines): ServiceProductTemplateLookupRow
+    {
+        $line = $productLines[0] ?? [];
+        $productId = trim((string) ($line['product_id'] ?? ''));
+
+        if ($productId === '') {
+            throw new DomainException('Paket servis + produk wajib memakai template aktif.');
+        }
+
+        $template = $this->templates->findActiveByProductId($productId);
+
+        if ($template === null) {
+            throw new DomainException('Paket servis + produk wajib memakai template aktif.');
+        }
+
+        return $template;
     }
 
     /**

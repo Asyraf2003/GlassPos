@@ -27,10 +27,10 @@ final class WorkItemGuard
     public static function calculateSubtotal(string $t, ?ServiceDetail $sd, array $ext, array $sto): Money
     {
         return match ($t) {
-            WorkItem::TYPE_SERVICE_ONLY => $sd->servicePriceRupiah(),
-            WorkItem::TYPE_SERVICE_WITH_EXTERNAL_PURCHASE => self::calc($sd->servicePriceRupiah(), $ext),
+            WorkItem::TYPE_SERVICE_ONLY => $sd->totalPriceRupiah(),
+            WorkItem::TYPE_SERVICE_WITH_EXTERNAL_PURCHASE => self::calc($sd->totalPriceRupiah(), $ext),
             WorkItem::TYPE_STORE_STOCK_SALE_ONLY => self::calc(Money::zero(), $sto),
-            WorkItem::TYPE_SERVICE_WITH_STORE_STOCK_PART => self::calc($sd->servicePriceRupiah(), $sto),
+            WorkItem::TYPE_SERVICE_WITH_STORE_STOCK_PART => self::calc($sd->totalPriceRupiah(), $sto),
             default => throw new DomainException('Tipe transaksi tidak dikenal.')
         };
     }

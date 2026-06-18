@@ -34,7 +34,18 @@ final class WorkItemFactory
     }
 
     private function makeSd(array $p): ServiceDetail {
-        return ServiceDetail::create(trim((string)($p['service_name'] ?? throw new DomainException('Service name wajib ada.'))), Money::fromInt((int)($p['service_price_rupiah'] ?? throw new DomainException('Service price wajib ada.'))), (string)($p['part_source'] ?? ServiceDetail::PART_SOURCE_NONE));
+        $baseServicePrice = isset($p['package_base_service_price_rupiah'])
+            ? Money::fromInt((int) $p['package_base_service_price_rupiah'])
+            : null;
+
+        return ServiceDetail::create(
+            trim((string)($p['service_name'] ?? throw new DomainException('Service name wajib ada.'))),
+            Money::fromInt((int)($p['service_price_rupiah'] ?? throw new DomainException('Service price wajib ada.'))),
+            (string)($p['part_source'] ?? ServiceDetail::PART_SOURCE_NONE),
+            Money::fromInt((int)($p['package_profit_rupiah'] ?? 0)),
+            $baseServicePrice,
+            Money::fromInt((int)($p['package_service_extra_rupiah'] ?? 0)),
+        );
     }
 
     private function makeExt(array $payload): array {
