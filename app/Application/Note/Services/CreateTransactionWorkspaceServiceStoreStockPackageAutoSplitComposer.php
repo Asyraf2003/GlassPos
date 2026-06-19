@@ -9,6 +9,7 @@ use App\Ports\Out\ProductCatalog\ProductReaderPort;
 
 final class CreateTransactionWorkspaceServiceStoreStockPackageAutoSplitComposer
 {
+    use CreateTransactionWorkspaceServiceStoreStockPackageAutoSplitPayload;
     public function __construct(
         private readonly ProductReaderPort $products,
         private readonly CreateTransactionWorkspaceServiceStoreStockPackageTemplateRules $rules,
@@ -85,17 +86,6 @@ final class CreateTransactionWorkspaceServiceStoreStockPackageAutoSplitComposer
         return $item;
     }
 
-    /** @param array<string, mixed> $item @return array<string, mixed> */
-    private function service(array $item): array
-    {
-        return is_array($item['service'] ?? null) ? $item['service'] : [];
-    }
-
-    private function requiredInt(mixed $value, string $message): int
-    {
-        if (! is_int($value) || $value <= 0) {
-            throw new DomainException($message);
-        }
 
         return $value;
     }
