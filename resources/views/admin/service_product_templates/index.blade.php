@@ -9,8 +9,7 @@
             <div class="card-header">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div>
-                        <h4 class="card-title mb-1">Paket fast entry untuk servis + produk</h4>
-                        <p class="text-muted mb-0">Produk memakai harga jual katalog. Harga jasa mengikuti master jasa. Total paket wajib minimal produk + jasa.</p>
+                        <h4 class="card-title mb-1">Produk memakai harga jual katalog. Harga jasa mengikuti master jasa. Total paket wajib minimal produk + jasa</h4>
                     </div>
 
                     <a href="{{ route('admin.service-product-templates.create') }}" class="btn btn-primary">
@@ -156,18 +155,6 @@
                             </div>
 
                             <div class="col-12 col-md-6">
-                                <a href="#" id="package-service-action-product-link" class="btn btn-outline-primary w-100 text-start py-3 px-4 h-100">
-                                    <div class="fw-bold fs-5 mb-1">Lihat Produk</div>
-                                </a>
-                            </div>
-
-                            <div class="col-12 col-md-6">
-                                <a href="#" id="package-service-action-service-link" class="btn btn-outline-primary w-100 text-start py-3 px-4 h-100">
-                                    <div class="fw-bold fs-5 mb-1">Edit Jasa</div>
-                                </a>
-                            </div>
-
-                            <div class="col-12">
                                 <form id="package-service-action-status-form" method="post" class="m-0">
                                     @csrf
                                     @method('PATCH')
@@ -180,6 +167,12 @@
                                         <div class="fw-bold fs-5 mb-1" id="package-service-action-status-title">Nonaktifkan</div>
                                     </button>
                                 </form>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <a href="#" id="package-service-action-service-link" class="btn btn-outline-primary w-100 text-start py-3 px-4 h-100">
+                                    <div class="fw-bold fs-5 mb-1">Edit Jasa</div>
+                                </a>
                             </div>
                         </div>
                     </div>
