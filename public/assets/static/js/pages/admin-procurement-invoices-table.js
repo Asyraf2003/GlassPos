@@ -114,7 +114,7 @@
   const trimValue = (v) => String(v ?? "").trim();
   const rupiah = (v) => "Rp " + Number(v || 0).toLocaleString("id-ID");
   const detailUrl = (id) => c.detailBaseUrl.replace("__ID__", encodeURIComponent(id));
-  const paymentStoreUrl = (id) => c.paymentStoreBaseUrl.replace("__ID__", encodeURIComponent(id));
+  const paymentProofStoreUrl = (id) => c.paymentProofStoreBaseUrl.replace("__ID__", encodeURIComponent(id));
   const paymentSectionUrl = (id) => `${detailUrl(id)}#payment-form-section`;
 
   const intOrDefault = (v, fallback) => {
@@ -297,31 +297,20 @@
       || "-";
     const nomorFaktur = trimValue(row.nomor_faktur) || "-";
 
-    paymentForm.action = paymentStoreUrl(row.supplier_invoice_id);
+    paymentForm.action = paymentProofStoreUrl(row.supplier_invoice_id);
 
     if (paymentInvoiceIdInput) {
       paymentInvoiceIdInput.value = row.supplier_invoice_id;
     }
 
     if (paymentModalSubtitle) {
-      paymentModalSubtitle.textContent = `${nomorFaktur} • ${supplierName}`;
-    }
-
-    if (paymentAmountHelp) {
-      paymentAmountHelp.textContent = `Maksimal sebesar sisa tagihan ${rupiah(row.outstanding_rupiah || 0)}.`;
+      paymentModalSubtitle.textContent = `${nomorFaktur} • ${supplierName} • Sisa tagihan ${rupiah(row.outstanding_rupiah || 0)}`;
     }
 
     if (!preserveOldInput) {
-      if (paymentDateInput) {
-        paymentDateInput.value = c.oldPaymentInvoiceId ? (c.oldPaymentDate || todayYmd()) : todayYmd();
-      }
-
-      if (paymentAmountRaw) {
-        paymentAmountRaw.value = String(row.outstanding_rupiah || "");
-      }
-
-      if (paymentAmountDisplay) {
-        paymentAmountDisplay.value = String(Number(row.outstanding_rupiah || 0).toLocaleString("id-ID"));
+      const proofInput = paymentForm.querySelector("input[type='file']");
+      if (proofInput) {
+        proofInput.value = "";
       }
     }
 
@@ -737,7 +726,7 @@
     load(true);
   });
 
-  if (window.AdminMoneyInput) {
+  if (window.AdminMoneyInput && paymentAmountDisplay && paymentAmountRaw) {
     window.AdminMoneyInput.bindMoneyPair(paymentAmountDisplay, paymentAmountRaw);
   }
 

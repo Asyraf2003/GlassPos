@@ -19,9 +19,9 @@ trait BuildsProcurementInvoiceTableRowPayload
         $isVoided = $row->voided_at !== null;
         $isLocked = ! $isVoided && ($paymentCount > 0 || $receiptCount > 0);
 
-        $paymentActionKind = $paymentCount > 0 ? 'proof' : 'pay';
-        $paymentActionLabel = $paymentCount > 0 ? 'Bukti Bayar' : 'Bayar';
-        $paymentActionMode = $paymentCount > 0 ? 'link' : 'modal';
+        $paymentActionKind = $outstandingRupiah > 0 ? 'payment_proof' : 'proof';
+        $paymentActionLabel = $outstandingRupiah > 0 ? 'Bayar' : 'Bukti Bayar';
+        $paymentActionMode = $outstandingRupiah > 0 ? 'modal' : 'link';
 
         return [
             'supplier_invoice_id' => $supplierInvoiceId,

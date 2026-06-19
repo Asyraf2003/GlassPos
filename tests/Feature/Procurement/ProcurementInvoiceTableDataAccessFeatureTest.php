@@ -93,7 +93,7 @@ final class ProcurementInvoiceTableDataAccessFeatureTest extends TestCase
 
         self::assertSame('editable', $editableRow['policy_state']);
 
-        self::assertSame('pay', $editableRow['payment_action_kind']);
+        self::assertSame('payment_proof', $editableRow['payment_action_kind']);
         self::assertSame('Bayar', $editableRow['payment_action_label']);
         self::assertSame('modal', $editableRow['payment_action_mode']);
         self::assertSame(

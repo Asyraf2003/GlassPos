@@ -11,7 +11,8 @@
 
   if (!config || !form || !container || !addButton || !template) return;
 
-  const DRAFT_KEY = "admin.procurement.create-supplier-invoice.draft.v1";
+  const DRAFT_KEY = "admin.procurement.create-supplier-invoice.draft.v2";
+  const LEGACY_DRAFT_KEYS = ["admin.procurement.create-supplier-invoice.draft.v1"];
   const clearDraftOnLoad = Boolean(config.clearDraftOnLoad);
 
   let nextIndex = Number.parseInt(container.dataset.nextIndex || "0", 10);
@@ -678,7 +679,15 @@
 
   const clearDraft = () => {
     try {
-      window.localStorage.removeItem(DRAFT_KEY);
+      [DRAFT_KEY, ...LEGACY_DRAFT_KEYS].forEach((key) => window.localStorage.removeItem(key));
+    } catch (_error) {
+      // ignore localStorage failures
+    }
+  };
+
+  const clearLegacyDrafts = () => {
+    try {
+      LEGACY_DRAFT_KEYS.forEach((key) => window.localStorage.removeItem(key));
     } catch (_error) {
       // ignore localStorage failures
     }
@@ -1344,6 +1353,8 @@
 
     persistDraftNow();
   });
+
+  clearLegacyDrafts();
 
   lineItems().forEach(initLineItem);
   updateTaxModeFields();

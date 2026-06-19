@@ -38,6 +38,12 @@ final class ProcurementInvoiceIndexPageFeatureTest extends TestCase
         $response->assertSee('procurement-search-form', false);
         $response->assertSee('procurement-filter-form', false);
         $response->assertSee('procurement-invoice-table-body', false);
+        $response->assertSee('Kirim Bukti Pembayaran');
+        $response->assertSee('proof_files[]', false);
+        $response->assertSee('Kirim Bukti &amp; Tandai Lunas', false);
+        $response->assertDontSee('Catat Pembayaran Nota');
+        $response->assertDontSee('Nominal Pembayaran');
+        $response->assertDontSee('Simpan Pembayaran');
         $response->assertSee('admin-procurement-invoices-table.js');
     }
 

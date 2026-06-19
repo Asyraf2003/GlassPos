@@ -204,70 +204,45 @@
                 <div class="modal-content border-0 shadow-lg">
                     <div class="modal-header border-0 pb-0 px-4 pt-4">
                         <div class="w-100">
-                            <h3 class="modal-title fw-bold mb-1" id="procurement-payment-modal-title">Catat Pembayaran Nota</h3>
+                            <h3 class="modal-title fw-bold mb-1" id="procurement-payment-modal-title">Kirim Bukti Pembayaran</h3>
                             <p class="mb-0 text-muted fs-6" id="procurement-payment-modal-subtitle">
-                                Catat pembayaran langsung dari daftar nota pemasok.
+                                Kirim bukti pembayaran dari kamera atau galeri. Nota otomatis ditandai lunas sesuai sisa tagihan.
                             </p>
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
 
                     <div class="modal-body px-4 pb-4 pt-3">
-                        <form method="post" id="procurement-payment-form">
+                        <form method="post" id="procurement-payment-form" enctype="multipart/form-data">
                             @csrf
 
                             <input type="hidden" name="payment_invoice_id" id="procurement-payment-invoice-id" value="{{ old('payment_invoice_id') }}">
 
                             <div class="form-group mb-4">
-                                <label for="procurement-payment-date" class="form-label">Tanggal Pembayaran</label>
+                                <label for="procurement-payment-proof-files" class="form-label">Bukti Pembayaran</label>
                                 <input
-                                    type="date"
-                                    data-ui-date="single"
-                                    id="procurement-payment-date"
-                                    name="payment_date"
-                                    value="{{ old('payment_date', now()->format('Y-m-d')) }}"
-                                    class="form-control @error('payment_date') is-invalid @enderror"
+                                    type="file"
+                                    id="procurement-payment-proof-files"
+                                    name="proof_files[]"
+                                    class="form-control @error('proof_files') is-invalid @enderror @error('proof_files.*') is-invalid @enderror"
+                                    accept="image/*,.pdf"
+                                    multiple
                                     required
                                 >
-                                @error('payment_date')
+                                @error('proof_files')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
-                            </div>
-
-                            <div class="form-group mb-4" data-money-input-group>
-                                <label for="procurement-payment-amount-display" class="form-label">Nominal Pembayaran</label>
-
-                                <input
-                                    type="hidden"
-                                    id="procurement-payment-amount"
-                                    name="amount"
-                                    value="{{ old('amount') }}"
-                                    data-money-raw
-                                >
-
-                                <input
-                                    type="text"
-                                    id="procurement-payment-amount-display"
-                                    value="{{ old('amount') }}"
-                                    class="form-control @error('amount') is-invalid @enderror"
-                                    placeholder="Contoh: 150.000"
-                                    inputmode="numeric"
-                                    data-money-display
-                                    required
-                                >
-
-                                @error('amount')
+                                @error('proof_files.*')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
-
-                                <p class="fs-5 text-muted d-block mt-2" id="procurement-payment-amount-help">
-                                    Maksimal sebesar sisa tagihan nota.
+                                <p class="fs-5 text-muted d-block mt-2">
+                                    Pilih foto dari kamera/galeri atau PDF. Setelah dikirim, sistem mencatat pembayaran sebesar sisa tagihan dan menandai nota lunas.
                                 </p>
                             </div>
 
                             <div class="d-flex justify-content-end gap-2">
                                 <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">Tutup</button>
-                                <button type="submit" class="btn btn-primary">Simpan Pembayaran</button>
+                                <button type="submit" class="btn btn-primary">Kirim Bukti & Tandai Lunas</button>
                             </div>
                         </form>
                     </div>
@@ -338,6 +313,7 @@
         <script>
             try {
                 window.localStorage.removeItem('admin.procurement.create-supplier-invoice.draft.v1');
+                window.localStorage.removeItem('admin.procurement.create-supplier-invoice.draft.v2');
             } catch (_error) {
                 // ignore localStorage failures
             }
@@ -349,7 +325,7 @@
         window.procurementInvoiceTableConfig = {
             endpoint: @json(route('admin.procurement.supplier-invoices.table')),
             detailBaseUrl: @json(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => '__ID__'])),
-            paymentStoreBaseUrl: @json(route('admin.procurement.supplier-invoices.payments.store', ['supplierInvoiceId' => '__ID__'])),
+            paymentProofStoreBaseUrl: @json(route('admin.procurement.supplier-invoices.payment-proof.store', ['supplierInvoiceId' => '__ID__'])),
             oldPaymentInvoiceId: @json(old('payment_invoice_id')),
             oldPaymentDate: @json(old('payment_date', now()->format('Y-m-d'))),
             oldPaymentAmount: @json(old('amount')),
