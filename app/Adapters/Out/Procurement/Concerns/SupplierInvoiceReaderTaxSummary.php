@@ -48,11 +48,45 @@ trait SupplierInvoiceReaderTaxSummary
      */
     private function subtotalBeforeTaxRupiah(object $invoiceRow, array $lines): int
     {
-        if ($invoiceRow->subtotal_before_tax_rupiah !== null) {
-            return (int) $invoiceRow->subtotal_before_tax_rupiah;
+        $storedSubtotalBeforeTax = (int) ($invoiceRow->subtotal_before_tax_rupiah ?? 0);
+
+        if ($storedSubtotalBeforeTax > 0) {
+            return $storedSubtotalBeforeTax;
+        }
+
+        if ($this->sumLineTaxRupiah($lines) > 0) {
+            return $this->sumLineSubtotalBeforeTaxRupiah($lines);
         }
 
         return $this->sumLineTotalRupiah($lines);
+    }
+
+    /**
+     * @param list<SupplierInvoiceLine> $lines
+     */
+    private function sumLineSubtotalBeforeTaxRupiah(array $lines): int
+    {
+        $total = 0;
+
+        foreach ($lines as $line) {
+            $total += $line->lineSubtotalBeforeTaxRupiah()->amount();
+        }
+
+        return $total;
+    }
+
+    /**
+     * @param list<SupplierInvoiceLine> $lines
+     */
+    private function sumLineTaxRupiah(array $lines): int
+    {
+        $total = 0;
+
+        foreach ($lines as $line) {
+            $total += $line->taxAmountRupiah()->amount();
+        }
+
+        return $total;
     }
 
     /**
@@ -65,6 +99,9 @@ trait SupplierInvoiceReaderTaxSummary
         foreach ($lines as $line) {
             $total += $line->lineTotalRupiah()->amount();
         }
+
+        return $total;
+    }
 
         return $total;
     }
