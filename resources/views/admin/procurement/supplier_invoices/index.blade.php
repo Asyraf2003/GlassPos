@@ -240,7 +240,7 @@
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                                 <p class="fs-5 text-muted d-block mt-2">
-                                    Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP, HEIC, HEIF, PDF. Maksimal 10 MB per file.
+                                    Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP. Maksimal 10 MB per file.
                                 </p>
                             </div>
 

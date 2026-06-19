@@ -56,7 +56,7 @@
                                         required
                                     >
                                     <small class="text-muted d-block mt-1">
-                                        Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP, HEIC, HEIF, PDF. Maksimal 10 MB per file.
+                                        Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP. Maksimal 10 MB per file.
                                     </small>
                                 </div>
 
@@ -142,7 +142,7 @@
                                                                 required
                                                             >
                                                             <small class="text-muted d-block mt-1">
-                                                                Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP, HEIC, HEIF, PDF. Maksimal 10 MB per file.
+                                                                Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP. Maksimal 10 MB per file.
                                                             </small>
                                                         </div>
 

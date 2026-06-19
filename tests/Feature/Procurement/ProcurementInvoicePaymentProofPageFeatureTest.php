@@ -85,7 +85,7 @@ final class ProcurementInvoicePaymentProofPageFeatureTest extends TestCase
         $response->assertSee('Kirim Bukti Pembayaran');
         $response->assertSee('Kirim Bukti & Tandai Lunas', false);
         $response->assertSee('.jpg,.jpeg,.png,.webp,.heic,.heif,.pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf', false);
-        $response->assertSee('Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP, HEIC, HEIF, PDF. Maksimal 10 MB per file.');
+        $response->assertSee('Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP. Maksimal 10 MB per file.');
         $response->assertSee('invoice-payment-proof-submit', false);
         $response->assertSee('data-submitting-label="Mengirim..."', false);
         $response->assertSee('Bukti Pembayaran');
@@ -98,7 +98,7 @@ final class ProcurementInvoicePaymentProofPageFeatureTest extends TestCase
         $response->assertSee('data-payment-proof-attachment-submit', false);
         $response->assertSee('data-submitting-label="Mengirim..."', false);
         $response->assertSee(route('admin.procurement.supplier-payments.proof.store', ['supplierPaymentId' => 'payment-1']), false);
-        $response->assertSee('Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP, HEIC, HEIF, PDF. Maksimal 10 MB per file.');
+        $response->assertSee('Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP. Maksimal 10 MB per file.');
 
         $response->assertSee('Sudah Ada Bukti');
         $response->assertSee('Belum Ada Bukti');
@@ -129,7 +129,7 @@ final class ProcurementInvoicePaymentProofPageFeatureTest extends TestCase
         $response->assertSee('Kirim Bukti Pembayaran');
         $response->assertSee('Kirim Bukti & Tandai Lunas', false);
         $response->assertSee('.jpg,.jpeg,.png,.webp,.heic,.heif,.pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf', false);
-        $response->assertSee('Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP, HEIC, HEIF, PDF. Maksimal 10 MB per file.');
+        $response->assertSee('Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP. Maksimal 10 MB per file.');
         $response->assertSee('Bukti Pembayaran');
         $response->assertSee('Belum ada pembayaran pemasok.');
         $response->assertDontSee('Catat Pembayaran');
@@ -159,7 +159,7 @@ final class ProcurementInvoicePaymentProofPageFeatureTest extends TestCase
         $response->assertSee('payment_proof_files_0', false);
         $response->assertSee(route('admin.procurement.supplier-payments.proof.store', ['supplierPaymentId' => 'payment-1']), false);
         $response->assertSee('.jpg,.jpeg,.png,.webp,.heic,.heif,.pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf', false);
-        $response->assertSee('Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP, HEIC, HEIF, PDF. Maksimal 10 MB per file.');
+        $response->assertSee('Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP. Maksimal 10 MB per file.');
         $response->assertDontSee('Kirim Bukti & Tandai Lunas', false);
         $response->assertDontSee('Nominal Pembayaran');
     }
@@ -168,7 +168,7 @@ final class ProcurementInvoicePaymentProofPageFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-payment-proof@example.test',
+            'email' => $role.'-payment-proof@example.test',
             'password' => 'password123',
         ]);
 

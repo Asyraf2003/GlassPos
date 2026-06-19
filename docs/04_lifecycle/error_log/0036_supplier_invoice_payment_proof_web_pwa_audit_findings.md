@@ -148,7 +148,7 @@ Fixed evidence:
   - `.jpg,.jpeg,.png,.webp,.heic,.heif,.pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf`.
 - `resources/views/admin/procurement/supplier_invoices/payment_proofs.blade.php` now uses the same explicit accept contract and no longer uses free `image/*`.
 - Both UI upload forms now show the same help text:
-  - `Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP, HEIC, HEIF, PDF. Maksimal 10 MB per file.`
+  - `Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP. Maksimal 10 MB per file.`
 - `UploadSupplierInvoicePaymentProofController` already remained the backend source of truth with MIME validation `image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf` and max size `10240` KB.
 - `SupplierPaymentProofMimeTypeDetector` now keeps server-detected `image/webp`, `image/heic`, and `image/heif` as safe MIME values instead of downgrading all non-PDF/JPEG/PNG files to `application/octet-stream`.
 - `ServeSupplierPaymentProofAttachmentController` now treats PDF/JPEG/PNG/WEBP as safe inline MIME types, keeps HEIC/HEIF as safe MIME types, and serves unsupported inline-preview formats as attachment while preserving `X-Content-Type-Options: nosniff`.
