@@ -22,12 +22,14 @@ trait SupplierInvoiceReaderTaxSummary
             : null;
         $taxAmountRupiah = (int) ($invoiceRow->tax_amount_rupiah ?? 0);
 
+        $subtotalBeforeTaxRupiah = $this->subtotalBeforeTaxRupiah($invoiceRow, $lines);
+
         if ($this->isNoTaxSummary($taxInput, $taxMode, $taxRateBasisPoints, $taxAmountRupiah)) {
-            return SupplierInvoiceTaxSummary::none($this->subtotalBeforeTaxRupiah($invoiceRow, $lines));
+            return SupplierInvoiceTaxSummary::none($subtotalBeforeTaxRupiah);
         }
 
         return SupplierInvoiceTaxSummary::rehydrate(
-            (int) ($invoiceRow->subtotal_before_tax_rupiah ?? 0),
+            $subtotalBeforeTaxRupiah,
             $taxInput,
             $taxMode,
             $taxRateBasisPoints,
@@ -99,9 +101,6 @@ trait SupplierInvoiceReaderTaxSummary
         foreach ($lines as $line) {
             $total += $line->lineTotalRupiah()->amount();
         }
-
-        return $total;
-    }
 
         return $total;
     }
