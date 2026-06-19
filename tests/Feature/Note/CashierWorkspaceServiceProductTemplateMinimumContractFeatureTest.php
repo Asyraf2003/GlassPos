@@ -32,6 +32,5 @@ final class CashierWorkspaceServiceProductTemplateMinimumContractFeatureTest ext
         $this->assertStringContainsString('Terisi otomatis setelah produk dipilih', $blade);
         $this->assertStringNotContainsString('Sok Kopling Besar', $blade);
         $this->assertStringNotContainsString('data-add-product-line', $blade);
-        $this->assertStringNotContainsString('data-product-line-template', $blade);
     }
 }

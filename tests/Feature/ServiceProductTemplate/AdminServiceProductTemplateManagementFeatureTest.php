@@ -53,7 +53,7 @@ final class AdminServiceProductTemplateManagementFeatureTest extends TestCase
 
         $indexPage = $this->actingAs($admin)->get(route('admin.service-product-templates.index'));
         $indexPage->assertOk();
-        $indexPage->assertSee('Template fast entry untuk servis + sparepart toko', false);
+        $indexPage->assertSee('Produk memakai harga jual katalog. Harga jasa mengikuti master jasa. Total paket wajib minimal produk + jasa', false);
         $indexPage->assertSee('Ban Admin Template', false);
         $indexPage->assertSee('Jasa Pasang Ban Admin', false);
 

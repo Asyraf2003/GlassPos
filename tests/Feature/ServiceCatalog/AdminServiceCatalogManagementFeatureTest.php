@@ -44,7 +44,7 @@ final class AdminServiceCatalogManagementFeatureTest extends TestCase
         $indexPage = $this->actingAs($admin)->get(route('admin.services.index'));
         $indexPage->assertOk();
         $indexPage->assertSee('Ganti Oli Mesin', false);
-        $indexPage->assertSee('Master Jasa', false);
+        $indexPage->assertSee('Dipakai untuk lookup kasir dan paket service', false);
         $indexPage->assertSee(route('admin.services.index'), false);
 
         $editPage = $this->actingAs($admin)->get(route('admin.services.edit', ['serviceId' => $serviceId]));
