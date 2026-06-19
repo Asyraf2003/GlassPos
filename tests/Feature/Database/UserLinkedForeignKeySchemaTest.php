@@ -15,7 +15,6 @@ final class UserLinkedForeignKeySchemaTest extends TestCase
         self::assertTrue(Schema::hasColumn('users', 'id'), 'Missing users.id');
 
         $this->assertUserForeignKey('push_subscriptions', 'user_id');
-        $this->assertUserForeignKey('mobile_api_tokens', 'user_id');
     }
 
     private function assertUserForeignKey(string $table, string $column): void

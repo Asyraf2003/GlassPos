@@ -39,12 +39,6 @@ class IdentityAccessServiceProvider extends ServiceProvider
             fn (Request $request): Limit => Limit::perMinute(self::LOGIN_MAX_ATTEMPTS_PER_MINUTE)
                 ->by($this->loginRateLimiterKey($request))
         );
-
-        RateLimiter::for(
-            'mobile-login',
-            fn (Request $request): Limit => Limit::perMinute(self::LOGIN_MAX_ATTEMPTS_PER_MINUTE)
-                ->by($this->loginRateLimiterKey($request))
-        );
     }
 
     private function loginRateLimiterKey(Request $request): string
