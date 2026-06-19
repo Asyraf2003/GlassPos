@@ -26,7 +26,15 @@ final class DatabaseSupplierPaymentProofAttachmentReaderAdapter implements Suppl
                 'uploaded_by_actor_id',
             ]);
 
-        return $row !== null ? $this->mapRowToAttachment($row) : null;
+        if ($row === null) {
+            return null;
+        }
+
+        if (! LaravelSupplierPaymentProofFileStorageAdapter::isValidPath((string) $row->storage_path)) {
+            return null;
+        }
+
+        return $this->mapRowToAttachment($row);
     }
 
     public function listBySupplierPaymentId(string $supplierPaymentId): array

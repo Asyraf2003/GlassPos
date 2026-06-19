@@ -11,6 +11,8 @@ use Throwable;
 
 final class LaravelSupplierPaymentProofFileStorageAdapter implements SupplierPaymentProofFileStoragePort
 {
+    public const DIRECTORY_PREFIX = 'supplier-payment-proofs/';
+
     public function storeMany(string $supplierPaymentId, array $files): array
     {
         $storedFiles = [];
@@ -67,7 +69,7 @@ final class LaravelSupplierPaymentProofFileStorageAdapter implements SupplierPay
     {
         $path = trim($path);
 
-        return $path !== '' && Storage::disk('local')->exists($path);
+        return self::isValidPath($path) && Storage::disk('local')->exists($path);
     }
 
     public function get(string $path): ?string
@@ -83,7 +85,29 @@ final class LaravelSupplierPaymentProofFileStorageAdapter implements SupplierPay
 
     private function directory(string $supplierPaymentId): string
     {
-        return 'supplier-payment-proofs/' . trim($supplierPaymentId);
+        return self::DIRECTORY_PREFIX . trim($supplierPaymentId);
+    }
+
+    public static function isValidPath(string $path): bool
+    {
+        $path = trim($path);
+
+        if ($path === '') {
+            return false;
+        }
+
+        if (
+            str_contains($path, "\0")
+            || str_contains($path, '..')
+            || str_contains($path, '\\')
+            || str_contains($path, '://')
+            || str_starts_with($path, '/')
+            || preg_match('/(?:^|\/)[A-Za-z]:\//', $path) === 1
+        ) {
+            return false;
+        }
+
+        return str_starts_with($path, self::DIRECTORY_PREFIX);
     }
 
     private function filename(array $file): string

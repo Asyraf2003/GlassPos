@@ -96,6 +96,44 @@ final class ServeSupplierPaymentProofAttachmentFeatureTest extends TestCase
         self::assertStringContainsString('attachment', $contentDisposition);
     }
 
+    public function test_admin_gets_404_when_supplier_payment_proof_attachment_storage_path_is_tampered(): void
+    {
+        Storage::fake('local');
+        $this->seedPaymentFixture('payment-1');
+        $admin = $this->user('admin');
+
+        $invalidPaths = [
+            'outside-prefix/proof.pdf',
+            '../private.txt',
+            '/supplier-payment-proofs/payment-1/proof.pdf',
+            'supplier-payment-proofs/payment-1/../proof.pdf',
+            'supplier-payment-proofs\\payment-1\\proof.pdf',
+            'file://supplier-payment-proofs/payment-1/proof.pdf',
+            'http://example.test/proof.pdf',
+            'supplier-payment-proofs/payment-1/C:/proof.pdf',
+            '',
+            "supplier-payment-proofs/payment-1/\0proof.pdf",
+        ];
+
+        foreach ($invalidPaths as $index => $storagePath) {
+            $attachmentId = 'tampered-attachment-' . $index;
+
+            $this->seedAttachment(
+                $attachmentId,
+                'payment-1',
+                $storagePath,
+                'proof.pdf',
+                'application/pdf',
+            );
+
+            $this->actingAs($admin)
+                ->get(route('admin.procurement.supplier-payment-proof-attachments.show', [
+                    'attachmentId' => $attachmentId,
+                ]))
+                ->assertNotFound();
+        }
+    }
+
 
     private function storePdfFixture(string $path): void
     {
