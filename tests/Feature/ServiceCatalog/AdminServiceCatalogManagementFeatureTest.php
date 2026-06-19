@@ -49,7 +49,7 @@ final class AdminServiceCatalogManagementFeatureTest extends TestCase
 
         $editPage = $this->actingAs($admin)->get(route('admin.services.edit', ['serviceId' => $serviceId]));
         $editPage->assertOk();
-        $editPage->assertSee('Edit Master Jasa', false);
+        $editPage->assertSee('Edit Jasa', false);
 
         $updateResponse = $this->actingAs($admin)->put(route('admin.services.update', ['serviceId' => $serviceId]), [
             'name' => 'Ganti Oli Mesin Matic',
