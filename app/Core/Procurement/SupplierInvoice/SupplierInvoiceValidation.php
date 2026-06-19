@@ -82,19 +82,31 @@ trait SupplierInvoiceValidation
     }
 
     /** @param array<int, SupplierInvoiceLine> $lines */
-    /** @param array<int, SupplierInvoiceLine> $lines */
     private static function assertTaxSummaryMatchesGrandTotal(SupplierInvoiceTaxSummary $taxSummary, Money $grandTotalRupiah, array $lines): void
     {
-        $lineTaxTotal = array_reduce($lines, static fn (int $total, SupplierInvoiceLine $line): int => $total + $line->taxAmountRupiah()->amount(), 0);
-        $expected = $taxSummary->grandTotalAfterTaxRupiah()->amount() + $lineTaxTotal;
+        $lineSubtotalBeforeTaxTotal = array_reduce(
+            $lines,
+            static fn (int $total, SupplierInvoiceLine $line): int => $total + $line->lineSubtotalBeforeTaxRupiah()->amount(),
+            0
+        );
 
-        if ($expected !== $grandTotalRupiah->amount()) {
+        $lineTaxTotal = array_reduce(
+            $lines,
+            static fn (int $total, SupplierInvoiceLine $line): int => $total + $line->taxAmountRupiah()->amount(),
+            0
+        );
+
+        if ($lineSubtotalBeforeTaxTotal !== $taxSummary->subtotalBeforeTaxRupiah()->amount()) {
+            throw new DomainException('Grand total supplier invoice tidak cocok dengan subtotal dan pajak.');
+        }
+
+        if ($lineTaxTotal !== $taxSummary->taxAmountRupiah()->amount()) {
+            throw new DomainException('Grand total supplier invoice tidak cocok dengan subtotal dan pajak.');
+        }
+
+        if ($taxSummary->grandTotalAfterTaxRupiah()->amount() !== $grandTotalRupiah->amount()) {
             throw new DomainException('Grand total supplier invoice tidak cocok dengan subtotal dan pajak.');
         }
     }
-    /** @param array<int, SupplierInvoiceLine> $lines */
-    /** @param array<int, SupplierInvoiceLine> $lines */
-    /**
-     * @param array<int, SupplierInvoiceLine> $lines
-     */
+
 }
