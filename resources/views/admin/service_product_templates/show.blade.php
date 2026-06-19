@@ -119,14 +119,7 @@
                         </div>
 
                         <div class="card-body">
-                            @php
-                                $packageMargin = (int) $template['package_margin'];
-                                $serviceExtra = intdiv($packageMargin, 5);
-                                $packageProfit = $packageMargin - $serviceExtra;
-                                $effectiveService = (int) $template['template_service_price'] + $serviceExtra;
-                            @endphp
-
-                            @if ($packageMargin <= 0)
+                            @if ($template['package_margin'] <= 0)
                                 <p class="text-muted mb-0">
                                     Total paket sama dengan minimum produk + jasa. Belum ada selisih untuk dipecah.
                                 </p>
@@ -135,28 +128,28 @@
                                     <div class="col-12 col-md-6">
                                         <div class="ui-key-value">
                                             <small>Selisih Di Atas Produk + Jasa</small>
-                                            <div>{{ number_format($packageMargin, 0, ',', '.') }}</div>
+                                            <div>{{ number_format($template['package_margin'], 0, ',', '.') }}</div>
                                         </div>
                                     </div>
 
                                     <div class="col-12 col-md-6">
                                         <div class="ui-key-value">
                                             <small>Keuntungan Paket 80%</small>
-                                            <div class="fw-semibold">{{ number_format($packageProfit, 0, ',', '.') }}</div>
+                                            <div class="fw-semibold">{{ number_format($template['package_profit'], 0, ',', '.') }}</div>
                                         </div>
                                     </div>
 
                                     <div class="col-12 col-md-6">
                                         <div class="ui-key-value">
                                             <small>Tambahan Jasa 20%</small>
-                                            <div>{{ number_format($serviceExtra, 0, ',', '.') }}</div>
+                                            <div>{{ number_format($template['package_service_extra'], 0, ',', '.') }}</div>
                                         </div>
                                     </div>
 
                                     <div class="col-12 col-md-6">
                                         <div class="ui-key-value">
                                             <small>Jasa Efektif</small>
-                                            <div>{{ number_format($effectiveService, 0, ',', '.') }}</div>
+                                            <div>{{ number_format($template['effective_service_price'], 0, ',', '.') }}</div>
                                         </div>
                                     </div>
                                 </div>

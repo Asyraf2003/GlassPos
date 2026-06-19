@@ -45,14 +45,6 @@
                         </thead>
                         <tbody>
                             @forelse ($templates as $template)
-                                @php
-                                    $minimumTotal = (int) $template['harga_jual'] + (int) $template['default_service_price_rupiah'];
-                                    $packageTotal = $template['default_package_total_rupiah'] !== null
-                                        ? (int) $template['default_package_total_rupiah']
-                                        : $minimumTotal;
-                                    $packageMargin = max(0, $packageTotal - $minimumTotal);
-                                @endphp
-
                                 <tr>
                                     <td>
                                         <div class="fw-semibold">{{ $template['service_name'] }}</div>
@@ -66,21 +58,17 @@
                                     </td>
                                     <td>{{ number_format($template['default_service_price_rupiah'], 0, ',', '.') }}</td>
                                     <td>
-                                        <div class="fw-semibold">{{ number_format($packageTotal, 0, ',', '.') }}</div>
-                                        @php
-                                            $serviceExtra = intdiv($packageMargin, 5);
-                                            $packageProfit = $packageMargin - $serviceExtra;
-                                        @endphp
+                                        <div class="fw-semibold">{{ number_format($template['package_total'], 0, ',', '.') }}</div>
                                         <small class="text-muted">
-                                            Min {{ number_format($minimumTotal, 0, ',', '.') }}
-                                            @if ($packageMargin > 0)
-                                                · Selisih {{ number_format($packageMargin, 0, ',', '.') }}
+                                            Min {{ number_format($template['minimum_total'], 0, ',', '.') }}
+                                            @if ($template['package_margin'] > 0)
+                                                · Selisih {{ number_format($template['package_margin'], 0, ',', '.') }}
                                             @endif
                                         </small>
-                                        @if ($packageMargin > 0)
+                                        @if ($template['package_margin'] > 0)
                                             <div class="small text-muted mt-1">
-                                                80% keuntungan {{ number_format($packageProfit, 0, ',', '.') }}
-                                                · 20% jasa {{ number_format($serviceExtra, 0, ',', '.') }}
+                                                80% keuntungan {{ number_format($template['package_profit'], 0, ',', '.') }}
+                                                · 20% jasa {{ number_format($template['package_service_extra'], 0, ',', '.') }}
                                             </div>
                                         @endif
                                     </td>
