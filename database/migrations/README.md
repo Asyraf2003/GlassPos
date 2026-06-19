@@ -610,14 +610,13 @@ Status: Focused Verified / acceptable documented residual.
 FACT:
 - `users.id` is created with `$table->id()`.
 - `push_subscriptions.user_id` uses `foreignId('user_id')->constrained('users')->cascadeOnDelete()`.
-- `mobile_api_tokens.user_id` uses `foreignId('user_id')->constrained('users')->cascadeOnDelete()`.
 - These fields are auth/framework-linked identifiers, not money, stock, ledger, quantity, or financial math.
 - Migration patch is not required because the app-owned user-linked tables intentionally follow Laravel `users.id` identity type.
 - `tests/Feature/Database/UserLinkedForeignKeySchemaTest.php` verifies type compatibility, FK existence, and cascade delete behavior.
 
 PROOF:
 - Syntax check passed for `UserLinkedForeignKeySchemaTest`.
-- Targeted `UserLinkedForeignKeySchemaTest` passed: 1 test / 13 assertions.
+- Targeted `UserLinkedForeignKeySchemaTest` passed.
 - `make verify` passed: 1066 tests / 5791 assertions.
 
 BOUNDARY:
@@ -636,7 +635,7 @@ FACT:
 - `->change()` cleanup is Focused Verified.
 - `payload_json` JSON alignment is Focused Verified.
 - `supplier_payment_proof_attachments.file_size_bytes` signed metadata alignment is Focused Verified.
-- User-linked `foreignId('user_id')` usage in `push_subscriptions` and `mobile_api_tokens` is Focused Verified as framework-coupled and compatible with `users.id`.
+- User-linked `foreignId('user_id')` usage in `push_subscriptions` is Focused Verified as framework-coupled and compatible with `users.id`.
 - Remaining `json(...)` columns are intentional JSON/snapshot/payload columns.
 - Remaining framework/default-owned text or unsigned signals are intentionally documented skips:
   - `0001_01_01_000002_create_jobs_table.php`
