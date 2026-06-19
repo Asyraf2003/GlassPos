@@ -10,7 +10,8 @@
                 <div class="card">
                     <div class="card-header">
                         <h4 class="card-title mb-1">Edit Master Jasa</h4>
-                        <p class="text-muted mb-0">Perubahan tidak mengubah nota historis.</p>
+                        <p class="text-muted mb-0">Master jasa bengkel</p>
+<p class="text-muted mb-0">Perubahan tidak mengubah nota historis.</p>
                     </div>
 
                     <div class="card-body">

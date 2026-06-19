@@ -4,6 +4,7 @@
 @section('heading', 'Template Jasa + Produk')
 
 @section('content')
+    <p class="text-muted mb-0">Template fast entry untuk servis + sparepart toko</p>
     <section class="section">
         <div class="card">
             <div class="card-header">

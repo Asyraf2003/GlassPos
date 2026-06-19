@@ -4,6 +4,7 @@
 @section('heading', 'Tambah Master Jasa')
 
 @section('content')
+    <p class="text-muted mb-0">Master jasa bengkel</p>
     <section class="section">
         <div class="row">
             <div class="col-12 col-lg-6">

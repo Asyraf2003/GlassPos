@@ -63,6 +63,61 @@
                     >
                 </div>
             </div>
+            <template data-product-line-template>
+                <div data-product-line>
+                    <label class="form-label small mb-1">Cari Produk Template</label>
+                    <div class="position-relative">
+                        <input type="hidden" name="items[__INDEX__][product_lines][__PRODUCT_INDEX__][product_id]" value="" data-product-id>
+                        <input type="hidden" name="items[__INDEX__][product_lines][__PRODUCT_INDEX__][price_basis]" value="current_catalog" data-price-basis>
+                        <input type="hidden" name="items[__INDEX__][product_lines][__PRODUCT_INDEX__][unit_price_rupiah]" value="" data-money-raw data-price-input>
+                        <input
+                            type="text"
+                            class="form-control form-control-sm"
+                            placeholder="Ketik nama produk atau kode barang"
+                            autocomplete="off"
+                            data-product-search
+                        >
+                        <div class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 20;" data-product-results></div>
+                    </div>
+
+                    <div class="d-none mt-3" data-template-selected-section>
+                        <div class="rounded border bg-light p-2 mb-2">
+                            <div class="small text-muted">Produk template terpilih</div>
+                            <div class="fw-semibold small" data-template-product-name>-</div>
+                            <div class="small text-muted">
+                                <span data-stock-text>Stok tersedia: -</span>
+                                <span class="mx-1">·</span>
+                                <span data-min-price-text>Harga produk mengikuti katalog.</span>
+                            </div>
+                            <small class="text-danger d-none" data-stock-error>Qty melebihi stok tersedia.</small>
+                            <small class="text-danger d-none" data-min-price-warning>Harga tidak boleh di bawah minimum.</small>
+                        </div>
+
+                        <div class="d-flex align-items-end gap-2">
+                            <div>
+                                <label class="form-label small mb-1">Qty</label>
+                                <input
+                                    type="text"
+                                    inputmode="numeric"
+                                    name="items[__INDEX__][product_lines][__PRODUCT_INDEX__][qty]"
+                                    value="1"
+                                    class="form-control form-control-sm text-center px-1 fw-semibold"
+                                    style="width: 4rem;"
+                                    data-qty-input
+                                >
+                            </div>
+
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-remove-product-line>
+                                Hapus
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <button type="button" class="btn btn-sm btn-outline-primary mt-2" data-add-product-line>
+                Tambah Produk Template
+            </button>
         </div>
 
         <div class="d-none mt-3" data-template-selected-section>
