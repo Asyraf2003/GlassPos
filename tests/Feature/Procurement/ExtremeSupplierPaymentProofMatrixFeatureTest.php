@@ -82,7 +82,7 @@ final class ExtremeSupplierPaymentProofMatrixFeatureTest extends TestCase
             ->from(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']))
             ->post(route('admin.procurement.supplier-payments.proof.store', ['supplierPaymentId' => 'payment-1']), [
                 'proof_files' => [
-                    UploadedFile::fake()->create('huge.pdf', 3000, 'application/pdf'),
+                    UploadedFile::fake()->create('huge.pdf', 10241, 'application/pdf'),
                 ],
             ]);
 
