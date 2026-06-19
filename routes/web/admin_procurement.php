@@ -20,7 +20,8 @@ use App\Adapters\In\Http\Controllers\Admin\Procurement\StoreSupplierInvoiceContr
 use App\Adapters\In\Http\Controllers\Admin\Procurement\SupplierLookupController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\UpdateSupplierInvoiceController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\VoidSupplierInvoiceController;
-use App\Adapters\In\Http\Controllers\Admin\Procurement\UploadSupplierInvoicePaymentProofController;\nuse Illuminate\Support\Facades\Route;
+use App\Adapters\In\Http\Controllers\Admin\Procurement\UploadSupplierInvoicePaymentProofController;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth', 'admin.page'])->group(function (): void {
     Route::get('/admin/procurement/supplier-invoices/table', ProcurementInvoiceTableDataController::class)
