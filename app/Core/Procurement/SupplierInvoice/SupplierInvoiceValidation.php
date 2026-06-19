@@ -107,18 +107,4 @@ trait SupplierInvoiceValidation
         }
     }
 
-        if ($expectedGrandTotal !== $grandTotalRupiah->amount()) {
-            throw new DomainException('Grand total supplier invoice tidak cocok dengan subtotal dan pajak.');
-        }
-    }
-
-        if ($lineTaxTotal !== $taxSummary->taxAmountRupiah()->amount()) {
-            throw new DomainException('Grand total supplier invoice tidak cocok dengan subtotal dan pajak.');
-        }
-
-        if ($taxSummary->grandTotalAfterTaxRupiah()->amount() !== $grandTotalRupiah->amount()) {
-            throw new DomainException('Grand total supplier invoice tidak cocok dengan subtotal dan pajak.');
-        }
-    }
-
 }
