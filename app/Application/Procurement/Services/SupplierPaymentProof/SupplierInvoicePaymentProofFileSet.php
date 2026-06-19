@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Procurement\Services\Mobile;
+namespace App\Application\Procurement\Services\SupplierPaymentProof;
 
 use App\Application\Procurement\Services\SupplierPaymentProofAttachmentFactory;
 use App\Application\Shared\DTO\Result;

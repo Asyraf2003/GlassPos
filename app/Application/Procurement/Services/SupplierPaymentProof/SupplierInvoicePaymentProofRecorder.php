@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Procurement\Services\Mobile;
+namespace App\Application\Procurement\Services\SupplierPaymentProof;
 
 use App\Application\Procurement\Services\SupplierInvoiceListProjectionService;
 use App\Application\Shared\DTO\Result;
@@ -54,7 +54,7 @@ final class SupplierInvoicePaymentProofRecorder
         $payment->markProofUploaded();
         $this->payments->update($payment);
 
-        $this->audit->record('supplier_invoice_mobile_payment_proof_uploaded', [
+        $this->audit->record('supplier_invoice_payment_proof_uploaded', [
             'supplier_invoice_id' => $invoice->id(),
             'supplier_payment_id' => $paymentId,
             'amount_rupiah' => $amountRupiah,

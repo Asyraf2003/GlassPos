@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Procurement\Services\Mobile;
+namespace App\Application\Procurement\Services\SupplierPaymentProof;
 
 use App\Application\Shared\DTO\Result;
 use App\Core\Procurement\SupplierInvoice\SupplierInvoice;

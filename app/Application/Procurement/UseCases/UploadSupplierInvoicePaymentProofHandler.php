@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Procurement\UseCases;
 
-use App\Application\Procurement\Services\Mobile\UploadSupplierInvoicePaymentProofOperation;
+use App\Application\Procurement\Services\SupplierPaymentProof\UploadSupplierInvoicePaymentProofOperation;
 use App\Application\Shared\DTO\Result;
 use App\Core\Shared\Exceptions\DomainException;
 
