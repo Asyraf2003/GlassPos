@@ -11,7 +11,7 @@ use Throwable;
 
 final class LaravelSupplierPaymentProofFileStorageAdapter implements SupplierPaymentProofFileStoragePort
 {
-    public const DIRECTORY_PREFIX = 'supplier-payment-proofs/';
+    public const DIRECTORY_PREFIX = SupplierPaymentProofStoragePathGuard::DIRECTORY_PREFIX;
 
     public function storeMany(string $supplierPaymentId, array $files): array
     {
@@ -30,7 +30,7 @@ final class LaravelSupplierPaymentProofFileStorageAdapter implements SupplierPay
                 }
 
                 $storedPath = $disk->putFileAs(
-                    $this->directory($supplierPaymentId),
+                    SupplierPaymentProofStoragePathGuard::directory($supplierPaymentId),
                     new File($sourcePath),
                     $this->filename($file),
                 );
@@ -83,31 +83,9 @@ final class LaravelSupplierPaymentProofFileStorageAdapter implements SupplierPay
         return is_string($content) ? $content : null;
     }
 
-    private function directory(string $supplierPaymentId): string
-    {
-        return self::DIRECTORY_PREFIX . trim($supplierPaymentId);
-    }
-
     public static function isValidPath(string $path): bool
     {
-        $path = trim($path);
-
-        if ($path === '') {
-            return false;
-        }
-
-        if (
-            str_contains($path, "\0")
-            || str_contains($path, '..')
-            || str_contains($path, '\\')
-            || str_contains($path, '://')
-            || str_starts_with($path, '/')
-            || preg_match('/(?:^|\/)[A-Za-z]:\//', $path) === 1
-        ) {
-            return false;
-        }
-
-        return str_starts_with($path, self::DIRECTORY_PREFIX);
+        return SupplierPaymentProofStoragePathGuard::isValid($path);
     }
 
     private function filename(array $file): string
