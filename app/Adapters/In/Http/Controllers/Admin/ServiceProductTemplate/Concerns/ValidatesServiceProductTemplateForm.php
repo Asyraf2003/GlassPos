@@ -24,7 +24,9 @@ trait ValidatesServiceProductTemplateForm
                 'string',
                 Rule::exists('service_catalog_items', 'id')->where('is_active', true),
             ],
-            'default_package_total_rupiah' => ['required', 'integer', 'min:1'],
+            'default_service_price_rupiah' => ['required', 'integer', 'min:1'],
+            'default_package_total_rupiah' => ['nullable', 'integer', 'min:1'],
+            'sort_order' => ['required', 'integer', 'min:0'],
         ]);
     }
 
@@ -34,14 +36,6 @@ trait ValidatesServiceProductTemplateForm
             ->where('id', trim($productId))
             ->whereNull('deleted_at')
             ->value('harga_jual');
-    }
-
-    private function servicePrice(string $serviceCatalogItemId): int
-    {
-        return (int) DB::table('service_catalog_items')
-            ->where('id', trim($serviceCatalogItemId))
-            ->where('is_active', true)
-            ->value('default_price_rupiah');
     }
 
     private function activeTemplateExists(string $productId, ?string $exceptTemplateId = null): bool
@@ -55,5 +49,18 @@ trait ValidatesServiceProductTemplateForm
         }
 
         return $query->exists();
+    }
+
+    private function nullableInt(mixed $value): ?int
+    {
+        return $value !== null && $value !== '' ? (int) $value : null;
+    }
+
+    private function minimumTotalMessage(int $minimumTotal): string
+    {
+        return sprintf(
+            'Total paket minimal %s karena harga produk + jasa adalah batas bawah.',
+            number_format($minimumTotal, 0, ',', '.')
+        );
     }
 }

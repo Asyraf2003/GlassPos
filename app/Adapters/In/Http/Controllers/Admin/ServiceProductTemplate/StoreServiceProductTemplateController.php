@@ -25,12 +25,11 @@ final class StoreServiceProductTemplateController extends Controller
                 ->withInput();
         }
 
-        $productPrice = $this->productPrice((string) $data['product_id']);
-        $servicePrice = $this->servicePrice((string) $data['service_catalog_item_id']);
-        $packageTotal = (int) $data['default_package_total_rupiah'];
-        $minimumTotal = $productPrice + $servicePrice;
+        $servicePrice = (int) $data['default_service_price_rupiah'];
+        $packageTotal = $this->nullableInt($data['default_package_total_rupiah'] ?? null);
+        $minimumTotal = $this->productPrice((string) $data['product_id']) + $servicePrice;
 
-        if ($packageTotal < $minimumTotal) {
+        if ($packageTotal !== null && $packageTotal < $minimumTotal) {
             return back()
                 ->withErrors(['default_package_total_rupiah' => $this->minimumTotalMessage($minimumTotal)])
                 ->withInput();
@@ -43,21 +42,13 @@ final class StoreServiceProductTemplateController extends Controller
             'default_service_price_rupiah' => $servicePrice,
             'default_package_total_rupiah' => $packageTotal,
             'is_active' => true,
-            'sort_order' => 0,
+            'sort_order' => (int) $data['sort_order'],
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
         return redirect()
             ->route('admin.service-product-templates.index')
-            ->with('success', 'Paket service berhasil dibuat.');
-    }
-
-    private function minimumTotalMessage(int $minimumTotal): string
-    {
-        return sprintf(
-            'Total paket minimal %s karena harga produk + jasa adalah batas bawah.',
-            number_format($minimumTotal, 0, ',', '.')
-        );
+            ->with('success', 'Template jasa + produk berhasil dibuat.');
     }
 }

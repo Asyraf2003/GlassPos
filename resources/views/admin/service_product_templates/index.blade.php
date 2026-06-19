@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Paket Service')
-@section('heading', 'Paket Service')
+@section('title', 'Template Jasa + Produk')
+@section('heading', 'Template Jasa + Produk')
 
 @section('content')
     <section class="section">
@@ -48,7 +48,7 @@
                                 <tr>
                                     <td>
                                         <div class="fw-semibold">{{ $template['service_name'] }}</div>
-                                        <small class="text-muted">Paket Service</small>
+                                        <small class="text-muted">Template Jasa + Produk</small>
                                     </td>
                                     <td>
                                         <div class="fw-semibold">{{ $template['nama_barang'] }}</div>
@@ -120,7 +120,7 @@
                 <div class="modal-content border-0 shadow-lg">
                     <div class="modal-header border-0 pb-0 px-4 pt-4">
                         <div class="w-100">
-                            <h3 class="modal-title fw-bold mb-1" id="package-service-action-modal-title">Aksi Paket Service</h3>
+                            <h3 class="modal-title fw-bold mb-1" id="package-service-action-modal-title">Aksi Template Jasa + Produk</h3>
                             <p class="mb-0 text-muted fs-6" id="package-service-action-modal-subtitle">
                                 Pilih tindakan untuk paket service.
                             </p>

@@ -20,7 +20,7 @@
 
         <div class="workspace-answer-field" data-product-lines>
             <div data-product-line>
-                <label class="form-label small mb-1">Cari Paket / Produk Template</label>
+                <label class="form-label small mb-1">Cari Produk Template</label>
                 <div class="position-relative">
                     <input type="hidden" name="items[__INDEX__][product_lines][0][product_id]" value="" data-product-id>
                     <input type="hidden" name="items[__INDEX__][product_lines][0][price_basis]" value="current_catalog" data-price-basis>
@@ -67,7 +67,7 @@
 
         <div class="d-none mt-3" data-template-selected-section>
             <div class="workspace-answer-field">
-                <label class="form-label small mb-1">Nama Paket/Jasa</label>
+                <label class="form-label small mb-1">Nama Paket/Jasa dari Template</label>
                 <input
                     type="text"
                     name="items[__INDEX__][service][name]"
