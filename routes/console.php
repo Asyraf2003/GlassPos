@@ -156,5 +156,6 @@ Artisan::command(
 
 if (! app()->runningUnitTests()) {
     require __DIR__ . '/console_audit.php';
-    require __DIR__ . '/console_audit_outbox.php';
 }
+
+require __DIR__ . '/console_audit_outbox.php';
