@@ -92,7 +92,10 @@ final class ProcurementInvoicePaymentProofPageFeatureTest extends TestCase
         $response->assertDontSee('Catat Pembayaran');
         $response->assertDontSee('Simpan Pembayaran');
         $response->assertDontSee('Nominal Pembayaran');
-        $response->assertDontSee('Unggah Bukti');
+        $response->assertSee('Upload Bukti Pembayaran');
+        $response->assertSee('payment_proof_files_0', false);
+        $response->assertSee(route('admin.procurement.supplier-payments.proof.store', ['supplierPaymentId' => 'payment-1']), false);
+        $response->assertSee('Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP, HEIC, HEIF, PDF. Maksimal 10 MB per file.');
 
         $response->assertSee('Sudah Ada Bukti');
         $response->assertSee('Belum Ada Bukti');

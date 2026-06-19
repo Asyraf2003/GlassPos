@@ -116,7 +116,40 @@
                                             <small class="text-muted d-block mb-2">Riwayat Lampiran</small>
 
                                             @if ($payment['attachments'] === [])
-                                                <div class="text-muted">Belum ada lampiran bukti.</div>
+                                                <div class="text-muted mb-3">Belum ada lampiran bukti.</div>
+
+                                                @if (! $policyView['is_voided'] && ($payment['can_attach_proof'] ?? false))
+                                                    <form
+                                                        action="{{ route('admin.procurement.supplier-payments.proof.store', ['supplierPaymentId' => $payment['id']]) }}"
+                                                        method="post"
+                                                        enctype="multipart/form-data"
+                                                        class="border rounded p-3 bg-light-subtle"
+                                                    >
+                                                        @csrf
+
+                                                        <div class="form-group mb-3">
+                                                            <label for="payment_proof_files_{{ $loop->index }}" class="form-label">
+                                                                Unggah Bukti Pembayaran
+                                                            </label>
+                                                            <input
+                                                                type="file"
+                                                                id="payment_proof_files_{{ $loop->index }}"
+                                                                name="proof_files[]"
+                                                                class="form-control @error('proof_files') is-invalid @enderror @error('proof_files.*') is-invalid @enderror"
+                                                                accept=".jpg,.jpeg,.png,.webp,.heic,.heif,.pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
+                                                                multiple
+                                                                required
+                                                            >
+                                                            <small class="text-muted d-block mt-1">
+                                                                Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP, HEIC, HEIF, PDF. Maksimal 10 MB per file.
+                                                            </small>
+                                                        </div>
+
+                                                        <button type="submit" class="btn btn-sm btn-primary">
+                                                            Upload Bukti Pembayaran
+                                                        </button>
+                                                    </form>
+                                                @endif
                                             @else
                                                 <div class="d-flex flex-column gap-2">
                                                     @foreach ($payment['attachments'] as $attachment)
