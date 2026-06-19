@@ -117,6 +117,7 @@
   const detailUrl = (id) => c.detailBaseUrl.replace("__ID__", encodeURIComponent(id));
   const paymentProofStoreUrl = (id) => c.paymentProofStoreBaseUrl.replace("__ID__", encodeURIComponent(id));
   const paymentSectionUrl = (id) => `${detailUrl(id)}#payment-form-section`;
+  const paymentProofPageUrl = (row) => trimValue(row?.payment_action_url) || paymentSectionUrl(row?.supplier_invoice_id);
 
   const intOrDefault = (v, fallback) => {
     const n = Number.parseInt(String(v ?? ""), 10);
@@ -289,7 +290,7 @@
 
   const openPaymentModal = (row, preserveOldInput = false) => {
     if (!paymentForm || !paymentModal) {
-      window.location.assign(paymentSectionUrl(row.supplier_invoice_id));
+      window.location.assign(paymentProofPageUrl(row));
       return;
     }
 
