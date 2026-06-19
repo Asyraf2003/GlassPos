@@ -114,10 +114,6 @@
                     </div>
                 </div>
             </template>
-
-            <button type="button" class="btn btn-sm btn-outline-primary mt-2" data-add-product-line>
-                Tambah Produk Template
-            </button>
         </div>
 
         <div class="d-none mt-3" data-template-selected-section>
