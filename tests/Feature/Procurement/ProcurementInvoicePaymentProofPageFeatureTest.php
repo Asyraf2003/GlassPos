@@ -82,10 +82,13 @@ final class ProcurementInvoicePaymentProofPageFeatureTest extends TestCase
         $response->assertSee('Rp 150.000');
         $response->assertSee('Rp 75.000');
 
-        $response->assertSee('Catat Pembayaran');
-        $response->assertSee('Simpan Pembayaran');
+        $response->assertSee('Kirim Bukti Pembayaran');
+        $response->assertSee('Kirim Bukti &amp; Tandai Lunas', false);
         $response->assertSee('Bukti Pembayaran');
-        $response->assertSee('Unggah Bukti');
+        $response->assertDontSee('Catat Pembayaran');
+        $response->assertDontSee('Simpan Pembayaran');
+        $response->assertDontSee('Nominal Pembayaran');
+        $response->assertDontSee('Unggah Bukti');
 
         $response->assertSee('Sudah Ada Bukti');
         $response->assertSee('Belum Ada Bukti');
@@ -113,10 +116,13 @@ final class ProcurementInvoicePaymentProofPageFeatureTest extends TestCase
         $response->assertSee('Belum Dibayar');
         $response->assertSee('Jumlah Pembayaran');
         $response->assertSee('0');
-        $response->assertSee('Catat Pembayaran');
-        $response->assertSee('Simpan Pembayaran');
+        $response->assertSee('Kirim Bukti Pembayaran');
+        $response->assertSee('Kirim Bukti &amp; Tandai Lunas', false);
         $response->assertSee('Bukti Pembayaran');
         $response->assertSee('Belum ada pembayaran pemasok.');
+        $response->assertDontSee('Catat Pembayaran');
+        $response->assertDontSee('Simpan Pembayaran');
+        $response->assertDontSee('Nominal Pembayaran');
     }
 
     private function user(string $role): User
