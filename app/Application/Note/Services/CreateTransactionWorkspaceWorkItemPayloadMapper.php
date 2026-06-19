@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Note\Services;
 
 use App\Core\Note\WorkItem\WorkItem;
+use App\Core\Shared\Exceptions\DomainException;
 
 final class CreateTransactionWorkspaceWorkItemPayloadMapper
 {
