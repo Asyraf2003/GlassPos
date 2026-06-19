@@ -124,6 +124,7 @@
                                                         method="post"
                                                         enctype="multipart/form-data"
                                                         class="border rounded p-3 bg-light-subtle"
+                                                        data-payment-proof-attachment-form
                                                     >
                                                         @csrf
 
@@ -145,7 +146,12 @@
                                                             </small>
                                                         </div>
 
-                                                        <button type="submit" class="btn btn-sm btn-primary">
+                                                        <button
+                                                            type="submit"
+                                                            class="btn btn-sm btn-primary"
+                                                            data-payment-proof-attachment-submit
+                                                            data-submitting-label="Mengirim..."
+                                                        >
                                                             Upload Bukti Pembayaran
                                                         </button>
                                                     </form>
@@ -296,18 +302,29 @@
 @push('scripts')
     <script>
         (() => {
-            const form = document.getElementById('invoice-payment-proof-form');
-            const button = document.getElementById('invoice-payment-proof-submit');
+            const bindSubmitGuard = (form, button) => {
+                form?.addEventListener('submit', () => {
+                    if (!form.checkValidity()) {
+                        return;
+                    }
 
-            form?.addEventListener('submit', (event) => {
-                if (!form.checkValidity()) {
-                    return;
-                }
+                    if (button) {
+                        button.disabled = true;
+                        button.textContent = button.dataset.submittingLabel || 'Mengirim...';
+                    }
+                });
+            };
 
-                if (button) {
-                    button.disabled = true;
-                    button.textContent = button.dataset.submittingLabel || 'Mengirim...';
-                }
+            bindSubmitGuard(
+                document.getElementById('invoice-payment-proof-form'),
+                document.getElementById('invoice-payment-proof-submit')
+            );
+
+            document.querySelectorAll('[data-payment-proof-attachment-form]').forEach((form) => {
+                bindSubmitGuard(
+                    form,
+                    form.querySelector('[data-payment-proof-attachment-submit]')
+                );
             });
         })();
     </script>
