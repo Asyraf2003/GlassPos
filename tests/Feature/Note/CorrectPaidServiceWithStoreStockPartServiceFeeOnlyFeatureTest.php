@@ -17,6 +17,88 @@ final class CorrectPaidServiceWithStoreStockPartServiceFeeOnlyFeatureTest extend
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
+    public function test_package_correction_rejects_service_price_below_package_base_floor_and_keeps_rows_unchanged(): void
+    {
+        $this->seedNotePaymentProduct('product-floor-guard', 'FLR-001', 'Kampas Rem', 'Federal', 100, 50000);
+
+        $this->seedNoteBase('note-floor-guard', 'Budi Floor Guard', '2026-06-20', 150000);
+        $this->seedWorkItemBase('wi-floor-guard', 'note-floor-guard', 1, WorkItem::TYPE_SERVICE_WITH_STORE_STOCK_PART, WorkItem::STATUS_OPEN, 150000);
+        $this->seedServiceDetailBase('wi-floor-guard', 'Paket Servis Floor Original', 100000, ServiceDetail::PART_SOURCE_NONE);
+
+        DB::table('work_item_service_details')->where('work_item_id', 'wi-floor-guard')->update([
+            'package_profit_rupiah' => 30000,
+            'package_base_service_price_rupiah' => 80000,
+            'package_service_extra_rupiah' => 20000,
+        ]);
+
+        $this->seedStoreStockLineBase('sto-floor-guard', 'wi-floor-guard', 'product-floor-guard', 1, 50000);
+        $this->seedCustomerPaymentBase('payment-floor-guard', 150000, '2026-06-20');
+
+        DB::table('payment_component_allocations')->insert([
+            [
+                'id' => 'pca-floor-guard-product',
+                'customer_payment_id' => 'payment-floor-guard',
+                'note_id' => 'note-floor-guard',
+                'work_item_id' => 'wi-floor-guard',
+                'component_type' => 'service_store_stock_part',
+                'component_ref_id' => 'sto-floor-guard',
+                'component_amount_rupiah_snapshot' => 50000,
+                'allocated_amount_rupiah' => 50000,
+                'allocation_priority' => 1,
+            ],
+            [
+                'id' => 'pca-floor-guard-service',
+                'customer_payment_id' => 'payment-floor-guard',
+                'note_id' => 'note-floor-guard',
+                'work_item_id' => 'wi-floor-guard',
+                'component_type' => 'service_fee',
+                'component_ref_id' => 'wi-floor-guard',
+                'component_amount_rupiah_snapshot' => 100000,
+                'allocated_amount_rupiah' => 100000,
+                'allocation_priority' => 2,
+            ],
+        ]);
+
+        $result = app(CorrectPaidServiceWithStoreStockPartServiceFeeOnlyHandler::class)->handle(
+            'note-floor-guard',
+            1,
+            'Paket Servis Floor Below Base',
+            60000,
+            ServiceDetail::PART_SOURCE_NONE,
+            'Phase 2 floor guard rejects below base service price.',
+            'actor-floor-guard',
+        );
+
+        self::assertFalse($result->isSuccess(), $result->message());
+
+        $this->assertDatabaseHas('notes', [
+            'id' => 'note-floor-guard',
+            'total_rupiah' => 150000,
+        ]);
+
+        $this->assertDatabaseHas('work_items', [
+            'id' => 'wi-floor-guard',
+            'subtotal_rupiah' => 150000,
+        ]);
+
+        $this->assertDatabaseHas('work_item_service_details', [
+            'work_item_id' => 'wi-floor-guard',
+            'service_name' => 'Paket Servis Floor Original',
+            'service_price_rupiah' => 100000,
+            'package_profit_rupiah' => 30000,
+            'package_base_service_price_rupiah' => 80000,
+            'package_service_extra_rupiah' => 20000,
+        ]);
+
+        $this->assertDatabaseHas('work_item_store_stock_lines', [
+            'id' => 'sto-floor-guard',
+            'work_item_id' => 'wi-floor-guard',
+            'product_id' => 'product-floor-guard',
+            'qty' => 1,
+            'line_total_rupiah' => 50000,
+        ]);
+    }
+
     public function test_it_corrects_service_fee_only_and_keeps_store_stock_lines_intact(): void
     {
         $this->seedNotePaymentProduct('product-1', 'KB-001', 'Ban Luar', 'Federal', 100, 3000);
