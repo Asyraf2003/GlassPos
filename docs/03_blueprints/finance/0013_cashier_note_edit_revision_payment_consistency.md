@@ -86,9 +86,9 @@ Progress Local:
   - Correction fee-only package currently accepts below base/default service price and leaves package fields stale.
   - DP/follow-up payment does not change subtotal or inventory COGS.
 - Gap summary:
-  - Phase 2 candidate: package-aware correction floor guard.
+  - Phase 2 candidate done locally: package-aware correction floor guard rejects service price below package base/default floor and keeps rows unchanged.
   - Phase 3 candidate: full revision payload fingerprint fields.
-- Next action: Continue Phase 1 Batch 3 refund/reporting characterization; do not start Phase 2 yet.
+- Next action: Continue remaining Phase 2 hardening guard source-map before selecting the next RED test.
 - Tests linked: EditTransactionWorkspaceRevisionPaymentCharacterizationTest, EditTransactionWorkspacePackageAutoSplitCharacterizationTest, CorrectPaidServiceWithStoreStockPartServiceFeeOnlyFeatureTest.
 - Owner decision dependency: none for V2 direction; base-missing behavior still needs characterization before patch.
 
