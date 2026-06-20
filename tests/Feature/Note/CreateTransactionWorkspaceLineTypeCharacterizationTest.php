@@ -310,6 +310,72 @@ final class CreateTransactionWorkspaceLineTypeCharacterizationTest extends TestC
         $this->assertStringContainsString('.slice(0, 1)', $rowsJs);
     }
 
+    public function test_phase2_template_preset_multi_product_extension_remains_blocked_until_phase4_contract(): void
+    {
+        $user = $this->loginAsKasir();
+        $this->seedProduct('phase2-template-guard-a', 40000, 25000);
+        $this->seedProduct('phase2-template-guard-b', 30000, 20000);
+
+        $response = $this->actingAs($user)
+            ->from(route('cashier.notes.workspace.create'))
+            ->post(route('notes.workspace.store'), [
+                'idempotency_key' => 'phase2-template-preset-multi-blocked',
+                'note' => [
+                    'customer_name' => 'Phase 2 Template Preset Multi Blocked',
+                    'customer_phone' => '08123',
+                    'transaction_date' => '2026-06-21',
+                ],
+                'items' => [[
+                    'entry_mode' => 'service',
+                    'part_source' => 'store_stock',
+                    'pricing_mode' => 'package_auto_split',
+                    'requires_service_product_template' => '1',
+                    'package_total_rupiah' => 150000,
+                    'pay_now' => 0,
+                    'service' => [
+                        'name' => 'Template Preset Multi Phase 2 Guard',
+                        'price_rupiah' => 0,
+                        'notes' => '',
+                    ],
+                    'product_lines' => [
+                        [
+                            'product_id' => 'phase2-template-guard-a',
+                            'qty' => 1,
+                            'unit_price_rupiah' => 40000,
+                        ],
+                        [
+                            'product_id' => 'phase2-template-guard-b',
+                            'qty' => 1,
+                            'unit_price_rupiah' => 30000,
+                        ],
+                    ],
+                    'external_purchase_lines' => [[
+                        'label' => '',
+                        'qty' => '',
+                        'unit_cost_rupiah' => '',
+                    ]],
+                ]],
+                'inline_payment' => [
+                    'decision' => 'skip',
+                    'payment_method' => null,
+                    'paid_at' => '2026-06-21',
+                ],
+            ]);
+
+        $response->assertRedirect(route('cashier.notes.workspace.create'));
+        $response->assertSessionHasErrors([
+            'workspace' => 'Paket servis + produk hanya boleh memakai 1 produk template aktif.',
+        ]);
+
+        $this->assertDatabaseMissing('notes', [
+            'customer_name' => 'Phase 2 Template Preset Multi Blocked',
+        ]);
+        $this->assertDatabaseMissing('work_items', [
+            'transaction_type' => 'service_with_store_stock_part',
+            'subtotal_rupiah' => 150000,
+        ]);
+    }
+
     public function test_current_behavior_template_branch_rejects_multi_product_package_preset_extension(): void
     {
         $user = $this->loginAsKasir();
