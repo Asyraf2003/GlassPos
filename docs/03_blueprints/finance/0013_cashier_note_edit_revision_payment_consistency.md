@@ -78,15 +78,14 @@ Evidence:
 Progress Local:
 - Status: FIXED
 - Last checked: 2026-06-21
-- Last evidence: Phase 2 correction floor guard GREEN. Package correction now rejects adjusted service price below package base/default floor and keeps rows unchanged.
+- Last evidence: Phase 3 revision payload historical fingerprint GREEN. RED first proved missing package fields in `NoteRevisionLinePayloadMapperTest`; targeted filters GREEN; `make verify` GREEN: 1275 passed, 7417 assertions.
 - Current behavior after Phase 2:
   - Edit up/down and payment allocation behavior remains characterized by Batch 2 tests.
   - Correction fee-only package no longer accepts below-base service price when package base exists.
-  - Revision payload is still not full package financial fingerprint yet.
+  - Revision payload now snapshots `package_total_rupiah`, `parts_total_rupiah`, `service_price_rupiah`, `package_base_service_price_rupiah`, `package_service_extra_rupiah`, `package_profit_rupiah`, `total_service_component_rupiah`, `store_stock_lines`, and `external_purchase_lines`.
 - Gap summary:
   - Phase 2 candidate closed locally: package-aware correction floor guard.
-  - Phase 3 candidate: full revision payload fingerprint fields.
-- Next action: Start Phase 3 source-map for NoteRevisionLinePayloadMapper and historical fingerprint tests.
+  - Phase 3 candidate closed locally: full revision payload fingerprint fields for service_with_store_stock_part package.
+- Next action: Stop here. Do not start Phase 4 UI flexible package, Phase 5 refund component-type policy, or Phase 6 report query until owner opens that phase.
 - Tests linked: EditTransactionWorkspaceRevisionPaymentCharacterizationTest, EditTransactionWorkspacePackageAutoSplitCharacterizationTest, CorrectPaidServiceWithStoreStockPartServiceFeeOnlyFeatureTest.
 - Owner decision dependency: none for V2 direction; base-missing behavior remains Phase 3/contract characterization if needed.
-
