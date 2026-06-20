@@ -15,7 +15,7 @@ final class PackageAutoSplitCreateReportImpactFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_package_auto_split_create_output_is_visible_to_transaction_and_profit_reports(): void
+    public function test_phase2_package_auto_split_store_stock_report_remains_valid_and_external_package_path_is_blocked(): void
     {
         $this->loginAsKasir();
 
@@ -35,8 +35,13 @@ final class PackageAutoSplitCreateReportImpactFeatureTest extends TestCase
         $this->actingAs($user)->post(route('notes.workspace.store'), $this->storeStockPackagePayload())
             ->assertRedirect(route('cashier.notes.index'));
 
-        $this->actingAs($user)->post(route('notes.workspace.store'), $this->externalPackagePayload())
-            ->assertRedirect(route('cashier.notes.index'));
+        $this->actingAs($user)
+            ->from(route('cashier.notes.workspace.create'))
+            ->post(route('notes.workspace.store'), $this->externalPackagePayload())
+            ->assertRedirect(route('cashier.notes.workspace.create'))
+            ->assertSessionHasErrors([
+                'workspace' => 'Pembelian luar tidak boleh memakai jalur package auto split sebelum kontrak label + total dikunci.',
+            ]);
 
         $transactionResult = app(GetTransactionReportDatasetHandler::class)
             ->handle('2030-01-01', '2030-01-31');
@@ -46,10 +51,10 @@ final class PackageAutoSplitCreateReportImpactFeatureTest extends TestCase
         $transactionData = $transactionResult->data();
         $this->assertIsArray($transactionData);
 
-        $this->assertSame(2, $transactionData['summary']['total_rows']);
-        $this->assertSame(430000, $transactionData['summary']['gross_transaction_rupiah']);
+        $this->assertSame(1, $transactionData['summary']['total_rows']);
+        $this->assertSame(250000, $transactionData['summary']['gross_transaction_rupiah']);
         $this->assertSame(0, $transactionData['summary']['allocated_payment_rupiah']);
-        $this->assertSame(430000, $transactionData['summary']['outstanding_rupiah']);
+        $this->assertSame(250000, $transactionData['summary']['outstanding_rupiah']);
 
         $rowsByCustomer = collect($transactionData['rows'])->keyBy('customer_name');
 
@@ -57,10 +62,8 @@ final class PackageAutoSplitCreateReportImpactFeatureTest extends TestCase
             250000,
             $rowsByCustomer['Budi Package Store Report']['gross_transaction_rupiah']
         );
-        $this->assertSame(
-            180000,
-            $rowsByCustomer['Budi Package External Report']['gross_transaction_rupiah']
-        );
+
+        $this->assertArrayNotHasKey('Budi Package External Report', $rowsByCustomer->all());
 
         $profitResult = app(GetOperationalProfitSummaryHandler::class)
             ->handle('2030-01-01', '2030-01-31');
@@ -74,10 +77,10 @@ final class PackageAutoSplitCreateReportImpactFeatureTest extends TestCase
 
         $this->assertSame(0, $row['cash_in_rupiah']);
         $this->assertSame(0, $row['refunded_rupiah']);
-        $this->assertSame(80000, $row['external_purchase_cost_rupiah']);
+        $this->assertSame(0, $row['external_purchase_cost_rupiah']);
         $this->assertSame(90000, $row['store_stock_cogs_rupiah']);
-        $this->assertSame(170000, $row['product_purchase_cost_rupiah']);
-        $this->assertSame(-170000, $row['cash_operational_profit_rupiah']);
+        $this->assertSame(90000, $row['product_purchase_cost_rupiah']);
+        $this->assertSame(-90000, $row['cash_operational_profit_rupiah']);
     }
 
     private function seedStoreStockProducts(): void

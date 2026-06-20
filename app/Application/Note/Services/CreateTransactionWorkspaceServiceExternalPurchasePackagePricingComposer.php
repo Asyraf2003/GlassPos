@@ -8,8 +8,6 @@ use App\Core\Shared\Exceptions\DomainException;
 
 final class CreateTransactionWorkspaceServiceExternalPurchasePackagePricingComposer
 {
-    private const DEFAULT_LABEL = 'Pembelian luar';
-
     /**
      * @param array<string, mixed> $item
      * @return array<string, mixed>
@@ -28,24 +26,6 @@ final class CreateTransactionWorkspaceServiceExternalPurchasePackagePricingCompo
         }
 
         throw new DomainException('Pembelian luar tidak boleh memakai jalur package auto split sebelum kontrak label + total dikunci.');
-
-        $packageTotal = $this->requiredInt($item['package_total_rupiah'] ?? null, 'Harga paket wajib diisi.');
-
-        if ($packageTotal < $externalTotal) {
-            throw new DomainException('Harga paket tidak boleh lebih kecil dari total pembelian luar.');
-        }
-
-        $service = is_array($item['service'] ?? null) ? $item['service'] : [];
-        $service['price_rupiah'] = $packageTotal - $externalTotal;
-
-        $line['label'] = $this->labelOrDefault($line['label'] ?? null);
-        $line['qty'] = 1;
-        $line['unit_cost_rupiah'] = $externalTotal;
-
-        $item['service'] = $service;
-        $item['external_purchase_lines'] = [$line];
-
-        return $item;
     }
 
     /**
@@ -61,20 +41,6 @@ final class CreateTransactionWorkspaceServiceExternalPurchasePackagePricingCompo
         $first = array_values($value)[0] ?? [];
 
         return is_array($first) ? $first : [];
-    }
-
-    private function labelOrDefault(mixed $value): string
-    {
-        return is_string($value) && trim($value) !== '' ? trim($value) : self::DEFAULT_LABEL;
-    }
-
-    private function requiredInt(mixed $value, string $message): int
-    {
-        if (! is_int($value) || $value <= 0) {
-            throw new DomainException($message);
-        }
-
-        return $value;
     }
 
     private function intValue(mixed $value): int
