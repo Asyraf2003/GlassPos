@@ -294,34 +294,49 @@ final class CreateTransactionWorkspaceLineTypeCharacterizationTest extends TestC
         $this->assertDatabaseCount('inventory_movements', 2);
     }
 
-    public function test_current_ui_source_contract_service_store_stock_blocks_and_preloads_one_product_line_despite_owner_target_multi_part_package(): void
+    public function test_phase4_ui_source_contract_service_store_stock_allows_multiple_product_lines_and_preloads_all_lines(): void
     {
         $blade = file_get_contents(resource_path('views/cashier/notes/workspace/partials/templates/service-store-stock.blade.php'));
         $rowsJs = file_get_contents(public_path('assets/static/js/pages/cashier-note-workspace/rows.js'));
+        $draftJs = file_get_contents(public_path('assets/static/js/pages/cashier-note-workspace/draft.js'));
 
         self::assertIsString($blade);
         self::assertIsString($rowsJs);
+        self::assertIsString($draftJs);
 
         $this->assertStringContainsString('name="items[__INDEX__][pricing_mode]" value="package_auto_split"', $blade);
         $this->assertStringContainsString('name="items[__INDEX__][requires_service_product_template]" value="1"', $blade);
         $this->assertStringContainsString('data-product-line-template', $blade);
+        $this->assertStringContainsString('data-add-product-line', $blade);
 
-        $this->assertStringContainsString('productLineScopes(row).length >= 1', $rowsJs);
-        $this->assertStringContainsString('.slice(0, 1)', $rowsJs);
+        $this->assertStringNotContainsString('productLineScopes(row).length >= 1', $rowsJs);
+        $this->assertStringNotContainsString('.slice(0, 1)', $rowsJs);
+        $this->assertStringNotContainsString(
+            'product_lines: productLinesFromRow(row).slice(0, 1),',
+            $draftJs
+        );
     }
 
-    public function test_phase2_template_preset_multi_product_extension_remains_blocked_until_phase4_contract(): void
+    public function test_phase4_template_preset_multi_product_extension_is_supported(): void
     {
         $user = $this->loginAsKasir();
         $this->seedProduct('phase2-template-guard-a', 40000, 25000);
         $this->seedProduct('phase2-template-guard-b', 30000, 20000);
+        $this->seedServiceCatalogItem('phase4-template-service-a', 'Template Preset Multi Phase 4', 50000);
+        $this->seedTemplate(
+            'phase4-template-preset-a',
+            'phase2-template-guard-a',
+            'phase4-template-service-a',
+            50000,
+            90000
+        );
 
         $response = $this->actingAs($user)
             ->from(route('cashier.notes.workspace.create'))
             ->post(route('notes.workspace.store'), [
-                'idempotency_key' => 'phase2-template-preset-multi-blocked',
+                'idempotency_key' => 'phase4-template-preset-multi-supported',
                 'note' => [
-                    'customer_name' => 'Phase 2 Template Preset Multi Blocked',
+                    'customer_name' => 'Phase 4 Template Preset Multi Supported',
                     'customer_phone' => '08123',
                     'transaction_date' => '2026-06-21',
                 ],
@@ -362,21 +377,48 @@ final class CreateTransactionWorkspaceLineTypeCharacterizationTest extends TestC
                 ],
             ]);
 
-        $response->assertRedirect(route('cashier.notes.workspace.create'));
-        $response->assertSessionHasErrors([
-            'workspace' => 'Paket servis + produk hanya boleh memakai 1 produk template aktif.',
-        ]);
+        $response->assertRedirect(route('cashier.notes.index'));
 
-        $this->assertDatabaseMissing('notes', [
-            'customer_name' => 'Phase 2 Template Preset Multi Blocked',
+        $noteId = (string) DB::table('notes')
+            ->where('customer_name', 'Phase 4 Template Preset Multi Supported')
+            ->value('id');
+        $workItemId = (string) DB::table('work_items')->where('note_id', $noteId)->value('id');
+
+        self::assertNotSame('', $noteId);
+        self::assertNotSame('', $workItemId);
+
+        $this->assertDatabaseHas('notes', [
+            'id' => $noteId,
+            'total_rupiah' => 150000,
         ]);
-        $this->assertDatabaseMissing('work_items', [
+        $this->assertDatabaseHas('work_items', [
+            'id' => $workItemId,
             'transaction_type' => 'service_with_store_stock_part',
             'subtotal_rupiah' => 150000,
         ]);
+        $this->assertDatabaseHas('work_item_service_details', [
+            'work_item_id' => $workItemId,
+            'service_price_rupiah' => 56000,
+            'package_base_service_price_rupiah' => 50000,
+            'package_service_extra_rupiah' => 6000,
+            'package_profit_rupiah' => 24000,
+        ]);
+        $this->assertDatabaseCount('work_item_store_stock_lines', 2);
+        $this->assertDatabaseHas('work_item_store_stock_lines', [
+            'work_item_id' => $workItemId,
+            'product_id' => 'phase2-template-guard-a',
+            'qty' => 1,
+            'line_total_rupiah' => 40000,
+        ]);
+        $this->assertDatabaseHas('work_item_store_stock_lines', [
+            'work_item_id' => $workItemId,
+            'product_id' => 'phase2-template-guard-b',
+            'qty' => 1,
+            'line_total_rupiah' => 30000,
+        ]);
     }
 
-    public function test_current_behavior_template_branch_rejects_multi_product_package_preset_extension(): void
+    public function test_template_locked_package_still_requires_active_template_on_primary_product(): void
     {
         $user = $this->loginAsKasir();
         $this->seedProduct('phase1-template-multi-a', 40000, 25000);
@@ -430,7 +472,7 @@ final class CreateTransactionWorkspaceLineTypeCharacterizationTest extends TestC
 
         $response->assertRedirect(route('cashier.notes.workspace.create'));
         $response->assertSessionHasErrors([
-            'workspace' => 'Paket servis + produk hanya boleh memakai 1 produk template aktif.',
+            'workspace' => 'Paket servis + produk wajib memakai template aktif.',
         ]);
 
         $this->assertDatabaseCount('notes', 0);
@@ -493,63 +535,57 @@ final class CreateTransactionWorkspaceLineTypeCharacterizationTest extends TestC
         $this->assertDatabaseCount('work_item_external_purchase_lines', 0);
     }
 
-    public function test_phase2_external_purchase_label_total_ui_gap_remains_and_backend_package_path_is_blocked(): void
+    public function test_phase4_external_purchase_ui_uses_owner_facing_label_and_total_while_package_path_stays_blocked(): void
     {
         $blade = file_get_contents(resource_path('views/cashier/notes/workspace/partials/templates/service-external.blade.php'));
 
         self::assertIsString($blade);
 
         $this->assertStringContainsString('external_purchase_lines][0][label]', $blade);
-        $this->assertStringContainsString('external_purchase_lines][0][qty]', $blade);
-        $this->assertStringContainsString('external_purchase_lines][0][unit_cost_rupiah]', $blade);
-        $this->assertStringNotContainsString('external_purchase_lines][0][total_rupiah]', $blade);
+        $this->assertStringContainsString('external_purchase_lines][0][total_rupiah]', $blade);
+        $this->assertStringNotContainsString('external_purchase_lines][0][qty]', $blade);
+        $this->assertStringNotContainsString('external_purchase_lines][0][unit_cost_rupiah]', $blade);
         $this->assertStringNotContainsString('package_total_rupiah', $blade);
 
         $user = $this->loginAsKasir();
 
-        $validationGap = $this->actingAs($user)
-            ->from(route('cashier.notes.workspace.create'))
-            ->post(route('notes.workspace.store'), [
-                'idempotency_key' => 'phase1-external-label-total-rejected',
-                'note' => [
-                    'customer_name' => 'Phase 1 External Label Total Rejected',
-                    'customer_phone' => '08123',
-                    'transaction_date' => '2026-03-15',
-                ],
-                'items' => [[
-                    'entry_mode' => 'service',
-                    'part_source' => 'external_purchase',
-                    'pricing_mode' => 'package_auto_split',
-                    'package_total_rupiah' => 180000,
-                    'pay_now' => 0,
-                    'service' => [
-                        'name' => 'External Label Total Target',
-                        'price_rupiah' => 0,
-                        'notes' => '',
-                    ],
-                    'product_lines' => [[
-                        'product_id' => '',
-                        'qty' => '',
-                        'unit_price_rupiah' => '',
-                    ]],
-                    'external_purchase_lines' => [[
-                        'label' => 'Bearing Total Only',
-                        'qty' => '',
-                        'unit_cost_rupiah' => '',
-                        'total_rupiah' => 80000,
-                    ]],
-                ]],
-                'inline_payment' => [
-                    'decision' => 'skip',
-                    'payment_method' => null,
-                    'paid_at' => '2026-03-15',
-                ],
-            ]);
+        $normalExternal = $this->postWorkspace($user, 'phase4-external-label-total-supported', [[
+            'entry_mode' => 'service',
+            'part_source' => 'external_purchase',
+            'pay_now' => 0,
+            'service' => [
+                'name' => 'External Label Total Target',
+                'price_rupiah' => 80000,
+                'notes' => '',
+            ],
+            'product_lines' => [[
+                'product_id' => '',
+                'qty' => '',
+                'unit_price_rupiah' => '',
+            ]],
+            'external_purchase_lines' => [[
+                'label' => 'Bearing Total Only',
+                'total_rupiah' => 80000,
+            ]],
+        ]], 'Phase 4 External Label Total Supported');
 
-        $validationGap->assertRedirect(route('cashier.notes.workspace.create'));
-        $validationGap->assertSessionHasErrors([
-            'items.0.external_purchase_lines.0.qty',
-            'items.0.external_purchase_lines.0.unit_cost_rupiah',
+        $normalExternal->assertRedirect(route('cashier.notes.index'));
+
+        $noteId = (string) DB::table('notes')
+            ->where('customer_name', 'Phase 4 External Label Total Supported')
+            ->value('id');
+        $workItemId = (string) DB::table('work_items')->where('note_id', $noteId)->value('id');
+
+        $this->assertDatabaseHas('notes', [
+            'id' => $noteId,
+            'total_rupiah' => 160000,
+        ]);
+        $this->assertDatabaseHas('work_item_external_purchase_lines', [
+            'work_item_id' => $workItemId,
+            'cost_description' => 'Bearing Total Only',
+            'qty' => 1,
+            'unit_cost_rupiah' => 80000,
+            'line_total_rupiah' => 80000,
         ]);
 
         $response = $this->postWorkspace($user, 'phase1-external-package-gap', [[
@@ -584,7 +620,7 @@ final class CreateTransactionWorkspaceLineTypeCharacterizationTest extends TestC
         $this->assertDatabaseMissing('notes', [
             'customer_name' => 'Phase 1 External Package Gap',
         ]);
-        $this->assertDatabaseCount('work_item_external_purchase_lines', 0);
+        $this->assertDatabaseCount('work_item_external_purchase_lines', 1);
     }
 
     /**
@@ -628,6 +664,39 @@ final class CreateTransactionWorkspaceLineTypeCharacterizationTest extends TestC
             'product_id' => $id,
             'avg_cost_rupiah' => $avgCostRupiah,
             'inventory_value_rupiah' => $avgCostRupiah * 20,
+        ]);
+    }
+
+    private function seedServiceCatalogItem(string $id, string $name, int $defaultPriceRupiah): void
+    {
+        DB::table('service_catalog_items')->insert([
+            'id' => $id,
+            'name' => $name,
+            'normalized_name' => mb_strtolower($name),
+            'default_price_rupiah' => $defaultPriceRupiah,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    private function seedTemplate(
+        string $id,
+        string $productId,
+        string $serviceCatalogItemId,
+        int $defaultServicePriceRupiah,
+        ?int $defaultPackageTotalRupiah,
+    ): void {
+        DB::table('service_product_templates')->insert([
+            'id' => $id,
+            'product_id' => $productId,
+            'service_catalog_item_id' => $serviceCatalogItemId,
+            'default_service_price_rupiah' => $defaultServicePriceRupiah,
+            'default_package_total_rupiah' => $defaultPackageTotalRupiah,
+            'is_active' => true,
+            'sort_order' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 }
