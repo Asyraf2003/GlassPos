@@ -387,9 +387,54 @@ final class CreateTransactionWorkspaceLineTypeCharacterizationTest extends TestC
 
         $user = $this->loginAsKasir();
 
+        $validationGap = $this->actingAs($user)
+            ->from(route('cashier.notes.workspace.create'))
+            ->post(route('notes.workspace.store'), [
+                'idempotency_key' => 'phase1-external-label-total-rejected',
+                'note' => [
+                    'customer_name' => 'Phase 1 External Label Total Rejected',
+                    'customer_phone' => '08123',
+                    'transaction_date' => '2026-03-15',
+                ],
+                'items' => [[
+                    'entry_mode' => 'service',
+                    'part_source' => 'external_purchase',
+                    'pricing_mode' => 'package_auto_split',
+                    'package_total_rupiah' => 180000,
+                    'pay_now' => 0,
+                    'service' => [
+                        'name' => 'External Label Total Target',
+                        'price_rupiah' => 0,
+                        'notes' => '',
+                    ],
+                    'product_lines' => [[
+                        'product_id' => '',
+                        'qty' => '',
+                        'unit_price_rupiah' => '',
+                    ]],
+                    'external_purchase_lines' => [[
+                        'label' => 'Bearing Total Only',
+                        'qty' => '',
+                        'unit_cost_rupiah' => '',
+                        'total_rupiah' => 80000,
+                    ]],
+                ]],
+                'inline_payment' => [
+                    'decision' => 'skip',
+                    'payment_method' => null,
+                    'paid_at' => '2026-03-15',
+                ],
+            ]);
+
+        $validationGap->assertRedirect(route('cashier.notes.workspace.create'));
+        $validationGap->assertSessionHasErrors([
+            'items.0.external_purchase_lines.0.qty',
+            'items.0.external_purchase_lines.0.unit_cost_rupiah',
+        ]);
+
         $response = $this->postWorkspace($user, 'phase1-external-package-gap', [[
             'entry_mode' => 'service',
-            'part_source' => 'external_purchase',
+            'part_source' => 'none',
             'pricing_mode' => 'package_auto_split',
             'package_total_rupiah' => 180000,
             'pay_now' => 0,
