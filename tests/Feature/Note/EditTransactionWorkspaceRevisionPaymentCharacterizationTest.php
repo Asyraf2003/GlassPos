@@ -350,7 +350,7 @@ final class EditTransactionWorkspaceRevisionPaymentCharacterizationTest extends 
         }
     }
 
-    public function test_current_gap_correct_paid_service_with_store_stock_part_service_fee_only_package_accepts_below_base_and_leaves_package_fields_stale(): void
+    public function test_phase2_package_correction_rejects_service_price_below_package_base_floor_and_keeps_rows_unchanged(): void
     {
         $this->seedNotePaymentProduct('batch2-correction-product', 'B2-CORR', 'Batch 2 Correction Product', 'Federal', 100, 50000);
 
@@ -396,28 +396,34 @@ final class EditTransactionWorkspaceRevisionPaymentCharacterizationTest extends 
             'Batch 2 Package Correction Below Base',
             60000,
             ServiceDetail::PART_SOURCE_NONE,
-            'Batch 2 current behavior correction below package base.',
+            'Batch 2 phase 2 floor guard correction below package base.',
             'actor-batch2-correction',
         );
 
-        self::assertTrue($result->isSuccess(), $result->message());
-        self::assertSame(40000, $result->data()['refund_required_rupiah']);
+        self::assertFalse($result->isSuccess(), $result->message());
 
         $this->assertDatabaseHas('notes', [
             'id' => 'note-batch2-correction',
-            'total_rupiah' => 110000,
+            'total_rupiah' => 150000,
         ]);
         $this->assertDatabaseHas('work_items', [
             'id' => 'wi-batch2-correction',
-            'subtotal_rupiah' => 110000,
+            'subtotal_rupiah' => 150000,
         ]);
         $this->assertDatabaseHas('work_item_service_details', [
             'work_item_id' => 'wi-batch2-correction',
-            'service_name' => 'Batch 2 Package Correction Below Base',
-            'service_price_rupiah' => 60000,
+            'service_name' => 'Batch 2 Package Correction Original',
+            'service_price_rupiah' => 100000,
             'package_profit_rupiah' => 30000,
             'package_base_service_price_rupiah' => 80000,
             'package_service_extra_rupiah' => 20000,
+        ]);
+        $this->assertDatabaseHas('work_item_store_stock_lines', [
+            'id' => 'ssl-batch2-correction',
+            'work_item_id' => 'wi-batch2-correction',
+            'product_id' => 'batch2-correction-product',
+            'qty' => 1,
+            'line_total_rupiah' => 50000,
         ]);
     }
 
