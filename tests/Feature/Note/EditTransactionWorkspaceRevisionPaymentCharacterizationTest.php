@@ -69,6 +69,7 @@ final class EditTransactionWorkspaceRevisionPaymentCharacterizationTest extends 
         self::assertNotSame('', $oldWorkItemId);
         self::assertNotSame('', $oldLineId);
         self::assertNotSame('', $paymentId);
+        $this->seedSingleStoreStockCurrentRevisionFromActiveRows($noteId, $noteId . '-r001', 'Batch 2 Edit Up DP', '2026-06-10');
 
         $this->assertDatabaseHas('notes', [
             'id' => $noteId,
@@ -215,6 +216,7 @@ final class EditTransactionWorkspaceRevisionPaymentCharacterizationTest extends 
         self::assertNotSame('', $noteId);
         self::assertNotSame('', $oldWorkItemId);
         self::assertNotSame('', $paymentId);
+        $this->seedSingleStoreStockCurrentRevisionFromActiveRows($noteId, $noteId . '-r001', 'Batch 2 Edit Down Paid', '2026-06-10');
 
         $this->actingAs($admin)->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), [
             'reason' => 'Batch 2 downward package revision.',
@@ -331,7 +333,7 @@ final class EditTransactionWorkspaceRevisionPaymentCharacterizationTest extends 
         $payload = $mapper->map($item);
 
         self::assertSame('package_auto_split', $payload['pricing_mode'] ?? null);
-        self::assertSame(180000, $payload['package_total_rupiah'] ?? null);
+        self::assertSame(220000, $payload['package_total_rupiah'] ?? null);
         self::assertSame(50000, $payload['parts_total_rupiah'] ?? null);
         self::assertSame(130000, $payload['service_price_rupiah'] ?? null);
         self::assertSame(130000, $payload['service']['service_price_rupiah'] ?? null);
@@ -422,6 +424,7 @@ final class EditTransactionWorkspaceRevisionPaymentCharacterizationTest extends 
     public function test_current_behavior_dp_and_followup_payment_do_not_change_subtotal_or_inventory_cogs(): void
     {
         $cashier = $this->seedActor('Kasir Batch 2 Followup Payment', 'kasir-batch2-followup@example.test', 'kasir');
+        $admin = $this->seedActor('Admin Batch 2 Followup Payment', 'admin-batch2-followup@example.test', 'admin');
         $this->seedProduct('batch2-followup-product', 50000, 30000, 20);
 
         $this->postWorkspace($cashier, 'batch2-followup-create-dp', [[
@@ -458,20 +461,21 @@ final class EditTransactionWorkspaceRevisionPaymentCharacterizationTest extends 
 
         self::assertNotSame('', $noteId);
         self::assertNotSame('', $workItemId);
+        $this->seedSingleStoreStockCurrentRevisionFromActiveRows($noteId, $noteId . '-r001', 'Batch 2 Followup Payment', '2026-06-10');
 
         $subtotalBefore = (int) DB::table('work_items')->where('id', $workItemId)->value('subtotal_rupiah');
         $noteTotalBefore = (int) DB::table('notes')->where('id', $noteId)->value('total_rupiah');
         $inventoryMovementCountBefore = DB::table('inventory_movements')->count();
         $inventoryCogsBefore = (int) DB::table('inventory_movements')->sum('total_cost_rupiah');
 
-        $this->actingAs($cashier)
-            ->post(route('cashier.notes.payments.store', ['noteId' => $noteId]), [
+        $this->actingAs($admin)
+            ->post(route('admin.notes.payments.store', ['noteId' => $noteId]), [
                 'selected_row_ids' => [$workItemId],
                 'payment_method' => 'cash',
                 'paid_at' => '2026-06-14',
                 'amount_received' => 100000,
             ])
-            ->assertRedirect(route('cashier.notes.show', ['noteId' => $noteId]))
+            ->assertRedirect(route('admin.notes.show', ['noteId' => $noteId]))
             ->assertSessionHas('success');
 
         self::assertSame($noteTotalBefore, (int) DB::table('notes')->where('id', $noteId)->value('total_rupiah'));
@@ -550,6 +554,37 @@ final class EditTransactionWorkspaceRevisionPaymentCharacterizationTest extends 
             'avg_cost_rupiah' => $avgCostRupiah,
             'inventory_value_rupiah' => $avgCostRupiah * $qtyOnHand,
         ]);
+    }
+
+    private function seedSingleStoreStockCurrentRevisionFromActiveRows(
+        string $noteId,
+        string $revisionId,
+        string $customerName,
+        string $transactionDate
+    ): void {
+        $workItem = DB::table('work_items')->where('note_id', $noteId)->first();
+        self::assertNotNull($workItem);
+
+        $serviceDetail = DB::table('work_item_service_details')->where('work_item_id', (string) $workItem->id)->first();
+        self::assertNotNull($serviceDetail);
+
+        $storeStockLine = DB::table('work_item_store_stock_lines')->where('work_item_id', (string) $workItem->id)->first();
+        self::assertNotNull($storeStockLine);
+
+        $this->seedServiceWithStoreStockCurrentRevision(
+            $noteId,
+            $revisionId,
+            (string) $workItem->id,
+            $customerName,
+            $transactionDate,
+            (int) $workItem->subtotal_rupiah,
+            (string) $serviceDetail->service_name,
+            (int) $serviceDetail->service_price_rupiah,
+            (string) $storeStockLine->id,
+            (string) $storeStockLine->product_id,
+            (int) $storeStockLine->qty,
+            (int) $storeStockLine->line_total_rupiah,
+        );
     }
 
     /**
