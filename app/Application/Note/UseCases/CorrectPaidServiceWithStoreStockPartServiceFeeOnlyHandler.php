@@ -61,6 +61,13 @@ final class CorrectPaidServiceWithStoreStockPartServiceFeeOnlyHandler
             if ($target->transactionType() !== WorkItem::TYPE_SERVICE_WITH_STORE_STOCK_PART) throw new DomainException('Correction slice ini hanya mendukung work item service_with_store_stock_part.');
 
             $before = $this->snapshots->build($note);
+            $currentServiceDetail = $target->serviceDetail();
+            $packageBaseServicePrice = $currentServiceDetail?->packageBaseServicePriceRupiah();
+
+            if ($packageBaseServicePrice !== null && $servicePriceRupiah < $packageBaseServicePrice->amount()) {
+                throw new DomainException('Harga jasa package hasil correction tidak boleh lebih kecil dari base/default service price.');
+            }
+
             $detail = ServiceDetail::create($serviceName, Money::fromInt($servicePriceRupiah), $partSource);
             $subtotal = $detail->servicePriceRupiah()->add(StoreStockLinesSubtotal::sum($target->storeStockLines()));
             $corrected = WorkItem::rehydrate($target->id(), $target->noteId(), $target->lineNo(), $target->transactionType(), $target->status(), $subtotal, $detail, [], $target->storeStockLines());
