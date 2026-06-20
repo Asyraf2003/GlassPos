@@ -439,6 +439,60 @@ final class CreateTransactionWorkspaceLineTypeCharacterizationTest extends TestC
         $this->assertDatabaseCount('inventory_movements', 0);
     }
 
+    public function test_phase2_external_purchase_package_backend_path_is_rejected_until_explicit_contract_exists(): void
+    {
+        $user = $this->loginAsKasir();
+
+        $response = $this->actingAs($user)
+            ->from(route('cashier.notes.workspace.create'))
+            ->post(route('notes.workspace.store'), [
+                'idempotency_key' => 'phase2-external-package-backend-guard',
+                'note' => [
+                    'customer_name' => 'Phase 2 External Package Backend Guard',
+                    'customer_phone' => '08123',
+                    'transaction_date' => '2026-06-21',
+                ],
+                'items' => [[
+                    'entry_mode' => 'service',
+                    'part_source' => 'none',
+                    'pricing_mode' => 'package_auto_split',
+                    'package_total_rupiah' => 180000,
+                    'pay_now' => 0,
+                    'service' => [
+                        'name' => 'External Package Backend Guard',
+                        'price_rupiah' => 0,
+                        'notes' => '',
+                    ],
+                    'product_lines' => [[
+                        'product_id' => '',
+                        'qty' => '',
+                        'unit_price_rupiah' => '',
+                    ]],
+                    'external_purchase_lines' => [[
+                        'label' => 'Bearing Total Only',
+                        'qty' => '',
+                        'unit_cost_rupiah' => '',
+                        'total_rupiah' => 80000,
+                    ]],
+                ]],
+                'inline_payment' => [
+                    'decision' => 'skip',
+                    'payment_method' => null,
+                    'paid_at' => '2026-06-21',
+                ],
+            ]);
+
+        $response->assertRedirect(route('cashier.notes.workspace.create'));
+        $response->assertSessionHasErrors([
+            'workspace' => 'Pembelian luar tidak boleh memakai jalur package auto split sebelum kontrak label + total dikunci.',
+        ]);
+
+        $this->assertDatabaseMissing('notes', [
+            'customer_name' => 'Phase 2 External Package Backend Guard',
+        ]);
+        $this->assertDatabaseCount('work_item_external_purchase_lines', 0);
+    }
+
     public function test_current_external_purchase_ui_backend_gap_label_total_target_vs_package_backend_path(): void
     {
         $blade = file_get_contents(resource_path('views/cashier/notes/workspace/partials/templates/service-external.blade.php'));
