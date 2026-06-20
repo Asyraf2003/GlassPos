@@ -76,19 +76,17 @@ Evidence:
 - Full financial fingerprint, package-aware correction, and DP/pelunasan behavior lock: owner decision V2 from current discussion
 
 Progress Local:
-- Status: IN_PROGRESS
-- Last checked: 2026-06-20
-- Last evidence: Batch 2 edit/revision/payment GREEN. `php artisan test --filter=EditTransactionWorkspaceRevisionPaymentCharacterizationTest` => 5 passed, 66 assertions; `php artisan test --filter=EditTransactionWorkspace` => 16 passed, 155 assertions; `php artisan test --filter=CorrectPaidServiceWithStoreStockPartServiceFeeOnly` => 3 passed, 44 assertions; `php artisan test --filter=CreateTransactionWorkspaceLineTypeCharacterizationTest` => 8 passed, 67 assertions; broad `php artisan test --filter=Payment` => 82 passed, 752 assertions.
-- Current behavior found:
-  - Edit up from DP replays payment to replacement components and records underpaid.
-  - Edit down from paid caps replay and records overpaid_pending/surplus.
-  - Revision payload is not full package financial fingerprint yet.
-  - Correction fee-only package currently accepts below base/default service price and leaves package fields stale.
-  - DP/follow-up payment does not change subtotal or inventory COGS.
+- Status: FIXED
+- Last checked: 2026-06-21
+- Last evidence: Phase 2 correction floor guard GREEN. Package correction now rejects adjusted service price below package base/default floor and keeps rows unchanged.
+- Current behavior after Phase 2:
+  - Edit up/down and payment allocation behavior remains characterized by Batch 2 tests.
+  - Correction fee-only package no longer accepts below-base service price when package base exists.
+  - Revision payload is still not full package financial fingerprint yet.
 - Gap summary:
-  - Phase 2 candidate done locally: package-aware correction floor guard rejects service price below package base/default floor and keeps rows unchanged.
+  - Phase 2 candidate closed locally: package-aware correction floor guard.
   - Phase 3 candidate: full revision payload fingerprint fields.
-- Next action: Continue remaining Phase 2 hardening guard source-map before selecting the next RED test.
+- Next action: Start Phase 3 source-map for NoteRevisionLinePayloadMapper and historical fingerprint tests.
 - Tests linked: EditTransactionWorkspaceRevisionPaymentCharacterizationTest, EditTransactionWorkspacePackageAutoSplitCharacterizationTest, CorrectPaidServiceWithStoreStockPartServiceFeeOnlyFeatureTest.
-- Owner decision dependency: none for V2 direction; base-missing behavior still needs characterization before patch.
+- Owner decision dependency: none for V2 direction; base-missing behavior remains Phase 3/contract characterization if needed.
 

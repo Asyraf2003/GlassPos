@@ -73,7 +73,7 @@ Direction locked by Owner Decision V2:
 - package_auto_split: request accepts it and package_total.
 - template branch: current behavior rejects product_lines count not equal to 1 and fills package_profit/base/extra; Owner Decision V2 positions template as preset, not permanent boundary.
 - non-template branch: service price is package_total minus sparepart total; package profit/base/extra become zero/null.
-- external package branch: backend computes service price as package_total minus external total and forces internal qty `1`/unit_cost `external total`, but this is not the primary owner-facing direction.
+- external package branch: Phase 2 guard blocks backend `package_auto_split` with `external_purchase_lines.total_rupiah` until explicit owner-facing label + total contract is implemented.
 
 Evidence:
 - Work item constants: `app/Core/Note/WorkItem/WorkItem.php:12`, `app/Core/Note/WorkItem/WorkItem.php:13`, `app/Core/Note/WorkItem/WorkItem.php:14`, `app/Core/Note/WorkItem/WorkItem.php:15`
@@ -89,9 +89,9 @@ Evidence:
 - Phase 2 close note: backend guards now prevent premature template multi-product preset extension and external purchase package backend auto split before Phase 4 UI/source contract work.
 
 Progress Local:
-- Status: IN_PROGRESS
-- Last checked: 2026-06-20
-- Last evidence: Batch 1 create/package GREEN. `php artisan test --filter=CreateTransactionWorkspaceLineTypeCharacterizationTest` => 8 passed, 67 assertions. `php artisan test --filter=CreateTransactionWorkspace` => 44 passed, 429 assertions.
-- Next action: Keep this create/package map as characterization evidence; do not start Phase 2 until remaining Phase 1 batches are complete.
-- Tests linked: CreateTransactionWorkspace*, PackageAutoSplitCreateReportImpactFeatureTest.
-- Owner decision dependency: none for V2 direction; current source gap is characterized, final browser patch contract is deferred to Phase 4.
+- Status: FIXED
+- Last checked: 2026-06-21
+- Last evidence: Phase 2 hardening guard GREEN. Template preset multi-product extension remains blocked until Phase 4 contract; external purchase package backend path is rejected until explicit label + total contract exists.
+- Next action: Use this create/package map as Phase 3 context only; do not reopen external package auto split before Phase 4/source contract work.
+- Tests linked: CreateTransactionWorkspaceLineTypeCharacterizationTest, CreateTransactionWorkspaceServiceExternalPurchaseFeatureTest, PackageAutoSplitCreateReportImpactFeatureTest.
+- Owner decision dependency: none for Phase 2; flexible package UI remains deferred to Phase 4.
