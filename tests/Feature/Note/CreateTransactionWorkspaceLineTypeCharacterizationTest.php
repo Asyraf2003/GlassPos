@@ -493,7 +493,7 @@ final class CreateTransactionWorkspaceLineTypeCharacterizationTest extends TestC
         $this->assertDatabaseCount('work_item_external_purchase_lines', 0);
     }
 
-    public function test_current_external_purchase_ui_backend_gap_label_total_target_vs_package_backend_path(): void
+    public function test_phase2_external_purchase_label_total_ui_gap_remains_and_backend_package_path_is_blocked(): void
     {
         $blade = file_get_contents(resource_path('views/cashier/notes/workspace/partials/templates/service-external.blade.php'));
 
@@ -576,26 +576,15 @@ final class CreateTransactionWorkspaceLineTypeCharacterizationTest extends TestC
             ]],
         ]], 'Phase 1 External Package Gap');
 
-        $response->assertRedirect(route('cashier.notes.index'));
+        $response->assertRedirect(route('cashier.notes.workspace.create'));
+        $response->assertSessionHasErrors([
+            'workspace' => 'Pembelian luar tidak boleh memakai jalur package auto split sebelum kontrak label + total dikunci.',
+        ]);
 
-        $noteId = (string) DB::table('notes')->where('customer_name', 'Phase 1 External Package Gap')->value('id');
-        $workItemId = (string) DB::table('work_items')->where('note_id', $noteId)->value('id');
-
-        $this->assertDatabaseHas('notes', [
-            'id' => $noteId,
-            'total_rupiah' => 180000,
+        $this->assertDatabaseMissing('notes', [
+            'customer_name' => 'Phase 1 External Package Gap',
         ]);
-        $this->assertDatabaseHas('work_item_service_details', [
-            'work_item_id' => $workItemId,
-            'service_price_rupiah' => 100000,
-        ]);
-        $this->assertDatabaseHas('work_item_external_purchase_lines', [
-            'work_item_id' => $workItemId,
-            'cost_description' => 'Bearing Total Only',
-            'qty' => 1,
-            'unit_cost_rupiah' => 80000,
-            'line_total_rupiah' => 80000,
-        ]);
+        $this->assertDatabaseCount('work_item_external_purchase_lines', 0);
     }
 
     /**
