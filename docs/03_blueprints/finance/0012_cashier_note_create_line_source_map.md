@@ -30,17 +30,17 @@ Direction locked by Owner Decision V2:
 - Gaps: correction fee-only is existing path; package-specific risk not applicable unless mixed with package route.
 
 ## Line Type: service_with_external_purchase
-- UI Blade/JS: current row masih terlihat berorientasi label/qty/unit_cost; owner-facing target adalah label + total biaya keluar saja.
-- Request validation: external line 0 label/qty/unit_cost and `total_rupiah` accepted.
-- Normalizer: create item normalizer preserves first external purchase line.
-- Mapper: create mapper runs external package composer then returns `TYPE_SERVICE_WITH_EXTERNAL_PURCHASE` when external lines exist.
+- UI Blade/JS: Phase 4 row is owner-facing label + total biaya keluar.
+- Request validation: external line 0 label/qty/unit_cost and `total_rupiah` accepted for compatibility; total-only is valid for normal external purchase.
+- Normalizer: create item normalizer preserves first external purchase line including `total_rupiah`.
+- Mapper: create mapper runs external package composer then returns `TYPE_SERVICE_WITH_EXTERNAL_PURCHASE` when external lines exist; `total_rupiah` is persisted internally as `qty=1`, `unit_cost_rupiah=total_rupiah`.
 - Domain object: `WorkItem::TYPE_SERVICE_WITH_EXTERNAL_PURCHASE`.
 - Persisted tables: notes, work_items, work_item_service_details, work_item_external_purchase_lines; payment tables if paid.
 - Payment allocation: external part component(s) then service_fee.
 - Inventory movement: none.
 - Report impact: external purchase cost in Operational Profit uses transaction_date and refund netting uses refunded_at.
-- Current tests: `CreateTransactionWorkspaceServiceExternalPurchaseFeatureTest` includes backend package path.
-- Phase 2 guard fixed locally: external package auto split backend path is blocked until an explicit label + total contract exists. External purchase remains a separate domain; UI simplification remains deferred to Phase 4.
+- Current tests: `CreateTransactionWorkspaceServiceExternalPurchaseFeatureTest` includes backend package path; `CreateTransactionWorkspaceLineTypeCharacterizationTest` covers label + total UI/source contract.
+- Phase 4 fixed locally: normal external purchase accepts owner-facing label + total. External purchase remains a separate domain; backend `package_auto_split` path remains blocked.
 
 ## Line Type: store_stock_sale_only
 - UI Blade/JS: product row; exact partial needs re-check.
@@ -56,24 +56,24 @@ Direction locked by Owner Decision V2:
 - Gaps: product-only UI appears single-line; multi-line behavior outside package needs re-check.
 
 ## Line Type: service_with_store_stock_part
-- UI Blade/JS: current `service_store_stock` template sets `pricing_mode=package_auto_split`, `requires_service_product_template=1`, and package total.
+- UI Blade/JS: Phase 4 `service_store_stock` template sets `pricing_mode=package_auto_split`, `requires_service_product_template=1`, package total, and a product-line template/add button for many product/sparepart lines.
 - Request validation: accepts `manual_split`, `package_auto_split`, `package_total_rupiah`, and product_lines.
-- Normalizer: product_lines preserved by create item normalizer; exact multi-line browser contract is blocked by UI JS.
+- Normalizer: product_lines preserved by create item normalizer; browser draft/preload now preserves multiple service_store_stock product lines.
 - Mapper: create mapper composes store-stock package pricing then maps store lines and service.
 - Domain object: `WorkItem::TYPE_SERVICE_WITH_STORE_STOCK_PART`.
 - Persisted tables: notes, work_items, work_item_service_details, work_item_store_stock_lines, inventory_movements; payment tables if paid.
 - Payment allocation: store-stock part component per store line, then service_fee.
 - Inventory movement: stock_out per store-stock line.
 - Report impact: transaction gross, payment/refund cash, COGS from inventory_movements, package breakdown future source.
-- Current tests: backend multi-product package create tests exist in `CreateTransactionWorkspaceServiceStoreStockFeatureTest`.
-- Gaps: current UI JS blocks/preloads only one product line, padahal arah final adalah flexible package multi-part bertahap.
+- Current tests: backend multi-product package create tests exist in `CreateTransactionWorkspaceServiceStoreStockFeatureTest`; UI/source contract and template preset multi-product extension are covered in `CreateTransactionWorkspaceLineTypeCharacterizationTest`.
+- Gaps: many service components remain deferred; current Phase 4 target is one main service plus many product/sparepart lines.
 
 ## Package Auto Split Create Map
 - manual_split: request accepts it; advanced/UI visibility needs re-check.
 - package_auto_split: request accepts it and package_total.
-- template branch: current behavior rejects product_lines count not equal to 1 and fills package_profit/base/extra; Owner Decision V2 positions template as preset, not permanent boundary.
+- template branch: Phase 4 supports `requires_service_product_template=1` with multiple product_lines by using the first/primary product line's active template as the preset and including all product lines in sparepart total.
 - non-template branch: service price is package_total minus sparepart total; package profit/base/extra become zero/null.
-- external package branch: Phase 2 guard blocks backend `package_auto_split` with `external_purchase_lines.total_rupiah` until explicit owner-facing label + total contract is implemented.
+- external package branch: backend `package_auto_split` with `external_purchase_lines.total_rupiah` remains blocked because external purchase stays a separate domain.
 
 Evidence:
 - Work item constants: `app/Core/Note/WorkItem/WorkItem.php:12`, `app/Core/Note/WorkItem/WorkItem.php:13`, `app/Core/Note/WorkItem/WorkItem.php:14`, `app/Core/Note/WorkItem/WorkItem.php:15`
@@ -81,17 +81,24 @@ Evidence:
 - Create normalizer: `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceInputNormalizer.php:13`
 - Create mapper: `app/Application/Note/Services/CreateTransactionWorkspaceWorkItemPayloadMapper.php:29`, `app/Application/Note/Services/CreateTransactionWorkspaceWorkItemPayloadMapper.php:42`, `app/Application/Note/Services/CreateTransactionWorkspaceWorkItemPayloadMapper.php:54`, `app/Application/Note/Services/CreateTransactionWorkspaceWorkItemPayloadMapper.php:58`, `app/Application/Note/Services/CreateTransactionWorkspaceWorkItemPayloadMapper.php:62`
 - Payment components: `app/Application/Payment/Services/PayableComponentsFromWorkItem.php:22`, `app/Application/Payment/Services/PayableComponentsFromWorkItem.php:36`, `app/Application/Payment/Services/PayableComponentsFromWorkItem.php:50`
-- UI service_store_stock contract: `resources/views/cashier/notes/workspace/partials/templates/service-store-stock.blade.php:14`, `resources/views/cashier/notes/workspace/partials/templates/service-store-stock.blade.php:15`, `resources/views/cashier/notes/workspace/partials/templates/service-store-stock.blade.php:140`
-- UI multi-line limit: `public/assets/static/js/pages/cashier-note-workspace/rows.js:80`, `public/assets/static/js/pages/cashier-note-workspace/rows.js:81`, `public/assets/static/js/pages/cashier-note-workspace/rows.js:268`
-- Template/non-template package branch: `app/Application/Note/Services/CreateTransactionWorkspaceServiceStoreStockPackageAutoSplitBranches.php:22`, `app/Application/Note/Services/CreateTransactionWorkspaceServiceStoreStockPackageAutoSplitBranches.php:38`, `app/Application/Note/Services/CreateTransactionWorkspaceServiceStoreStockPackageAutoSplitBranches.php:57`, `app/Application/Note/Services/CreateTransactionWorkspaceServiceStoreStockPackageAutoSplitBranches.php:69`
-- External package branch: `app/Application/Note/Services/CreateTransactionWorkspaceServiceExternalPurchasePackagePricingComposer.php:19`, `app/Application/Note/Services/CreateTransactionWorkspaceServiceExternalPurchasePackagePricingComposer.php:30`, `app/Application/Note/Services/CreateTransactionWorkspaceServiceExternalPurchasePackagePricingComposer.php:37`
+- UI service_store_stock contract: `resources/views/cashier/notes/workspace/partials/templates/service-store-stock.blade.php:14`, `resources/views/cashier/notes/workspace/partials/templates/service-store-stock.blade.php:15`, `resources/views/cashier/notes/workspace/partials/templates/service-store-stock.blade.php:119`, `resources/views/cashier/notes/workspace/partials/templates/service-store-stock.blade.php:144`
+- UI external purchase label + total: `resources/views/cashier/notes/workspace/partials/templates/service-external.blade.php:47`
+- UI multi-line preload/draft: `public/assets/static/js/pages/cashier-note-workspace/rows.js:141`, `public/assets/static/js/pages/cashier-note-workspace/rows.js:271`, `public/assets/static/js/pages/cashier-note-workspace/draft.js:245`
+- Template/non-template package branch: `app/Application/Note/Services/CreateTransactionWorkspaceServiceStoreStockPackageAutoSplitBranches.php:22`, `app/Application/Note/Services/CreateTransactionWorkspaceServiceStoreStockPackageAutoSplitBranches.php:34`, `app/Application/Note/Services/CreateTransactionWorkspaceServiceStoreStockPackageAutoSplitBranches.php:63`, `app/Application/Note/Services/CreateTransactionWorkspaceServiceStoreStockPackageAutoSplitBranches.php:65`
+- External purchase total mapper: `app/Application/Note/Services/CreateTransactionWorkspaceExternalPurchaseLineMapper.php:18`, `app/Application/Note/Services/CreateTransactionWorkspaceServiceWorkItemVariantResolver.php:34`, `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceGrandTotalLineCalculator.php:24`
+- External package branch: `app/Application/Note/Services/CreateTransactionWorkspaceServiceExternalPurchasePackagePricingComposer.php:17`, `app/Application/Note/Services/CreateTransactionWorkspaceServiceExternalPurchasePackagePricingComposer.php:22`, `app/Application/Note/Services/CreateTransactionWorkspaceServiceExternalPurchasePackagePricingComposer.php:28`
 - Flexible package direction, template as preset, and external purchase as separate domain: owner decision V2 from current discussion
-- Phase 2 close note: backend guards now prevent premature template multi-product preset extension and external purchase package backend auto split before Phase 4 UI/source contract work.
+- Phase 4 close note: template preset multi-product extension is now supported for store-stock packages; external purchase normal row is label + total; external purchase package auto split remains blocked.
 
 Progress Local:
 - Status: FIXED
 - Last checked: 2026-06-21
-- Last evidence: Phase 2 hardening guard GREEN. Template preset multi-product extension remains blocked until Phase 4 contract; external purchase package backend path is rejected until explicit label + total contract exists.
-- Next action: Use this create/package map as Phase 3 context only; do not reopen external package auto split before Phase 4/source contract work.
-- Tests linked: CreateTransactionWorkspaceLineTypeCharacterizationTest, CreateTransactionWorkspaceServiceExternalPurchaseFeatureTest, PackageAutoSplitCreateReportImpactFeatureTest.
-- Owner decision dependency: none for Phase 2; flexible package UI remains deferred to Phase 4.
+- Last evidence: Phase 4 UI flexible package GREEN. Targeted filters GREEN: `CreateTransactionWorkspaceLineTypeCharacterizationTest`, `CreateTransactionWorkspaceServiceStoreStockFeatureTest`, `CreateTransactionWorkspaceServiceExternalPurchaseFeatureTest`, `CreateTransactionWorkspaceTemplateContractFeatureTest`, `CashierWorkspaceServiceProductTemplateMinimumContractFeatureTest`, `CashierWorkspaceServiceProductTemplateAutofillContractFeatureTest`, `EditTransactionWorkspacePackageAutoSplitCharacterizationTest`, `EditTransactionWorkspaceRevisionPaymentCharacterizationTest`, `NoteRevisionLinePayloadMapperTest`, `CorrectPaidServiceWithStoreStockPartServiceFeeOnly`. `make verify` GREEN: 1275 passed, 7423 assertions.
+- Current behavior:
+  - service_store_stock UI supports one service + many product/sparepart lines.
+  - template preset multi-product extension is supported using the primary product line active template.
+  - external purchase owner-facing label + total is supported and persisted internally as qty 1/unit cost total.
+  - external package_auto_split remains blocked.
+- Next action: Prepare Phase 5 refund component-type policy; do not start report query.
+- Tests linked: CreateTransactionWorkspaceLineTypeCharacterizationTest, CreateTransactionWorkspaceServiceStoreStockFeatureTest, CreateTransactionWorkspaceServiceExternalPurchaseFeatureTest, CreateTransactionWorkspaceTemplateContractFeatureTest, CashierWorkspaceServiceProductTemplateMinimumContractFeatureTest.
+- Owner decision dependency: none for Phase 4 target; many service components remain deferred.
