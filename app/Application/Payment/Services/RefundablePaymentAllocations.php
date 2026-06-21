@@ -19,7 +19,7 @@ final class RefundablePaymentAllocations
         string $noteId,
         array $selectedRowIds = [],
     ): array {
-        $selectedIds = self::normalizeSelectedRowIds($selectedRowIds);
+        $selectedIds = PaymentComponentSelectionIds::normalize($selectedRowIds);
 
         $allocations = array_filter(
             $reader->listByNoteId($noteId),
@@ -28,11 +28,11 @@ final class RefundablePaymentAllocations
                     return false;
                 }
 
-                if ($selectedIds === []) {
-                    return true;
+                if (! PaymentComponentSelectionIds::matches($allocation, $selectedIds)) {
+                    return false;
                 }
 
-                return in_array($allocation->workItemId(), $selectedIds, true);
+                return RefundComponentTypePolicy::isDefaultRefundable($allocation->componentType());
             },
         );
 
@@ -44,24 +44,5 @@ final class RefundablePaymentAllocations
         );
 
         return $allocations;
-    }
-
-    /**
-     * @param list<string> $selectedRowIds
-     * @return list<string>
-     */
-    private static function normalizeSelectedRowIds(array $selectedRowIds): array
-    {
-        $normalized = [];
-
-        foreach ($selectedRowIds as $id) {
-            $trimmed = trim($id);
-
-            if ($trimmed !== '') {
-                $normalized[] = $trimmed;
-            }
-        }
-
-        return array_values(array_unique($normalized));
     }
 }
