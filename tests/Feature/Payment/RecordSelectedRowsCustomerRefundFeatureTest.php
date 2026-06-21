@@ -155,7 +155,7 @@ final class RecordSelectedRowsCustomerRefundFeatureTest extends TestCase
         $result = app(RecordCustomerRefundHandler::class)->handle(
             'payment-1',
             'note-1',
-            4000,
+            3000,
             '2026-04-03',
             'Refund selected-row lock invariant',
             'actor-1',
