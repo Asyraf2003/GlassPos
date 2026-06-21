@@ -24,6 +24,7 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
         $user = $this->loginAsAuthorizedAdmin();
 
         $this->seedClosedPaidServiceOnlyNote();
+        $this->seedProduct('product-ledger-revision-refund-001', 50000, 30000, 5);
 
         $revision = $this->app->make(CreateNoteRevisionHandler::class)->handle(
             'note-ledger-revision-refund-001',
@@ -244,18 +245,41 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
             ],
             'items' => [
                 [
-                    'entry_mode' => 'service',
-                    'description' => null,
+                    'entry_mode' => 'product',
+                    'description' => 'Produk Ledger Revision Revised',
                     'part_source' => 'none',
-                    'service' => [
-                        'name' => 'Servis Ledger Revision Revised',
-                        'price_rupiah' => 100000,
-                        'notes' => null,
-                    ],
-                    'product_lines' => [],
+                    'service' => null,
+                    'product_lines' => [[
+                        'product_id' => 'product-ledger-revision-refund-001',
+                        'qty' => 2,
+                        'unit_price_rupiah' => 50000,
+                    ]],
                     'external_purchase_lines' => [],
                 ],
             ],
         ];
+    }
+
+    private function seedProduct(string $id, int $priceRupiah, int $avgCostRupiah, int $qtyOnHand): void
+    {
+        DB::table('products')->insert([
+            'id' => $id,
+            'kode_barang' => strtoupper($id),
+            'nama_barang' => 'Produk Ledger Revision Refund',
+            'merek' => 'Ledger',
+            'ukuran' => null,
+            'harga_jual' => $priceRupiah,
+        ]);
+
+        DB::table('product_inventory')->insert([
+            'product_id' => $id,
+            'qty_on_hand' => $qtyOnHand,
+        ]);
+
+        DB::table('product_inventory_costing')->insert([
+            'product_id' => $id,
+            'avg_cost_rupiah' => $avgCostRupiah,
+            'inventory_value_rupiah' => $avgCostRupiah * $qtyOnHand,
+        ]);
     }
 }
