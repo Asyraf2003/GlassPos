@@ -20,14 +20,14 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
     public function test_cashier_can_record_refund_for_closed_note(): void
     {
         $user = $this->seedKasir();
-        $this->seedClosedPaidServiceOnlyNote();
+        $this->seedClosedPaidProductOnlyNote();
 
         $this->actingAs($user)
             ->from(route('cashier.notes.index'))
             ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-1']), [
                 'selected_row_ids' => ['wi-1'],
                 'refunded_at' => date('Y-m-d'),
-                'reason' => 'Koreksi line servis',
+                'reason' => 'Koreksi line produk',
             ])
             ->assertRedirect(route('cashier.notes.index'))
             ->assertSessionHas('success');
@@ -36,7 +36,7 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
             'customer_payment_id' => 'payment-1',
             'note_id' => 'note-1',
             'amount_rupiah' => 50000,
-            'reason' => 'Koreksi line servis',
+            'reason' => 'Koreksi line produk',
         ]);
 
         $refundId = (string) DB::table('customer_refunds')->value('id');
@@ -45,7 +45,7 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
             'customer_refund_id' => $refundId,
             'customer_payment_id' => 'payment-1',
             'note_id' => 'note-1',
-            'component_type' => 'service_fee',
+            'component_type' => 'product_only_work_item',
             'component_ref_id' => 'wi-1',
             'refunded_amount_rupiah' => 50000,
         ]);
@@ -55,10 +55,7 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
             'status' => WorkItem::STATUS_CANCELED,
         ]);
 
-        $this->assertDatabaseHas('notes', [
-            'id' => 'note-1',
-            'total_rupiah' => 0,
-        ]);
+        $this->assertDatabaseHas('notes', ['id' => 'note-1', 'total_rupiah' => 0]);
     }
 
 
@@ -174,7 +171,7 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
             'customer_refund_id' => $refundId,
             'customer_payment_id' => 'payment-2',
             'note_id' => 'note-2',
-            'component_type' => 'service_fee',
+            'component_type' => 'product_only_work_item',
             'component_ref_id' => 'wi-2',
             'refunded_amount_rupiah' => 30000,
         ]);
@@ -244,6 +241,31 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
         ]);
     }
 
+    private function seedClosedPaidProductOnlyNote(): void
+    {
+        $today = date('Y-m-d');
+
+        $this->seedProductForRefund('product-refund-1', 50000, 30000, 1);
+        $this->seedNoteBase('note-1', 'Budi', $today, 50000, 'closed');
+        $this->seedWorkItemBase('wi-1', 'note-1', 1, WorkItem::TYPE_STORE_STOCK_SALE_ONLY, WorkItem::STATUS_OPEN, 50000);
+        $this->seedStoreStockLineBase('ssl-refund-1', 'wi-1', 'product-refund-1', 1, 50000);
+        $this->seedStockOut('move-refund-1', 'product-refund-1', 'ssl-refund-1', $today, 30000);
+        $this->seedCustomerPaymentBase('payment-1', 50000, $today);
+        $this->seedPaymentAllocationBase('allocation-1', 'payment-1', 'note-1', 50000);
+
+        DB::table('payment_component_allocations')->insert([
+            'id' => 'pca-1',
+            'customer_payment_id' => 'payment-1',
+            'note_id' => 'note-1',
+            'work_item_id' => 'wi-1',
+            'component_type' => 'product_only_work_item',
+            'component_ref_id' => 'wi-1',
+            'component_amount_rupiah_snapshot' => 50000,
+            'allocated_amount_rupiah' => 50000,
+            'allocation_priority' => 1,
+        ]);
+    }
+
     private function seedOpenPartialPaidServiceOnlyNote(): void
     {
         $today = date('Y-m-d');
@@ -276,8 +298,10 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
         $this->seedWorkItemBase('wi-1', 'note-2', 1, WorkItem::TYPE_SERVICE_ONLY, WorkItem::STATUS_OPEN, 50000);
         $this->seedServiceDetailBase('wi-1', 'Servis A', 50000, ServiceDetail::PART_SOURCE_NONE);
 
-        $this->seedWorkItemBase('wi-2', 'note-2', 2, WorkItem::TYPE_SERVICE_ONLY, WorkItem::STATUS_OPEN, 30000);
-        $this->seedServiceDetailBase('wi-2', 'Servis B', 30000, ServiceDetail::PART_SOURCE_NONE);
+        $this->seedProductForRefund('product-refund-2', 30000, 20000, 1);
+        $this->seedWorkItemBase('wi-2', 'note-2', 2, WorkItem::TYPE_STORE_STOCK_SALE_ONLY, WorkItem::STATUS_OPEN, 30000);
+        $this->seedStoreStockLineBase('ssl-refund-2', 'wi-2', 'product-refund-2', 1, 30000);
+        $this->seedStockOut('move-refund-2', 'product-refund-2', 'ssl-refund-2', $today, 20000);
 
         $this->seedCustomerPaymentBase('payment-2', 80000, $today);
         $this->seedPaymentAllocationBase('allocation-2', 'payment-2', 'note-2', 80000);
@@ -299,12 +323,38 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
                 'customer_payment_id' => 'payment-2',
                 'note_id' => 'note-2',
                 'work_item_id' => 'wi-2',
-                'component_type' => 'service_fee',
+                'component_type' => 'product_only_work_item',
                 'component_ref_id' => 'wi-2',
                 'component_amount_rupiah_snapshot' => 30000,
                 'allocated_amount_rupiah' => 30000,
                 'allocation_priority' => 2,
             ],
+        ]);
+    }
+
+    private function seedProductForRefund(string $id, int $priceRupiah, int $avgCostRupiah, int $qtyOnHand): void
+    {
+        $this->seedNotePaymentProduct($id, strtoupper($id), 'Produk Refund', 'General', null, $priceRupiah);
+        DB::table('product_inventory')->insert(['product_id' => $id, 'qty_on_hand' => $qtyOnHand]);
+        DB::table('product_inventory_costing')->insert([
+            'product_id' => $id,
+            'avg_cost_rupiah' => $avgCostRupiah,
+            'inventory_value_rupiah' => $avgCostRupiah * $qtyOnHand,
+        ]);
+    }
+
+    private function seedStockOut(string $id, string $productId, string $lineId, string $date, int $unitCostRupiah): void
+    {
+        DB::table('inventory_movements')->insert([
+            'id' => $id,
+            'product_id' => $productId,
+            'movement_type' => 'stock_out',
+            'source_type' => 'work_item_store_stock_line',
+            'source_id' => $lineId,
+            'tanggal_mutasi' => $date,
+            'qty_delta' => -1,
+            'unit_cost_rupiah' => $unitCostRupiah,
+            'total_cost_rupiah' => -$unitCostRupiah,
         ]);
     }
 }

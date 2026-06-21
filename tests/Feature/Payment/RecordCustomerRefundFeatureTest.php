@@ -17,7 +17,7 @@ final class RecordCustomerRefundFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
-    public function test_it_records_refund_component_allocations_in_reverse_allocation_order(): void
+    public function test_it_records_default_refundable_component_allocations_only(): void
     {
         $this->seedNote();
         $this->seedPaymentAndAllocations();
@@ -27,7 +27,7 @@ final class RecordCustomerRefundFeatureTest extends TestCase
             'note-1',
             4000,
             '2026-04-03',
-            'Refund jasa',
+            'Refund komponen default refundable',
             'actor-1',
         );
 
@@ -38,14 +38,21 @@ final class RecordCustomerRefundFeatureTest extends TestCase
             'customer_refund_id' => $refundId,
             'customer_payment_id' => 'payment-1',
             'note_id' => 'note-1',
-            'component_type' => 'service_fee',
-            'component_ref_id' => 'wi-2',
-            'refunded_amount_rupiah' => 4000,
+            'component_type' => 'service_store_stock_part',
+            'component_ref_id' => 'sto-2',
+            'refunded_amount_rupiah' => 3000,
+        ]);
+
+        $this->assertDatabaseHas('refund_component_allocations', [
+            'customer_refund_id' => $refundId,
+            'component_type' => 'product_only_work_item',
+            'component_ref_id' => 'wi-1',
+            'refunded_amount_rupiah' => 1000,
         ]);
 
         $this->assertDatabaseMissing('refund_component_allocations', [
             'customer_refund_id' => $refundId,
-            'component_type' => 'product_only_work_item',
+            'component_type' => 'service_fee',
         ]);
     }
 
@@ -78,7 +85,7 @@ final class RecordCustomerRefundFeatureTest extends TestCase
         $this->assertDatabaseCount('customer_refunds', 1);
     }
 
-    public function test_generic_partial_store_stock_refund_does_not_reverse_inventory(): void
+    public function test_generic_refund_reverses_fully_refunded_store_stock_component(): void
     {
         $this->seedNote();
         $this->seedPaymentAndAllocations();
@@ -122,17 +129,20 @@ final class RecordCustomerRefundFeatureTest extends TestCase
             'customer_refund_id' => $refundId,
             'component_type' => 'service_store_stock_part',
             'component_ref_id' => 'sto-2',
-            'refunded_amount_rupiah' => 1000,
+            'refunded_amount_rupiah' => 3000,
         ]);
 
-        $this->assertDatabaseMissing('inventory_movements', [
+        $this->assertDatabaseHas('inventory_movements', [
             'source_type' => 'work_item_store_stock_line_reversal',
             'source_id' => 'sto-2',
+            'qty_delta' => 1,
+            'unit_cost_rupiah' => 3000,
+            'total_cost_rupiah' => 3000,
         ]);
 
         $this->assertDatabaseHas('product_inventory', [
             'product_id' => 'product-2',
-            'qty_on_hand' => 9,
+            'qty_on_hand' => 10,
         ]);
     }
 

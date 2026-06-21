@@ -16,7 +16,7 @@ use PHPUnit\Framework\TestCase;
 
 final class AllocateRefundAcrossComponentsTest extends TestCase
 {
-    public function test_it_refunds_latest_allocated_components_first(): void
+    public function test_it_refunds_default_refundable_components_only(): void
     {
         $service = new AllocateRefundAcrossComponents(
             new class () implements PaymentComponentAllocationReaderPort {
@@ -47,7 +47,7 @@ final class AllocateRefundAcrossComponentsTest extends TestCase
 
         $this->assertCount(1, $allocations);
         $this->assertContainsOnlyInstancesOf(RefundComponentAllocation::class, $allocations);
-        $this->assertSame(PaymentComponentType::SERVICE_FEE, $allocations[0]->componentType());
+        $this->assertSame(PaymentComponentType::PRODUCT_ONLY_WORK_ITEM, $allocations[0]->componentType());
         $this->assertSame(4000, $allocations[0]->refundedAmountRupiah()->amount());
     }
 }

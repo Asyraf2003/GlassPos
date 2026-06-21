@@ -73,6 +73,7 @@ No patch may start for report query phase until field mapping for combination ba
 - Payment/refund allocation references dimasukkan jika memang dibutuhkan report; exact field set `needs characterization`.
 
 ## Current Master Data Leak Risks
+- Phase 5 source contract: refund allocations are now component-aware; product/store-stock components are default refundable, service_fee and external purchase components are default blocked, and package refunds must avoid double-counting raw components in future breakdown reports.
 - Inventory current snapshot joins products/current costing and is not a historical package profit source.
 - Phase 3 local source contract: revision payload now writes `package_profit_rupiah`, `package_base_service_price_rupiah`, `package_service_extra_rupiah`, and `total_service_component_rupiah`; report query remains deferred.
 - UI/backend mismatch can create different package shapes unless Phase 4 locks the contract.
@@ -115,5 +116,5 @@ Progress Local:
 - Gap summary:
   - Phase 6 candidate: explicit Service Package Profit Breakdown source contract across `transaction_date`, `payment_date`, `refund_date`, and `movement_date`.
   - Double-count guard candidate: avoid counting `service_fee`, package service fields, and package profit fields twice once breakdown report exists.
-- Next action: Stop here; do not implement report query until Phase 6 is explicitly opened.
+- Next action: Prepare Phase 6 report query explicitly; do not change Operational Profit formula.
 - Owner decision dependency: none for V2 direction; exact base-missing formula remains future characterization/hardening input.

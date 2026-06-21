@@ -69,8 +69,26 @@ final class CashierRefundSelectionFirstFeatureTest extends TestCase
 
         $this->seedNoteBase('note-1', 'Budi', $today, 50000, 'closed');
 
-        $this->seedWorkItemBase('wi-1', 'note-1', 1, WorkItem::TYPE_SERVICE_ONLY, WorkItem::STATUS_DONE, 20000);
-        $this->seedServiceDetailBase('wi-1', 'Servis A', 20000, ServiceDetail::PART_SOURCE_NONE);
+        $this->seedNotePaymentProduct('product-select-refund-1', 'SEL-REF-1', 'Produk Select Refund', 'General', null, 20000);
+        DB::table('product_inventory')->insert(['product_id' => 'product-select-refund-1', 'qty_on_hand' => 1]);
+        DB::table('product_inventory_costing')->insert([
+            'product_id' => 'product-select-refund-1',
+            'avg_cost_rupiah' => 12000,
+            'inventory_value_rupiah' => 12000,
+        ]);
+        $this->seedWorkItemBase('wi-1', 'note-1', 1, WorkItem::TYPE_STORE_STOCK_SALE_ONLY, WorkItem::STATUS_DONE, 20000);
+        $this->seedStoreStockLineBase('ssl-select-refund-1', 'wi-1', 'product-select-refund-1', 1, 20000);
+        DB::table('inventory_movements')->insert([
+            'id' => 'move-select-refund-1',
+            'product_id' => 'product-select-refund-1',
+            'movement_type' => 'stock_out',
+            'source_type' => 'work_item_store_stock_line',
+            'source_id' => 'ssl-select-refund-1',
+            'tanggal_mutasi' => $today,
+            'qty_delta' => -1,
+            'unit_cost_rupiah' => 12000,
+            'total_cost_rupiah' => -12000,
+        ]);
 
         $this->seedWorkItemBase('wi-2', 'note-1', 2, WorkItem::TYPE_SERVICE_ONLY, WorkItem::STATUS_DONE, 30000);
         $this->seedServiceDetailBase('wi-2', 'Servis B', 30000, ServiceDetail::PART_SOURCE_NONE);
@@ -84,7 +102,7 @@ final class CashierRefundSelectionFirstFeatureTest extends TestCase
                 'customer_payment_id' => 'payment-1',
                 'note_id' => 'note-1',
                 'work_item_id' => 'wi-1',
-                'component_type' => 'service_fee',
+                'component_type' => 'product_only_work_item',
                 'component_ref_id' => 'wi-1',
                 'component_amount_rupiah_snapshot' => 20000,
                 'allocated_amount_rupiah' => 20000,

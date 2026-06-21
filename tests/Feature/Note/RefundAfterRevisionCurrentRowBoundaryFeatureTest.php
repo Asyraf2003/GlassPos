@@ -23,6 +23,7 @@ final class RefundAfterRevisionCurrentRowBoundaryFeatureTest extends TestCase
         $user = $this->loginAsAuthorizedAdmin();
 
         $this->seedClosedPaidServiceOnlyNote();
+        $this->seedProduct('product-refund-revision-001', 50000, 30000, 5);
 
         $revision = $this->app->make(CreateNoteRevisionHandler::class)->handle(
             'note-refund-revision-001',
@@ -49,7 +50,7 @@ final class RefundAfterRevisionCurrentRowBoundaryFeatureTest extends TestCase
             'customer_payment_id' => 'payment-refund-revision-001',
             'note_id' => 'note-refund-revision-001',
             'work_item_id' => $currentWorkItemId,
-            'component_type' => PaymentComponentType::SERVICE_FEE,
+            'component_type' => PaymentComponentType::PRODUCT_ONLY_WORK_ITEM,
             'component_ref_id' => $currentWorkItemId,
             'allocated_amount_rupiah' => 100000,
         ]);
@@ -96,7 +97,7 @@ final class RefundAfterRevisionCurrentRowBoundaryFeatureTest extends TestCase
             'customer_payment_id' => 'payment-refund-revision-001',
             'note_id' => 'note-refund-revision-001',
             'work_item_id' => $currentWorkItemId,
-            'component_type' => PaymentComponentType::SERVICE_FEE,
+            'component_type' => PaymentComponentType::PRODUCT_ONLY_WORK_ITEM,
             'component_ref_id' => $currentWorkItemId,
             'refunded_amount_rupiah' => 100000,
         ]);
@@ -197,18 +198,29 @@ final class RefundAfterRevisionCurrentRowBoundaryFeatureTest extends TestCase
             ],
             'items' => [
                 [
-                    'entry_mode' => 'service',
-                    'description' => null,
+                    'entry_mode' => 'product',
+                    'description' => 'Produk Refund Revision Revised',
                     'part_source' => 'none',
-                    'service' => [
-                        'name' => 'Servis Refund Revision Revised',
-                        'price_rupiah' => 100000,
-                        'notes' => null,
-                    ],
-                    'product_lines' => [],
+                    'service' => null,
+                    'product_lines' => [[
+                        'product_id' => 'product-refund-revision-001',
+                        'qty' => 2,
+                        'unit_price_rupiah' => 50000,
+                    ]],
                     'external_purchase_lines' => [],
                 ],
             ],
         ];
+    }
+
+    private function seedProduct(string $id, int $priceRupiah, int $avgCostRupiah, int $qtyOnHand): void
+    {
+        $this->seedNotePaymentProduct($id, strtoupper($id), 'Produk Refund Revision', 'General', null, $priceRupiah);
+        DB::table('product_inventory')->insert(['product_id' => $id, 'qty_on_hand' => $qtyOnHand]);
+        DB::table('product_inventory_costing')->insert([
+            'product_id' => $id,
+            'avg_cost_rupiah' => $avgCostRupiah,
+            'inventory_value_rupiah' => $avgCostRupiah * $qtyOnHand,
+        ]);
     }
 }

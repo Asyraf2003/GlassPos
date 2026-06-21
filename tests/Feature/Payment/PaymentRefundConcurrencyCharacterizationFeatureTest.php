@@ -6,7 +6,6 @@ namespace Tests\Feature\Payment;
 
 use App\Application\Payment\UseCases\RecordAndAllocateNotePaymentHandler;
 use App\Application\Payment\UseCases\RecordCustomerRefundHandler;
-use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -168,7 +167,7 @@ final class PaymentRefundConcurrencyCharacterizationFeatureTest extends TestCase
             'customer_payment_id' => 'payment-existing-concurrency-1',
             'note_id' => 'note-payment-refund-concurrency-1',
             'work_item_id' => 'wi-payment-refund-concurrency-1',
-            'component_type' => 'service_fee',
+            'component_type' => 'product_only_work_item',
             'component_ref_id' => 'wi-payment-refund-concurrency-1',
             'refunded_amount_rupiah' => 50000,
         ]);
@@ -246,16 +245,18 @@ final class PaymentRefundConcurrencyCharacterizationFeatureTest extends TestCase
             'wi-payment-refund-concurrency-1',
             'note-payment-refund-concurrency-1',
             1,
-            WorkItem::TYPE_SERVICE_ONLY,
+            WorkItem::TYPE_STORE_STOCK_SALE_ONLY,
             WorkItem::STATUS_OPEN,
             100000,
         );
 
-        $this->seedServiceDetailBase(
+        $this->seedNotePaymentProduct('product-payment-refund-concurrency-1', 'CONC-1', 'Produk Concurrent', 'General', null, 100000);
+        $this->seedStoreStockLineBase(
+            'ssl-payment-refund-concurrency-1',
             'wi-payment-refund-concurrency-1',
-            'Servis Payment Refund Concurrent',
+            'product-payment-refund-concurrency-1',
+            1,
             100000,
-            ServiceDetail::PART_SOURCE_NONE,
         );
 
         $this->seedCustomerPaymentBase(
@@ -269,7 +270,7 @@ final class PaymentRefundConcurrencyCharacterizationFeatureTest extends TestCase
             'customer_payment_id' => 'payment-existing-concurrency-1',
             'note_id' => 'note-payment-refund-concurrency-1',
             'work_item_id' => 'wi-payment-refund-concurrency-1',
-            'component_type' => 'service_fee',
+            'component_type' => 'product_only_work_item',
             'component_ref_id' => 'wi-payment-refund-concurrency-1',
             'component_amount_rupiah_snapshot' => 100000,
             'allocated_amount_rupiah' => 50000,

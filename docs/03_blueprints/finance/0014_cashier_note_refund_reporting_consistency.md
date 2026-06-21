@@ -69,19 +69,21 @@ Evidence:
 - Refund raw component policy and money realization basis lock: owner decision V2 from current discussion
 
 Progress Local:
-- Status: Batch 3 characterized
-- Last checked: 2026-06-20
-- Last evidence: Phase 1 Batch 3 refund/reporting GREEN. `php artisan test --filter=RefundReportingOwnerDecisionV2CharacterizationTest`; `php artisan test --filter=ClosedNoteFullRefund`; `php artisan test --filter=RecordSelectedRowsCustomerRefund`; `php artisan test --filter=TransactionSummary`; `php artisan test --filter=TransactionCashLedger`; `php artisan test --filter=OperationalProfit`.
-- Current behavior found:
-  - Product store-stock refund records `refund_component_allocations` and inventory reversal uses the original `inventory_movements.unit_cost_rupiah`, not current AVG.
-  - Service-only refund currently can refund `service_fee`; this is a current-gap characterization against Owner Decision V2 default non-refundable service target.
-  - External purchase refund currently can refund `service_external_purchase_part` and `service_fee`; this is a current-gap characterization against Owner Decision V2 default non-refundable external purchase target.
-  - Package `service_with_store_stock_part` refund currently maps to raw payment component allocations: `service_store_stock_part` and `service_fee`. Product part and service fee can be separated or combined by allocation amount/order.
-  - Package refund after replacement targets current payment component allocations in the characterization fixture, not stale old components.
-  - Transaction summary uses `transaction_date`; cash ledger uses payment/refund event dates; Operational Profit remains cash-operational; inventory stock value remains current snapshot.
+- Status: FIXED
+- Last checked: 2026-06-21
+- Last evidence: Phase 5 refund component-type policy GREEN. Targeted refund/report/edit regression filters GREEN and `make verify` GREEN.
+- Current behavior:
+  - Product-only and store-stock product components are default refundable.
+  - Store-stock refund reverses inventory using original movement cost.
+  - Service fee is default blocked without a dedicated manual exception/approval path.
+  - External purchase component is default blocked without a dedicated manual exception/approval path.
+  - Package refund maps to raw components; product component can be refunded without refunding service_fee.
+  - Selected package rows are canceled only when all selected row components are default refundable.
+  - Component selector format is `workItemId::componentType::componentRefId`.
+  - Refund after edit/revision targets current replacement components, not stale old components.
+- Manual exception status: deferred. No approval/migration model was introduced in Phase 5.
 - Gap summary:
-  - Phase 5 candidate: raw component-type refund policy.
-  - Phase 6 candidate: report query combination basis / package breakdown.
-- Next action: Phase 1 closure / Phase 2 preparation, not source patch.
-- Tests linked: RefundReportingOwnerDecisionV2CharacterizationTest, ClosedNoteFullRefund*, RecordSelectedRowsCustomerRefundFeatureTest, TransactionSummary*, TransactionCashLedger*, OperationalProfit*.
-- Owner decision dependency: none for V2 direction; manual exception workflow remains Phase 5 design target.
+  - Phase 6 candidate: report query must consume component-aware refund allocations without double counting service_fee/package fields.
+- Next action: Prepare Phase 6 report query / Service Package Profit Breakdown source contract. Do not change Operational Profit formula.
+- Owner decision dependency: none for default policy; manual exception approval design remains future scope.
+
