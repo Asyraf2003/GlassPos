@@ -43,7 +43,7 @@ final class AllocateRefundAcrossComponents
         $priority = 1;
 
         if ($selectedRowIds !== [] && $paymentAllocations === []) {
-            throw new DomainException('Tidak ada komponen payment refundable untuk line yang dipilih.');
+            throw new DomainException('Tidak ada komponen payment yang bisa direfund.');
         }
 
         foreach ($paymentAllocations as $paymentAllocation) {
