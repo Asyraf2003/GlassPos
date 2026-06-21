@@ -17,7 +17,7 @@ final class ClosedNoteFullRefundLifecycleFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
-    public function test_full_refund_for_closed_service_only_note_marks_note_as_refunded(): void
+    public function test_full_refund_for_closed_service_only_note_is_default_blocked(): void
     {
         $user = $this->seedKasir();
         $this->seedClosedPaidServiceOnlyNote();
@@ -32,17 +32,14 @@ final class ClosedNoteFullRefundLifecycleFeatureTest extends TestCase
                 'reason' => 'Refund penuh servis',
             ])
             ->assertRedirect(route('cashier.notes.index'))
-            ->assertSessionHas('success');
+            ->assertSessionHasErrors(['refund']);
 
-        $this->assertDatabaseHas('customer_refunds', [
-            'customer_payment_id' => 'payment-1',
-            'note_id' => 'note-1',
-            'amount_rupiah' => 50000,
-        ]);
+        $this->assertDatabaseCount('customer_refunds', 0);
+        $this->assertDatabaseCount('refund_component_allocations', 0);
 
         $this->assertDatabaseHas('notes', [
             'id' => 'note-1',
-            'note_state' => 'refunded',
+            'note_state' => 'closed',
         ]);
     }
 
