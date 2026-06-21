@@ -1,7 +1,5 @@
 <?php
-
 declare(strict_types=1);
-
 namespace App\Application\Note\Services;
 
 use App\Application\Payment\DTO\SelectedRowsRefundPlan;
@@ -12,7 +10,6 @@ use App\Core\Payment\PaymentComponentAllocation\PaymentComponentAllocation;
 use App\Ports\Out\Note\NoteReaderPort;
 use App\Ports\Out\Payment\PaymentComponentAllocationReaderPort;
 use App\Ports\Out\Payment\RefundComponentAllocationReaderPort;
-
 final class SelectedNoteRowsRefundPlanResolver
 {
     public function __construct(
@@ -23,7 +20,6 @@ final class SelectedNoteRowsRefundPlanResolver
         private readonly SelectedRowsRefundBucketsBuilder $buckets,
         private readonly SelectedNoteRowsRefundEligibilityGuard $eligibility,
     ) {}
-
     /** @param list<string> $selectedRowIds */
     public function resolve(string $noteId, array $selectedRowIds): Result
     {
@@ -74,7 +70,6 @@ final class SelectedNoteRowsRefundPlanResolver
             'plan_array' => $plan->toArray(),
         ]);
     }
-
     /** @param list<string> $selectedIds @param list<PaymentComponentAllocation> $allocations @return list<string> */
     private function cancellableRowIds(array $selectedIds, array $allocations): array
     {
