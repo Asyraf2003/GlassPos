@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Application\Note\Services;
 
 use App\Application\Payment\DTO\SelectedRowsRefundPaymentBucket;
+use App\Application\Payment\Services\PaymentComponentSelectionIds;
+use App\Application\Payment\Services\RefundComponentTypePolicy;
 use App\Core\Payment\PaymentComponentAllocation\PaymentComponentAllocation;
 use App\Core\Payment\RefundComponentAllocation\RefundComponentAllocation;
 
@@ -18,15 +20,18 @@ final class SelectedRowsRefundBucketsBuilder
      */
     public function build(array $selectedRowIds, array $allocations, array $refundAllocations = []): array
     {
-        $selectedIds = array_values(array_unique(array_filter(
-            array_map(static fn (string $id): string => trim($id), $selectedRowIds),
-            static fn (string $id): bool => $id !== '',
-        )));
+        $selectedIds = PaymentComponentSelectionIds::normalize($selectedRowIds);
         $refunded = $this->refundedByPaymentComponent($refundAllocations);
         $groups = [];
 
         foreach ($allocations as $allocation) {
-            if (!in_array($allocation->workItemId(), $selectedIds, true)) {
+            $matchedSelectionIds = PaymentComponentSelectionIds::matchingIds($allocation, $selectedIds);
+
+            if ($matchedSelectionIds === []) {
+                continue;
+            }
+
+            if (! RefundComponentTypePolicy::isDefaultRefundable($allocation->componentType())) {
                 continue;
             }
 
@@ -51,7 +56,10 @@ final class SelectedRowsRefundBucketsBuilder
                 'amount_rupiah' => 0,
             ];
 
-            $groups[$paymentId]['row_ids'][] = $allocation->workItemId();
+            $groups[$paymentId]['row_ids'] = [
+                ...$groups[$paymentId]['row_ids'],
+                ...$matchedSelectionIds,
+            ];
             $groups[$paymentId]['amount_rupiah'] += $available;
         }
 
