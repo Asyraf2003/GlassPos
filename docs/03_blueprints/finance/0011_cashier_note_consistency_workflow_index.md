@@ -13,6 +13,7 @@ Related docs:
 - [0013_cashier_note_edit_revision_payment_consistency.md](0013_cashier_note_edit_revision_payment_consistency.md)
 - [0014_cashier_note_refund_reporting_consistency.md](0014_cashier_note_refund_reporting_consistency.md)
 - [0015_service_package_profit_breakdown_source_contract.md](0015_service_package_profit_breakdown_source_contract.md)
+- [0016_cashier_note_final_regression_matrix.md](0016_cashier_note_final_regression_matrix.md)
 
 Progress Marker Convention:
 Gunakan status berikut untuk setiap phase:
@@ -42,7 +43,7 @@ Progress Ledger:
 | Phase 4 UI flexible package | FIXED | Flexible package direction locked; template as preset; external purchase separate domain | 0011, 0012, 0013 | Blade/JS workspace, request validator/mapper, store-stock package template branch | Page/submit contract tests | Phase 4 UI flexible package GREEN: service_store_stock UI supports one service + many product lines; template preset multi-product extension supported; external purchase owner-facing label + total supported; external package_auto_split still blocked; targeted filters GREEN; `make verify` GREEN: 1275 passed, 7423 assertions. | Prepare Phase 5 refund component-type policy | UI dan backend contract sama |
 | Phase 5 Refund component-type policy | FIXED | Locked policy encoded; manual exception remains deferred unless approval path is explicitly designed | 0011, 0014, 0015 | Refund policy and guard candidates | Refund policy tests | Phase 5 refund component-type policy GREEN: product/store-stock components default refundable; service_fee and external_purchase components default blocked; package refund maps to raw components; cancellable rows limited to fully refundable rows; targeted refund/report/edit tests GREEN; `make verify` GREEN. | Prepare Phase 6 report query / Service Package Profit Breakdown source contract | refund behavior matches locked component-type policy |
 | Phase 6 Report query | FIXED | Combination basis locked; Service Package Profit Breakdown implemented as separate query/read-model; query split to satisfy audit-lines | 0011, 0015 | ServicePackageProfitBreakdownQuery + split helper queries/mappers | ServicePackageProfitBreakdownQueryTest | RED: missing query class; GREEN: query test 1 passed / 17 assertions; targeted reporting boundary regression GREEN; final make verify GREEN by operator confirmation | STOP; do not start Phase 7 in this slice | query reconciled and no mutable master leak for money |
-| Phase 7 Regression matrix | TODO | Not required unless prior phases accepted | 0011 | None or phase patches | Focused suites | needs re-check | Build final regression command index | focused suites green |
+| Phase 7 Regression matrix | VERIFYING | Phase 0-6 accepted; Phase 7 is verification/docs-only | 0011, 0016 | None | Focused regression matrix + `make verify` | Final regression matrix docs created; focused regression and final verify pending | If all commands are GREEN, update Phase 7 to FIXED | focused suites and `make verify` green |
 
 Decision Log:
 - Owner Decision V2 locked:
@@ -241,17 +242,27 @@ Stop condition:
 
 ## Phase 7 - Regression Matrix
 Goal:
-- Protect create/edit/refund/payment/report invariants.
+- Protect create/edit/refund/payment/report invariants after Phase 0-6.
+- Build final regression matrix/index and document final test commands.
+- Verification and documentation only.
+
+Docs:
+- `docs/03_blueprints/finance/0016_cashier_note_final_regression_matrix.md`
+
+Rules:
+- No feature change.
+- No migration.
+- No route/config change.
+- No supplier invoice payment proof.
+- No Mobile API.
+- No Operational Profit formula change.
+- No refund policy change.
+- No ServicePackageProfitBreakdown behavior change unless regression proves a bug.
 
 Test command index:
-- `php artisan test --filter=CreateTransactionWorkspace`
-- `php artisan test --filter=EditTransactionWorkspacePackageAutoSplitCharacterizationTest`
-- `php artisan test --filter=CorrectPaidServiceWithStoreStockPartServiceFeeOnlyFeatureTest`
-- `php artisan test --filter=ClosedNoteFullRefund`
-- `php artisan test --filter=RecordSelectedRowsCustomerRefundFeatureTest`
-- `php artisan test --filter=TransactionSummary`
-- `php artisan test --filter=TransactionCashLedger`
-- `php artisan test --filter=OperationalProfit`
+- See `0016_cashier_note_final_regression_matrix.md`.
 
 Stop condition:
-- focused suites green.
+- focused regression matrix green.
+- final `make verify` green.
+- this ledger row updated to `FIXED`.
