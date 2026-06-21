@@ -29,12 +29,14 @@
     selected_label: draftLine?.selected_label || baseLine?.selected_label || "",
   });
 
-  const mergeExternalLine = (draftLine, baseLine) => ({
-    label: draftLine?.label || baseLine?.label || "",
-    qty: draftLine?.qty || baseLine?.qty || "1",
-    unit_cost_rupiah:
-      draftLine?.unit_cost_rupiah || baseLine?.unit_cost_rupiah || "",
-  });
+	  const mergeExternalLine = (draftLine, baseLine) => ({
+	    label: draftLine?.label || baseLine?.label || "",
+	    qty: draftLine?.qty || baseLine?.qty || "1",
+	    unit_cost_rupiah:
+	      draftLine?.unit_cost_rupiah || baseLine?.unit_cost_rupiah || "",
+	    total_rupiah:
+	      draftLine?.total_rupiah || baseLine?.total_rupiah || "",
+	  });
 
   const mergeProductLines = (draftLines, baseLines) => {
     const draftList = Array.isArray(draftLines) ? draftLines : [];
@@ -181,14 +183,19 @@
     return scopes.length ? scopes : [row];
   };
 
-  const productLinesFromRow = (row) =>
-    productLineScopes(row).map((scope) => ({
-      product_id: valueOf("[data-product-id]", scope),
-      qty: numberText(valueOf("[data-qty-input]", scope)) || "1",
-      unit_price_rupiah: numberText(valueOf('input[name$="[unit_price_rupiah]"]', scope)),
-      price_basis: valueOf("[data-price-basis]", scope) || "current_catalog",
-      selected_label: valueOf("[data-product-search]", scope),
-    }));
+	  const productLinesFromRow = (row) =>
+	    productLineScopes(row).map((scope) => ({
+	      product_id: valueOf("[data-product-id]", scope),
+	      qty: numberText(valueOf("[data-qty-input]", scope)) || "1",
+	      unit_price_rupiah: numberText(valueOf('input[name$="[unit_price_rupiah]"]', scope)),
+	      price_basis: valueOf("[data-price-basis]", scope) || "current_catalog",
+	      selected_label: valueOf("[data-product-search]", scope),
+	    }));
+
+	  const firstProductLineFromRow = (row) => {
+	    const firstLine = productLinesFromRow(row)[0];
+	    return firstLine ? [firstLine] : [];
+	  };
 
   const normalizeItem = (row) => {
     const itemType = row.dataset.itemType || "service";
@@ -200,12 +207,12 @@
     if (itemType === "product") {
       return {
         ...base,
-        entry_mode: "product",
-        part_source: "store_stock",
-        selected_label: valueOf("[data-product-search]", row),
-        product_lines: productLinesFromRow(row).slice(0, 1),
-      };
-    }
+	        entry_mode: "product",
+	        part_source: "store_stock",
+	        selected_label: valueOf("[data-product-search]", row),
+	        product_lines: firstProductLineFromRow(row),
+	      };
+	    }
 
     if (itemType === "service_store_stock") {
       return {
@@ -216,11 +223,11 @@
           name: valueOf('input[name$="[service][name]"]', row),
           notes: valueOf('textarea[name$="[service][notes]"]', row),
           price_rupiah: numberText(valueOf('input[name$="[service][price_rupiah]"]', row)),
-        },
-        selected_label: valueOf("[data-product-search]", row),
-        product_lines: productLinesFromRow(row).slice(0, 1),
-      };
-    }
+	        },
+	        selected_label: valueOf("[data-product-search]", row),
+	        product_lines: productLinesFromRow(row),
+	      };
+	    }
 
     if (itemType === "service_external") {
       return {
@@ -232,18 +239,15 @@
           notes: valueOf('textarea[name$="[service][notes]"]', row),
           price_rupiah: numberText(valueOf('input[name$="[service][price_rupiah]"]', row)),
         },
-        external_purchase_lines: [
-          {
-            label: valueOf('input[name$="[external_purchase_lines][0][label]"]', row),
-            qty:
-              numberText(valueOf('input[name$="[external_purchase_lines][0][qty]"]', row)) ||
-              "1",
-            unit_cost_rupiah: numberText(
-              valueOf('input[name$="[external_purchase_lines][0][unit_cost_rupiah]"]', row),
-            ),
-          },
-        ],
-      };
+	        external_purchase_lines: [
+	          {
+	            label: valueOf('input[name$="[external_purchase_lines][0][label]"]', row),
+	            total_rupiah: numberText(
+	              valueOf('input[name$="[external_purchase_lines][0][total_rupiah]"]', row),
+	            ),
+	          },
+	        ],
+	      };
     }
 
     return {

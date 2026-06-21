@@ -28,9 +28,9 @@ final class CashierWorkspaceServiceProductTemplateMinimumContractFeatureTest ext
         $this->assertStringContainsString('requires_service_product_template', $blade);
         $this->assertStringContainsString('Cari Produk Template', $blade);
         $this->assertStringContainsString('Nama Paket/Jasa dari Template', $blade);
-        $this->assertStringContainsString('readonly', $blade);
-        $this->assertStringContainsString('Terisi otomatis setelah produk dipilih', $blade);
-        $this->assertStringNotContainsString('Sok Kopling Besar', $blade);
-        $this->assertStringNotContainsString('data-add-product-line', $blade);
-    }
-}
+	        $this->assertStringContainsString('readonly', $blade);
+	        $this->assertStringContainsString('Terisi otomatis setelah produk dipilih', $blade);
+	        $this->assertStringNotContainsString('Sok Kopling Besar', $blade);
+	        $this->assertStringContainsString('data-add-product-line', $blade);
+	    }
+	}

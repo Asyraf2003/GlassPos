@@ -26,11 +26,12 @@
   };
 
   const rowParts = (row) => {
-    const type = row.dataset.itemType || "";
-    const service = digits(row.querySelector('[name$="[service][price_rupiah]"]')?.value);
-    const externalQty = digits(row.querySelector('input[name$="[external_purchase_lines][0][qty]"]')?.value);
-    const external = digits(row.querySelector('input[name$="[external_purchase_lines][0][unit_cost_rupiah]"]')?.value);
-    const pricingMode = row.querySelector("[data-pricing-mode]")?.value || "manual_split";
+	    const type = row.dataset.itemType || "";
+	    const service = digits(row.querySelector('[name$="[service][price_rupiah]"]')?.value);
+	    const externalQty = digits(row.querySelector('input[name$="[external_purchase_lines][0][qty]"]')?.value);
+	    const external = digits(row.querySelector('input[name$="[external_purchase_lines][0][unit_cost_rupiah]"]')?.value);
+	    const externalTotal = digits(row.querySelector('input[name$="[external_purchase_lines][0][total_rupiah]"]')?.value);
+	    const pricingMode = row.querySelector("[data-pricing-mode]")?.value || "manual_split";
     const packageTotal = digits(row.querySelector('input[name$="[package_total_rupiah]"]')?.value);
 
     const storeStockTotal = rowStoreStockTotal(row);
@@ -42,7 +43,7 @@
     }
 
     if (type === "service_store_stock") return { service, product: storeStockTotal };
-    if (type === "service_external") return { service, product: externalQty * external };
+	    if (type === "service_external") return { service, product: externalTotal > 0 ? externalTotal : externalQty * external };
 
     return { service, product: 0 };
   };

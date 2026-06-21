@@ -28,13 +28,18 @@ final class CreateTransactionWorkspaceServiceWorkItemVariantResolver
     {
         $line = $this->firstLine($item['external_purchase_lines'] ?? []);
 
-        return is_string($line['label'] ?? null)
-            && trim((string) $line['label']) !== ''
-            && is_int($line['qty'] ?? null)
-            && (int) $line['qty'] > 0
-            && is_int($line['unit_cost_rupiah'] ?? null)
-            && (int) $line['unit_cost_rupiah'] > 0;
-    }
+	        return is_string($line['label'] ?? null)
+	            && trim((string) $line['label']) !== ''
+	            && (
+	                (is_int($line['total_rupiah'] ?? null) && (int) $line['total_rupiah'] > 0)
+	                || (
+	                    is_int($line['qty'] ?? null)
+	                    && (int) $line['qty'] > 0
+	                    && is_int($line['unit_cost_rupiah'] ?? null)
+	                    && (int) $line['unit_cost_rupiah'] > 0
+	                )
+	            );
+	    }
 
     /**
      * @param mixed $value

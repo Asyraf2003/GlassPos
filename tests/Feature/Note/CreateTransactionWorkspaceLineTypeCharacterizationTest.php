@@ -588,29 +588,44 @@ final class CreateTransactionWorkspaceLineTypeCharacterizationTest extends TestC
             'line_total_rupiah' => 80000,
         ]);
 
-        $response = $this->postWorkspace($user, 'phase1-external-package-gap', [[
-            'entry_mode' => 'service',
-            'part_source' => 'none',
-            'pricing_mode' => 'package_auto_split',
-            'package_total_rupiah' => 180000,
-            'pay_now' => 0,
-            'service' => [
-                'name' => 'External Package Backend Gap',
-                'price_rupiah' => 0,
-                'notes' => '',
-            ],
-            'product_lines' => [[
-                'product_id' => '',
-                'qty' => '',
-                'unit_price_rupiah' => '',
-            ]],
-            'external_purchase_lines' => [[
-                'label' => 'Bearing Total Only',
-                'qty' => '',
-                'unit_cost_rupiah' => '',
-                'total_rupiah' => 80000,
-            ]],
-        ]], 'Phase 1 External Package Gap');
+        $response = $this->actingAs($user)
+            ->from(route('cashier.notes.workspace.create'))
+            ->post(route('notes.workspace.store'), [
+                'idempotency_key' => 'phase1-external-package-gap',
+                'note' => [
+                    'customer_name' => 'Phase 1 External Package Gap',
+                    'customer_phone' => '08123',
+                    'transaction_date' => '2026-03-15',
+                ],
+                'items' => [[
+                    'entry_mode' => 'service',
+                    'part_source' => 'none',
+                    'pricing_mode' => 'package_auto_split',
+                    'package_total_rupiah' => 180000,
+                    'pay_now' => 0,
+                    'service' => [
+                        'name' => 'External Package Backend Gap',
+                        'price_rupiah' => 0,
+                        'notes' => '',
+                    ],
+                    'product_lines' => [[
+                        'product_id' => '',
+                        'qty' => '',
+                        'unit_price_rupiah' => '',
+                    ]],
+                    'external_purchase_lines' => [[
+                        'label' => 'Bearing Total Only',
+                        'qty' => '',
+                        'unit_cost_rupiah' => '',
+                        'total_rupiah' => 80000,
+                    ]],
+                ]],
+                'inline_payment' => [
+                    'decision' => 'skip',
+                    'payment_method' => null,
+                    'paid_at' => '2026-03-15',
+                ],
+            ]);
 
         $response->assertRedirect(route('cashier.notes.workspace.create'));
         $response->assertSessionHasErrors([

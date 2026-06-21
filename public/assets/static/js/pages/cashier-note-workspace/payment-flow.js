@@ -235,14 +235,7 @@
     const scopes = Array.from(row.querySelectorAll("[data-product-line]"));
     const productScopes = scopes.length ? scopes : [row];
 
-    if (requiresServiceProductTemplate && productScopes.length !== 1) {
-      return {
-        message: "Paket servis + produk hanya boleh memakai 1 produk template aktif.",
-        target: row.querySelector("[data-product-search]") || row.querySelector("[data-package-total-input]") || packageTotalInput,
-      };
-    }
-
-    let sparepartTotal = 0;
+	    let sparepartTotal = 0;
 
     for (const scope of productScopes) {
       const productSearch = scope.querySelector("[data-product-search]");

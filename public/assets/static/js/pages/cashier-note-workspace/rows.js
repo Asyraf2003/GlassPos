@@ -63,7 +63,7 @@
     if (el && value !== undefined && value !== null) el.value = String(value);
   };
 
-  const setProductLineValues = (row, scope, line = {}, selectedLabel = "") => {
+	  const setProductLineValues = (row, scope, line = {}, selectedLabel = "") => {
     if (!(scope instanceof HTMLElement)) return;
 
     setValue(scope, "[data-product-search]", line?.selected_label || line?.product_label || selectedLabel || "");
@@ -75,15 +75,20 @@
     if (line?.available_stock !== undefined && line?.available_stock !== null) {
       NS.updateStockText?.(row, line.available_stock, scope);
     }
-  };
+	  };
 
-  const appendProductLine = (row, line = {}, focus = false) => {
-    if ((row?.dataset?.itemType || "") === "service_store_stock" && productLineScopes(row).length >= 1) {
-      return productLineScopes(row)[0] || null;
-    }
+	  const externalLineTotal = (line = {}) => {
+	    const total = digits(line?.total_rupiah || "");
+	    if (total > 0) return total;
 
-    const root = row.querySelector("[data-product-lines]");
-    const template = row.querySelector("[data-product-line-template]");
+	    const qty = digits(line?.qty || "");
+	    const unitCost = digits(line?.unit_cost_rupiah || "");
+	    return qty > 0 && unitCost > 0 ? qty * unitCost : "";
+	  };
+
+	  const appendProductLine = (row, line = {}, focus = false) => {
+	    const root = row.querySelector("[data-product-lines]");
+	    const template = row.querySelector("[data-product-line-template]");
 
     if (!root || !(template instanceof HTMLTemplateElement)) {
       return null;
@@ -99,9 +104,14 @@
       return null;
     }
 
-    root.appendChild(scope);
-    setProductLineValues(row, scope, line);
-    reindexProductLines(row);
+	    root.appendChild(scope);
+	    setProductLineValues(row, scope, line);
+	    if (row?.dataset?.serviceProductTemplateApplied === "1") {
+	      scope.querySelectorAll("[data-template-selected-section]").forEach((section) => {
+	        section.classList.remove("d-none");
+	      });
+	    }
+	    reindexProductLines(row);
 
     window.AdminMoneyInput?.bindBySelector?.(scope);
     NS.bindProductSearch?.(row);
@@ -253,19 +263,21 @@
     set("[data-pay-now]", item?.pay_now || "0");
     set('input[name$="[service][name]"]', item?.service?.name || "");
     set("[data-service-default-fee-rupiah]", item?.service?.price_rupiah || "");
-    set("[data-pricing-mode]", item?.pricing_mode || "package_auto_split");
-    set('input[name$="[package_total_rupiah]"]', item?.package_total_rupiah || "");
-    set('input[name$="[external_purchase_lines][0][label]"]', item?.external_purchase_lines?.[0]?.label || "");
-    set('input[name$="[external_purchase_lines][0][qty]"]', item?.external_purchase_lines?.[0]?.qty || "1");
-    set('input[name$="[service][price_rupiah]"]', item?.service?.price_rupiah ?? "0");
-    set('input[name$="[external_purchase_lines][0][unit_cost_rupiah]"]', item?.external_purchase_lines?.[0]?.unit_cost_rupiah || "");
+	    set("[data-pricing-mode]", item?.pricing_mode || "package_auto_split");
+	    set('input[name$="[package_total_rupiah]"]', item?.package_total_rupiah || "");
+	    set('input[name$="[external_purchase_lines][0][label]"]', item?.external_purchase_lines?.[0]?.label || "");
+	    set('input[name$="[service][price_rupiah]"]', item?.service?.price_rupiah ?? "0");
+	    set(
+	      'input[name$="[external_purchase_lines][0][total_rupiah]"]',
+	      externalLineTotal(item?.external_purchase_lines?.[0] || {}),
+	    );
 
-    if (type === "service_store_stock") {
-      const productLines = (
-        Array.isArray(item?.product_lines) && item.product_lines.length > 0
-          ? item.product_lines
-          : [{}]
-      ).slice(0, 1);
+	    if (type === "service_store_stock") {
+	      const productLines = (
+	        Array.isArray(item?.product_lines) && item.product_lines.length > 0
+	          ? item.product_lines
+	          : [{}]
+	      );
 
       while (productLineScopes(row).length < productLines.length) {
         appendProductLine(row, {}, false);

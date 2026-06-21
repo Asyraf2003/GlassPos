@@ -1088,7 +1088,7 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
     }
 
 
-    public function test_cashier_cannot_store_template_locked_service_store_stock_with_multiple_products(): void
+    public function test_cashier_cannot_store_template_locked_service_store_stock_when_primary_product_has_no_active_template(): void
     {
         $this->loginAsKasir();
 
@@ -1192,10 +1192,10 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
                 ],
             ]);
 
-        $response->assertRedirect(route('cashier.notes.workspace.create'));
-        $response->assertSessionHasErrors([
-            'workspace' => 'Paket servis + produk hanya boleh memakai 1 produk template aktif.',
-        ]);
+	        $response->assertRedirect(route('cashier.notes.workspace.create'));
+	        $response->assertSessionHasErrors([
+	            'workspace' => 'Paket servis + produk wajib memakai template aktif.',
+	        ]);
 
         $this->assertDatabaseCount('notes', 0);
         $this->assertDatabaseCount('work_items', 0);

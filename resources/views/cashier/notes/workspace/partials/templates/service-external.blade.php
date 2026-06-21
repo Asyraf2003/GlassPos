@@ -42,22 +42,10 @@
             <input type="text" name="items[__INDEX__][external_purchase_lines][0][label]" value="" class="form-control" placeholder="Contoh: Bearing NTN">
         </div>
 
-        <div class="workspace-answer-field">
-            <label class="form-label">Qty</label>
-            <input
-                type="text"
-                inputmode="numeric"
-                name="items[__INDEX__][external_purchase_lines][0][qty]"
-                value="1"
-                class="form-control form-control-sm text-center px-1 fw-semibold"
-                style="width: 3rem;"
-            >
-        </div>
-
-        <div class="workspace-answer-field" data-money-input-group>
-            <label class="form-label">Biaya Satuan (Rupiah)</label>
-            <input type="hidden" name="items[__INDEX__][external_purchase_lines][0][unit_cost_rupiah]" value="" data-money-raw>
-            <input type="text" inputmode="numeric" value="" class="form-control" placeholder="Contoh: 120.000" data-money-display>
-        </div>
-    </div>
+	        <div class="workspace-answer-field" data-money-input-group>
+	            <label class="form-label">Total Biaya Keluar (Rupiah)</label>
+	            <input type="hidden" name="items[__INDEX__][external_purchase_lines][0][total_rupiah]" value="" data-money-raw data-external-total-rupiah>
+	            <input type="text" inputmode="numeric" value="" class="form-control" placeholder="Contoh: 120.000" data-money-display>
+	        </div>
+	    </div>
 </template>

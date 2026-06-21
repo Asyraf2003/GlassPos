@@ -51,9 +51,13 @@ final class StoreTransactionWorkspaceServiceItemValidator
             $validator->errors()->add("items.$index.external_purchase_lines.0.label", 'Label pembelian luar wajib diisi.');
         }
 
-        if (self::intValue($line['qty'] ?? null) <= 0) {
-            $validator->errors()->add("items.$index.external_purchase_lines.0.qty", 'Qty pembelian luar wajib lebih dari 0.');
-        }
+	        if (self::intValue($line['total_rupiah'] ?? null) > 0) {
+	            return;
+	        }
+
+	        if (self::intValue($line['qty'] ?? null) <= 0) {
+	            $validator->errors()->add("items.$index.external_purchase_lines.0.qty", 'Qty pembelian luar wajib lebih dari 0.');
+	        }
 
         if (self::intValue($line['unit_cost_rupiah'] ?? null) <= 0) {
             $validator->errors()->add("items.$index.external_purchase_lines.0.unit_cost_rupiah", 'Biaya satuan pembelian luar wajib lebih dari 0.');

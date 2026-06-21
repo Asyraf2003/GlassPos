@@ -24,10 +24,14 @@
     });
   };
 
-  const productScope = (element) =>
-    element?.closest?.("[data-product-line]") ||
-    element?.closest?.("[data-line-item]") ||
-    element;
+	  const productScope = (element) =>
+	    element?.closest?.("[data-product-line]") ||
+	    element?.closest?.("[data-line-item]") ||
+	    element;
+
+	  const isPrimaryServiceProductScope = (row, scope) =>
+	    (row?.dataset?.itemType || "") === "service_store_stock" &&
+	    (!(scope instanceof HTMLElement) || (scope.dataset.productLineIndex || "0") === "0");
 
   NS.syncFloorPriceGuard = (row) => {
     const scopes = row.querySelectorAll("[data-product-line]");
@@ -142,7 +146,13 @@
       display.value = String(item.default_unit_price_rupiah || 0);
     }
 
-    NS.applyServiceProductTemplate?.(row, item.service_product_template || null, scope);
+	    if (isPrimaryServiceProductScope(row, scope)) {
+	      NS.applyServiceProductTemplate?.(row, item.service_product_template || null, scope);
+	    } else {
+	      scope.querySelectorAll("[data-template-selected-section]").forEach((section) => {
+	        section.classList.remove("d-none");
+	      });
+	    }
     NS.updateStockText?.(row, item.available_stock, scope);
     window.AdminMoneyInput?.bindBySelector?.(row);
     NS.syncFloorPriceGuard?.(row);
@@ -192,9 +202,9 @@
         try {
           const params = new URLSearchParams({ q: query });
 
-          if ((row?.dataset?.itemType || "") === "service_store_stock") {
-            params.set("context", "service_product");
-          }
+	          if (isPrimaryServiceProductScope(row, scope)) {
+	            params.set("context", "service_product");
+	          }
 
           const separator = endpoint.includes("?") ? "&" : "?";
           const url = `${endpoint}${separator}${params.toString()}`;
@@ -225,9 +235,9 @@
           hidden.value = "";
         }
 
-        if ((row?.dataset?.itemType || "") === "service_store_stock") {
-          NS.clearServiceProductTemplate?.(row);
-        }
+	        if (isPrimaryServiceProductScope(row, scope)) {
+	          NS.clearServiceProductTemplate?.(row);
+	        }
 
         const raw = scope.querySelector('[name$="[unit_price_rupiah]"]');
         if (raw) {

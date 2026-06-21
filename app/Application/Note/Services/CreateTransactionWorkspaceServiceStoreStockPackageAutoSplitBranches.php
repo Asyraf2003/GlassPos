@@ -19,11 +19,7 @@ trait CreateTransactionWorkspaceServiceStoreStockPackageAutoSplitBranches
         int $packageTotal,
         int $sparepartTotal
     ): array {
-        if (count($pricedLines['product_lines']) !== 1) {
-            throw new DomainException('Paket servis + produk hanya boleh memakai 1 produk template aktif.');
-        }
-
-        $template = $this->rules->activeTemplateForSingleProductLine($pricedLines['product_lines']);
+	        $template = $this->rules->activeTemplateForSingleProductLine($pricedLines['product_lines']);
         $baseServicePrice = $template->defaultServicePriceRupiah;
         $minimumPackageTotal = $sparepartTotal + $baseServicePrice;
 

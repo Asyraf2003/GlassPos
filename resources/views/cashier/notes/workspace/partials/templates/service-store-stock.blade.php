@@ -3,7 +3,7 @@
         <div class="workspace-answer-header">
             <div>
                 <h6 class="mb-0 small fw-semibold" data-line-title>Rincian</h6>
-                <small class="text-muted">Paket servis + produk dari template aktif.</small>
+                <small class="text-muted">Paket servis + sparepart dari template aktif.</small>
             </div>
             <button type="button" class="btn btn-sm btn-outline-danger py-1" data-remove-line>Hapus</button>
         </div>
@@ -20,7 +20,7 @@
 
         <div class="workspace-answer-field" data-product-lines>
             <div data-product-line>
-                <label class="form-label small mb-1">Cari Produk Template</label>
+	                <label class="form-label small mb-1">Cari Produk Template</label>
                 <div class="position-relative">
                     <input type="hidden" name="items[__INDEX__][product_lines][0][product_id]" value="" data-product-id>
                     <input type="hidden" name="items[__INDEX__][product_lines][0][price_basis]" value="current_catalog" data-price-basis>
@@ -40,7 +40,7 @@
 
                 <div class="d-none mt-3" data-template-selected-section>
                     <div class="rounded border bg-light p-2 mb-2">
-                        <div class="small text-muted">Produk template terpilih</div>
+	                        <div class="small text-muted">Produk template terpilih</div>
                         <div class="fw-semibold small" data-template-product-name>-</div>
                         <div class="small text-muted">
                             <span data-stock-text>Stok tersedia: -</span>
@@ -65,7 +65,7 @@
             </div>
             <template data-product-line-template>
                 <div data-product-line>
-                    <label class="form-label small mb-1">Cari Produk Template</label>
+	                    <label class="form-label small mb-1">Cari Produk/Sparepart Tambahan</label>
                     <div class="position-relative">
                         <input type="hidden" name="items[__INDEX__][product_lines][__PRODUCT_INDEX__][product_id]" value="" data-product-id>
                         <input type="hidden" name="items[__INDEX__][product_lines][__PRODUCT_INDEX__][price_basis]" value="current_catalog" data-price-basis>
@@ -82,7 +82,7 @@
 
                     <div class="d-none mt-3" data-template-selected-section>
                         <div class="rounded border bg-light p-2 mb-2">
-                            <div class="small text-muted">Produk template terpilih</div>
+	                            <div class="small text-muted">Produk/sparepart terpilih</div>
                             <div class="fw-semibold small" data-template-product-name>-</div>
                             <div class="small text-muted">
                                 <span data-stock-text>Stok tersedia: -</span>
@@ -113,10 +113,14 @@
                         </div>
                     </div>
                 </div>
-            </template>
-        </div>
+	            </template>
+	        </div>
 
-        <div class="d-none mt-3" data-template-selected-section>
+	        <button type="button" class="btn btn-sm btn-outline-primary mt-2" data-add-product-line>
+	            Tambah Sparepart
+	        </button>
+
+	        <div class="d-none mt-3" data-template-selected-section>
             <div class="workspace-answer-field">
                 <label class="form-label small mb-1">Nama Paket/Jasa dari Template</label>
                 <input
@@ -153,9 +157,9 @@
                 </small>
             </div>
 
-            <small class="text-muted d-block mt-2">
-                Darurat tanpa template: input sebagai 2 baris terpisah, Servis biasa + Produk biasa.
-            </small>
-        </div>
+	            <small class="text-muted d-block mt-2">
+	                Produk pertama memakai template aktif. Sparepart tambahan boleh ditambahkan dalam paket yang sama.
+	            </small>
+	        </div>
     </div>
 </template>

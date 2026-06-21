@@ -18,12 +18,15 @@ final class StoreTransactionWorkspaceGrandTotalLineCalculator
         return $total;
     }
 
-    public static function externalLineTotal(mixed $lines): int
-    {
-        $line = self::firstLine($lines);
+	    public static function externalLineTotal(mixed $lines): int
+	    {
+	        $line = self::firstLine($lines);
+	        $total = self::intValue($line['total_rupiah'] ?? null);
 
-        return self::intValue($line['qty'] ?? null) * self::intValue($line['unit_cost_rupiah'] ?? null);
-    }
+	        return $total > 0
+	            ? $total
+	            : self::intValue($line['qty'] ?? null) * self::intValue($line['unit_cost_rupiah'] ?? null);
+	    }
 
     public static function intValue(mixed $value): int
     {
