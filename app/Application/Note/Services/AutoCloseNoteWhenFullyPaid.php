@@ -8,7 +8,7 @@ use App\Core\Note\Note\Note;
 use App\Ports\Out\ClockPort;
 use App\Ports\Out\Note\NoteWriterPort;
 use App\Ports\Out\Payment\CustomerRefundReaderPort;
-use App\Ports\Out\Payment\PaymentComponentAllocationReaderPort;
+use App\Ports\Out\Payment\PaymentAllocationReaderPort;
 
 final class AutoCloseNoteWhenFullyPaid
 {
@@ -20,7 +20,7 @@ final class AutoCloseNoteWhenFullyPaid
         private readonly NoteWriterPort $notes,
         private readonly NoteCorrectionSnapshotBuilder $snapshots,
         private readonly PersistNoteMutationTimeline $timeline,
-        private readonly PaymentComponentAllocationReaderPort $allocations,
+        private readonly PaymentAllocationReaderPort $allocations,
         private readonly CustomerRefundReaderPort $refunds,
         private readonly ClockPort $clock,
     ) {
