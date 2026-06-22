@@ -48,39 +48,6 @@ final class ExtremeReceivedInvoiceRevisionMatrixFeatureTest extends TestCase
         $this->assertDatabaseHas('inventory_movements', ['product_id' => 'product-2', 'movement_type' => 'stock_in', 'source_type' => 'supplier_invoice_revision_delta_line', 'qty_delta' => 2, 'total_cost_rupiah' => 24000]);
     }
 
-    public function test_received_invoice_cost_revision_is_currently_blocked_by_unit_cost_guard(): void
-    {
-        $this->seedReceivedInvoiceBase();
-
-        $r = $this->actingAs($this->admin())
-            ->from(route('admin.procurement.supplier-invoices.revise', ['supplierInvoiceId' => 'invoice-1']))
-            ->put(route('admin.procurement.supplier-invoices.update', ['supplierInvoiceId' => 'invoice-1']), $this->payload([
-                'change_reason' => 'Koreksi landed cost setelah barang diterima.',
-                'lines' => [[
-                    'previous_line_id' => 'invoice-line-1',
-                    'line_no' => 1,
-                    'product_id' => 'product-1',
-                    'qty_pcs' => 2,
-                    'line_total_rupiah' => 22000,
-                ]],
-            ]));
-
-        $r->assertRedirect(route('admin.procurement.supplier-invoices.revise', ['supplierInvoiceId' => 'invoice-1']))
-            ->assertSessionHasErrors(['supplier_invoice']);
-
-        $this->assertDatabaseHas('supplier_invoices', [
-            'id' => 'invoice-1',
-            'last_revision_no' => 1,
-            'grand_total_rupiah' => 20000,
-        ]);
-
-        $this->assertDatabaseMissing('inventory_movements', [
-            'source_type' => 'supplier_invoice_revision_delta_line',
-            'product_id' => 'product-1',
-            'unit_cost_rupiah' => 11000,
-            'total_cost_rupiah' => 22000,
-        ]);
-    }
 
     public function test_unpaid_received_invoice_cost_revision_creates_explicit_cost_revaluation_effect(): void
     {
