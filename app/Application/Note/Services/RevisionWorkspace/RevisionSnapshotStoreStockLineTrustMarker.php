@@ -29,31 +29,22 @@ final class RevisionSnapshotStoreStockLineTrustMarker
                 continue;
             }
 
-            $line = $this->firstProductLine($item);
-            if ($line === null) {
+            $lines = $item['product_lines'] ?? null;
+
+            if (! is_array($lines)) {
                 continue;
             }
 
-            $line = $this->markLine($line, $available);
-            $items[$itemIndex]['product_lines'][0] = $line;
+            foreach ($lines as $lineIndex => $line) {
+                if (! is_array($line)) {
+                    continue;
+                }
+
+                $items[$itemIndex]['product_lines'][$lineIndex] = $this->markLine($line, $available);
+            }
         }
 
         return $items;
-    }
-
-    /**
-     * @param array<string, mixed> $item
-     * @return array<string, mixed>|null
-     */
-    private function firstProductLine(array $item): ?array
-    {
-        $lines = $item['product_lines'] ?? null;
-
-        if (! is_array($lines) || ! isset($lines[0]) || ! is_array($lines[0])) {
-            return null;
-        }
-
-        return $lines[0];
     }
 
     /**
