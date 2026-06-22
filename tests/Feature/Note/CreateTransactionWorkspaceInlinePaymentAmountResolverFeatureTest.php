@@ -6,6 +6,8 @@ namespace Tests\Feature\Note;
 
 use App\Application\Note\Services\CreateTransactionWorkspaceInlinePaymentAmountResolver;
 use App\Core\Note\Note\Note;
+use App\Core\Note\WorkItem\ServiceDetail;
+use App\Core\Note\WorkItem\WorkItem;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Core\Shared\ValueObjects\Money;
 use DateTimeImmutable;
@@ -60,10 +62,11 @@ final class CreateTransactionWorkspaceInlinePaymentAmountResolverFeatureTest ext
         $this->assertSame(40000, $amount);
     }
 
-    public function test_pay_full_uses_gross_paid_fallback_when_component_allocation_is_missing(): void
+    public function test_pay_full_uses_legacy_allocation_when_component_allocation_is_missing(): void
     {
         $note = $this->seedNote('note-inline-amount-4', 100000);
         $this->seedPayment('payment-inline-amount-4', 30000);
+        $this->seedLegacyAllocation('allocation-inline-amount-4', 'payment-inline-amount-4', 'note-inline-amount-4', 30000);
 
         $amount = app(CreateTransactionWorkspaceInlinePaymentAmountResolver::class)->resolve($note, [
             'decision' => 'pay_full',
@@ -172,13 +175,31 @@ final class CreateTransactionWorkspaceInlinePaymentAmountResolverFeatureTest ext
 
     private function seedComponentAllocation(string $id, string $paymentId, string $noteId, int $amount): void
     {
+        $workItemId = 'wi-' . $id;
+
+        DB::table('work_items')->insert([
+            'id' => $workItemId,
+            'note_id' => $noteId,
+            'line_no' => 1,
+            'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+            'status' => WorkItem::STATUS_OPEN,
+            'subtotal_rupiah' => $amount,
+        ]);
+
+        DB::table('work_item_service_details')->insert([
+            'work_item_id' => $workItemId,
+            'service_name' => 'Servis Inline Amount Component',
+            'service_price_rupiah' => $amount,
+            'part_source' => ServiceDetail::PART_SOURCE_NONE,
+        ]);
+
         DB::table('payment_component_allocations')->insert([
             'id' => $id,
             'customer_payment_id' => $paymentId,
             'note_id' => $noteId,
-            'work_item_id' => 'wi-' . $id,
+            'work_item_id' => $workItemId,
             'component_type' => 'service_fee',
-            'component_ref_id' => 'wi-' . $id,
+            'component_ref_id' => $workItemId,
             'component_amount_rupiah_snapshot' => $amount,
             'allocated_amount_rupiah' => $amount,
             'allocation_priority' => 1,
