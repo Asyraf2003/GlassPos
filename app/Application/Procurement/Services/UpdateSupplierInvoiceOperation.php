@@ -17,7 +17,6 @@ final class UpdateSupplierInvoiceOperation
         private readonly SupplierInvoiceRevisionDeltaMovementsBuilder $deltaMovements,
         private readonly SupplierInvoiceRevisionDeltaStockGuard $deltaStockGuard,
         private readonly SupplierInvoiceRevisionInventoryEffectsApplier $inventoryEffects,
-        private readonly SupplierInvoiceReceivedUnitCostRevisionGuard $receivedUnitCostRevisionGuard,
     ) {
     }
 
