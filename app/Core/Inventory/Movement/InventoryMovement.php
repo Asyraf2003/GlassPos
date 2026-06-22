@@ -24,15 +24,27 @@ final class InventoryMovement
         );
     }
 
+    public static function createValueOnly(
+        string $id, string $pId, string $mType, string $sType, string $sId,
+        DateTimeImmutable $date, Money $totalCost
+    ): self {
+        self::assertValid($id, $pId, $mType, $sType, $sId, 0, Money::zero());
+
+        return new self(
+            $id, trim($pId), trim($mType), trim($sType), trim($sId),
+            $date, 0, Money::zero(), $totalCost
+        );
+    }
+
     public static function rehydrate(
         string $id, string $pId, string $mType, string $sType, string $sId,
-        DateTimeImmutable $date, int $qty, Money $unitCost
+        DateTimeImmutable $date, int $qty, Money $unitCost, ?Money $totalCost = null
     ): self {
         self::assertValid($id, $pId, $mType, $sType, $sId, $qty, $unitCost);
 
         return new self(
             $id, trim($pId), trim($mType), trim($sType), trim($sId),
-            $date, $qty, $unitCost, $unitCost->multiply($qty)
+            $date, $qty, $unitCost, $totalCost ?? $unitCost->multiply($qty)
         );
     }
 }

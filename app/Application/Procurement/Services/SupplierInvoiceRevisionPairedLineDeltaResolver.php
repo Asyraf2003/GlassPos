@@ -31,11 +31,22 @@ final class SupplierInvoiceRevisionPairedLineDeltaResolver
         }
 
         $deltaQty = $newLine->qtyPcs() - $oldLine->qtyPcs();
+        $unitCostDelta = $newLine->unitCostRupiah()->amount() - $oldLine->unitCostRupiah()->amount();
+
+        $movements = [];
+
+        if ($unitCostDelta !== 0) {
+            $movements[] = $this->movements->costRevaluation(
+                $newLine,
+                $movementDate,
+                $unitCostDelta * $oldLine->qtyPcs(),
+            );
+        }
 
         return match (true) {
-            $deltaQty > 0 => [$this->movements->stockIn($newLine, $movementDate, $deltaQty)],
-            $deltaQty < 0 => [$this->movements->stockOut($oldLine, $movementDate, abs($deltaQty))],
-            default => [],
+            $deltaQty > 0 => [...$movements, $this->movements->stockIn($newLine, $movementDate, $deltaQty)],
+            $deltaQty < 0 => [...$movements, $this->movements->stockOut($newLine, $movementDate, abs($deltaQty))],
+            default => $movements,
         };
     }
 }

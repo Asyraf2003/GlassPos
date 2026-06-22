@@ -6,6 +6,7 @@ namespace App\Application\Procurement\Services;
 
 use App\Core\Inventory\Movement\InventoryMovement;
 use App\Core\Procurement\SupplierInvoice\SupplierInvoiceLine;
+use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\UuidPort;
 use DateTimeImmutable;
 
@@ -41,6 +42,19 @@ final class SupplierInvoiceRevisionMovementFactory
             $movementDate,
             -$qty,
             $line->unitCostRupiah(),
+        );
+    }
+
+    public function costRevaluation(SupplierInvoiceLine $line, DateTimeImmutable $movementDate, int $totalCostDeltaRupiah): InventoryMovement
+    {
+        return InventoryMovement::createValueOnly(
+            $this->uuid->generate(),
+            $line->productId(),
+            'cost_revaluation',
+            'supplier_invoice_cost_revaluation',
+            $line->id(),
+            $movementDate,
+            Money::fromInt($totalCostDeltaRupiah),
         );
     }
 }

@@ -29,6 +29,7 @@ final class DatabaseInventoryMovementReaderAdapter implements InventoryMovementR
                 'tanggal_mutasi',
                 'qty_delta',
                 'unit_cost_rupiah',
+                'total_cost_rupiah',
             ])
             ->orderBy('tanggal_mutasi')
             ->orderBy('id')
@@ -52,6 +53,7 @@ final class DatabaseInventoryMovementReaderAdapter implements InventoryMovementR
                 'tanggal_mutasi',
                 'qty_delta',
                 'unit_cost_rupiah',
+                'total_cost_rupiah',
             ])
             ->where('source_type', $sourceType)
             ->where('source_id', $sourceId)
@@ -86,6 +88,7 @@ final class DatabaseInventoryMovementReaderAdapter implements InventoryMovementR
                 $tanggalMutasi,
                 (int) $row->qty_delta,
                 Money::fromInt((int) $row->unit_cost_rupiah),
+                Money::fromInt((int) $row->total_cost_rupiah),
             );
         }
 

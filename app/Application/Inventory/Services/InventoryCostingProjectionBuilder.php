@@ -25,10 +25,12 @@ final class InventoryCostingProjectionBuilder
                 $state[$pId]['qty'] += $m->qtyDelta();
                 $state[$pId]['value'] += $m->totalCostRupiah()->amount();
             } elseif ($m->movementType() === 'stock_out' && $state[$pId]['qty'] > 0) {
-                $avg = intdiv($state[$pId]['value'], $state[$pId]['qty']);
                 $issue = abs($m->qtyDelta());
                 $state[$pId]['qty'] -= $issue;
-                $state[$pId]['value'] -= ($avg * $issue);
+                $state[$pId]['value'] -= abs($m->totalCostRupiah()->amount());
+                if ($state[$pId]['value'] < 0) $state[$pId]['value'] = 0;
+            } elseif ($m->movementType() === 'cost_revaluation') {
+                $state[$pId]['value'] += $m->totalCostRupiah()->amount();
                 if ($state[$pId]['value'] < 0) $state[$pId]['value'] = 0;
             }
         }

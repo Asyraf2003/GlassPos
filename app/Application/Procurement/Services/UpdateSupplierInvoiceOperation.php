@@ -50,14 +50,8 @@ final class UpdateSupplierInvoiceOperation
             );
         }
 
-        if ($context->totalReceivedQty() > 0
-            && $this->receivedUnitCostRevisionGuard->changesReceivedUnitCost($current, $updated, $lines)
-        ) {
-            return Result::failure(
-                'Revisi faktur yang mengubah modal/unit cost pada barang yang sudah diterima belum didukung. Buat koreksi stok/modal terpisah agar laporan keuntungan tetap presisi.',
-                ['supplier_invoice' => ['SUPPLIER_INVOICE_RECEIVED_UNIT_COST_REVISION_UNSUPPORTED']]
-            );
-        }
+        // ADR-0037: received unit-cost revisions are handled as explicit
+        // inventory cost revaluation effects instead of a terminal blocker.
 
         $deltaMovements = $context->totalReceivedQty() > 0
             ? $this->deltaMovements->build($current, $updated, $lines, $context->movementDate())
