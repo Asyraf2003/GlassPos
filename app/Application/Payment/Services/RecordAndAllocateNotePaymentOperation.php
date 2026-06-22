@@ -13,6 +13,7 @@ use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\Note\NoteReaderPort;
 use App\Ports\Out\Payment\CustomerPaymentWriterPort;
 use App\Ports\Out\Payment\PaymentAllocationReaderPort;
+use App\Ports\Out\Payment\RefundComponentAllocationReaderPort;
 use App\Ports\Out\Payment\PaymentComponentAllocationWriterPort;
 use App\Ports\Out\UuidPort;
 
@@ -21,6 +22,7 @@ final class RecordAndAllocateNotePaymentOperation
     public function __construct(
         private readonly CustomerPaymentWriterPort $payments,
         private readonly PaymentAllocationReaderPort $allocations,
+        private readonly RefundComponentAllocationReaderPort $refunds,
         private readonly PaymentComponentAllocationWriterPort $allocationWriter,
         private readonly NoteReaderPort $notes,
         private readonly PaymentAllocationPolicy $policy,
@@ -59,12 +61,16 @@ final class RecordAndAllocateNotePaymentOperation
 
         $cashDetail = $this->cashDetails->execute($payment, $amount, $amountReceivedRupiah);
 
+        $grossAllocatedByNote = $this->allocations->getTotalAllocatedAmountByNoteId($note->id());
+        $refundedByNote = $this->refunds->getTotalRefundedAmountByNoteId($note->id());
+        $netAllocatedByNote = Money::fromInt(max($grossAllocatedByNote->amount() - $refundedByNote->amount(), 0));
+
         $this->policy->assertAllocatable(
             $amount,
             $payment->amountRupiah(),
             Money::zero(),
             $note->totalRupiah(),
-            $this->allocations->getTotalAllocatedAmountByNoteId($note->id()),
+            $netAllocatedByNote,
         );
 
         $components = $selectedRowIds === []

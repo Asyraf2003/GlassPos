@@ -419,10 +419,9 @@ final class CashierProductReplacementBackdatedPriceFinanceFeatureTest extends Te
 
         self::assertSame(
             400000,
-            (int) DB::table('payment_allocations')
-                ->where('note_id', 'note-1')
+            (int) DB::table('customer_payments')
                 ->sum('amount_rupiah'),
-            'Gross payment allocations may exceed note total only by the refunded amount.'
+            'Gross customer payments may exceed note total only by the refunded amount.'
         );
 
         self::assertSame(

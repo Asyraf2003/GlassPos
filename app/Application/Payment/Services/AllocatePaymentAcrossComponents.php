@@ -9,12 +9,14 @@ use App\Core\Payment\PaymentComponentAllocation\PaymentComponentAllocation;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\Payment\PaymentComponentAllocationReaderPort;
+use App\Ports\Out\Payment\RefundComponentAllocationReaderPort;
 use App\Ports\Out\UuidPort;
 
 final class AllocatePaymentAcrossComponents
 {
     public function __construct(
         private readonly PaymentComponentAllocationReaderPort $existingAllocations,
+        private readonly RefundComponentAllocationReaderPort $refunds,
         private readonly UuidPort $uuid,
     ) {
     }
@@ -27,7 +29,7 @@ final class AllocatePaymentAcrossComponents
     {
         $remaining = $amount->amount();
         $allocations = [];
-        $existing = ExistingPaymentComponentTotals::build($this->existingAllocations, $noteId);
+        $existing = ExistingPaymentComponentTotals::build($this->existingAllocations, $noteId, $this->refunds);
         $ordered = SortPayableNoteComponents::byPriority($components);
         $priority = 1;
 
