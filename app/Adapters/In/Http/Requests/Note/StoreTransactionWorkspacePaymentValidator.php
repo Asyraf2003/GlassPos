@@ -47,7 +47,11 @@ final class StoreTransactionWorkspacePaymentValidator
             }
         }
 
-        $cashTargetAmount = $decision === 'pay_partial' ? $amountPaid : 0;
+        $cashTargetAmount = match ($decision) {
+            'pay_partial' => $amountPaid,
+            'pay_full' => $grandTotal,
+            default => 0,
+        };
 
         if (($payment['payment_method'] ?? null) !== 'cash') {
             return;
