@@ -19,7 +19,6 @@ final class CreateSupplierInvoiceLinesPostValidation
 
         $this->validateDuplicateLineNo($lines, $validator);
         (new CreateSupplierInvoiceDuplicateProductPostValidation())->validate($lines, $validator);
-        $this->validateLineTotalDivisibleByQty($lines, $validator);
         (new CreateSupplierInvoiceGrandTotalStorageLimitValidation())->validate($lines, $validator);
     }
 
