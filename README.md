@@ -8,18 +8,47 @@ Latest Handoff: docs/04_lifecycle/error_log/0039_cashier_note_create_edit_refund
 
 Cashier note create/edit/refund/reporting consistency workflow is **FINAL CLOSED**.
 
+### Latest verified checkpoint
+
+Service Package Profit Breakdown and transaction workspace revision-snapshot reporting workflow is **CLOSED / VERIFIED**.
+
+Verified scope:
+- admin report page **Laba Paket Service**
+- sidebar entry and index route for service package profit breakdown
+- Excel export for service package profit breakdown, including summary and detail sheets
+- UI-level report checks, not only query/database checks
+- HTTP workflow regression from transaction create, late payment, admin revision, report UI, and Excel export
+- package auto split multi-sparepart reporting
+- historical COGS from inventory movements
+- component refund exposure in UI and Excel summary
+- custom/monthly period filtering
+- canceled/outside-range package exclusion
+- catalog price changes after transaction without corrupting historical package reporting
+- admin revision after catalog price changes without double counting old package rows
+
+Regression fixes captured by the latest checkpoint:
+- transaction workspace create now bootstraps an initial current revision so late selected-row payments can read billing rows
+- trusted revision snapshot marking covers all product lines, not only the first line
+- package auto split product line composition preserves server-trusted revision snapshot unit prices instead of silently using the latest catalog price
+- revision/payment/reporting fixtures replace existing revision lines when reseeding current revisions, preventing duplicate `revision_id + line_no` collisions after automatic bootstrap
+- audit-lines remains enforced without bypass by extracting new responsibilities into small services
+
+Latest proof:
+- `make audit-lines` GREEN
+- `php artisan test` GREEN: 1290 passed, 7617 assertions, 54.50s
+
 Canonical closure:
 - `docs/04_lifecycle/error_log/0039_cashier_note_create_edit_refund_reporting_final_closure.md`
 - `docs/03_blueprints/finance/0011_cashier_note_consistency_workflow_index.md`
 - `docs/03_blueprints/finance/0016_cashier_note_final_regression_matrix.md`
 
-Final proof:
+Previous closure proof:
 - Phase 0-7 FIXED.
 - Focused regression matrix GREEN.
 - `make verify` GREEN: 1276 passed, 7445 assertions, 54.12s.
 
 Operator/AI rule:
-Do not reopen this workflow, restart its source-map, or create Phase 8 unless there is new concrete failing test evidence, production bug evidence, or explicit owner instruction.
+Do not reopen this workflow, restart its source-map, or create a new phase unless there is new concrete failing test evidence, production bug evidence, or explicit owner instruction.
 
 ---
 
@@ -186,7 +215,7 @@ Fitur boleh modular, tetapi tidak boleh membuat aturan inti tercerai-berai.
 
 ## 📌 Cakupan sistem saat ini
 
-Project ini sudah berada pada tahap di mana **inti sistem operasionalnya telah dibangun**, dengan sisa utama pada **UI transaksi** dan **UI laporan**.
+Project ini sudah berada pada tahap di mana **inti sistem operasional, jalur koreksi transaksi, pembayaran komponen, dan sebagian laporan finansial penting telah dibangun serta diverifikasi**.
 
 ### Area yang sudah menjadi fokus implementasi inti
 - kontrol akses dan pembatasan tanggung jawab
@@ -196,13 +225,17 @@ Project ini sudah berada pada tahap di mana **inti sistem operasionalnya telah d
 - alur suplai / data masuk
 - alur transaksi inti berbasis domain
 - koreksi data dengan jejak riwayat
+- selected-row payment dan settlement komponen pembayaran
+- service package profit breakdown report
+- Excel export laporan paket service
 - auditability dan histori perubahan
 - pengujian untuk flow penting
-- quality gate berbasis DoD
+- quality gate berbasis DoD dan audit-lines
 
 ### Area yang masih menjadi pekerjaan lanjutan
-- UI transaksi
-- UI laporan
+- polish UI transaksi
+- polish UI laporan dan konsistensi export antar laporan
+- hardening skenario operasional baru bila ada bukti bug atau kebutuhan owner baru
 
 Dengan posisi ini, project sudah menunjukkan bahwa yang dibangun bukan sekadar tampilan, tetapi **fondasi sistem operasional yang serius**.
 
@@ -230,6 +263,7 @@ Pengujian dipakai untuk memastikan:
 - koreksi data tidak merusak histori
 - perubahan tidak menghasilkan regresi diam-diam
 - perilaku sistem tetap konsisten saat fitur bertambah
+- UI dan export menampilkan logic yang sama dengan source of truth laporan
 
 ### Launch harus layak, bukan sekadar cepat
 Prinsip yang dipakai:
