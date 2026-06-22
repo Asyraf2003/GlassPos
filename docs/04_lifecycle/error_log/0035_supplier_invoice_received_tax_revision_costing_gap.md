@@ -91,4 +91,4 @@ Sisa target:
    - received invoice qty change with same unit cost still allowed;
    - received invoice product replacement still follows stock-out/stock-in path.
 4. Setelah safe reject stabil, baru rancang revaluation otomatis jika owner memang mau revision modal pada barang received.
-\n- Step 4 added: legacy DB correction matrix tests for no-tax old invoices, tax-included old invoices, header tax, line tax, percent tax, fixed tax, and blank tax preservation.\n
+\n- Step 4 added: legacy DB correction matrix tests for no-tax old invoices, tax-included old invoices, header tax, line tax, percent tax, fixed tax, and blank tax preservation.\n\n- Step 5 added: parser/input hardening for negative fixed tax, alphanumeric fixed tax, decimal-like fixed tax, rupiah thousand separators, comma-percent input, and non-scalar header/line tax validation.\n

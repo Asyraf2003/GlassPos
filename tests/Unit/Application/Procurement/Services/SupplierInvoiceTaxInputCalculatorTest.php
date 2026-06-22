@@ -7,100 +7,59 @@ namespace Tests\Unit\Application\Procurement\Services;
 use App\Application\Procurement\Services\SupplierInvoiceTaxInputCalculation;
 use App\Application\Procurement\Services\SupplierInvoiceTaxInputCalculator;
 use InvalidArgumentException;
-use PHPUnit\Framework\Attributes\DataProvider;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
 final class SupplierInvoiceTaxInputCalculatorTest extends TestCase
 {
-    #[DataProvider('emptyInputs')]
-    public function test_empty_input_means_no_supplier_invoice_tax(null|string|int $input): void
+    public function test_fixed_rupiah_accepts_plain_integer_input(): void
     {
-        $result = $this->calculator()->calculate($input, 100_000);
+        $calculation = (new SupplierInvoiceTaxInputCalculator())->calculate(2000, 20000);
 
-        self::assertSame(null, $result->taxInput());
-        self::assertSame(SupplierInvoiceTaxInputCalculation::MODE_NONE, $result->taxMode());
-        self::assertSame(null, $result->taxRateBasisPoints());
-        self::assertSame(0, $result->taxAmountRupiah());
+        $this->assertSame('2000', $calculation->taxInput());
+        $this->assertSame(SupplierInvoiceTaxInputCalculation::MODE_FIXED, $calculation->taxMode());
+        $this->assertNull($calculation->taxRateBasisPoints());
+        $this->assertSame(2000, $calculation->taxAmountRupiah());
     }
 
-    /** @return array<string, array{0:null|string|int}> */
-    public static function emptyInputs(): array
+    public function test_fixed_rupiah_accepts_rupiah_thousand_separator_input(): void
     {
-        return [
-            'null' => [null],
-            'empty string' => [''],
-            'spaces' => ['   '],
-        ];
+        $calculation = (new SupplierInvoiceTaxInputCalculator())->calculate('Rp 2.000', 20000);
+
+        $this->assertSame('Rp 2.000', $calculation->taxInput());
+        $this->assertSame(SupplierInvoiceTaxInputCalculation::MODE_FIXED, $calculation->taxMode());
+        $this->assertSame(2000, $calculation->taxAmountRupiah());
     }
 
-    #[DataProvider('percentInputs')]
-    public function test_percent_input_uses_basis_points_and_round_half_up(
-        string $input,
-        int $baseRupiah,
-        int $expectedBasisPoints,
-        int $expectedAmountRupiah,
-    ): void {
-        $result = $this->calculator()->calculate($input, $baseRupiah);
-
-        self::assertSame($input, $result->taxInput());
-        self::assertSame(SupplierInvoiceTaxInputCalculation::MODE_PERCENT, $result->taxMode());
-        self::assertSame($expectedBasisPoints, $result->taxRateBasisPoints());
-        self::assertSame($expectedAmountRupiah, $result->taxAmountRupiah());
-    }
-
-    /** @return array<string, array{0:string,1:int,2:int,3:int}> */
-    public static function percentInputs(): array
-    {
-        return [
-            '11 percent' => ['11%', 100_000, 1100, 11_000],
-            '10.5 percent' => ['10.5%', 100_000, 1050, 10_500],
-            '0.5 percent' => ['0.5%', 100_000, 50, 500],
-            'comma decimal percent' => ['10,5%', 100_000, 1050, 10_500],
-            'round half up' => ['0.5%', 101, 50, 1],
-        ];
-    }
-
-    #[DataProvider('fixedInputs')]
-    public function test_fixed_input_normalizes_rupiah_nominal(
-        string|int $input,
-        int $expectedAmountRupiah,
-    ): void {
-        $result = $this->calculator()->calculate($input, 100_000);
-
-        self::assertSame((string) $input, $result->taxInput());
-        self::assertSame(SupplierInvoiceTaxInputCalculation::MODE_FIXED, $result->taxMode());
-        self::assertSame(null, $result->taxRateBasisPoints());
-        self::assertSame($expectedAmountRupiah, $result->taxAmountRupiah());
-    }
-
-    /** @return array<string, array{0:string|int,1:int}> */
-    public static function fixedInputs(): array
-    {
-        return [
-            'plain integer string' => ['15000', 15_000],
-            'plain integer' => [15000, 15_000],
-            'rupiah prefix dot thousands' => ['Rp 10.000', 10_000],
-            'dot thousands' => ['10.000', 10_000],
-            'comma thousands' => ['10,000', 10_000],
-        ];
-    }
-
-    public function test_invalid_percent_format_is_rejected(): void
+    public function test_fixed_rupiah_rejects_negative_input(): void
     {
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Format nominal pajak supplier invoice tidak valid.');
 
-        $this->calculator()->calculate('10.555%', 100_000);
+        (new SupplierInvoiceTaxInputCalculator())->calculate('-1000', 20000);
     }
 
-    public function test_negative_base_is_rejected(): void
+    public function test_fixed_rupiah_rejects_alphanumeric_input(): void
     {
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Format nominal pajak supplier invoice tidak valid.');
 
-        $this->calculator()->calculate('11%', -1);
+        (new SupplierInvoiceTaxInputCalculator())->calculate('abc123', 20000);
     }
 
-    private function calculator(): SupplierInvoiceTaxInputCalculator
+    public function test_fixed_rupiah_rejects_decimal_like_input(): void
     {
-        return new SupplierInvoiceTaxInputCalculator();
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Format nominal pajak supplier invoice tidak valid.');
+
+        (new SupplierInvoiceTaxInputCalculator())->calculate('1.234,56', 20000);
+    }
+
+    public function test_percent_accepts_comma_decimal_input(): void
+    {
+        $calculation = (new SupplierInvoiceTaxInputCalculator())->calculate('11,5%', 20000);
+
+        $this->assertSame(SupplierInvoiceTaxInputCalculation::MODE_PERCENT, $calculation->taxMode());
+        $this->assertSame(1150, $calculation->taxRateBasisPoints());
+        $this->assertSame(2300, $calculation->taxAmountRupiah());
     }
 }

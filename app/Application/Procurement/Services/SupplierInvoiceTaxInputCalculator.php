@@ -73,13 +73,24 @@ final class SupplierInvoiceTaxInputCalculator
 
     private function parseFixedRupiah(string $value): int
     {
-        $digits = preg_replace('/\D+/', '', $value) ?? '';
+        $normalized = trim(str_replace(["\u{00A0}", "\t", "\n", "\r"], ' ', $value));
+        $normalized = preg_replace('/\s+/', ' ', $normalized) ?? '';
+        $normalized = preg_replace('/^rp\.?\s*/i', '', $normalized) ?? '';
+        $normalized = trim($normalized);
 
-        if ($digits === '') {
+        if ($normalized === '' || str_contains($normalized, '-')) {
             throw new InvalidArgumentException('Format nominal pajak supplier invoice tidak valid.');
         }
 
-        return (int) $digits;
+        if (preg_match('/^\d+$/', $normalized)) {
+            return (int) $normalized;
+        }
+
+        if (preg_match('/^\d{1,3}(?:[., ]\d{3})+$/', $normalized)) {
+            return (int) preg_replace('/[., ]+/', '', $normalized);
+        }
+
+        throw new InvalidArgumentException('Format nominal pajak supplier invoice tidak valid.');
     }
 
     private function roundHalfUpDivisor(int $amount, int $divisor): int

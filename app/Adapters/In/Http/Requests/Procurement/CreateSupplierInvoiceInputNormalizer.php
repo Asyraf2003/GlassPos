@@ -47,14 +47,14 @@ final class CreateSupplierInvoiceInputNormalizer
         return $lines;
     }
 
-    private function trimScalarOrNull(mixed $value): ?string
+    private function trimScalarOrNull(mixed $value): mixed
     {
         if ($value === null) {
             return null;
         }
 
         if (! is_string($value) && ! is_int($value)) {
-            return null;
+            return $value;
         }
 
         $trimmed = trim((string) $value);

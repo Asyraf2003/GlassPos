@@ -265,6 +265,73 @@ final class SupplierInvoiceTaxFinancialInvariantFeatureTest extends TestCase
         ]);
     }
 
+    public function test_header_tax_array_input_is_rejected_instead_of_silently_ignored(): void
+    {
+        $this->seedLegacyNoTaxInvoice('invoice-legacy-1', 'invoice-legacy-line-1', 20000, 10000);
+
+        $response = $this->actingAs($this->user('admin'))
+            ->putJson(route('admin.procurement.supplier-invoices.update', [
+                'supplierInvoiceId' => 'invoice-legacy-1',
+            ]), $this->updatePayload([
+                'tax_input' => ['amount' => '2000'],
+                'lines' => [
+                    [
+                        'previous_line_id' => 'invoice-legacy-line-1',
+                        'line_no' => 1,
+                        'product_id' => 'product-tax-1',
+                        'qty_pcs' => 2,
+                        'line_total_rupiah' => 20000,
+                    ],
+                ],
+            ]));
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors(['tax_input']);
+
+        $this->assertDatabaseHas('supplier_invoices', [
+            'id' => 'invoice-legacy-1',
+            'tax_input' => null,
+            'tax_mode' => 'none',
+            'tax_amount_rupiah' => 0,
+            'grand_total_rupiah' => 20000,
+            'last_revision_no' => 1,
+        ]);
+    }
+
+    public function test_line_tax_array_input_is_rejected_instead_of_silently_ignored(): void
+    {
+        $this->seedLegacyNoTaxInvoice('invoice-legacy-1', 'invoice-legacy-line-1', 20000, 10000);
+
+        $response = $this->actingAs($this->user('admin'))
+            ->putJson(route('admin.procurement.supplier-invoices.update', [
+                'supplierInvoiceId' => 'invoice-legacy-1',
+            ]), $this->updatePayload([
+                'tax_input' => null,
+                'lines' => [
+                    [
+                        'previous_line_id' => 'invoice-legacy-line-1',
+                        'line_no' => 1,
+                        'product_id' => 'product-tax-1',
+                        'qty_pcs' => 2,
+                        'line_total_rupiah' => 20000,
+                        'tax_input' => ['amount' => '2000'],
+                    ],
+                ],
+            ]));
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors(['lines.0.tax_input']);
+
+        $this->assertDatabaseHas('supplier_invoices', [
+            'id' => 'invoice-legacy-1',
+            'tax_input' => null,
+            'tax_mode' => 'none',
+            'tax_amount_rupiah' => 0,
+            'grand_total_rupiah' => 20000,
+            'last_revision_no' => 1,
+        ]);
+    }
+
     public function test_legacy_no_tax_invoice_can_add_header_percent_tax_as_landed_cost(): void
     {
         $this->seedLegacyNoTaxInvoice('invoice-legacy-1', 'invoice-legacy-line-1', 20000, 10000);
