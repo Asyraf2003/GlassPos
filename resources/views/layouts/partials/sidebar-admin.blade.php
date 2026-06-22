@@ -163,6 +163,13 @@
                     </a>
                 </li>
 
+                <li class="sidebar-item {{ request()->routeIs('admin.reports.service_package_profit_breakdown.index') ? 'active' : '' }}">
+                    <a href="{{ route('admin.reports.service_package_profit_breakdown.index') }}" class="sidebar-link">
+                        <i class="bi bi-bar-chart-line"></i>
+                        <span>Laba Paket Service</span>
+                    </a>
+                </li>
+
                 <li class="sidebar-item {{ request()->routeIs('admin.reports.operational_expense.index') ? 'active' : '' }}">
                     <a href="{{ route('admin.reports.operational_expense.index') }}" class="sidebar-link">
                         <i class="bi bi-cash-coin"></i>

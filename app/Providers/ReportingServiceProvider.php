@@ -11,6 +11,7 @@ use App\Adapters\Out\Reporting\DatabaseEmployeeDebtReportingSourceReaderAdapter;
 use App\Adapters\Out\Reporting\DatabaseInventoryMovementReportingSourceReaderAdapter;
 use App\Adapters\Out\Reporting\DatabaseOperationalExpenseReportingSourceReaderAdapter;
 use App\Adapters\Out\Reporting\DatabaseOperationalProfitReportingSourceReaderAdapter;
+use App\Adapters\Out\Reporting\DatabaseServicePackageProfitBreakdownSourceReaderAdapter;
 use App\Adapters\Out\Reporting\DatabasePayrollReportingSourceReaderAdapter;
 use App\Adapters\Out\Reporting\DatabaseSupplierPayableReportingSourceReaderAdapter;
 use App\Adapters\Out\Reporting\DatabaseTransactionReportingSourceReaderAdapter;
@@ -23,6 +24,7 @@ use App\Ports\Out\Reporting\EmployeeDebtReportingSourceReaderPort;
 use App\Ports\Out\Reporting\InventoryMovementReportingSourceReaderPort;
 use App\Ports\Out\Reporting\OperationalExpenseReportingSourceReaderPort;
 use App\Ports\Out\Reporting\OperationalProfitReportingSourceReaderPort;
+use App\Ports\Out\Reporting\ServicePackageProfitBreakdownSourceReaderPort;
 use App\Ports\Out\Reporting\PayrollReportingSourceReaderPort;
 use App\Ports\Out\Reporting\SupplierPayableReportingSourceReaderPort;
 use App\Ports\Out\Reporting\TransactionReportingSourceReaderPort;
@@ -43,5 +45,6 @@ class ReportingServiceProvider extends ServiceProvider
         $this->app->singleton(SupplierPayableReportingSourceReaderPort::class, DatabaseSupplierPayableReportingSourceReaderAdapter::class);
         $this->app->singleton(InventoryMovementReportingSourceReaderPort::class, DatabaseInventoryMovementReportingSourceReaderAdapter::class);
         $this->app->singleton(OperationalProfitReportingSourceReaderPort::class, DatabaseOperationalProfitReportingSourceReaderAdapter::class);
+        $this->app->singleton(ServicePackageProfitBreakdownSourceReaderPort::class, DatabaseServicePackageProfitBreakdownSourceReaderAdapter::class);
     }
 }
