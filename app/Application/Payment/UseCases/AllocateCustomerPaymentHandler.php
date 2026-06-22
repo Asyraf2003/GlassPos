@@ -12,7 +12,7 @@ use App\Core\Shared\Exceptions\DomainException;
 use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\AuditLogPort;
 use App\Ports\Out\Note\NoteReaderPort;
-use App\Ports\Out\Payment\{CustomerPaymentReaderPort, PaymentAllocationReaderPort, PaymentAllocationWriterPort};
+use App\Ports\Out\Payment\{CustomerPaymentReaderPort, CustomerRefundReaderPort, PaymentAllocationReaderPort, PaymentAllocationWriterPort};
 use App\Ports\Out\TransactionManagerPort;
 use App\Ports\Out\UuidPort;
 use Throwable;
@@ -22,6 +22,7 @@ final class AllocateCustomerPaymentHandler
     public function __construct(
         private CustomerPaymentReaderPort $customerPayments,
         private PaymentAllocationReaderPort $allocations,
+        private CustomerRefundReaderPort $refunds,
         private PaymentAllocationWriterPort $allocationWriter,
         private NoteReaderPort $notes,
         private PaymentAllocationPolicy $policy,
@@ -42,10 +43,16 @@ final class AllocateCustomerPaymentHandler
             if (!$pay || !$note) throw new DomainException('Target payment allocation tidak ditemukan.');
 
             $allocAmount = Money::fromInt($amount);
+            $grossAllocatedByNote = $this->allocations->getTotalAllocatedAmountByNoteId($note->id());
+            $refundedByNote = $this->refunds->getTotalRefundedAmountByNoteId($note->id());
+            $netAllocatedByNote = Money::fromInt(max($grossAllocatedByNote->amount() - $refundedByNote->amount(), 0));
+
             $this->policy->assertAllocatable(
-                $allocAmount, $pay->amountRupiah(), 
+                $allocAmount,
+                $pay->amountRupiah(),
                 $this->customerPayments->getTotalAllocatedAmountByPaymentId($pay->id()),
-                $note->totalRupiah(), $this->allocations->getTotalAllocatedAmountByNoteId($note->id())
+                $note->totalRupiah(),
+                $netAllocatedByNote
             );
 
             $allocation = PaymentAllocation::create($this->uuid->generate(), $pay->id(), $note->id(), $allocAmount);

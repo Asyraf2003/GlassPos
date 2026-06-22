@@ -10,6 +10,7 @@ use App\Application\Shared\DTO\Result;
 use App\Adapters\Out\Note\DatabaseNoteReaderAdapter;
 use App\Adapters\Out\Note\DatabaseNoteWorkItemDetailLoader;
 use App\Adapters\Out\Payment\DatabaseCustomerPaymentReaderAdapter;
+use App\Adapters\Out\Payment\DatabaseCustomerRefundReaderAdapter;
 use App\Adapters\Out\Payment\DatabasePaymentAllocationReaderAdapter;
 use App\Adapters\Out\Payment\Queries\DatabaseNotePaymentAmountByNoteIdQuery;
 use App\Adapters\Out\Payment\DatabasePaymentAllocationWriterAdapter;
@@ -143,6 +144,7 @@ final class AllocateCustomerPaymentFeatureTest extends TestCase
         return new AllocateCustomerPaymentHandler(
             new DatabaseCustomerPaymentReaderAdapter(),
             new DatabasePaymentAllocationReaderAdapter(new DatabaseNotePaymentAmountByNoteIdQuery()),
+            new DatabaseCustomerRefundReaderAdapter(),
             new DatabasePaymentAllocationWriterAdapter(),
             new DatabaseNoteReaderAdapter(
                 new DatabaseNoteWorkItemDetailLoader(),
