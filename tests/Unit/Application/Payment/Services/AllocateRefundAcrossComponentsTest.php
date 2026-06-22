@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Application\Payment\Services;
 
 use App\Application\Payment\Services\AllocateRefundAcrossComponents;
+use App\Application\Payment\Services\LegacyPaymentComponentAllocationBuilder;
 use App\Application\Payment\Services\LegacyPaymentComponentAllocationSynthesizer;
 use App\Core\Note\Note\Note;
 use App\Core\Payment\PaymentComponentAllocation\PaymentComponentAllocation;
@@ -45,7 +46,8 @@ final class AllocateRefundAcrossComponentsTest extends TestCase
                     public function countAll(): int { return 0; }
                     public function getById(string $id): ?Note { return null; }
                     public function getByIdForUpdate(string $id): ?Note { return null; }
-                }
+                },
+                new LegacyPaymentComponentAllocationBuilder(),
             ),
             new class () implements UuidPort {
                 private int $i = 0;

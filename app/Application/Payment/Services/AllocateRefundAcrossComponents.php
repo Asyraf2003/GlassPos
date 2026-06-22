@@ -34,17 +34,7 @@ final class AllocateRefundAcrossComponents
     ): array {
         $remaining = $amount->amount();
         $allocations = [];
-        $paymentAllocations = RefundablePaymentAllocations::forPayment(
-            $this->payments,
-            $customerPaymentId,
-            $noteId,
-            $selectedRowIds,
-        );
-
-        if ($paymentAllocations === []) {
-            $paymentAllocations = $this->legacyAllocations->forPayment($customerPaymentId, $noteId, $selectedRowIds);
-        }
-
+        $paymentAllocations = $this->paymentAllocations($customerPaymentId, $noteId, $selectedRowIds);
         $alreadyRefunded = RefundedComponentTotals::build($this->refunds, $customerPaymentId, $noteId);
         $priority = 1;
 
@@ -54,18 +44,11 @@ final class AllocateRefundAcrossComponents
 
         foreach ($paymentAllocations as $paymentAllocation) {
             $key = ExistingPaymentComponentTotals::key($paymentAllocation->componentType(), $paymentAllocation->componentRefId());
-            $allocated = $paymentAllocation->allocatedAmountRupiah()->amount();
-            $refunded = $alreadyRefunded[$key] ?? 0;
-            $available = max($allocated - $refunded, 0);
-
-            if ($available === 0) {
-                continue;
-            }
-
+            $available = max($paymentAllocation->allocatedAmountRupiah()->amount() - ($alreadyRefunded[$key] ?? 0), 0);
             $take = min($remaining, $available);
 
             if ($take <= 0) {
-                break;
+                continue;
             }
 
             $allocations[] = RefundComponentAllocation::create(
@@ -80,7 +63,7 @@ final class AllocateRefundAcrossComponents
                 $priority++,
             );
 
-            $alreadyRefunded[$key] = $refunded + $take;
+            $alreadyRefunded[$key] = ($alreadyRefunded[$key] ?? 0) + $take;
             $remaining -= $take;
 
             if ($remaining === 0) {
@@ -97,5 +80,20 @@ final class AllocateRefundAcrossComponents
         }
 
         return $allocations;
+    }
+
+    /** @param list<string> $selectedRowIds */
+    private function paymentAllocations(string $customerPaymentId, string $noteId, array $selectedRowIds): array
+    {
+        $paymentAllocations = RefundablePaymentAllocations::forPayment(
+            $this->payments,
+            $customerPaymentId,
+            $noteId,
+            $selectedRowIds,
+        );
+
+        return $paymentAllocations !== []
+            ? $paymentAllocations
+            : $this->legacyAllocations->forPayment($customerPaymentId, $noteId, $selectedRowIds);
     }
 }
