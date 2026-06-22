@@ -197,6 +197,243 @@ final class SupplierInvoiceTaxFinancialInvariantFeatureTest extends TestCase
         ]);
     }
 
+    public function test_received_invoice_remove_tax_revision_is_rejected_until_revaluation_exists(): void
+    {
+        $this->seedReceivedHeaderTaxInvoice();
+
+        $response = $this->actingAs($this->user('admin'))
+            ->from(route('admin.procurement.supplier-invoices.edit', [
+                'supplierInvoiceId' => 'invoice-tax-1',
+            ]))
+            ->put(route('admin.procurement.supplier-invoices.update', [
+                'supplierInvoiceId' => 'invoice-tax-1',
+            ]), $this->updatePayload([
+                'tax_input' => null,
+                'lines' => [
+                    [
+                        'previous_line_id' => 'invoice-tax-line-1',
+                        'line_no' => 1,
+                        'product_id' => 'product-tax-1',
+                        'qty_pcs' => 2,
+                        'line_total_rupiah' => 20000,
+                    ],
+                ],
+            ]));
+
+        $response->assertRedirect(route('admin.procurement.supplier-invoices.edit', [
+            'supplierInvoiceId' => 'invoice-tax-1',
+        ]));
+        $response->assertSessionHasErrors(['supplier_invoice']);
+
+        $this->assertDatabaseHas('supplier_invoices', [
+            'id' => 'invoice-tax-1',
+            'subtotal_before_tax_rupiah' => 20000,
+            'tax_input' => '10%',
+            'tax_mode' => 'percent',
+            'tax_rate_basis_points' => 1000,
+            'tax_amount_rupiah' => 2000,
+            'grand_total_rupiah' => 22000,
+            'last_revision_no' => 1,
+        ]);
+
+        $line = $this->currentLine('invoice-tax-1', 'product-tax-1');
+
+        $this->assertSame(20000, (int) $line->line_subtotal_before_tax_rupiah);
+        $this->assertSame(22000, (int) $line->line_total_rupiah);
+        $this->assertSame(11000, (int) $line->unit_cost_rupiah);
+
+        $this->assertDatabaseHas('product_inventory_costing', [
+            'product_id' => 'product-tax-1',
+            'avg_cost_rupiah' => 11000,
+            'inventory_value_rupiah' => 22000,
+        ]);
+    }
+
+    public function test_received_invoice_change_tax_amount_revision_is_rejected_until_revaluation_exists(): void
+    {
+        $this->seedReceivedHeaderTaxInvoice();
+
+        $response = $this->actingAs($this->user('admin'))
+            ->from(route('admin.procurement.supplier-invoices.edit', [
+                'supplierInvoiceId' => 'invoice-tax-1',
+            ]))
+            ->put(route('admin.procurement.supplier-invoices.update', [
+                'supplierInvoiceId' => 'invoice-tax-1',
+            ]), $this->updatePayload([
+                'tax_input' => '3000',
+                'lines' => [
+                    [
+                        'previous_line_id' => 'invoice-tax-line-1',
+                        'line_no' => 1,
+                        'product_id' => 'product-tax-1',
+                        'qty_pcs' => 2,
+                        'line_total_rupiah' => 20000,
+                    ],
+                ],
+            ]));
+
+        $response->assertRedirect(route('admin.procurement.supplier-invoices.edit', [
+            'supplierInvoiceId' => 'invoice-tax-1',
+        ]));
+        $response->assertSessionHasErrors(['supplier_invoice']);
+
+        $this->assertDatabaseHas('supplier_invoices', [
+            'id' => 'invoice-tax-1',
+            'tax_input' => '10%',
+            'tax_mode' => 'percent',
+            'tax_rate_basis_points' => 1000,
+            'tax_amount_rupiah' => 2000,
+            'grand_total_rupiah' => 22000,
+            'last_revision_no' => 1,
+        ]);
+
+        $this->assertDatabaseHas('product_inventory_costing', [
+            'product_id' => 'product-tax-1',
+            'avg_cost_rupiah' => 11000,
+            'inventory_value_rupiah' => 22000,
+        ]);
+    }
+
+    public function test_received_invoice_base_price_decrease_revision_is_rejected_until_revaluation_exists(): void
+    {
+        $this->seedReceivedHeaderTaxInvoice();
+
+        $response = $this->actingAs($this->user('admin'))
+            ->from(route('admin.procurement.supplier-invoices.edit', [
+                'supplierInvoiceId' => 'invoice-tax-1',
+            ]))
+            ->put(route('admin.procurement.supplier-invoices.update', [
+                'supplierInvoiceId' => 'invoice-tax-1',
+            ]), $this->updatePayload([
+                'tax_input' => '10%',
+                'lines' => [
+                    [
+                        'previous_line_id' => 'invoice-tax-line-1',
+                        'line_no' => 1,
+                        'product_id' => 'product-tax-1',
+                        'qty_pcs' => 2,
+                        'line_total_rupiah' => 18000,
+                    ],
+                ],
+            ]));
+
+        $response->assertRedirect(route('admin.procurement.supplier-invoices.edit', [
+            'supplierInvoiceId' => 'invoice-tax-1',
+        ]));
+        $response->assertSessionHasErrors(['supplier_invoice']);
+
+        $this->assertDatabaseHas('supplier_invoices', [
+            'id' => 'invoice-tax-1',
+            'subtotal_before_tax_rupiah' => 20000,
+            'tax_input' => '10%',
+            'tax_amount_rupiah' => 2000,
+            'grand_total_rupiah' => 22000,
+            'last_revision_no' => 1,
+        ]);
+
+        $this->assertDatabaseHas('product_inventory_costing', [
+            'product_id' => 'product-tax-1',
+            'avg_cost_rupiah' => 11000,
+            'inventory_value_rupiah' => 22000,
+        ]);
+    }
+
+    public function test_received_invoice_qty_increase_with_same_unit_cost_is_allowed(): void
+    {
+        $this->seedReceivedNoTaxInvoice();
+
+        $response = $this->actingAs($this->user('admin'))
+            ->put(route('admin.procurement.supplier-invoices.update', [
+                'supplierInvoiceId' => 'invoice-received-tax-1',
+            ]), $this->updatePayload([
+                'tax_input' => null,
+                'lines' => [
+                    [
+                        'previous_line_id' => 'invoice-received-tax-line-1',
+                        'line_no' => 1,
+                        'product_id' => 'product-tax-1',
+                        'qty_pcs' => 3,
+                        'line_total_rupiah' => 30000,
+                    ],
+                ],
+            ]));
+
+        $response->assertRedirect(route('admin.procurement.supplier-invoices.show', [
+            'supplierInvoiceId' => 'invoice-received-tax-1',
+        ]));
+
+        $this->assertDatabaseHas('supplier_invoices', [
+            'id' => 'invoice-received-tax-1',
+            'grand_total_rupiah' => 30000,
+            'last_revision_no' => 2,
+        ]);
+
+        $line = $this->currentLine('invoice-received-tax-1', 'product-tax-1');
+
+        $this->assertSame(3, (int) $line->qty_pcs);
+        $this->assertSame(30000, (int) $line->line_total_rupiah);
+        $this->assertSame(10000, (int) $line->unit_cost_rupiah);
+
+        $this->assertDatabaseHas('product_inventory', [
+            'product_id' => 'product-tax-1',
+            'qty_on_hand' => 3,
+        ]);
+
+        $this->assertDatabaseHas('product_inventory_costing', [
+            'product_id' => 'product-tax-1',
+            'avg_cost_rupiah' => 10000,
+            'inventory_value_rupiah' => 30000,
+        ]);
+    }
+
+    public function test_received_invoice_qty_decrease_with_same_unit_cost_is_allowed_when_stock_is_available(): void
+    {
+        $this->seedReceivedNoTaxInvoice();
+
+        $response = $this->actingAs($this->user('admin'))
+            ->put(route('admin.procurement.supplier-invoices.update', [
+                'supplierInvoiceId' => 'invoice-received-tax-1',
+            ]), $this->updatePayload([
+                'tax_input' => null,
+                'lines' => [
+                    [
+                        'previous_line_id' => 'invoice-received-tax-line-1',
+                        'line_no' => 1,
+                        'product_id' => 'product-tax-1',
+                        'qty_pcs' => 1,
+                        'line_total_rupiah' => 10000,
+                    ],
+                ],
+            ]));
+
+        $response->assertRedirect(route('admin.procurement.supplier-invoices.show', [
+            'supplierInvoiceId' => 'invoice-received-tax-1',
+        ]));
+
+        $this->assertDatabaseHas('supplier_invoices', [
+            'id' => 'invoice-received-tax-1',
+            'grand_total_rupiah' => 10000,
+            'last_revision_no' => 2,
+        ]);
+
+        $line = $this->currentLine('invoice-received-tax-1', 'product-tax-1');
+
+        $this->assertSame(1, (int) $line->qty_pcs);
+        $this->assertSame(10000, (int) $line->line_total_rupiah);
+        $this->assertSame(10000, (int) $line->unit_cost_rupiah);
+
+        $this->assertDatabaseHas('product_inventory', [
+            'product_id' => 'product-tax-1',
+            'qty_on_hand' => 1,
+        ]);
+
+        $this->assertDatabaseHas('product_inventory_costing', [
+            'product_id' => 'product-tax-1',
+            'avg_cost_rupiah' => 10000,
+            'inventory_value_rupiah' => 10000,
+        ]);
+    }
+
     private function updatePayload(array $overrides): array
     {
         return array_replace_recursive([
@@ -252,6 +489,47 @@ final class SupplierInvoiceTaxFinancialInvariantFeatureTest extends TestCase
             11000,
             20000,
         );
+    }
+
+    private function seedReceivedHeaderTaxInvoice(): void
+    {
+        $this->seedHeaderTaxInvoice();
+
+        DB::table('supplier_receipts')->insert([
+            'id' => 'receipt-tax-1',
+            'supplier_invoice_id' => 'invoice-tax-1',
+            'tanggal_terima' => '2026-03-15',
+        ]);
+
+        DB::table('supplier_receipt_lines')->insert([
+            'id' => 'receipt-tax-line-1',
+            'supplier_receipt_id' => 'receipt-tax-1',
+            'supplier_invoice_line_id' => 'invoice-tax-line-1',
+            'qty_diterima' => 2,
+        ]);
+
+        DB::table('inventory_movements')->insert([
+            'id' => 'movement-tax-1',
+            'product_id' => 'product-tax-1',
+            'movement_type' => 'stock_in',
+            'source_type' => 'supplier_receipt_line',
+            'source_id' => 'receipt-tax-line-1',
+            'tanggal_mutasi' => '2026-03-15',
+            'qty_delta' => 2,
+            'unit_cost_rupiah' => 11000,
+            'total_cost_rupiah' => 22000,
+        ]);
+
+        DB::table('product_inventory')->insert([
+            'product_id' => 'product-tax-1',
+            'qty_on_hand' => 2,
+        ]);
+
+        DB::table('product_inventory_costing')->insert([
+            'product_id' => 'product-tax-1',
+            'avg_cost_rupiah' => 11000,
+            'inventory_value_rupiah' => 22000,
+        ]);
     }
 
     private function seedReceivedNoTaxInvoice(): void
