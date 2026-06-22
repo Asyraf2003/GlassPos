@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace App\Application\Note\Services;
 
 use App\Application\Payment\DTO\SelectedRowsRefundPlan;
+use App\Application\Payment\Services\LegacyPaymentComponentAllocationSynthesizer;
 use App\Application\Payment\Services\PaymentComponentSelectionIds;
 use App\Application\Payment\Services\RefundComponentTypePolicy;
 use App\Application\Shared\DTO\Result;
@@ -17,6 +18,7 @@ final class SelectedNoteRowsRefundPlanResolver
         private readonly NoteOperationalRowSettlementProjector $settlements,
         private readonly PaymentComponentAllocationReaderPort $allocations,
         private readonly RefundComponentAllocationReaderPort $refunds,
+        private readonly LegacyPaymentComponentAllocationSynthesizer $legacyAllocations,
         private readonly SelectedRowsRefundBucketsBuilder $buckets,
         private readonly SelectedNoteRowsRefundEligibilityGuard $eligibility,
     ) {}
@@ -42,6 +44,11 @@ final class SelectedNoteRowsRefundPlanResolver
             return $ineligible;
         }
         $paymentAllocations = $this->allocations->listByNoteId($note->id());
+
+        if ($paymentAllocations === []) {
+            $paymentAllocations = $this->legacyAllocations->forNote($note->id());
+        }
+
         $paymentBuckets = $this->buckets->build(
             $selectedIds,
             $paymentAllocations,

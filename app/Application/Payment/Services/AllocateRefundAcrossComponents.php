@@ -16,6 +16,7 @@ final class AllocateRefundAcrossComponents
     public function __construct(
         private readonly PaymentComponentAllocationReaderPort $payments,
         private readonly RefundComponentAllocationReaderPort $refunds,
+        private readonly LegacyPaymentComponentAllocationSynthesizer $legacyAllocations,
         private readonly UuidPort $uuid,
     ) {
     }
@@ -39,6 +40,11 @@ final class AllocateRefundAcrossComponents
             $noteId,
             $selectedRowIds,
         );
+
+        if ($paymentAllocations === []) {
+            $paymentAllocations = $this->legacyAllocations->forPayment($customerPaymentId, $noteId, $selectedRowIds);
+        }
+
         $alreadyRefunded = RefundedComponentTotals::build($this->refunds, $customerPaymentId, $noteId);
         $priority = 1;
 

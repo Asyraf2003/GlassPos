@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Tests\Unit\Application\Payment\Services;
 
 use App\Application\Payment\Services\AllocateRefundAcrossComponents;
+use App\Application\Payment\Services\LegacyPaymentComponentAllocationSynthesizer;
+use App\Core\Note\Note\Note;
 use App\Core\Payment\PaymentComponentAllocation\PaymentComponentAllocation;
 use App\Core\Payment\PaymentComponentAllocation\PaymentComponentType;
 use App\Core\Payment\RefundComponentAllocation\RefundComponentAllocation;
 use App\Core\Shared\ValueObjects\Money;
+use App\Ports\Out\Note\NoteReaderPort;
 use App\Ports\Out\Payment\PaymentComponentAllocationReaderPort;
 use App\Ports\Out\Payment\RefundComponentAllocationReaderPort;
 use App\Ports\Out\UuidPort;
@@ -37,6 +40,13 @@ final class AllocateRefundAcrossComponentsTest extends TestCase
                 public function getTotalRefundedAmountByWorkItemId(string $workItemId): Money { return Money::zero(); }
                 public function listByNoteId(string $noteId): array { return []; }
             },
+            new LegacyPaymentComponentAllocationSynthesizer(
+                new class () implements NoteReaderPort {
+                    public function countAll(): int { return 0; }
+                    public function getById(string $id): ?Note { return null; }
+                    public function getByIdForUpdate(string $id): ?Note { return null; }
+                }
+            ),
             new class () implements UuidPort {
                 private int $i = 0;
                 public function generate(): string { return 'r-' . ++$this->i; }
