@@ -121,19 +121,75 @@
     return allocated.some((line) => (line.total + line.tax) % line.qty !== 0);
   };
 
-  const confirmTaxRoundingResidueBeforeSubmit = () => {
+  const ensureSweetAlertStyle = () => {
+    if (document.querySelector('link[data-swal2-style="1"]')) return;
+
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css";
+    link.setAttribute("data-swal2-style", "1");
+    document.head.appendChild(link);
+  };
+
+  const loadSweetAlert = () => new Promise((resolve, reject) => {
+    if (window.Swal && typeof window.Swal.fire === "function") {
+      resolve(window.Swal);
+      return;
+    }
+
+    const existingScript = document.querySelector('script[data-swal2-script="1"]');
+
+    if (existingScript) {
+      existingScript.addEventListener("load", () => resolve(window.Swal), { once: true });
+      existingScript.addEventListener("error", reject, { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/sweetalert2@11";
+    script.setAttribute("data-swal2-script", "1");
+    script.onload = () => resolve(window.Swal);
+    script.onerror = reject;
+    document.body.appendChild(script);
+  });
+
+  const confirmTaxRoundingResidueBeforeSubmit = async () => {
     if (!taxRoundingResidueConfirmedInput) return true;
     if (!requiresTaxRoundingResidueConfirmation()) return true;
     if (taxRoundingResidueConfirmedInput.value === "1") return true;
 
     const message = String(taxRoundingResidueMessage?.textContent ?? "Total setelah pajak tidak habis dibagi qty, sehingga modal per pcs akan dibulatkan dan selisih pembulatan akan dicatat. Lanjutkan?").trim();
 
-    if (!window.confirm(message)) {
+    try {
+      ensureSweetAlertStyle();
+
+      const Swal = await loadSweetAlert();
+      const result = await Swal.fire({
+        icon: "warning",
+        title: "Konfirmasi Pembulatan Modal",
+        text: message,
+        showCancelButton: true,
+        confirmButtonText: "Lanjutkan",
+        cancelButtonText: "Batal",
+        reverseButtons: true,
+        focusCancel: true,
+      });
+
+      if (!result.isConfirmed) {
+        return false;
+      }
+
+      taxRoundingResidueConfirmedInput.value = "1";
+      return true;
+    } catch (error) {
+      console.error("supplier-invoice: gagal membuka konfirmasi pembulatan modal", error);
+
+      if (taxRoundingResidueMessage) {
+        taxRoundingResidueMessage.classList.remove("d-none");
+      }
+
       return false;
     }
-
-    taxRoundingResidueConfirmedInput.value = "1";
-    return true;
   };
 
   const shouldResetTaxRoundingResidueConfirmation = (target) =>
@@ -1200,7 +1256,7 @@
     scheduleDraftSave();
   });
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     pruneEmptyLinesBeforeSubmit();
 
     if (!validateDuplicateProductsBeforeSubmit()) {
@@ -1219,9 +1275,17 @@
       return;
     }
 
-    if (!confirmTaxRoundingResidueBeforeSubmit()) {
+    if (requiresTaxRoundingResidueConfirmation() && taxRoundingResidueConfirmedInput?.value !== "1") {
       event.preventDefault();
       persistDraftNow();
+
+      const confirmed = await confirmTaxRoundingResidueBeforeSubmit();
+
+      if (!confirmed) {
+        return;
+      }
+
+      form.requestSubmit();
       return;
     }
 
