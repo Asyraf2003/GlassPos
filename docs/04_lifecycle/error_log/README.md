@@ -1,6 +1,6 @@
 # error-log
 
-34 individual bug and security findings in the Hyperpos system.
+35 individual bug and security findings in the Hyperpos system.
 
 ## Kesimpulan Remediasi Saat Ini
 
@@ -13,6 +13,7 @@ Kesimpulan sistem:
 - 0033 menutup login brute-force gap pada web dan mobile login dengan explicit Laravel rate limiter.
 - 0034 menutup unbounded product lookup dan N+1 inventory read dengan dedicated hexagonal lookup port dan bounded database adapter.
 - 0030 menutup locked dependency security advisories melalui controlled dependency update, clean `composer audit --locked`, platform check, dan full verification gate.
+- 0035 menutup gap pajak faktur supplier sebagai landed cost: received invoice unit-cost revision ditolak sampai revaluation eksplisit tersedia, legacy tax correction aman, parser pajak diperketat, reporting profit/stock value dikunci dengan test, dan `make verify` lulus 1306 tests / 7750 assertions.
 - Patch 0034 tidak menjadikan Laravel API sebagai fokus produk; mobile endpoint hanya dirapikan sebagai boundary sistem yang sudah ada.
 - Jalur 0034 disiplin hexagonal: controller/handler tidak melakukan DB shortcut, application bergantung ke port, persistence berada di out adapter.
 - Query lookup 0034 memakai SQL umum melalui query builder (`LEFT JOIN`, `COALESCE`, `LIKE`, `LIMIT`) dan tidak menambah syntax MySQL-only baru.
@@ -60,6 +61,7 @@ Pending yang masih terpisah:
 | 032 | `0032_inventory_stock_value_excel_formula_injection.md` | Inventory stock value Excel export writes product text through formula-capable cells |
 | 033 | `0033_web_and_mobile_login_without_rate_limiting.md` | Web and mobile login endpoints lack explicit rate limiting |
 | 034 | `0034_product_lookup_unbounded_query_and_per_row_inventory_reads.md` | Product lookup fetches unbounded product rows and performs per-row inventory reads |
+| 035 | `0035_supplier_invoice_received_tax_revision_costing_gap.md` | Supplier invoice received tax revision can leave inventory costing stale |
 
 ## Rules
 

@@ -1,6 +1,6 @@
 # 0035 - Supplier invoice received tax revision can leave inventory costing stale
 
-Status: Reported
+Status: Fixed with proof
 
 ## Ringkasan
 
@@ -92,3 +92,36 @@ Sisa target:
    - received invoice product replacement still follows stock-out/stock-in path.
 4. Setelah safe reject stabil, baru rancang revaluation otomatis jika owner memang mau revision modal pada barang received.
 \n- Step 4 added: legacy DB correction matrix tests for no-tax old invoices, tax-included old invoices, header tax, line tax, percent tax, fixed tax, and blank tax preservation.\n\n- Step 5 added: parser/input hardening for negative fixed tax, alphanumeric fixed tax, decimal-like fixed tax, rupiah thousand separators, comma-percent input, and non-scalar header/line tax validation.\n\n- Step 6 added: reporting hardening for inventory stock value and operational profit COGS using taxed landed cost from inventory projections/movements.\n
+
+## Final verification proof
+
+Status updated to `Fixed with proof` after local verification gate passed on 2026-06-22.
+
+Final gate:
+
+```bash
+make verify
+```
+
+Result:
+
+```text
+make verify: 1306 passed (7750 assertions), Duration: 95.52s
+```
+
+Covered invariants:
+
+- Header tax and line tax are landed cost/modal, not standalone expense.
+- Existing taxed invoice edit does not double-tax.
+- Legacy no-tax invoices can be corrected into header percent/fixed tax.
+- Legacy tax-included invoices can split tax without changing grand total.
+- Line-level tax correction keeps base subtotal, line tax, line total, and unit cost consistent.
+- Fully paid invoices reject downward revision below active paid total.
+- Upward revision keeps existing payment and creates remaining outstanding by total math.
+- Reversed supplier payments do not lock invoice revision.
+- Received invoices reject unit-cost/modal revision until explicit inventory revaluation exists.
+- Received invoices still allow qty revisions when unit cost is unchanged and stock guard allows it.
+- Tax parser rejects unsafe fixed inputs such as negative, alphanumeric, and decimal-like strings.
+- Header/line non-scalar tax input is validation error, not silently ignored.
+- Inventory stock value and operational profit reports consume taxed landed cost from projections/movements.
+- Hexagonal line-count audit passes after received unit-cost revision guard extraction.
