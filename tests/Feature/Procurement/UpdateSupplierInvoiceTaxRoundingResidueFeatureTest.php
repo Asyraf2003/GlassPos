@@ -65,6 +65,50 @@ final class UpdateSupplierInvoiceTaxRoundingResidueFeatureTest extends TestCase
         $this->assertSame(1, $snapshot['lines'][0]['rounding_residue_rupiah']);
     }
 
+
+    public function test_unconfirmed_tax_rounding_residue_is_rejected_on_update_without_500(): void
+    {
+        $this->loginAsAuthorizedAdmin();
+        $this->seedEditableInvoice();
+
+        $response = $this->from(route('admin.procurement.supplier-invoices.edit', [
+            'supplierInvoiceId' => 'invoice-rounding-1',
+        ]))->put(route('admin.procurement.supplier-invoices.update', [
+            'supplierInvoiceId' => 'invoice-rounding-1',
+        ]), [
+            'expected_revision_no' => 1,
+            'change_reason' => 'Belum konfirmasi residue pajak supplier.',
+            'nomor_faktur' => 'INV-SUP-ROUNDING-UNCONFIRMED',
+            'nama_pt_pengirim' => 'PT Supplier Rounding',
+            'tanggal_pengiriman' => '2026-03-12',
+            'tax_input' => '1',
+            'lines' => [[
+                'previous_line_id' => 'invoice-line-rounding-1',
+                'line_no' => 1,
+                'product_id' => 'product-rounding-1',
+                'qty_pcs' => 3,
+                'line_total_rupiah' => 300,
+            ]],
+        ]);
+
+        $response->assertRedirect(route('admin.procurement.supplier-invoices.edit', [
+            'supplierInvoiceId' => 'invoice-rounding-1',
+        ]));
+        $response->assertSessionHasErrors(['tax_input']);
+
+        $this->assertDatabaseHas('supplier_invoices', [
+            'id' => 'invoice-rounding-1',
+            'nomor_faktur' => 'INV-SUP-ROUNDING',
+            'grand_total_rupiah' => 300,
+            'last_revision_no' => 1,
+        ]);
+
+        $this->assertDatabaseMissing('supplier_invoice_versions', [
+            'supplier_invoice_id' => 'invoice-rounding-1',
+            'revision_no' => 2,
+        ]);
+    }
+
     private function seedEditableInvoice(): void
     {
         DB::table('suppliers')->insert([
