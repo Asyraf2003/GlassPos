@@ -277,6 +277,10 @@ trait SeedsMinimalNotePaymentFixture
             ]
         );
 
+        DB::table('note_revision_lines')
+            ->where('note_revision_id', $revisionId)
+            ->delete();
+
         foreach ($lines as $line) {
             DB::table('note_revision_lines')->updateOrInsert(
                 ['id' => (string) $line['id']],
