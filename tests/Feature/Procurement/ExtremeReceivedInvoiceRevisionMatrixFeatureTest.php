@@ -82,6 +82,55 @@ final class ExtremeReceivedInvoiceRevisionMatrixFeatureTest extends TestCase
         ]);
     }
 
+    public function test_unpaid_received_invoice_cost_revision_creates_explicit_cost_revaluation_effect(): void
+    {
+        $this->seedReceivedInvoiceBase();
+
+        $r = $this->actingAs($this->admin())->put(
+            route('admin.procurement.supplier-invoices.update', ['supplierInvoiceId' => 'invoice-1']),
+            $this->payload([
+                'change_reason' => 'Koreksi landed cost diterima supplier.',
+                'lines' => [[
+                    'previous_line_id' => 'invoice-line-1',
+                    'line_no' => 1,
+                    'product_id' => 'product-1',
+                    'qty_pcs' => 2,
+                    'line_total_rupiah' => 22000,
+                ]],
+            ])
+        );
+
+        $r->assertRedirect(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']))
+            ->assertSessionHas('success', 'Nota supplier berhasil diperbarui.');
+
+        $this->assertDatabaseHas('supplier_invoices', [
+            'id' => 'invoice-1',
+            'last_revision_no' => 2,
+            'grand_total_rupiah' => 22000,
+        ]);
+
+        $this->assertDatabaseHas('inventory_movements', [
+            'product_id' => 'product-1',
+            'movement_type' => 'cost_revaluation',
+            'source_type' => 'supplier_invoice_cost_revaluation',
+            'tanggal_mutasi' => '2026-03-17',
+            'qty_delta' => 0,
+            'unit_cost_rupiah' => 0,
+            'total_cost_rupiah' => 2000,
+        ]);
+
+        $this->assertDatabaseHas('product_inventory', [
+            'product_id' => 'product-1',
+            'qty_on_hand' => 2,
+        ]);
+
+        $this->assertDatabaseHas('product_inventory_costing', [
+            'product_id' => 'product-1',
+            'avg_cost_rupiah' => 11000,
+            'inventory_value_rupiah' => 22000,
+        ]);
+    }
+
     public function test_admin_cannot_revise_received_invoice_when_total_would_drop_below_paid(): void
     {
         $this->seedReceivedInvoiceBase();
