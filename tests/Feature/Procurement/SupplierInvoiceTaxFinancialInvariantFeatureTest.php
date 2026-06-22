@@ -459,7 +459,7 @@ final class SupplierInvoiceTaxFinancialInvariantFeatureTest extends TestCase
 
         $this->assertDatabaseHas('supplier_invoices', [
             'id' => 'invoice-legacy-1',
-            'subtotal_before_tax_rupiah' => 22000,
+            'subtotal_before_tax_rupiah' => 20000,
             'tax_input' => null,
             'tax_mode' => 'none',
             'tax_amount_rupiah' => 0,
