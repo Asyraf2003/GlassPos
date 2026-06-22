@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
+use App\Application\Payment\Services\RecordAndAllocateNotePaymentOperation;
 use App\Core\Note\WorkItem\WorkItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -379,6 +380,77 @@ final class CashierProductReplacementBackdatedPriceFinanceFeatureTest extends Te
 
 
 
+
+
+
+    public function test_customer_can_pay_again_after_refund_reopens_note_outstanding(): void
+    {
+        $oldDate = date('Y-m-d', strtotime('-4 days'));
+        $today = date('Y-m-d');
+
+        $this->seedPaidProductOnlyNote($oldDate);
+
+        DB::table('customer_refunds')->insert([
+            'id' => 'refund-pay-again-1',
+            'customer_payment_id' => 'payment-1',
+            'note_id' => 'note-1',
+            'amount_rupiah' => 100000,
+            'refunded_at' => $oldDate,
+            'reason' => 'Refund sebagian sebelum bayar ulang',
+        ]);
+
+        DB::table('refund_component_allocations')->insert([
+            'id' => 'rca-pay-again-1',
+            'customer_refund_id' => 'refund-pay-again-1',
+            'customer_payment_id' => 'payment-1',
+            'note_id' => 'note-1',
+            'work_item_id' => 'wi-old-1',
+            'component_type' => 'product_only_work_item',
+            'component_ref_id' => 'wi-old-1',
+            'refunded_amount_rupiah' => 100000,
+            'refund_priority' => 1,
+        ]);
+
+        $recorded = $this->app
+            ->make(RecordAndAllocateNotePaymentOperation::class)
+            ->execute('note-1', 100000, $today);
+
+        self::assertSame(1, $recorded->allocationCount());
+
+        self::assertSame(
+            400000,
+            (int) DB::table('payment_allocations')
+                ->where('note_id', 'note-1')
+                ->sum('amount_rupiah'),
+            'Gross payment allocations may exceed note total only by the refunded amount.'
+        );
+
+        self::assertSame(
+            400000,
+            (int) DB::table('payment_component_allocations')
+                ->where('note_id', 'note-1')
+                ->sum('allocated_amount_rupiah'),
+            'Component allocations must allow replacing refunded component amount.'
+        );
+
+        self::assertSame(
+            100000,
+            (int) DB::table('refund_component_allocations')
+                ->where('note_id', 'note-1')
+                ->sum('refunded_amount_rupiah')
+        );
+
+        self::assertSame(
+            300000,
+            (int) DB::table('payment_component_allocations')
+                ->where('note_id', 'note-1')
+                ->sum('allocated_amount_rupiah')
+                - (int) DB::table('refund_component_allocations')
+                    ->where('note_id', 'note-1')
+                    ->sum('refunded_amount_rupiah'),
+            'Net allocated component amount must match the note total after replacement payment.'
+        );
+    }
 
 
     private function seedPaidProductOnlyNote(string $oldDate): void
