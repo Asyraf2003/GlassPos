@@ -72,7 +72,7 @@ final class SupplierInvoiceLineTaxLandedCostAllocatorTest extends TestCase
     public function test_line_tax_that_breaks_integer_unit_cost_is_rejected(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Alokasi pajak supplier invoice membuat total line tidak habis dibagi qty.');
+        $this->expectExceptionMessage('Total setelah pajak tidak habis dibagi qty, sehingga modal per pcs akan dibulatkan dan selisih pembulatan akan dicatat. Lanjutkan?');
 
         $this->allocator()->allocate([
             ['line_no' => 1, 'product_id' => 'product-1', 'qty_pcs' => 2, 'line_total_rupiah' => 100, 'tax_input' => '1'],

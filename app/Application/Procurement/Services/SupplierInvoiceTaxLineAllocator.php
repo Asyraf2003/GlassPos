@@ -8,12 +8,19 @@ use InvalidArgumentException;
 
 final class SupplierInvoiceTaxLineAllocator
 {
+    private const ROUNDING_CONFIRMATION_MESSAGE =
+        'Total setelah pajak tidak habis dibagi qty, sehingga modal per pcs akan dibulatkan dan selisih pembulatan akan dicatat. Lanjutkan?';
+
     /**
      * @param list<array<string, mixed>> $lines
      * @return list<array<string, mixed>>
      */
-    public function allocate(array $lines, int $subtotal, int $taxAmount): array
-    {
+    public function allocate(
+        array $lines,
+        int $subtotal,
+        int $taxAmount,
+        bool $roundingResidueConfirmed = false
+    ): array {
         $allocatedLines = [];
         $remainders = [];
         $allocatedTaxTotal = 0;
@@ -27,6 +34,7 @@ final class SupplierInvoiceTaxLineAllocator
                 ...$line,
                 'line_total_rupiah' => $lineTotal + $allocatedTax,
             ];
+
             $allocatedTaxTotal += $allocatedTax;
             $remainders[] = ['index' => $index, 'remainder' => $numerator % $subtotal];
         }
@@ -34,10 +42,10 @@ final class SupplierInvoiceTaxLineAllocator
         $this->allocateRemainingTax($allocatedLines, $remainders, $taxAmount - $allocatedTaxTotal);
         ksort($allocatedLines);
 
-        $allocatedLines = array_values($allocatedLines);
-        $this->assertUnitCostInvariant($allocatedLines);
-
-        return $allocatedLines;
+        return array_map(
+            fn (array $line): array => $this->withUnitCostRoundingMetadata($line, $roundingResidueConfirmed),
+            array_values($allocatedLines)
+        );
     }
 
     /**
@@ -60,21 +68,27 @@ final class SupplierInvoiceTaxLineAllocator
     }
 
     /**
-     * @param list<array<string, mixed>> $lines
+     * @param array<string, mixed> $line
+     * @return array<string, mixed>
      */
-    private function assertUnitCostInvariant(array $lines): void
+    private function withUnitCostRoundingMetadata(array $line, bool $roundingResidueConfirmed): array
     {
-        foreach ($lines as $line) {
-            $qtyPcs = (int) ($line['qty_pcs'] ?? 0);
-            $lineTotal = (int) ($line['line_total_rupiah'] ?? 0);
+        $qtyPcs = (int) ($line['qty_pcs'] ?? 0);
+        $lineTotal = (int) ($line['line_total_rupiah'] ?? 0);
 
-            if ($qtyPcs < 1) {
-                throw new InvalidArgumentException('Qty supplier invoice harus lebih dari 0 untuk alokasi pajak.');
-            }
-
-            if ($lineTotal % $qtyPcs !== 0) {
-                throw new InvalidArgumentException('Alokasi pajak supplier invoice membuat total line tidak habis dibagi qty.');
-            }
+        if ($qtyPcs < 1) {
+            throw new InvalidArgumentException('Qty supplier invoice harus lebih dari 0 untuk alokasi pajak.');
         }
+
+        $roundingResidue = $lineTotal % $qtyPcs;
+
+        if ($roundingResidue !== 0 && ! $roundingResidueConfirmed) {
+            throw new InvalidArgumentException(self::ROUNDING_CONFIRMATION_MESSAGE);
+        }
+
+        return array_merge($line, [
+            'unit_cost_rupiah' => intdiv($lineTotal, $qtyPcs),
+            'rounding_residue_rupiah' => $roundingResidue,
+        ]);
     }
 }

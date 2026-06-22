@@ -17,10 +17,10 @@ final class SupplierInvoiceTaxLandedCostAllocator
     /**
      * @param array<int, array<string, mixed>> $lines
      */
-    public function allocate(array $lines, null|string|int $taxInput): SupplierInvoiceTaxLandedCostAllocation
+    public function allocate(array $lines, null|string|int $taxInput, bool $roundingResidueConfirmed = false): SupplierInvoiceTaxLandedCostAllocation
     {
         $baseSubtotal = $this->subtotal($lines);
-        $lineTaxedLines = $this->lineTaxAllocator()->allocate($lines);
+        $lineTaxedLines = $this->lineTaxAllocator()->allocate($lines, $roundingResidueConfirmed);
         $subtotalAfterLineTax = $this->subtotal($lineTaxedLines);
         $tax = $this->calculator->calculate($taxInput, $subtotalAfterLineTax);
 
@@ -37,7 +37,7 @@ final class SupplierInvoiceTaxLandedCostAllocator
         return new SupplierInvoiceTaxLandedCostAllocation(
             $baseSubtotal,
             $tax,
-            $this->taxLineAllocator()->allocate($lineTaxedLines, $subtotalAfterLineTax, $tax->taxAmountRupiah())
+            $this->taxLineAllocator()->allocate($lineTaxedLines, $subtotalAfterLineTax, $tax->taxAmountRupiah(), $roundingResidueConfirmed)
         );
     }
 
