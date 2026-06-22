@@ -121,6 +121,6 @@ final class LegacyPaymentComponentAllocationSynthesizer
                 $right->allocationPriority() <=> $left->allocationPriority(),
         );
 
-        return array_values($allocations);
+        return $allocations;
     }
 }
