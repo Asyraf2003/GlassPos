@@ -141,6 +141,130 @@ final class SupplierInvoiceTaxFinancialInvariantFeatureTest extends TestCase
         $this->assertSame(12100, (int) $line->unit_cost_rupiah);
     }
 
+    public function test_fully_paid_invoice_can_be_revised_when_new_total_equals_active_paid_total(): void
+    {
+        $this->seedHeaderTaxInvoice();
+        $this->seedPayment('payment-tax-1', 'invoice-tax-1', 22000);
+
+        $response = $this->actingAs($this->user('admin'))
+            ->put(route('admin.procurement.supplier-invoices.update', [
+                'supplierInvoiceId' => 'invoice-tax-1',
+            ]), $this->updatePayload([
+                'nomor_faktur' => 'INV-TAX-001-RENAMED',
+                'tax_input' => '10%',
+                'lines' => [
+                    [
+                        'previous_line_id' => 'invoice-tax-line-1',
+                        'line_no' => 1,
+                        'product_id' => 'product-tax-1',
+                        'qty_pcs' => 2,
+                        'line_total_rupiah' => 20000,
+                    ],
+                ],
+            ]));
+
+        $response->assertRedirect(route('admin.procurement.supplier-invoices.show', [
+            'supplierInvoiceId' => 'invoice-tax-1',
+        ]));
+
+        $this->assertDatabaseHas('supplier_invoices', [
+            'id' => 'invoice-tax-1',
+            'nomor_faktur' => 'INV-TAX-001-RENAMED',
+            'subtotal_before_tax_rupiah' => 20000,
+            'tax_input' => '10%',
+            'tax_amount_rupiah' => 2000,
+            'grand_total_rupiah' => 22000,
+            'last_revision_no' => 2,
+        ]);
+
+        $this->assertDatabaseHas('supplier_payments', [
+            'id' => 'payment-tax-1',
+            'supplier_invoice_id' => 'invoice-tax-1',
+            'amount_rupiah' => 22000,
+        ]);
+    }
+
+    public function test_partially_paid_invoice_rejects_revision_total_below_active_paid_total(): void
+    {
+        $this->seedHeaderTaxInvoice();
+        $this->seedPayment('payment-tax-1', 'invoice-tax-1', 15000);
+
+        $response = $this->actingAs($this->user('admin'))
+            ->from(route('admin.procurement.supplier-invoices.edit', [
+                'supplierInvoiceId' => 'invoice-tax-1',
+            ]))
+            ->put(route('admin.procurement.supplier-invoices.update', [
+                'supplierInvoiceId' => 'invoice-tax-1',
+            ]), $this->updatePayload([
+                'tax_input' => null,
+                'lines' => [
+                    [
+                        'previous_line_id' => 'invoice-tax-line-1',
+                        'line_no' => 1,
+                        'product_id' => 'product-tax-1',
+                        'qty_pcs' => 1,
+                        'line_total_rupiah' => 10000,
+                    ],
+                ],
+            ]));
+
+        $response->assertRedirect(route('admin.procurement.supplier-invoices.edit', [
+            'supplierInvoiceId' => 'invoice-tax-1',
+        ]));
+        $response->assertSessionHasErrors(['supplier_invoice']);
+
+        $this->assertDatabaseHas('supplier_invoices', [
+            'id' => 'invoice-tax-1',
+            'subtotal_before_tax_rupiah' => 20000,
+            'tax_input' => '10%',
+            'tax_amount_rupiah' => 2000,
+            'grand_total_rupiah' => 22000,
+            'last_revision_no' => 1,
+        ]);
+    }
+
+    public function test_reversed_supplier_payment_does_not_lock_revision_total(): void
+    {
+        $this->seedHeaderTaxInvoice();
+        $this->seedPayment('payment-tax-1', 'invoice-tax-1', 22000);
+        $this->seedPaymentReversal('reversal-tax-1', 'payment-tax-1');
+
+        $response = $this->actingAs($this->user('admin'))
+            ->put(route('admin.procurement.supplier-invoices.update', [
+                'supplierInvoiceId' => 'invoice-tax-1',
+            ]), $this->updatePayload([
+                'tax_input' => null,
+                'lines' => [
+                    [
+                        'previous_line_id' => 'invoice-tax-line-1',
+                        'line_no' => 1,
+                        'product_id' => 'product-tax-1',
+                        'qty_pcs' => 2,
+                        'line_total_rupiah' => 20000,
+                    ],
+                ],
+            ]));
+
+        $response->assertRedirect(route('admin.procurement.supplier-invoices.show', [
+            'supplierInvoiceId' => 'invoice-tax-1',
+        ]));
+
+        $this->assertDatabaseHas('supplier_invoices', [
+            'id' => 'invoice-tax-1',
+            'subtotal_before_tax_rupiah' => 20000,
+            'tax_input' => null,
+            'tax_mode' => 'none',
+            'tax_amount_rupiah' => 0,
+            'grand_total_rupiah' => 20000,
+            'last_revision_no' => 2,
+        ]);
+
+        $this->assertDatabaseHas('supplier_payment_reversals', [
+            'id' => 'reversal-tax-1',
+            'supplier_payment_id' => 'payment-tax-1',
+        ]);
+    }
+
     public function test_received_invoice_same_qty_tax_revision_is_rejected_until_revaluation_exists(): void
     {
         $this->seedReceivedNoTaxInvoice();
@@ -670,6 +794,18 @@ final class SupplierInvoiceTaxFinancialInvariantFeatureTest extends TestCase
             'paid_at' => '2026-03-16',
             'proof_status' => 'approved',
             'proof_storage_path' => 'proofs/payment-tax.jpg',
+        ]);
+    }
+
+    private function seedPaymentReversal(string $id, string $supplierPaymentId): void
+    {
+        DB::table('supplier_payment_reversals')->insert([
+            'id' => $id,
+            'supplier_payment_id' => $supplierPaymentId,
+            'reason' => 'Regression test reversal pembayaran supplier.',
+            'performed_by_actor_id' => 'admin-test',
+            'created_at' => '2026-03-17 08:00:00',
+            'updated_at' => '2026-03-17 08:00:00',
         ]);
     }
 

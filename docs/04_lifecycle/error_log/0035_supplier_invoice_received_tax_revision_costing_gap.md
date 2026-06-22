@@ -62,6 +62,10 @@ Alasan:
 Total target hardening baru: 28 test.
 
 Progress:
+- Step 1 fixed: received invoice unit-cost revision is rejected until revaluation exists.
+- Step 2 fixed: sibling received-invoice guard tests pass.
+- Step 3 added: payment/lunas matrix tests for exact paid total, partial paid below-total rejection, and reversed payment exclusion.
+
 
 - 4 test dibuat di `SupplierInvoiceTaxFinancialInvariantFeatureTest`.
 - 3 pass.
