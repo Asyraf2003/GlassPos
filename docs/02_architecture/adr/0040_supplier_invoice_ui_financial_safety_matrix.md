@@ -681,3 +681,69 @@ This slice is complete only when:
 - `make verify` passes.
 - No old hard validation reappears.
 - No unrelated payment proof/mobile API/refund policy changes are included.
+
+## Implemented slice: UI-004, UI-005, UI-006
+
+Date: 2026-06-23
+
+Status: Implemented locally and verified.
+
+### UI-004: edit page exact no-tax residue invoice
+
+The edit page now has regression coverage for a no-tax supplier invoice line where:
+
+- `qty_pcs = 3`
+- `line_total_rupiah = 155000`
+- `unit_cost_rupiah = 51666`
+- `rounding_residue_rupiah = 2`
+- `tax_input = null`
+- `tax_mode = none`
+- `tax_amount_rupiah = 0`
+- `grand_total_rupiah = 155000`
+
+The UI contract requires the edit page to preserve the exact supplier document value:
+
+- hidden `lines[0][line_total_rupiah]` remains `155000`;
+- visible money display shows `155.000`;
+- the old divisibility blocker text does not appear;
+- `tax_rounding_residue_confirmed` remains rendered.
+
+### UI-005: show page rounding explanation
+
+The show page now has regression coverage for no-tax residue lines.
+
+When `rounding_residue_rupiah > 0`, the detail table keeps both values visible:
+
+- rounded unit cost, for example `Rp 51.666`;
+- exact line total, for example `Rp 155.000`.
+
+The page also explains the behavior with the user-facing note:
+
+> Modal per pcs dibulatkan. Selisih pembulatan disimpan agar total nota tetap sesuai dokumen supplier.
+
+This prevents the show page from implying that `unit_cost * qty` is the exact final supplier document value when a residue exists.
+
+### UI-006: system-standard confirmation UI
+
+The create/edit procurement invoice JavaScript no longer uses native browser confirmation dialogs for tax rounding residue confirmation.
+
+The prior `window.confirm(...)` behavior was replaced with the system-standard SweetAlert2 confirmation flow.
+
+The JS contract now requires:
+
+- no `window.confirm` in procurement create/edit invoice JS;
+- `Swal.fire(...)` for the confirmation dialog;
+- `tax_rounding_residue_confirmed` is set to `1` only after the user confirms;
+- confirmation resets back to `0` when financial inputs change.
+
+The submit flow remains guarded so the form is not submitted before the SweetAlert2 confirmation is resolved.
+
+### Verification proof
+
+Latest local verification pasted by operator:
+
+- `1326 tests passed`
+- `7884 assertions`
+- duration around `96.58s`
+
+The old hard blocker remains absent from `app` code. The phrase `total rincian harus habis dibagi qty` is retained only as a negative UI assertion to prevent regression.
