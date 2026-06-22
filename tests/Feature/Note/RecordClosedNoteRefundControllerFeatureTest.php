@@ -286,6 +286,69 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
     }
 
 
+
+    public function test_legacy_paid_service_only_refund_is_rejected_without_mutating_note(): void
+    {
+        $user = $this->seedKasir();
+        $today = date('Y-m-d');
+
+        $this->seedNoteBase('note-legacy-service-refund-1', 'Budi Legacy Service Refund', $today, 50000, 'closed');
+        $this->seedWorkItemBase(
+            'wi-legacy-service-refund-1',
+            'note-legacy-service-refund-1',
+            1,
+            WorkItem::TYPE_SERVICE_ONLY,
+            WorkItem::STATUS_OPEN,
+            50000
+        );
+        $this->seedServiceDetailBase(
+            'wi-legacy-service-refund-1',
+            'Servis Legacy Tidak Refundable',
+            50000,
+            ServiceDetail::PART_SOURCE_NONE
+        );
+
+        $this->seedCustomerPaymentBase('payment-legacy-service-refund-1', 50000, $today);
+        $this->seedPaymentAllocationBase(
+            'allocation-legacy-service-refund-1',
+            'payment-legacy-service-refund-1',
+            'note-legacy-service-refund-1',
+            50000
+        );
+
+        $this->assertSame(0, DB::table('payment_component_allocations')->count());
+
+        $this->actingAs($user)
+            ->from(route('cashier.notes.index'))
+            ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-legacy-service-refund-1']), [
+                'selected_row_ids' => ['wi-legacy-service-refund-1'],
+                'refunded_at' => $today,
+                'reason' => 'Refund legacy service-only must stay blocked',
+            ])
+            ->assertRedirect(route('cashier.notes.index'))
+            ->assertSessionHasErrors(['refund']);
+
+        $this->assertDatabaseCount('customer_refunds', 0);
+        $this->assertDatabaseCount('refund_component_allocations', 0);
+
+        $this->assertDatabaseHas('work_items', [
+            'id' => 'wi-legacy-service-refund-1',
+            'status' => WorkItem::STATUS_OPEN,
+        ]);
+
+        $this->assertDatabaseHas('notes', [
+            'id' => 'note-legacy-service-refund-1',
+            'note_state' => 'closed',
+            'total_rupiah' => 50000,
+        ]);
+
+        $this->assertDatabaseMissing('note_mutation_events', [
+            'note_id' => 'note-legacy-service-refund-1',
+            'mutation_type' => 'note_rows_canceled_via_refund',
+        ]);
+    }
+
+
     private function seedKasir(): User
     {
         $this->loginAsKasir();
