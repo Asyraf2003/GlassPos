@@ -201,8 +201,36 @@ trait SeedsMinimalNotePaymentFixture
         int $qty,
         int $storeStockLineTotalRupiah,
         string $status = 'open',
-        ?string $customerPhone = null
+        ?string $customerPhone = null,
+        ?int $packageProfitRupiah = null
     ): void {
+        $payload = [
+            'work_item_root_id' => $workItemId,
+            'transaction_type' => 'service_with_store_stock_part',
+            'status' => $status,
+            'external_purchase_lines' => [],
+            'store_stock_lines' => [[
+                'id' => $storeStockLineId,
+                'product_id' => $productId,
+                'qty' => $qty,
+                'line_total_rupiah' => $storeStockLineTotalRupiah,
+            ]],
+            'service' => [
+                'service_name' => $serviceName,
+                'service_price_rupiah' => $servicePriceRupiah,
+                'part_source' => 'store_stock',
+            ],
+        ];
+
+        if ($packageProfitRupiah !== null) {
+            $payload['pricing_mode'] = 'package_auto_split';
+            $payload['package_total_rupiah'] = $grandTotalRupiah;
+            $payload['parts_total_rupiah'] = $storeStockLineTotalRupiah;
+            $payload['service_price_rupiah'] = $servicePriceRupiah;
+            $payload['package_profit_rupiah'] = $packageProfitRupiah;
+            $payload['total_service_component_rupiah'] = $servicePriceRupiah + $packageProfitRupiah;
+        }
+
         $this->seedCurrentRevision(
             $noteId,
             $revisionId,
@@ -219,23 +247,7 @@ trait SeedsMinimalNotePaymentFixture
                 'service_label' => $serviceName,
                 'service_price_rupiah' => $servicePriceRupiah,
                 'subtotal_rupiah' => $grandTotalRupiah,
-                'payload' => [
-                    'work_item_root_id' => $workItemId,
-                    'transaction_type' => 'service_with_store_stock_part',
-                    'status' => $status,
-                    'external_purchase_lines' => [],
-                    'store_stock_lines' => [[
-                        'id' => $storeStockLineId,
-                        'product_id' => $productId,
-                        'qty' => $qty,
-                        'line_total_rupiah' => $storeStockLineTotalRupiah,
-                    ]],
-                    'service' => [
-                        'service_name' => $serviceName,
-                        'service_price_rupiah' => $servicePriceRupiah,
-                        'part_source' => 'store_stock',
-                    ],
-                ],
+                'payload' => $payload,
             ]],
         );
     }
