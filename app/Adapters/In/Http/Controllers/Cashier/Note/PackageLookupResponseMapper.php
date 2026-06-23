@@ -9,9 +9,7 @@ use App\Application\ServiceProductTemplate\DTO\ServiceProductTemplatePackageProd
 
 final class PackageLookupResponseMapper
 {
-    public function __construct(private readonly PackageLookupProductLineResponseMapper $productLines)
-    {
-    }
+    public function __construct(private readonly PackageLookupProductLineResponseMapper $productLines) {}
 
     /**
      * @param list<ServiceProductTemplatePackageLookupRow> $packages

@@ -21,12 +21,7 @@ final class DatabaseServiceProductTemplatePackageSearchQuery
         }
 
         $builder = DB::table('service_product_templates')
-            ->join(
-                'service_catalog_items',
-                'service_catalog_items.id',
-                '=',
-                'service_product_templates.service_catalog_item_id'
-            )
+            ->join('service_catalog_items', 'service_catalog_items.id', '=', 'service_product_templates.service_catalog_item_id')
             ->where('service_product_templates.is_active', true)
             ->where('service_catalog_items.is_active', true)
             ->select([
@@ -94,10 +89,8 @@ final class DatabaseServiceProductTemplatePackageSearchQuery
 
     private function boundedLimit(int $limit): int
     {
-        if ($limit < 1) {
-            return ServiceProductTemplateLookupReaderPort::DEFAULT_PACKAGE_LIMIT;
-        }
-
-        return min($limit, ServiceProductTemplateLookupReaderPort::MAX_PACKAGE_LIMIT);
+        return $limit < 1
+            ? ServiceProductTemplateLookupReaderPort::DEFAULT_PACKAGE_LIMIT
+            : min($limit, ServiceProductTemplateLookupReaderPort::MAX_PACKAGE_LIMIT);
     }
 }
