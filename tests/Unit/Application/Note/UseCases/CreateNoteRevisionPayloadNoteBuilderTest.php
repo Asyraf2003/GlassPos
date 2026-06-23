@@ -165,6 +165,13 @@ final class CreateNoteRevisionPayloadNoteBuilderTest extends TestCase
             {
                 return null;
             }
+
+            public function searchActivePackages(
+                string $query,
+                int $limit = ServiceProductTemplateLookupReaderPort::DEFAULT_PACKAGE_LIMIT,
+            ): array {
+                return [];
+            }
         };
 
         $mapper = new CreateTransactionWorkspaceWorkItemPayloadMapper(
