@@ -21,8 +21,6 @@
   const serviceDisplay = (row) => row.querySelector("[data-service-price-display]");
   const defaultFeeInput = (row) => row.querySelector("[data-service-default-fee-rupiah]");
   const catalogIdInput = (row) => row.querySelector("[data-service-catalog-id]");
-  const packageRaw = (row) => row.querySelector('input[name$="[package_total_rupiah]"]');
-  const packageDisplay = (row) => row.querySelector("[data-package-total-input]");
 
   const setMoney = (raw, display, amount) => {
     if (raw) raw.value = amount > 0 ? String(amount) : "";
@@ -46,14 +44,6 @@
 
   const rowProductTotal = (row) =>
     typeof NS.rowProductTotal === "function" ? NS.rowProductTotal(row) : 0;
-
-  const setPackageTotal = (row, amount) => {
-    setMoney(packageRaw(row), packageDisplay(row), amount);
-    row.dataset.servicePackageAutofilled = "1";
-  };
-
-  const currentPackageTotal = (row) =>
-    digits(packageRaw(row)?.value || packageDisplay(row)?.value || "");
 
   const shouldAutofillServiceIdentity = (row) => {
     const input = serviceNameInput(row);
@@ -91,35 +81,22 @@
 
     row.dataset.serviceProductTemplateApplied = "0";
     row.dataset.serviceTemplateAutofilled = "0";
-    setTemplateDetailsVisible(row, false);
-    delete row.dataset.serviceTemplateDefaultPriceRupiah;
+	    setTemplateDetailsVisible(row, false);
+	    delete row.dataset.serviceTemplateDefaultPriceRupiah;
 
     const input = serviceNameInput(row);
     if (input) input.value = "";
 
     if (catalogIdInput(row)) catalogIdInput(row).value = "";
 
-    setMoney(serviceRaw(row), serviceDisplay(row), 0);
-    setMoney(packageRaw(row), packageDisplay(row), 0);
-    window.AdminMoneyInput?.bindBySelector?.(row);
+	    setMoney(serviceRaw(row), serviceDisplay(row), 0);
+	    window.AdminMoneyInput?.bindBySelector?.(row);
     NS.updateSummary?.();
   };
 
   NS.clearServiceProductTemplate = clearTemplateState;
 
-  const syncPackageTotal = (row, force = false) => {
-    if ((row.dataset.itemType || "") !== "service_store_stock") return;
-
-    const fee = digits(defaultFeeInput(row)?.value || serviceRaw(row)?.value || "");
-    const productTotal = rowProductTotal(row);
-    if (fee <= 0 || productTotal <= 0) return;
-
-    const current = currentPackageTotal(row);
-    const shouldSync = force || row.dataset.servicePackageAutofilled === "1" || current <= 0;
-    if (!shouldSync) return;
-
-    setPackageTotal(row, fee + productTotal);
-  };
+	  const syncPackageTotal = () => {};
 
   const clearResults = (row) => {
     const results = serviceResults(row);
@@ -153,9 +130,8 @@
     row.dataset.serviceNameManual = "1";
     row.dataset.serviceTemplateAutofilled = "0";
 
-    setDefaultFee(row, digits(item.default_price_rupiah), forceDisplay);
-    syncPackageTotal(row, true);
-    clearResults(row);
+	    setDefaultFee(row, digits(item.default_price_rupiah), forceDisplay);
+	    clearResults(row);
     NS.updateSummary?.();
   };
 
@@ -210,9 +186,9 @@
     const stored = digits(defaultFeeInput(row)?.value || "");
     if (stored > 0) return stored;
 
-    if ((row.dataset.itemType || "") === "service_store_stock") {
-      return Math.max(currentPackageTotal(row) - rowProductTotal(row), 0);
-    }
+	    if ((row.dataset.itemType || "") === "service_store_stock") {
+	      return digits(serviceRaw(row)?.value || serviceDisplay(row)?.value || "");
+	    }
 
     return digits(serviceRaw(row)?.value || serviceDisplay(row)?.value || "");
   };
@@ -259,10 +235,9 @@
     const canAutofillServiceIdentity = shouldAutofillServiceIdentity(row);
     const serviceName = String(template.service_name || "").trim();
     const serviceCatalogItemId = String(template.service_catalog_item_id || "").trim();
-    const servicePrice = digits(template.default_service_price_rupiah);
+	    const servicePrice = digits(template.default_service_price_rupiah);
     row.dataset.serviceTemplateDefaultPriceRupiah =
       servicePrice > 0 ? String(servicePrice) : "";
-    const templatePackageTotal = digits(template.default_package_total_rupiah);
 
     if (canAutofillServiceIdentity && serviceName !== "") {
       const input = serviceNameInput(row);
@@ -275,20 +250,9 @@
       catalogIdInput(row).value = serviceCatalogItemId;
     }
 
-    if (servicePrice > 0 && row.dataset.servicePriceManual !== "1") {
-      setDefaultFee(row, servicePrice, true);
-    }
-
-    if (templatePackageTotal > 0) {
-      const current = currentPackageTotal(row);
-      const shouldSyncPackage = row.dataset.servicePackageAutofilled === "1" || current <= 0;
-
-      if (shouldSyncPackage) {
-        setPackageTotal(row, templatePackageTotal);
-      }
-    } else {
-      syncPackageTotal(row, false);
-    }
+	    if (servicePrice > 0 && row.dataset.servicePriceManual !== "1") {
+	      setDefaultFee(row, servicePrice, true);
+	    }
 
     window.AdminMoneyInput?.bindBySelector?.(row);
     NS.updateSummary?.();
@@ -311,11 +275,15 @@
     const input = serviceNameInput(row);
     if (!(input instanceof HTMLInputElement)) return;
 
-    if ((row.dataset.itemType || "") === "service_store_stock") {
-      input.readOnly = true;
-      NS.syncServiceDefaults(row);
-      return;
-    }
+	    if ((row.dataset.itemType || "") === "service_store_stock") {
+	      input.readOnly = true;
+	      NS.syncServiceDefaults(row);
+	      serviceDisplay(row)?.addEventListener("input", () => {
+	        row.dataset.servicePriceManual = "1";
+	        NS.updateSummary?.();
+	      });
+	      return;
+	    }
 
     input.addEventListener("input", () => {
       row.dataset.serviceNameManual = "1";
@@ -350,13 +318,8 @@
     });
     serviceDisplay(row)?.addEventListener("blur", () => void ensureCatalog(row));
 
-    packageDisplay(row)?.addEventListener("input", () => {
-      row.dataset.servicePackageAutofilled = "0";
-    });
-    packageDisplay(row)?.addEventListener("blur", () => void ensureCatalog(row));
-
-    row.addEventListener("input", (event) => {
-      if (event.target instanceof Element && event.target.matches("[data-qty-input]")) {
+	    row.addEventListener("input", (event) => {
+	      if (event.target instanceof Element && event.target.matches("[data-qty-input]")) {
         syncPackageTotal(row, false);
       }
     });

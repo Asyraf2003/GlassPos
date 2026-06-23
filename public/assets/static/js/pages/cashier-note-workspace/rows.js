@@ -86,11 +86,16 @@
 	    return qty > 0 && unitCost > 0 ? qty * unitCost : "";
 	  };
 
-	  const appendProductLine = (row, line = {}, focus = false) => {
-	    const root = row.querySelector("[data-product-lines]");
-	    const template = row.querySelector("[data-product-line-template]");
+		  const appendProductLine = (row, line = {}, focus = false) => {
+		    const root = row.querySelector("[data-product-lines]");
+		    const template = row.querySelector("[data-product-line-template]");
 
     if (!root || !(template instanceof HTMLTemplateElement)) {
+      return null;
+    }
+
+    if (productLineScopes(row).length >= 3) {
+      updateProductLineRemoveState(row);
       return null;
     }
 
@@ -104,14 +109,15 @@
       return null;
     }
 
-	    root.appendChild(scope);
+		    root.appendChild(scope);
 	    setProductLineValues(row, scope, line);
 	    if (row?.dataset?.serviceProductTemplateApplied === "1") {
 	      scope.querySelectorAll("[data-template-selected-section]").forEach((section) => {
 	        section.classList.remove("d-none");
 	      });
 	    }
-	    reindexProductLines(row);
+		    reindexProductLines(row);
+    updateAddProductLineState(row);
 
     window.AdminMoneyInput?.bindBySelector?.(scope);
     NS.bindProductSearch?.(row);
@@ -125,11 +131,11 @@
     }
 
     return scope;
-  };
+	  };
 
   NS.addProductLine = (row, line = {}) => appendProductLine(row, line, true);
 
-  NS.bindProductLines = (row) => {
+	  NS.bindProductLines = (row) => {
     if (!(row instanceof HTMLElement)) return;
     if (row.dataset.productLinesBound === "1") return;
 
@@ -140,9 +146,9 @@
 
       const addButton = event.target.closest("[data-add-product-line]");
       if (addButton && row.contains(addButton)) {
-        event.preventDefault();
-        appendProductLine(row, {}, true);
-        return;
+	        event.preventDefault();
+	        appendProductLine(row, {}, true);
+	        return;
       }
 
       const removeButton = event.target.closest("[data-remove-product-line]");
@@ -154,13 +160,23 @@
       if (!(scope instanceof HTMLElement)) return;
       if (productLineScopes(row).length <= 1) return;
 
-      scope.remove();
-      reindexProductLines(row);
-      NS.syncFloorPriceGuard?.(row);
+	      scope.remove();
+	      reindexProductLines(row);
+      updateAddProductLineState(row);
+	      NS.syncFloorPriceGuard?.(row);
       NS.syncQtyGuard?.(row);
       NS.syncServiceDefaults?.(row);
       NS.updateSummary?.();
     });
+	  };
+
+  const updateAddProductLineState = (row) => {
+    const addButton = row.querySelector("[data-add-product-line]");
+    if (!addButton) return;
+
+    const isAtLimit = productLineScopes(row).length >= 3;
+    addButton.disabled = isAtLimit;
+    addButton.classList.toggle("d-none", isAtLimit);
   };
 
   NS.firstFieldForRow = (row) => {
@@ -174,10 +190,11 @@
       );
     }
 
-    return (
-      row.querySelector('input[name$="[service][name]"]') ||
-      row.querySelector("[data-package-total-input]") ||
-      row.querySelector("[data-product-search]") ||
+	    return (
+	      row.querySelector("[data-product-search]") ||
+	      row.querySelector('input[name$="[service][name]"]') ||
+	      row.querySelector("[data-service-price-display]") ||
+	      row.querySelector("[data-product-search]") ||
       row.querySelector('input[name$="[external_purchase_lines][0][label]"]') ||
       row.querySelector("textarea")
     );
@@ -264,20 +281,19 @@
     set('input[name$="[service][name]"]', item?.service?.name || "");
     set("[data-service-default-fee-rupiah]", item?.service?.price_rupiah || "");
 	    set("[data-pricing-mode]", item?.pricing_mode || "package_auto_split");
-	    set('input[name$="[package_total_rupiah]"]', item?.package_total_rupiah || "");
-	    set('input[name$="[external_purchase_lines][0][label]"]', item?.external_purchase_lines?.[0]?.label || "");
-	    set('input[name$="[service][price_rupiah]"]', item?.service?.price_rupiah ?? "0");
+		    set('input[name$="[external_purchase_lines][0][label]"]', item?.external_purchase_lines?.[0]?.label || "");
+		    set('input[name$="[service][price_rupiah]"]', item?.service?.price_rupiah ?? "0");
 	    set(
 	      'input[name$="[external_purchase_lines][0][total_rupiah]"]',
 	      externalLineTotal(item?.external_purchase_lines?.[0] || {}),
 	    );
 
 	    if (type === "service_store_stock") {
-	      const productLines = (
-	        Array.isArray(item?.product_lines) && item.product_lines.length > 0
-	          ? item.product_lines
-	          : [{}]
-	      );
+		      const productLines = (
+		        Array.isArray(item?.product_lines) && item.product_lines.length > 0
+		          ? item.product_lines.slice(0, 3)
+		          : [{}]
+		      );
 
       while (productLineScopes(row).length < productLines.length) {
         appendProductLine(row, {}, false);
@@ -292,8 +308,9 @@
         );
       });
 
-      reindexProductLines(row);
-      return;
+	      reindexProductLines(row);
+      updateAddProductLineState(row);
+	      return;
     }
 
     set("[data-product-search]", item?.selected_label || "");

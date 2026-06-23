@@ -161,10 +161,10 @@
     NS.syncServiceDefaults?.(row);
     NS.updateSummary?.();
 
-    if ((row?.dataset?.itemType || "") === "service_store_stock") {
-      focusElement(row.querySelector("[data-package-total-input]") || qty);
-      return;
-    }
+	    if ((row?.dataset?.itemType || "") === "service_store_stock") {
+	      focusElement(row.querySelector("[data-service-price-display]") || qty);
+	      return;
+	    }
 
     focusElement(qty);
   };

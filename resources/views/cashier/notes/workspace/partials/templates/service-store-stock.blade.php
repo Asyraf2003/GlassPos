@@ -3,7 +3,7 @@
         <div class="workspace-answer-header">
             <div>
                 <h6 class="mb-0 small fw-semibold" data-line-title>Rincian</h6>
-                <small class="text-muted">Paket servis + sparepart dari template aktif.</small>
+                <small class="text-muted">Paket servis dengan maksimal 3 produk.</small>
             </div>
             <button type="button" class="btn btn-sm btn-outline-danger py-1" data-remove-line>Hapus</button>
         </div>
@@ -20,7 +20,7 @@
 
         <div class="workspace-answer-field" data-product-lines>
             <div data-product-line>
-	                <label class="form-label small mb-1">Cari Produk Template</label>
+		                <label class="form-label small mb-1">Produk 1 <span class="text-danger">*</span></label>
                 <div class="position-relative">
                     <input type="hidden" name="items[__INDEX__][product_lines][0][product_id]" value="" data-product-id>
                     <input type="hidden" name="items[__INDEX__][product_lines][0][price_basis]" value="current_catalog" data-price-basis>
@@ -65,7 +65,7 @@
             </div>
             <template data-product-line-template>
                 <div data-product-line>
-	                    <label class="form-label small mb-1">Cari Produk/Sparepart Tambahan</label>
+		                    <label class="form-label small mb-1">Produk Opsional</label>
                     <div class="position-relative">
                         <input type="hidden" name="items[__INDEX__][product_lines][__PRODUCT_INDEX__][product_id]" value="" data-product-id>
                         <input type="hidden" name="items[__INDEX__][product_lines][__PRODUCT_INDEX__][price_basis]" value="current_catalog" data-price-basis>
@@ -116,11 +116,12 @@
 	            </template>
 	        </div>
 
-	        <button type="button" class="btn btn-sm btn-outline-primary mt-2" data-add-product-line>
-	            Tambah Sparepart
-	        </button>
+		        <button type="button" class="btn btn-sm btn-outline-primary mt-2" data-add-product-line>
+		            Tambah Produk Opsional
+		        </button>
+                <small class="text-muted d-block mt-1">Produk 2 dan 3 opsional. Maksimal 3 produk dalam satu paket.</small>
 
-	        <div class="d-none mt-3" data-template-selected-section>
+		        <div class="d-none mt-3" data-template-selected-section>
             <div class="workspace-answer-field">
                 <label class="form-label small mb-1">Nama Paket/Jasa dari Template</label>
                 <input
@@ -138,28 +139,27 @@
                 <small class="text-muted">Dari template aktif. Tidak diketik manual.</small>
             </div>
 
-            <div class="workspace-answer-field mt-3">
-                <div data-money-input-group>
-                    <label class="form-label small mb-1">Total Paket</label>
-                    <input type="hidden" name="items[__INDEX__][package_total_rupiah]" value="" data-money-raw>
-                    <input
-                        type="text"
-                        inputmode="numeric"
-                        value=""
-                        class="form-control form-control-sm"
-                        placeholder="Default dari template"
-                        data-money-display
-                        data-package-total-input
-                    >
-                </div>
-                <small class="text-muted">
-                    Default dari template. Boleh dinaikkan. Tidak boleh turun sampai jasa di bawah default template.
-                </small>
-            </div>
+	            <div class="workspace-answer-field mt-3">
+	                <div data-money-input-group>
+	                    <label class="form-label small mb-1">Harga Servis</label>
+	                    <input
+	                        type="text"
+	                        inputmode="numeric"
+	                        value=""
+	                        class="form-control form-control-sm"
+	                        placeholder="Default dari template"
+	                        data-money-display
+	                        data-service-price-display
+	                    >
+	                </div>
+	                <small class="text-muted">
+	                    Harga servis otomatis dipecah 20% jasa dan 80% keuntungan paket.
+	                </small>
+	            </div>
 
-	            <small class="text-muted d-block mt-2">
-	                Produk pertama memakai template aktif. Sparepart tambahan boleh ditambahkan dalam paket yang sama.
-	            </small>
-	        </div>
+		            <small class="text-muted d-block mt-2">
+		                Produk pertama memakai template aktif. Produk opsional boleh ditambahkan dalam paket yang sama.
+		            </small>
+		        </div>
     </div>
 </template>

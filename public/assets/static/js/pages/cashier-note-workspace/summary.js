@@ -31,15 +31,14 @@
 	    const externalQty = digits(row.querySelector('input[name$="[external_purchase_lines][0][qty]"]')?.value);
 	    const external = digits(row.querySelector('input[name$="[external_purchase_lines][0][unit_cost_rupiah]"]')?.value);
 	    const externalTotal = digits(row.querySelector('input[name$="[external_purchase_lines][0][total_rupiah]"]')?.value);
-	    const pricingMode = row.querySelector("[data-pricing-mode]")?.value || "manual_split";
-    const packageTotal = digits(row.querySelector('input[name$="[package_total_rupiah]"]')?.value);
+		    const pricingMode = row.querySelector("[data-pricing-mode]")?.value || "manual_split";
 
     const storeStockTotal = rowStoreStockTotal(row);
 
     if (type === "product") return { service: 0, product: storeStockTotal };
 
-    if (type === "service_store_stock" && pricingMode === "package_auto_split" && packageTotal > 0) {
-      return { service: Math.max(packageTotal - storeStockTotal, 0), product: storeStockTotal };
+    if (type === "service_store_stock" && pricingMode === "package_auto_split") {
+      return { service, product: storeStockTotal };
     }
 
     if (type === "service_store_stock") return { service, product: storeStockTotal };
