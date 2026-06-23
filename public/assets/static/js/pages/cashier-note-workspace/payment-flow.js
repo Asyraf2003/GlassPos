@@ -325,10 +325,12 @@
     }
 
     const type = row.dataset.itemType || "";
-    const serviceName =
-      row.querySelector('input[name$="[service][name]"]')?.value?.trim() || "";
-    const productName =
-      row.querySelector("[data-product-search]")?.value?.trim() || "";
+	    const serviceName =
+	      row.querySelector('input[name$="[service][name]"]')?.value?.trim() || "";
+	    const packageName =
+	      row.querySelector("[data-package-search]")?.value?.trim() || "";
+	    const productName =
+	      row.querySelector("[data-product-search]")?.value?.trim() || "";
     const externalLabel =
       row
         .querySelector('input[name$="[external_purchase_lines][0][label]"]')
@@ -340,9 +342,9 @@
       return productName || description || item.title || "Produk";
     }
 
-    if (type === "service_store_stock") {
-      return [serviceName, productName].filter(Boolean).join(" + ") || item.title || "Rincian";
-    }
+	    if (type === "service_store_stock") {
+	      return packageName || [serviceName, productName].filter(Boolean).join(" + ") || item.title || "Rincian";
+	    }
 
     if (type === "service_external") {
       return [serviceName, externalLabel].filter(Boolean).join(" + ") || item.title || "Rincian";
