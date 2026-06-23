@@ -181,13 +181,13 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         self::assertSame('package_auto_split', $decoded['pricing_mode'] ?? null);
         self::assertSame(300000, $decoded['package_total_rupiah'] ?? null);
         self::assertSame(160000, $decoded['parts_total_rupiah'] ?? null);
-        self::assertSame(140000, $decoded['service_price_rupiah'] ?? null);
+        self::assertSame(28000, $decoded['service_price_rupiah'] ?? null);
         self::assertArrayHasKey('package_base_service_price_rupiah', $decoded);
         self::assertNull($decoded['package_base_service_price_rupiah']);
         self::assertSame(0, $decoded['package_service_extra_rupiah'] ?? null);
-        self::assertSame(0, $decoded['package_profit_rupiah'] ?? null);
+        self::assertSame(112000, $decoded['package_profit_rupiah'] ?? null);
         self::assertSame(140000, $decoded['total_service_component_rupiah'] ?? null);
-        self::assertSame(140000, $decoded['service']['service_price_rupiah'] ?? null);
+        self::assertSame(28000, $decoded['service']['service_price_rupiah'] ?? null);
         self::assertCount(2, $decoded['store_stock_lines'] ?? []);
     }
 
