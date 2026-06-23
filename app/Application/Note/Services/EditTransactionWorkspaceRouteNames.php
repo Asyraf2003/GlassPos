@@ -14,6 +14,7 @@ final class EditTransactionWorkspaceRouteNames
      *   show: string,
      *   refunds_store: string,
      *   products_lookup: string,
+     *   packages_lookup: string,
      *   services_lookup: string,
      *   services_store: string,
      *   draft_show: string,
