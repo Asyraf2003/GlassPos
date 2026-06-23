@@ -18,7 +18,7 @@
     @include('admin.shared.partials.searchable-create-select', [
         'id' => 'product_id',
         'name' => 'product_id',
-        'label' => 'Produk',
+        'label' => 'Produk 1',
         'options' => $productOptions,
         'selected' => old('product_id', $template['product_id'] ?? ''),
         'placeholder' => 'Cari / pilih produk',
@@ -26,6 +26,74 @@
         'createUrl' => route('admin.products.create'),
         'createLabel' => 'Buat produk baru',
     ])
+
+    <div class="row">
+        <div class="col-md-8">
+            @include('admin.shared.partials.searchable-create-select', [
+                'id' => 'product_line_1_product_id',
+                'name' => 'product_lines[1][product_id]',
+                'label' => 'Produk 2 (opsional)',
+                'options' => $productOptions,
+                'selected' => old('product_lines.1.product_id', $template['product_lines'][1]['product_id'] ?? ''),
+                'placeholder' => 'Cari / pilih produk opsional',
+                'emptyMessage' => 'Produk tidak ditemukan.',
+                'createUrl' => route('admin.products.create'),
+                'createLabel' => 'Buat produk baru',
+            ])
+        </div>
+        <div class="col-md-4">
+            <div class="form-group mb-4">
+                <label for="product_line_1_qty" class="form-label">Qty Produk 2</label>
+                <input
+                    type="number"
+                    id="product_line_1_qty"
+                    name="product_lines[1][qty]"
+                    value="{{ old('product_lines.1.qty', $template['product_lines'][1]['qty'] ?? 1) }}"
+                    class="form-control @error('product_lines.1.qty') is-invalid @enderror"
+                    min="1"
+                >
+                @error('product_lines.1.qty')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            @include('admin.shared.partials.searchable-create-select', [
+                'id' => 'product_line_2_product_id',
+                'name' => 'product_lines[2][product_id]',
+                'label' => 'Produk 3 (opsional)',
+                'options' => $productOptions,
+                'selected' => old('product_lines.2.product_id', $template['product_lines'][2]['product_id'] ?? ''),
+                'placeholder' => 'Cari / pilih produk opsional',
+                'emptyMessage' => 'Produk tidak ditemukan.',
+                'createUrl' => route('admin.products.create'),
+                'createLabel' => 'Buat produk baru',
+            ])
+        </div>
+        <div class="col-md-4">
+            <div class="form-group mb-4">
+                <label for="product_line_2_qty" class="form-label">Qty Produk 3</label>
+                <input
+                    type="number"
+                    id="product_line_2_qty"
+                    name="product_lines[2][qty]"
+                    value="{{ old('product_lines.2.qty', $template['product_lines'][2]['qty'] ?? 1) }}"
+                    class="form-control @error('product_lines.2.qty') is-invalid @enderror"
+                    min="1"
+                >
+                @error('product_lines.2.qty')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
+    </div>
+
+    @error('product_lines')
+        <div class="alert alert-danger">{{ $message }}</div>
+    @enderror
 
     @include('admin.shared.partials.searchable-create-select', [
         'id' => 'service_catalog_item_id',
