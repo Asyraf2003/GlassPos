@@ -173,11 +173,10 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
                 'entry_mode' => 'service',
                 'part_source' => 'none',
                 'pricing_mode' => 'package_auto_split',
-                'package_total_rupiah' => 150000,
                 'pay_now' => 0,
                 'service' => [
                     'name' => 'Servis Rem',
-                    'price_rupiah' => 0,
+                    'price_rupiah' => 110000,
                     'notes' => '',
                 ],
                 'product_lines' => [[
@@ -218,7 +217,8 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
         $this->assertDatabaseHas('work_item_service_details', [
             'work_item_id' => $workItemId,
             'service_name' => 'Servis Rem',
-            'service_price_rupiah' => 110000,
+            'service_price_rupiah' => 22000,
+            'package_profit_rupiah' => 88000,
             'part_source' => 'none',
         ]);
 
@@ -299,11 +299,10 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
                 'entry_mode' => 'service',
                 'part_source' => 'none',
                 'pricing_mode' => 'package_auto_split',
-                'package_total_rupiah' => 250000,
                 'pay_now' => 0,
                 'service' => [
                     'name' => 'Servis Paket Multi Part',
-                    'price_rupiah' => 0,
+                    'price_rupiah' => 120000,
                     'notes' => '',
                 ],
                 'product_lines' => [
@@ -352,7 +351,8 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
         $this->assertDatabaseHas('work_item_service_details', [
             'work_item_id' => $workItemId,
             'service_name' => 'Servis Paket Multi Part',
-            'service_price_rupiah' => 120000,
+            'service_price_rupiah' => 24000,
+            'package_profit_rupiah' => 96000,
             'part_source' => 'none',
         ]);
 
@@ -413,7 +413,7 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
                 'pricing_mode' => 'package_auto_split',
                 'package_total_rupiah' => 250000,
                 'sparepart_total_rupiah' => 100000,
-                'service_price_rupiah' => 120000,
+                'service_price_rupiah' => 24000,
                 'product_id' => 'product-package-multi-a',
                 'qty' => 2,
                 'product_unit_price_rupiah' => 50000,
@@ -424,7 +424,7 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
                 'pricing_mode' => 'package_auto_split',
                 'package_total_rupiah' => 250000,
                 'sparepart_total_rupiah' => 30000,
-                'service_price_rupiah' => 120000,
+                'service_price_rupiah' => 24000,
                 'product_id' => 'product-package-multi-b',
                 'qty' => 1,
                 'product_unit_price_rupiah' => 30000,
@@ -480,11 +480,10 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
                     'entry_mode' => 'service',
                     'part_source' => 'none',
                     'pricing_mode' => 'package_auto_split',
-                    'package_total_rupiah' => 250000,
                     'pay_now' => 0,
                     'service' => [
                         'name' => 'Servis Paket Duplicate Product',
-                        'price_rupiah' => 0,
+                        'price_rupiah' => 120000,
                         'notes' => '',
                     ],
                     'product_lines' => [
@@ -572,11 +571,10 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
                 'entry_mode' => 'service',
                 'part_source' => 'none',
                 'pricing_mode' => 'package_auto_split',
-                'package_total_rupiah' => 40000,
                 'pay_now' => 0,
                 'service' => [
                     'name' => 'Servis Busi',
-                    'price_rupiah' => 0,
+                    'price_rupiah' => 50000,
                     'notes' => '',
                 ],
                 'product_lines' => [[
@@ -604,20 +602,21 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
 
         $this->assertDatabaseHas('notes', [
             'id' => $noteId,
-            'total_rupiah' => 40000,
+            'total_rupiah' => 90000,
         ]);
 
         $this->assertDatabaseHas('work_items', [
             'id' => $workItemId,
             'note_id' => $noteId,
             'transaction_type' => 'service_with_store_stock_part',
-            'subtotal_rupiah' => 40000,
+            'subtotal_rupiah' => 90000,
         ]);
 
         $this->assertDatabaseHas('work_item_service_details', [
             'work_item_id' => $workItemId,
             'service_name' => 'Servis Busi',
-            'service_price_rupiah' => 0,
+            'service_price_rupiah' => 10000,
+            'package_profit_rupiah' => 40000,
             'part_source' => 'none',
         ]);
 
@@ -677,7 +676,6 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
                     'entry_mode' => 'service',
                     'part_source' => 'none',
                     'pricing_mode' => 'package_auto_split',
-                    'package_total_rupiah' => 30000,
                     'pay_now' => 0,
                     'service' => [
                         'name' => 'Servis Busi Racing',
@@ -704,7 +702,7 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
 
         $response->assertRedirect(route('cashier.notes.workspace.create'));
         $response->assertSessionHasErrors([
-            'workspace' => 'Harga paket tidak boleh lebih kecil dari total harga sparepart.',
+            'items.0.service.price_rupiah' => 'Harga servis wajib lebih dari 0.',
         ]);
 
         $this->assertDatabaseCount('notes', 0);
@@ -765,11 +763,10 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
                     'entry_mode' => 'service',
                     'part_source' => 'store_stock',
                     'pricing_mode' => 'package_auto_split',
-                    'package_total_rupiah' => '250000',
                     'pay_now' => '0',
                     'service' => [
                         'name' => 'Servis Rem Browser Contract',
-                        'price_rupiah' => '0',
+                        'price_rupiah' => '210000',
                         'notes' => '',
                     ],
                     'product_lines' => [[
@@ -814,7 +811,8 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
         $this->assertDatabaseHas('work_item_service_details', [
             'work_item_id' => (string) $workItem->id,
             'service_name' => 'Servis Rem Browser Contract',
-            'service_price_rupiah' => 210000,
+            'service_price_rupiah' => 42000,
+            'package_profit_rupiah' => 168000,
             'part_source' => 'none',
         ]);
 
@@ -963,11 +961,10 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
                     'entry_mode' => 'service',
                     'part_source' => 'store_stock',
                     'pricing_mode' => 'package_auto_split',
-                    'package_total_rupiah' => 100000,
                     'pay_now' => 0,
                     'service' => [
                         'name' => 'Ganti Oli Template Minimum',
-                        'price_rupiah' => 0,
+                        'price_rupiah' => 60000,
                         'notes' => '',
                     ],
                     'product_lines' => [[
@@ -988,16 +985,16 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
                 ],
             ]);
 
-        $response->assertRedirect(route('cashier.notes.workspace.create'));
-        $response->assertSessionHasErrors([
-            'workspace' => 'Harga paket tidak boleh membuat harga jasa di bawah default template.',
-        ]);
+        $response->assertRedirect(route('cashier.notes.index'));
 
-        $this->assertDatabaseCount('notes', 0);
-        $this->assertDatabaseCount('work_items', 0);
-        $this->assertDatabaseCount('work_item_service_details', 0);
-        $this->assertDatabaseCount('work_item_store_stock_lines', 0);
-        $this->assertDatabaseCount('inventory_movements', 0);
+        $workItemId = (string) DB::table('work_items')->value('id');
+        $response->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('work_item_service_details', [
+            'work_item_id' => $workItemId,
+            'service_name' => 'Ganti Oli Template Minimum',
+            'service_price_rupiah' => 12000,
+            'package_profit_rupiah' => 48000,
+        ]);
     }
 
 
@@ -1050,11 +1047,10 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
                     'part_source' => 'store_stock',
                     'pricing_mode' => 'package_auto_split',
                     'requires_service_product_template' => '1',
-                    'package_total_rupiah' => 100000,
                     'pay_now' => 0,
                     'service' => [
                         'name' => 'Paket Tanpa Template',
-                        'price_rupiah' => 0,
+                        'price_rupiah' => 60000,
                         'notes' => '',
                     ],
                     'product_lines' => [[
@@ -1160,11 +1156,10 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
                     'part_source' => 'store_stock',
                     'pricing_mode' => 'package_auto_split',
                     'requires_service_product_template' => '1',
-                    'package_total_rupiah' => 150000,
                     'pay_now' => 0,
                     'service' => [
                         'name' => 'Paket Multi Template',
-                        'price_rupiah' => 0,
+                        'price_rupiah' => 80000,
                         'notes' => '',
                     ],
                     'product_lines' => [
