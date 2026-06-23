@@ -14,6 +14,7 @@ use App\Adapters\In\Http\Controllers\Cashier\Note\GetTransactionWorkspaceDraftCo
 use App\Adapters\In\Http\Controllers\Cashier\Note\NoteDetailPageController;
 use App\Adapters\In\Http\Controllers\Cashier\Note\NoteHistoryPageController as CashierNoteHistoryPageController;
 use App\Adapters\In\Http\Controllers\Cashier\Note\NoteHistoryTableDataController as CashierNoteHistoryTableDataController;
+use App\Adapters\In\Http\Controllers\Cashier\Note\PackageLookupController;
 use App\Adapters\In\Http\Controllers\Cashier\Note\ProductLookupController;
 use App\Adapters\In\Http\Controllers\Cashier\Note\SaveTransactionWorkspaceDraftController;
 use App\Adapters\In\Http\Controllers\Cashier\Note\ServiceCatalogLookupController;
@@ -46,6 +47,7 @@ Route::middleware(['auth', EnsureAdminPageAccess::class, 'app.shell'])
         Route::get('/', AdminNoteHistoryPageController::class)->name('index');
         Route::get('/table', AdminNoteHistoryTableDataController::class)->name('table');
         Route::get('/products/lookup', ProductLookupController::class)->name('products.lookup');
+        Route::get('/packages/lookup', PackageLookupController::class)->name('packages.lookup');
         Route::get('/services/lookup', ServiceCatalogLookupController::class)->name('services.lookup');
         Route::post('/services', ServiceCatalogStoreController::class)->name('services.store');
         Route::get('/workspace/draft', GetTransactionWorkspaceDraftController::class)->name('workspace.draft.show');
@@ -79,6 +81,7 @@ Route::middleware(['auth', EnsureCashierAreaAccess::class, EnsureTransactionEntr
         Route::get('/table', CashierNoteHistoryTableDataController::class)->name('table');
 
         Route::get('/products/lookup', ProductLookupController::class)->name('products.lookup');
+        Route::get('/packages/lookup', PackageLookupController::class)->name('packages.lookup');
         Route::get('/services/lookup', ServiceCatalogLookupController::class)->name('services.lookup');
         Route::post('/services', ServiceCatalogStoreController::class)->name('services.store');
         Route::get('/workspace/draft', GetTransactionWorkspaceDraftController::class)->name('workspace.draft.show');
