@@ -94,8 +94,10 @@ final class DatabaseServiceProductTemplatePackageSearchQuery
 
     private function boundedLimit(int $limit): int
     {
-        return $limit < 1
-            ? ServiceProductTemplateLookupReaderPort::DEFAULT_PACKAGE_LIMIT
-            : min($limit, ServiceProductTemplateLookupReaderPort::MAX_PACKAGE_LIMIT);
+        if ($limit < 1) {
+            return ServiceProductTemplateLookupReaderPort::DEFAULT_PACKAGE_LIMIT;
+        }
+
+        return min($limit, ServiceProductTemplateLookupReaderPort::MAX_PACKAGE_LIMIT);
     }
 }

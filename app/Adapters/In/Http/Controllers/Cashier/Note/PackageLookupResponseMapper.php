@@ -9,6 +9,10 @@ use App\Application\ServiceProductTemplate\DTO\ServiceProductTemplatePackageProd
 
 final class PackageLookupResponseMapper
 {
+    public function __construct(private readonly PackageLookupProductLineResponseMapper $productLines)
+    {
+    }
+
     /**
      * @param list<ServiceProductTemplatePackageLookupRow> $packages
      * @return list<array<string, mixed>>
@@ -32,7 +36,7 @@ final class PackageLookupResponseMapper
             'service_product_template' => $this->templatePayload($package),
             'service' => $this->servicePayload($package),
             'product_lines' => array_map(
-                fn (ServiceProductTemplatePackageProductLineRow $line): array => $this->productLine($line),
+                fn (ServiceProductTemplatePackageProductLineRow $line): array => $this->productLines->map($line),
                 $package->productLines,
             ),
         ];
@@ -87,23 +91,6 @@ final class PackageLookupResponseMapper
             'catalog_item_id' => $package->serviceCatalogItemId,
             'name' => $package->serviceName,
             'price_rupiah' => $package->defaultServicePriceRupiah,
-        ];
-    }
-
-    /** @return array<string, mixed> */
-    private function productLine(ServiceProductTemplatePackageProductLineRow $line): array
-    {
-        return [
-            'product_id' => $line->productId,
-            'label' => $line->label(),
-            'product_name' => $line->productName,
-            'kode_barang' => $line->kodeBarang,
-            'qty' => $line->qty,
-            'sort_order' => $line->sortOrder,
-            'available_stock' => $line->availableStock,
-            'unit_price_rupiah' => $line->defaultUnitPriceRupiah,
-            'minimum_unit_price_rupiah' => $line->minimumUnitPriceRupiah,
-            'stock_status' => $line->availableStock >= $line->qty ? 'safe' : 'insufficient',
         ];
     }
 
