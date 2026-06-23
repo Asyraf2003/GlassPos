@@ -53,41 +53,4 @@ final class CreateTransactionWorkspaceServiceStoreStockPackageTemplateRules
         return $template;
     }
 
-    /** @param mixed $productLines */
-    public function minimumTemplateServicePrice(mixed $productLines, bool $requireTemplate = false): int
-    {
-        if (! is_array($productLines)) {
-            return 0;
-        }
-
-        $minimum = 0;
-
-        foreach ($productLines as $line) {
-            $minimum = max($minimum, $this->templateServicePrice($line, $requireTemplate));
-        }
-
-        return $minimum;
-    }
-
-    /** @param mixed $line */
-    private function templateServicePrice(mixed $line, bool $requireTemplate): int
-    {
-        if (! is_array($line)) {
-            return 0;
-        }
-
-        $productId = trim((string) ($line['product_id'] ?? ''));
-
-        if ($productId === '') {
-            return 0;
-        }
-
-        $template = $this->templates->findActiveByProductId($productId);
-
-        if ($template === null && $requireTemplate) {
-            throw new DomainException('Paket servis + produk wajib memakai template aktif.');
-        }
-
-        return $template !== null ? $template->defaultServicePriceRupiah : 0;
-    }
 }
