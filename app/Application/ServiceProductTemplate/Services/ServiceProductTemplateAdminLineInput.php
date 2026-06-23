@@ -29,7 +29,7 @@ final class ServiceProductTemplateAdminLineInput
             if ($productId !== '') {
                 $lines[] = [
                     'product_id' => $productId,
-                    'qty' => (int) ($line['qty'] ?? 1),
+                    'qty' => 1,
                     'sort_order' => $index,
                 ];
             }

@@ -36,32 +36,29 @@ final class UpdateServiceProductTemplateController extends Controller
 
         $data = $this->validated($request);
         $lines = $this->lineInput->fromData($data);
+        $serviceCatalogItemId = (string) $data['service_catalog_item_id'];
 
-        if ((bool) $template->is_active && $this->activeTemplateExists($lines[0]['product_id'], trim($templateId))) {
+        if (
+            (bool) $template->is_active
+            && $this->activeTemplateExists($lines[0]['product_id'], $serviceCatalogItemId, trim($templateId))
+        ) {
             return back()
-                ->withErrors(['product_id' => 'Produk ini sudah punya paket aktif lain. Nonaktifkan paket lama dulu.'])
+                ->withErrors(['service_catalog_item_id' => 'Produk 1 dan jasa ini sudah punya paket aktif lain.'])
                 ->withInput();
         }
 
-        $servicePrice = (int) $data['default_service_price_rupiah'];
-        $packageTotal = $this->nullableInt($data['default_package_total_rupiah'] ?? null);
-        $minimumTotal = $this->lineInput->total($lines) + $servicePrice;
+        $servicePrice = $this->serviceDefaultPriceRupiah($serviceCatalogItemId);
+        $packageTotal = $this->lineInput->total($lines) + $servicePrice;
 
-        if ($packageTotal !== null && $packageTotal < $minimumTotal) {
-            return back()
-                ->withErrors(['default_package_total_rupiah' => $this->minimumTotalMessage($minimumTotal)])
-                ->withInput();
-        }
-
-        DB::transaction(function () use ($data, $lines, $packageTotal, $servicePrice, $templateId): void {
+        DB::transaction(function () use ($lines, $packageTotal, $servicePrice, $serviceCatalogItemId, $templateId): void {
             DB::table('service_product_templates')
                 ->where('id', trim($templateId))
                 ->update([
                     'product_id' => $lines[0]['product_id'],
-                    'service_catalog_item_id' => (string) $data['service_catalog_item_id'],
+                    'service_catalog_item_id' => $serviceCatalogItemId,
                     'default_service_price_rupiah' => $servicePrice,
                     'default_package_total_rupiah' => $packageTotal,
-                    'sort_order' => (int) $data['sort_order'],
+                    'sort_order' => 0,
                     'updated_at' => now(),
                 ]);
 

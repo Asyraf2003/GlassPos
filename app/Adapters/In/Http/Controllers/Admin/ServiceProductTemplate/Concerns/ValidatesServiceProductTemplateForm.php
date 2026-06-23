@@ -24,31 +24,23 @@ trait ValidatesServiceProductTemplateForm
                 'string',
                 Rule::exists('service_catalog_items', 'id')->where('is_active', true),
             ],
-            'default_service_price_rupiah' => ['required', 'integer', 'min:1'],
-            'default_package_total_rupiah' => ['nullable', 'integer', 'min:1'],
             'product_lines' => ['nullable', 'array', 'max:3'],
             'product_lines.*.product_id' => [
                 'nullable',
                 'string',
                 Rule::exists('products', 'id')->whereNull('deleted_at'),
             ],
-            'product_lines.*.qty' => ['nullable', 'integer', 'min:1'],
-            'sort_order' => ['required', 'integer', 'min:0'],
         ]);
     }
 
-    private function productPrice(string $productId): int
-    {
-        return (int) DB::table('products')
-            ->where('id', trim($productId))
-            ->whereNull('deleted_at')
-            ->value('harga_jual');
-    }
-
-    private function activeTemplateExists(string $productId, ?string $exceptTemplateId = null): bool
-    {
+    private function activeTemplateExists(
+        string $productId,
+        string $serviceCatalogItemId,
+        ?string $exceptTemplateId = null
+    ): bool {
         $query = DB::table('service_product_templates')
             ->where('product_id', trim($productId))
+            ->where('service_catalog_item_id', trim($serviceCatalogItemId))
             ->where('is_active', true);
 
         if ($exceptTemplateId !== null && trim($exceptTemplateId) !== '') {
@@ -58,16 +50,11 @@ trait ValidatesServiceProductTemplateForm
         return $query->exists();
     }
 
-    private function nullableInt(mixed $value): ?int
+    private function serviceDefaultPriceRupiah(string $serviceCatalogItemId): int
     {
-        return $value !== null && $value !== '' ? (int) $value : null;
-    }
-
-    private function minimumTotalMessage(int $minimumTotal): string
-    {
-        return sprintf(
-            'Total paket minimal %s karena harga produk + jasa adalah batas bawah.',
-            number_format($minimumTotal, 0, ',', '.')
-        );
+        return (int) DB::table('service_catalog_items')
+            ->where('id', trim($serviceCatalogItemId))
+            ->where('is_active', true)
+            ->value('default_price_rupiah');
     }
 }

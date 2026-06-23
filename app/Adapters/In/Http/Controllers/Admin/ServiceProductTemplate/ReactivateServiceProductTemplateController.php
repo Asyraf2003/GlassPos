@@ -24,13 +24,14 @@ final class ReactivateServiceProductTemplateController extends Controller
 
         $activeTemplateExists = DB::table('service_product_templates')
             ->where('product_id', (string) $template->product_id)
+            ->where('service_catalog_item_id', (string) $template->service_catalog_item_id)
             ->where('is_active', true)
             ->where('id', '!=', trim($templateId))
             ->exists();
 
         if ($activeTemplateExists) {
             return back()
-                ->withErrors(['product_id' => 'Produk ini sudah punya template aktif lain. Nonaktifkan template lama dulu.']);
+                ->withErrors(['service_catalog_item_id' => 'Produk 1 dan jasa ini sudah punya template aktif lain.']);
         }
 
         DB::table('service_product_templates')

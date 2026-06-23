@@ -27,34 +27,28 @@ final class StoreServiceProductTemplateController extends Controller
     {
         $data = $this->validated($request);
         $lines = $this->lineInput->fromData($data);
+        $serviceCatalogItemId = (string) $data['service_catalog_item_id'];
 
-        if ($this->activeTemplateExists($lines[0]['product_id'])) {
+        if ($this->activeTemplateExists($lines[0]['product_id'], $serviceCatalogItemId)) {
             return back()
-                ->withErrors(['product_id' => 'Produk ini sudah punya paket aktif. Nonaktifkan paket lama dulu.'])
+                ->withErrors(['service_catalog_item_id' => 'Produk 1 dan jasa ini sudah punya paket aktif.'])
                 ->withInput();
         }
 
-        $servicePrice = (int) $data['default_service_price_rupiah'];
-        $packageTotal = $this->nullableInt($data['default_package_total_rupiah'] ?? null);
-        $minimumTotal = $this->lineInput->total($lines) + $servicePrice;
+        $servicePrice = $this->serviceDefaultPriceRupiah($serviceCatalogItemId);
+        $packageTotal = $this->lineInput->total($lines) + $servicePrice;
 
-        if ($packageTotal !== null && $packageTotal < $minimumTotal) {
-            return back()
-                ->withErrors(['default_package_total_rupiah' => $this->minimumTotalMessage($minimumTotal)])
-                ->withInput();
-        }
-
-        DB::transaction(function () use ($data, $lines, $packageTotal, $servicePrice): void {
+        DB::transaction(function () use ($data, $lines, $packageTotal, $servicePrice, $serviceCatalogItemId): void {
             $templateId = (string) Str::uuid();
 
             DB::table('service_product_templates')->insert([
                 'id' => $templateId,
                 'product_id' => $lines[0]['product_id'],
-                'service_catalog_item_id' => (string) $data['service_catalog_item_id'],
+                'service_catalog_item_id' => $serviceCatalogItemId,
                 'default_service_price_rupiah' => $servicePrice,
                 'default_package_total_rupiah' => $packageTotal,
                 'is_active' => true,
-                'sort_order' => (int) $data['sort_order'],
+                'sort_order' => 0,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
