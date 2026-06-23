@@ -43,7 +43,7 @@ final class TransactionWorkspaceServiceCatalogSyncFeatureTest extends TestCase
         ]);
     }
 
-    public function test_create_service_store_stock_syncs_computed_service_fee(): void
+    public function test_create_service_store_stock_syncs_total_service_package_price(): void
     {
         $this->loginAsKasir();
         $this->seedProduct();

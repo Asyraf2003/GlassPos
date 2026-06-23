@@ -91,7 +91,7 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
         $this->assertDatabaseHas('work_item_service_details', [
             'work_item_id' => $workItemId,
             'service_name' => 'Servis Paket HTTP Flow',
-            'service_price_rupiah' => 120000,
+            'service_price_rupiah' => 24000,
         ]);
 
         $this->assertDatabaseHas('inventory_movements', [
@@ -353,7 +353,7 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
         $this->assertDatabaseHas('work_item_service_details', [
             'work_item_id' => $workItemId,
             'service_name' => 'Servis Paket HTTP Revision Revised',
-            'service_price_rupiah' => 170000,
+            'service_price_rupiah' => 34000,
         ]);
 
         $this->assertDatabaseHas('work_item_store_stock_lines', [

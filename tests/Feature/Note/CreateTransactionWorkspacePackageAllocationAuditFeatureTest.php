@@ -107,7 +107,7 @@ final class CreateTransactionWorkspacePackageAllocationAuditFeatureTest extends 
                 'pricing_mode' => 'package_auto_split',
                 'package_total_rupiah' => 150000,
                 'sparepart_total_rupiah' => 40000,
-                'service_price_rupiah' => 110000,
+                'service_price_rupiah' => 22000,
                 'product_id' => 'product-package-audit-1',
                 'qty' => 1,
                 'product_unit_price_rupiah' => 40000,

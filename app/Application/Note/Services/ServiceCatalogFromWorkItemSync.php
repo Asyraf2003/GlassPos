@@ -17,13 +17,13 @@ final class ServiceCatalogFromWorkItemSync
     {
         $service = $workItem->serviceDetail();
 
-        if ($service === null || $service->servicePriceRupiah()->amount() <= 0) {
+        if ($service === null || $service->totalPriceRupiah()->amount() <= 0) {
             return;
         }
 
         $this->serviceCatalog->createIfMissing(
             $service->serviceName(),
-            $service->servicePriceRupiah()->amount()
+            $service->totalPriceRupiah()->amount()
         );
     }
 }
