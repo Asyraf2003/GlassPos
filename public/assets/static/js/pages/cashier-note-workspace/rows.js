@@ -181,20 +181,28 @@
     addButton.classList.toggle("d-none", isAtLimit);
   };
 
-  NS.firstFieldForRow = (row) => {
-    const type = row?.dataset?.itemType || "";
+	  NS.firstFieldForRow = (row) => {
+	    const type = row?.dataset?.itemType || "";
 
-    if (type === "product") {
-      return (
+	    if (type === "product") {
+	      return (
         row.querySelector("[data-product-search]") ||
         row.querySelector("[data-qty-input]") ||
         row.querySelector("[data-price-input]")
-      );
-    }
+	      );
+	    }
 
-	    return (
-	      row.querySelector("[data-product-search]") ||
-	      row.querySelector('input[name$="[service][name]"]') ||
+	    if (type === "service_store_stock") {
+	      return (
+	        row.querySelector("[data-package-search]") ||
+	        row.querySelector("[data-service-price-display]") ||
+	        row.querySelector("[data-product-search]")
+	      );
+	    }
+	
+		    return (
+		      row.querySelector("[data-product-search]") ||
+		      row.querySelector('input[name$="[service][name]"]') ||
 	      row.querySelector("[data-service-price-display]") ||
 	      row.querySelector("[data-product-search]") ||
       row.querySelector('input[name$="[external_purchase_lines][0][label]"]') ||
