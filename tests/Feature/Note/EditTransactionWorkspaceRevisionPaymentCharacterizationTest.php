@@ -133,7 +133,8 @@ final class EditTransactionWorkspaceRevisionPaymentCharacterizationTest extends 
         ]);
         $this->assertDatabaseHas('work_item_service_details', [
             'work_item_id' => $newWorkItemId,
-            'service_price_rupiah' => 200000,
+            'service_price_rupiah' => 40000,
+            'package_profit_rupiah' => 160000,
         ]);
         $this->assertDatabaseMissing('payment_component_allocations', [
             'note_id' => $noteId,

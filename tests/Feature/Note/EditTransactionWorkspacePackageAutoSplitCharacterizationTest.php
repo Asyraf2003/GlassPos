@@ -150,7 +150,8 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $this->assertDatabaseHas('work_item_service_details', [
             'work_item_id' => $workItemId,
             'service_name' => 'Servis Paket Multi Revised',
-            'service_price_rupiah' => 140000,
+            'service_price_rupiah' => 28000,
+            'package_profit_rupiah' => 112000,
             'part_source' => 'none',
         ]);
 
