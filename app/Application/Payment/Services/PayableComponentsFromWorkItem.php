@@ -77,7 +77,7 @@ final class PayableComponentsFromWorkItem
             $item->id(),
             PaymentComponentType::SERVICE_FEE,
             $item->id(),
-            $detail->servicePriceRupiah(),
+            $detail->totalPriceRupiah(),
             $order,
         );
     }
