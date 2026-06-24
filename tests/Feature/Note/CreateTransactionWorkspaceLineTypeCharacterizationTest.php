@@ -308,8 +308,11 @@ final class CreateTransactionWorkspaceLineTypeCharacterizationTest extends TestC
 
         $this->assertStringContainsString('name="items[__INDEX__][pricing_mode]" value="package_auto_split"', $blade);
         $this->assertStringContainsString('name="items[__INDEX__][requires_service_product_template]" value="1"', $blade);
+        $this->assertStringContainsString('data-package-search', $blade);
+        $this->assertStringContainsString('data-package-results', $blade);
+        $this->assertStringContainsString('data-package-selected-section', $blade);
         $this->assertStringContainsString('data-product-line-template', $blade);
-        $this->assertStringContainsString('data-add-product-line', $blade);
+        $this->assertStringNotContainsString('data-add-product-line', $blade);
 
         $this->assertStringNotContainsString('productLineScopes(row).length >= 1', $rowsJs);
         $this->assertStringNotContainsString('.slice(0, 1)', $rowsJs);
