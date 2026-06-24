@@ -472,3 +472,87 @@ Final invariant untuk issue ini sudah dijaga di write-side:
 `service_store_stock_part` yang sudah refunded dan sudah punya `work_item_store_stock_line_reversal` tidak boleh menerima payment allocation ulang secara silent.
 
 Report layer tidak dipatch karena report hanya membaca state. Bug berasal dari state write-side yang sebelumnya bisa tidak konsisten.
+
+## Slice 4 Final Verification - Full Regression Green With Explicit PHP Memory Limit
+
+### FACT
+
+Patch allocator guard untuk issue `#0043 Service Package Component Refund Pay Again Inventory Cash Mismatch` sudah melewati targeted test, payment/refund regression kecil, dan full test suite dengan explicit PHP memory limit.
+
+Full suite default sempat gagal karena PHP memory limit `256MB` habis di dependency ZipStream:
+
+```text
+Pest\Exceptions\FatalException
+Allowed memory size of 268435456 bytes exhausted
+vendor/maennchen/zipstream-php/src/File.php
+```
+
+Kegagalan tersebut bukan assertion failure dan tidak menunjuk ke payment allocator. Full suite kemudian diverifikasi ulang dengan memory limit lebih besar.
+
+### DATA FOUND
+
+Verification yang sudah PASS:
+
+```bash
+php -l app/Application/Payment/Services/AllocatePaymentAcrossComponents.php
+php -l tests/Unit/Application/Payment/Services/AllocatePaymentAcrossComponentsTest.php
+php artisan test tests/Unit/Application/Payment/Services/AllocatePaymentAcrossComponentsTest.php
+php artisan test tests/Feature/Payment/ServicePackageComponentRefundPayAgainMatrixTest.php
+php artisan test \
+  tests/Feature/Payment/RecordAndAllocateNotePaymentFeatureTest.php \
+  tests/Feature/Payment/RecordSelectedRowsNotePaymentFeatureTest.php \
+  tests/Feature/Payment/RecordCustomerRefundFeatureTest.php \
+  tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php \
+  tests/Feature/Payment/ServicePackageComponentRefundPayAgainMatrixTest.php \
+  tests/Unit/Application/Payment/Services/AllocatePaymentAcrossComponentsTest.php
+php -d memory_limit=1024M artisan test tests
+```
+
+### ROOT CAUSE FINAL
+
+Akar bug final:
+
+`ExistingPaymentComponentTotals` mengurangi allocated component total dengan refunded component total. Perilaku ini membuka kembali room allocation setelah refund.
+
+Untuk component biasa, ini bisa valid.
+
+Untuk `service_store_stock_part` yang sudah memiliki inventory reversal `work_item_store_stock_line_reversal`, membuka room allocation ulang tanpa deliberate new stock-out membuat write-side state tidak konsisten:
+
+- cash/payment bisa naik lagi
+- allocation bisa tercatat lagi
+- inventory tetap sudah dibalik/refund
+- report membaca state mismatch tersebut
+
+### PATCH FINAL
+
+Guard ditambahkan di `AllocatePaymentAcrossComponents`.
+
+Allocator sekarang melewati/memblokir component `service_store_stock_part` yang:
+
+- sudah memiliki refund component allocation
+- sudah memiliki inventory reversal movement:
+  - `source_type = work_item_store_stock_line_reversal`
+  - `source_id = component_ref_id`
+
+Jika payment hanya bisa masuk ke component yang sudah diblokir, allocator gagal sebelum writer dipanggil.
+
+Dengan begitu:
+
+- tidak ada `customer_payments` baru
+- tidak ada `payment_component_allocations` baru
+- tidak ada silent pay-again terhadap stock component yang sudah refund
+- tidak ada perubahan report layer
+
+### TEST
+
+Full regression PASS dengan explicit PHP memory limit.
+
+Default memory limit `256MB` tidak cukup untuk seluruh suite karena ada path ZipStream/export yang boros memory. Itu dicatat sebagai environment/test-run constraint, bukan defect dari patch `#0043`.
+
+### PROOF
+
+Invariant final:
+
+`service_store_stock_part` yang sudah direfund dan sudah memiliki inventory reversal tidak boleh menerima payment allocation ulang secara silent tanpa deliberate new stock-out/reissue flow.
+
+Issue `#0043` untuk slice ini dinyatakan fixed pada write-side allocation guard.
