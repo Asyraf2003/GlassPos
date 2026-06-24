@@ -487,7 +487,6 @@ final class ServicePackageComponentRefundPayAgainMatrixTest extends TestCase
                 'total_cost_rupiah' => -1 * (int) $part['cost'],
                 'created_at' => $today . ' 09:00:00',
                 'updated_at' => $today . ' 09:00:00',
-                'reversal_source_id' => null,
             ]);
 
             if (! array_key_exists((string) $part['line_id'], $refundedLineIds)) {
@@ -506,7 +505,6 @@ final class ServicePackageComponentRefundPayAgainMatrixTest extends TestCase
                 'total_cost_rupiah' => (int) $part['cost'],
                 'created_at' => $today . ' 10:00:00',
                 'updated_at' => $today . ' 10:00:00',
-                'reversal_source_id' => (string) $part['line_id'],
             ]);
         }
     }
