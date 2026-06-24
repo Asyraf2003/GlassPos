@@ -392,3 +392,83 @@ Guard harus berada di write-side allocation path sebelum `customer_payments` dan
 Final target invariant:
 
 `service_store_stock_part` yang sudah refunded dan sudah punya `work_item_store_stock_line_reversal` tidak boleh menerima payment allocation ulang kecuali ada deliberate new stock-out/reissue flow.
+
+## Slice 3 Patch Verification - Allocator Guard Green
+
+### FACT
+
+Patch allocator untuk mencegah silent pay-again pada refunded service package stock component sudah berhasil diverifikasi.
+
+Target patch:
+
+- `app/Application/Payment/Services/AllocatePaymentAcrossComponents.php`
+- `tests/Unit/Application/Payment/Services/AllocatePaymentAcrossComponentsTest.php`
+
+Guard ditambahkan di write-side allocation path, sebelum `customer_payments` dan `payment_component_allocations` ditulis.
+
+### DATA FOUND
+
+Targeted verification PASS:
+
+```bash
+php -l app/Application/Payment/Services/AllocatePaymentAcrossComponents.php
+php -l tests/Unit/Application/Payment/Services/AllocatePaymentAcrossComponentsTest.php
+php artisan test tests/Unit/Application/Payment/Services/AllocatePaymentAcrossComponentsTest.php
+php artisan test tests/Feature/Payment/ServicePackageComponentRefundPayAgainMatrixTest.php
+```
+
+Hasil:
+
+```text
+syntax check PASS
+unit allocator PASS
+service package component refund pay-again matrix PASS
+tidak ada SQLSTATE generated column issue
+tidak ada silent pay-again scenario tersisa pada matrix target
+```
+
+### ROOT CAUSE CONFIRMED
+
+Akar bug terkonfirmasi di write-side payment allocation.
+
+`ExistingPaymentComponentTotals` mengurangi allocated component total dengan refund total. Perilaku ini membuka kembali allocation room setelah refund.
+
+Untuk component non-inventory, ini masih wajar.
+
+Untuk `service_store_stock_part`, ini tidak aman ketika component sudah memiliki inventory reversal:
+
+```text
+source_type = work_item_store_stock_line_reversal
+source_id   = component_ref_id
+```
+
+Tanpa guard, allocator menganggap component tersebut payable lagi, lalu mencatat payment/allocation baru tanpa membuat deliberate new `stock_out`.
+
+### PATCH
+
+Allocator sekarang memblokir allocation ulang untuk component yang memenuhi kondisi:
+
+- `component_type === service_store_stock_part`
+- component sudah pernah direfund
+- component sudah memiliki inventory reversal movement
+- tidak ada deliberate new stock-out/reissue flow
+
+Jika payment hanya menarget component yang sudah blocked, allocator gagal lewat existing `DomainException`, lalu handler mengubahnya menjadi `Result::failure()`.
+
+### TEST
+
+Matrix test memastikan invariant berikut:
+
+- tidak membuat `customer_payments` baru
+- tidak membuat `payment_component_allocations` baru
+- tidak membuat `stock_out` baru
+- net inventory refunded stock component tetap zero
+- payment ulang terhadap refunded reversed stock component gagal
+
+### PROOF
+
+Final invariant untuk issue ini sudah dijaga di write-side:
+
+`service_store_stock_part` yang sudah refunded dan sudah punya `work_item_store_stock_line_reversal` tidak boleh menerima payment allocation ulang secara silent.
+
+Report layer tidak dipatch karena report hanya membaca state. Bug berasal dari state write-side yang sebelumnya bisa tidak konsisten.
