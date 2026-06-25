@@ -90,3 +90,24 @@ Progress Local:
 - Next action: Prepare Phase 5 refund component-type policy. Do not start Phase 6 report query until owner opens that phase.
 - Tests linked: EditTransactionWorkspaceRevisionPaymentCharacterizationTest, EditTransactionWorkspacePackageAutoSplitCharacterizationTest, CorrectPaidServiceWithStoreStockPartServiceFeeOnlyFeatureTest.
 - Owner decision dependency: none for V2 direction; base-missing behavior remains Phase 3/contract characterization if needed.
+
+## Session Continuity - 2026-06-26 Static UI Consistency Audit
+
+Active step:
+- Edit workspace Blade/JS static consistency audit.
+
+Owner rule:
+- Every execution, check, fix, or proof must update docs/error log/workflow so future sessions know the last position.
+
+Current focus:
+- Verify active edit route first, because older docs distinguish active revision route from legacy `UpdateTransactionWorkspaceHandler`.
+- Then audit shared workspace Blade/JS against active edit/revision payment/refund/stock rules.
+
+Initial docs read:
+- `docs/03_blueprints/finance/0013_cashier_note_edit_revision_payment_consistency.md`
+- `docs/04_lifecycle/handoff/0014_edit_revision_service_store_stock_package_autosplit_phase3_handoff.md`
+- `docs/04_lifecycle/handoff/0008_edit_transaction_lifecycle_characterization_handoff.md`
+
+Current conclusion:
+- Do not assume `UpdateTransactionWorkspaceHandler` is active edit production path until route proof is checked.
+- Treat real Brave browser proof as manual/operator proof; this session focuses on Blade/JS/source consistency.
