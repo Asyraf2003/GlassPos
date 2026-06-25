@@ -517,3 +517,96 @@ Meaning:
 - Run only targeted characterization test first.
 - Stop on first failure and record RED proof before any production patch.
 
+
+### Session Update - 2026-06-25 Local Route Proof Recorded
+
+#### Slice
+
+- Active slice: Slice 0 - Structure, Source Map, and Guardrail.
+- Status: local route proof recorded after owner ran `php artisan route:list`.
+- Production code patch: none.
+
+#### Files Read
+
+- `docs/04_lifecycle/handoff/0016_0044_edit_after_paid_refund_shadow_ui_report_lifecycle_handoff.md`
+- owner command output: `php artisan route:list`
+
+#### Files Changed
+
+- `docs/04_lifecycle/handoff/0016_0044_edit_after_paid_refund_shadow_ui_report_lifecycle_handoff.md`
+
+#### FACT
+
+- Owner ran `php artisan route:list`.
+- Route output proves active admin note routes exist:
+  - `admin.notes.show`
+  - `admin.notes.payments.store`
+  - `admin.notes.refunds.store`
+  - `admin.notes.workspace.update`
+  - `admin.notes.workspace.edit`
+  - `admin.notes.revision-settlements.refund-due.store`
+  - `admin.notes.revision-surplus-dispositions.refund-paid.store`
+- Route output proves active cashier note routes exist:
+  - `cashier.notes.show`
+  - `cashier.notes.payments.store`
+  - `cashier.notes.refunds.store`
+  - `cashier.notes.workspace.update`
+  - `cashier.notes.workspace.edit`
+- Route output proves active report/export routes exist:
+  - `admin.reports.transaction_summary.index`
+  - `admin.reports.transaction_summary.export_pdf`
+  - `admin.reports.transaction_summary.export_excel`
+  - `admin.reports.transaction_cash_ledger.index`
+  - `admin.reports.transaction_cash_ledger.export_pdf`
+  - `admin.reports.transaction_cash_ledger.export_excel`
+
+#### GAP
+
+- No characterization test has been added yet.
+- No targeted test has been run for 0044 yet.
+- Browser refresh/hard-refresh behavior is still not proven.
+- Report/PDF/Excel lifecycle parity is still not proven.
+- Cash ledger lifecycle impact is still not proven.
+
+#### DECISION
+
+- Local route proof gap is now recorded.
+- Slice 0 remains source-map/docs only.
+- Next allowed implementation step is test-only:
+  - create `tests/Feature/Note/NoteRevisionSettlementCarryForwardFeatureTest.php`
+  - start with `test_revision_after_partial_payment_carries_paid_amount_into_underpaid_settlement`
+- Production code patch remains forbidden until RED proof exists.
+
+#### Tests / Commands Run
+
+```bash
+php artisan route:list
+```
+
+Result:
+
+```text
+Owner output showed 172 routes and included active admin/cashier note edit, payment, refund, surplus refund due/refund paid, transaction report, PDF export, Excel export, and cash ledger routes.
+```
+
+Meaning:
+
+- Active route map from Slice 0 is locally verified.
+- `UpdateTransactionWorkspaceController` / `UpdateTransactionWorkspaceHandler` remain dead/unproven as active edit route path unless future route proof says otherwise.
+
+#### Checklist Changes
+
+- No new checklist checkbox added.
+- Existing Slice 0 route-map checkboxes remain valid with local proof attached.
+
+#### Residual Gaps
+
+- First characterization test still pending.
+- Test fixture proof still pending.
+- Runtime DB proof still pending.
+- Browser refresh proof still pending.
+- Report/export parity proof still pending.
+
+#### Next Allowed Step
+
+- Test-only characterization for revision carry-forward settlement.
