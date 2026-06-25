@@ -173,3 +173,32 @@ Current conclusion:
 - Backend preserves existing cash/payment/refund state by replaying net non-refunded allocations into replacement components.
 - Backend preserves stock ledger by reverse-old/reissue-new, not by mutating old stock rows in place.
 - UI edit audit must ensure Blade/JS does not imply direct mutation of old payment/refund/stock rows.
+
+### Revision Payload Builder Proof - 2026-06-26
+
+Commands/files inspected:
+- `app/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilder.php`
+- `app/Application/Note/UseCases/CreateNoteRevisionPayloadWorkItemBuilder.php`
+- `app/Application/Note/Services/NoteRevisionLinePayloadMapper.php`
+- `fd -a . app/Application/Note/Services/RevisionWorkspace app/Application/Note/Services | rg 'RevisionWorkspace|RevisionSnapshot|NoteRevisionLinePayload|PayloadMapper'`
+
+Observed proof:
+- Revision payload note builder marks revision snapshot/store-stock lines through `RevisionSnapshotStoreStockLineTrustMarker`.
+- Revision payload work item builder reuses `CreateTransactionWorkspaceWorkItemPayloadMapper`.
+- Empty/invalid replacement items throw `Minimal satu item valid wajib ada untuk membuat revisi.`
+- `NoteRevisionLinePayloadMapper` snapshots service detail and store-stock lines.
+- For `service_with_store_stock_part`, payload includes:
+  - `pricing_mode=package_auto_split`
+  - `package_total_rupiah`
+  - `parts_total_rupiah`
+  - `service_price_rupiah`
+  - `package_base_service_price_rupiah`
+  - `package_service_extra_rupiah`
+  - `package_profit_rupiah`
+  - `total_service_component_rupiah`
+  - `store_stock_lines`
+- Store-stock line payload includes product id, qty, line total, and product name snapshot when product lookup succeeds.
+
+Current conclusion:
+- Current backend revision payload supports package-aware edit and multi-product snapshot data.
+- Next UI check must verify edit hydration uses these fields instead of collapsing to one product or forcing current catalog/template values.
