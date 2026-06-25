@@ -183,6 +183,55 @@ Execute browser/manual create scenarios:
 5. delete all lines before submit: UI should show empty state and backend should reject `items` with no financial rows.
 6. duplicate submit/reload/back-submit: no duplicate note/payment/stock rows.
 
+## SESSION CONTINUITY LOG
+
+### 2026-06-25 21:31 - Active Step Opened
+
+- Active step: Create Transaction Browser/Manual QA Preparation.
+- User rule added: every execution, check, fix, or proof must update docs/error log/workflow so future sessions know the last position.
+- Planned first check: inspect local browser/manual test capability and app runtime commands before starting UI proof.
+- No runtime patch planned unless a concrete create-path defect is reproduced.
+
+### 2026-06-25 21:33 - Browser Tooling Discovery Check
+
+- Commands executed:
+  - `fd -a 'package.json|playwright.config|vite.config|phpunit.xml|Makefile|artisan' .`
+  - `rg -n "playwright|browser|dusk|npm run|vite|serve|php artisan serve|APP_URL|DB_CONNECTION|sqlite|cashier.notes.workspace.create" package.json composer.json Makefile phpunit.xml .env .env.testing docs tests`
+- Observed result:
+  - Found `package.json`, `vite.config.js`, `phpunit.xml`, `Makefile`, and `artisan`.
+  - No obvious `playwright.config` or Dusk config found in the initial file discovery.
+  - `composer.json` contains dev command pieces for `php artisan serve` and `npm run dev`.
+  - `.env` uses `APP_URL=http://127.0.0.1:8000` and MySQL; `.env.testing` uses `APP_URL=http://localhost:8000` and MySQL.
+- Current conclusion: browser/manual QA likely needs local Laravel server plus manual browser, unless a hidden browser runner is found in the next focused command check.
+
+### 2026-06-25 21:36 - Runtime Command Check
+
+- Commands executed:
+  - `sed -n '1,140p' package.json`
+  - `sed -n '1,120p' composer.json`
+  - `sed -n '1,220p' Makefile`
+  - `fd -a 'dusk|playwright|cypress|selenium|browser' .`
+- Observed result:
+  - `package.json` only defines `dev` (`vite`) and `build` (`vite build`).
+  - `composer.json` defines `dev` with `php artisan serve`, queue listener, pail, and `npm run dev`.
+  - No Laravel Dusk, Playwright, Cypress, or Selenium runtime dependency found.
+  - Existing browser-related docs found:
+    - `docs/04_lifecycle/handoff/0012_service_store_stock_package_autosplit_browser_contract_handoff.md`
+    - `docs/99_archive/handoff/v2/edit_refund_sniper/0032_create_transaction_package_pricing_browser_manual_qa_handoff.md`
+- Current conclusion: real browser QA cannot be automated from current repo dependencies without adding a browser runner. Next check reads prior manual browser handoffs and then starts/validates local runtime if needed.
+
+### 2026-06-25 21:39 - Prior Browser Handoff Read
+
+- Commands executed:
+  - `sed -n '1,260p' docs/04_lifecycle/handoff/0012_service_store_stock_package_autosplit_browser_contract_handoff.md`
+  - `sed -n '1,300p' docs/99_archive/handoff/v2/edit_refund_sniper/0032_create_transaction_package_pricing_browser_manual_qa_handoff.md`
+- Observed result:
+  - Handoff 0012 remains useful as historical proof for the older 1-product service-store-stock browser bug: browser-form string normalization, payment grand-total autosplit, UI guard, and Blade scope were fixed and owner manually confirmed success.
+  - Archived handoff 0032 is not current for the owner-facing UI because it expects visible manual split/package-total controls. Current create UI uses package lookup with `pricing_mode=package_auto_split`, `requires_service_product_template=1`, and no visible `package_total_rupiah` input.
+- Current conclusion:
+  - Do not reuse the archived 0032 checklist verbatim.
+  - Browser/manual create QA must use the current template-locked package lookup UI, not the old manual split UI.
+
 ## PROGRESS
 
 Create path progress: 35%.
