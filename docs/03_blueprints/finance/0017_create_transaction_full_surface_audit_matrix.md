@@ -306,6 +306,19 @@ Execute browser/manual create scenarios:
   - The failed `curl` check is likely sandbox/network-namespace related, because the escalated server process remains alive.
   - Next HTTP check will run outside sandbox.
 
+### 2026-06-25 21:52 - HTTP Server Check Attempt 2
+
+- Commands executed with approved escalation:
+  - `curl -I http://127.0.0.1:8001/login`
+  - `curl -I http://127.0.0.1:8001/cashier/notes/workspace/create`
+- Observed result:
+  - `/login` returned `HTTP/1.1 200 OK`.
+  - `/cashier/notes/workspace/create` returned `HTTP/1.1 302 Found` with `Location: http://127.0.0.1:8001/login`.
+- Current conclusion:
+  - Local Laravel server is reachable at `http://127.0.0.1:8001`.
+  - Create workspace route is protected by auth before login, as expected.
+  - Next check: find safe local login/seed data for manual create QA.
+
 ## PROGRESS
 
 Create path progress: 35%.
