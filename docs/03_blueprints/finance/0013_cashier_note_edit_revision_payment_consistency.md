@@ -152,3 +152,24 @@ Correction to older handoff context:
 Current conclusion:
 - Edit workspace payment modal is active/relevant in current revision path.
 - UI must match post-replacement outstanding settlement because backend records inline payment after replacement is applied.
+
+### Revision Apply/Reconcile Proof - 2026-06-26
+
+Commands/files inspected:
+- `app/Application/Note/Services/ApplyNoteRevisionAsActiveReplacement.php`
+- `app/Application/Note/Services/NoteReplacementPaymentAllocationReconciler.php`
+- `app/Application/Note/Services/UpdateTransactionWorkspaceWorkItemPersister.php`
+
+Observed proof:
+- `ApplyNoteRevisionAsActiveReplacement` captures existing payment allocations before replacement.
+- Captured payment amounts subtract existing refunded component allocations.
+- Existing payment component allocations are deleted and rebuilt against replacement payable components.
+- Rebuild caps replay amount to replacement component total, preserving surplus/refund_due semantics instead of over-allocating.
+- Store-stock revision reverses old issued inventory through `ReverseIssuedInventoryByNoteService`.
+- Old work items are deleted, root work items are replaced, and new items are persisted through `CreateTransactionWorkspaceWorkItemPersister`, which issues replacement stock movements.
+- Revision snapshot trust marker is applied before persisting replacement items.
+
+Current conclusion:
+- Backend preserves existing cash/payment/refund state by replaying net non-refunded allocations into replacement components.
+- Backend preserves stock ledger by reverse-old/reissue-new, not by mutating old stock rows in place.
+- UI edit audit must ensure Blade/JS does not imply direct mutation of old payment/refund/stock rows.
