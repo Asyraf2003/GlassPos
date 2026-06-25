@@ -268,6 +268,16 @@ Execute browser/manual create scenarios:
   - Two local bind attempts failed inside the sandbox.
   - Next attempt requires escalated execution for `php artisan serve` so browser/manual QA can use a local URL.
 
+### 2026-06-25 21:47 - Local Server Running
+
+- Command executed with approved escalation:
+  - `php artisan serve --host=127.0.0.1 --port=8001`
+- Observed result:
+  - Laravel server is running on `http://127.0.0.1:8001`.
+- Current conclusion:
+  - Browser/manual QA can use `http://127.0.0.1:8001`.
+  - Next check: determine whether a local headless browser binary exists, because the repo itself has no Playwright/Dusk/Cypress dependency.
+
 ## PROGRESS
 
 Create path progress: 35%.
