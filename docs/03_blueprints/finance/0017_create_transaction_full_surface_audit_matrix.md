@@ -373,6 +373,34 @@ Execute browser/manual create scenarios:
   - The sandbox cannot reach local MySQL directly.
   - Next DB read should run outside sandbox.
 
+### 2026-06-25 22:08 - Local DB Read Attempt 2
+
+- Command executed with approved escalation:
+  - Laravel bootstrap read-only `php -r` query for counts/sample rows from `users`, `products`, `product_inventory`, `service_catalog_items`, and `service_product_templates`.
+- Observed result:
+  - `users`: 2.
+  - `products`: 1200.
+  - `product_inventory`: 3.
+  - `service_catalog_items`: 12.
+  - `service_product_templates`: 1.
+  - `active_service_product_templates`: 1.
+  - Users:
+    - `admin@gmail.com` / `Admin Demo`
+    - `kasir@gmail.com` / `Kasir Demo`
+  - Active package template sample:
+    - template id: `f55b262d-a3d7-49a8-99ae-09f297d19df8`
+    - product: `Barang Demo YEAR 005`
+    - service: `Pasang Stang (Kecil)`
+    - default service price: `50000`
+    - default package total: `205000`
+  - Product `Barang Demo YEAR 005` has `qty_on_hand=10` in the sample output.
+- Current conclusion:
+  - Local manual browser QA can use:
+    - URL: `http://127.0.0.1:8001`
+    - login: `kasir@gmail.com` / `12345678`
+    - package search term: `Pasang Stang` or `Barang Demo YEAR 005`
+  - Current local DB has enough data for service-store-stock package create QA.
+
 ## PROGRESS
 
 Create path progress: 35%.
