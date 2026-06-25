@@ -293,6 +293,19 @@ Execute browser/manual create scenarios:
   - Server proof and manual browser proof must be separated clearly.
   - Manual browser URL for owner/operator: `http://127.0.0.1:8001`.
 
+### 2026-06-25 21:51 - HTTP Server Check Attempt 1
+
+- Commands executed:
+  - `curl -I http://127.0.0.1:8001/login`
+  - `curl -I http://127.0.0.1:8001/cashier/notes/workspace/create`
+  - server session poll for `php artisan serve`
+- Observed result:
+  - Both sandbox `curl` commands failed with `Could not connect to server`.
+  - Server session is still running.
+- Current conclusion:
+  - The failed `curl` check is likely sandbox/network-namespace related, because the escalated server process remains alive.
+  - Next HTTP check will run outside sandbox.
+
 ## PROGRESS
 
 Create path progress: 35%.
