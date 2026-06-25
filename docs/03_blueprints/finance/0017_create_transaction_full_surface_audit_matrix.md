@@ -319,6 +319,20 @@ Execute browser/manual create scenarios:
   - Create workspace route is protected by auth before login, as expected.
   - Next check: find safe local login/seed data for manual create QA.
 
+### 2026-06-25 21:55 - Local Seed Credential Check
+
+- Commands executed:
+  - `rg -n "password|email|cashier|kasir|admin|User::|create\\(\\[|service_product_template|template" database docs/04_lifecycle/handoff/0015_create_only_seed_system_stabilization_handoff.md docs/04_lifecycle/handoff/0018_service_catalog_lookup_migration_handoff.md docs/04_lifecycle/handoff/0013_create_transaction_workspace_create_path_closure_handoff.md`
+  - `fd -a . database/seeders database/factories | sort`
+- Observed result:
+  - `database/seeders/UserSeeder.php` seeds:
+    - `admin@gmail.com` / `12345678`
+    - `kasir@gmail.com` / `12345678`
+  - `database/seeders/CreateOnly/CreateUserSeeder.php` also seeds the same local admin/kasir identities through create-only flow.
+- Current conclusion:
+  - Manual browser QA can login with `kasir@gmail.com` / `12345678` for cashier create flow, assuming local DB has been seeded.
+  - Next check: identify local seed product/template data for service-store-stock package lookup.
+
 ## PROGRESS
 
 Create path progress: 35%.
