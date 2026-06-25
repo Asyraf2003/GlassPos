@@ -55,3 +55,20 @@ Langkah aman pertama adalah characterization test dan source-map untuk backend s
 ## NEXT SAFE STEP
 
 Buat test pertama untuk memastikan note detail UI tidak menampilkan action pembayaran yang backend allocator akan tolak, dan menampilkan alasan/status yang informatif.
+
+## Workflow Control
+
+Canonical workflow:
+
+- docs/04_lifecycle/workflow/0044_edit_after_paid_refund_shadow_ui_report_lifecycle_workflow.md
+
+Active handoff:
+
+- docs/04_lifecycle/handoff/0016_0044_edit_after_paid_refund_shadow_ui_report_lifecycle_handoff.md
+
+Rule:
+
+- Every implementation session must update the active handoff checklist.
+- Do not mark this error log fixed until the workflow DoD is satisfied.
+- Do not execute direct GitHub connector write actions for this workflow unless owner explicitly overrides in the same session.
+
