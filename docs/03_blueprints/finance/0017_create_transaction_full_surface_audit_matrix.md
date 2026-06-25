@@ -362,6 +362,17 @@ Execute browser/manual create scenarios:
   - Current service-store-stock package lookup may require admin-created template rows in the local DB.
   - Next check: read actual local DB counts/rows before deciding manual QA data setup.
 
+### 2026-06-25 22:05 - Local DB Read Attempt 1
+
+- Command executed:
+  - Laravel bootstrap read-only `php -r` query for counts/sample rows from `users`, `products`, `product_inventory`, `service_catalog_items`, and `service_product_templates`.
+- Observed result:
+  - Failed in sandbox with MySQL connection error: `SQLSTATE[HY000] [2002] Unknown error while connecting`.
+  - Target connection from `.env`: MySQL host `127.0.0.1`, port `3306`, database `bengkelhex`.
+- Current conclusion:
+  - The sandbox cannot reach local MySQL directly.
+  - Next DB read should run outside sandbox.
+
 ## PROGRESS
 
 Create path progress: 35%.
