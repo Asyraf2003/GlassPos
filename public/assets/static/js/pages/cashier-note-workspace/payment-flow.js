@@ -591,13 +591,28 @@
     }
   };
 
+  const resetUnavailablePaymentMode = (total) => {
+    if (
+      NS.paymentState.mode !== "" &&
+      paymentChoiceDisabled(NS.paymentState.mode, total)
+    ) {
+      NS.paymentState.mode = "";
+      NS.paymentState.cashStep = false;
+      updateHidden("inline_payment_decision_hidden", "skip");
+      updateHidden("inline_payment_amount_paid_rupiah", "");
+      clearPaymentMethod();
+      clearReceivedAmount();
+    }
+  };
+
   NS.refreshPaymentUi = (total = grandTotal()) => {
     const noteDate = byId("note_transaction_date")?.value || "";
     updateHidden("inline_payment_paid_at_hidden", noteDate);
 
+    resetUnavailablePaymentMode(total);
     syncDialogWidth();
     renderLineSummary();
-    syncChoiceButtons();
+    syncChoiceButtons(total);
     updateHeaderText();
     updateModeText();
 
