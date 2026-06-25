@@ -20,6 +20,7 @@ final class CashierWorkspaceServiceProductTemplateMinimumContractFeatureTest ext
         $this->assertStringContainsString('product_lines.slice(0, 3)', $packageSearchJs);
         $this->assertStringContainsString('serviceProductTemplateApplied', $packageSearchJs);
         $this->assertStringContainsString('[data-package-search]', $packageSearchJs);
+        $this->assertStringContainsString('setValue(row, "[data-requires-service-product-template]", "1");', $packageSearchJs);
 
         $this->assertStringContainsString('serviceTotal <= 0', $paymentFlowJs);
         $this->assertStringContainsString('Harga servis wajib diisi sebelum proses nota.', $paymentFlowJs);
@@ -29,6 +30,8 @@ final class CashierWorkspaceServiceProductTemplateMinimumContractFeatureTest ext
         $this->assertStringContainsString('[data-package-search]', $paymentFlowJs);
 
         $this->assertStringContainsString('[data-package-search]', $rowsJs);
+        $this->assertStringContainsString('[data-requires-service-product-template]', $rowsJs);
+        $this->assertStringContainsString('historical_package_snapshot', $rowsJs);
         $this->assertStringContainsString('packageLabelFromRow', $draftJs);
 
         $this->assertStringContainsString('requires_service_product_template', $blade);
