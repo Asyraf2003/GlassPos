@@ -583,6 +583,35 @@ Status: PENDING BROWSER.
   - Do not claim Brave/browser proof from this session.
   - Use source-level Blade/JS proof to verify UI affordances match backend settlement/payment logic.
 
+### 2026-06-26 00:06 - Workspace Payment UI Strictness Audit
+
+- Commands/files inspected:
+  - `resources/views/cashier/notes/workspace/partials/payment-modal.blade.php`
+  - `resources/views/cashier/notes/workspace/partials/payment-modal-left.blade.php`
+  - `resources/views/cashier/notes/workspace/partials/payment-modal-right.blade.php`
+  - `resources/views/cashier/notes/workspace/partials/payment-modal-footer.blade.php`
+  - `resources/views/cashier/notes/workspace/partials/payment-modal-cash.blade.php`
+  - `app/Application/Note/Services/NotePaymentSettlementPreviewResolver.php`
+  - `app/Application/Note/Services/EditTransactionWorkspacePageDataBuilder.php`
+  - `app/Application/Note/Services/EditTransactionWorkspacePaymentSettlementDataBuilder.php`
+  - `app/Application/Note/Services/CreateTransactionWorkspaceInlinePaymentAmountResolver.php`
+  - `app/Adapters/In/Http/Requests/Note/UpdateTransactionWorkspaceRequest.php`
+  - `app/Adapters/In/Http/Requests/Note/UpdateTransactionWorkspaceValidator.php`
+  - `app/Adapters/In/Http/Requests/Note/UpdateTransactionWorkspaceRules.php`
+  - `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspacePaymentNormalizer.php`
+  - `public/assets/static/js/pages/cashier-note-workspace/payment-flow.js`
+- Facts found:
+  - Edit Blade receives backend settlement data from `NotePaymentSettlementPreviewResolver`.
+  - Backend settlement basis is `backend_outstanding_settlement`, with gross total, net paid, and outstanding.
+  - JS computes effective payable as visible total minus backend net paid when settlement basis is present.
+  - Backend `CreateTransactionWorkspaceInlinePaymentAmountResolver` rejects `pay_full` and `pay_partial` when outstanding is `<= 0`.
+  - JS already disables submit buttons when payable is `<= 0`.
+- Gap found:
+  - The UI payment choice buttons `Bayar Penuh` and `Bayar Sebagian` can still be clicked/activated when payable is `0`; only the final submit/cash/transfer buttons are disabled.
+  - Empty create workspace can still open the modal; submit buttons are disabled, but the modal interaction is avoidable and less strict than the backend `items min:1` contract.
+- Decision:
+  - Patch UI strictness so non-payable payment choices cannot be selected when payable is zero, and empty/zero-total create path shows a client validation error before modal.
+
 ## PROGRESS
 
 Create path progress: 45%.
