@@ -135,10 +135,10 @@ final class ManualFullRefundEditLifecycleMismatchFeatureTest extends TestCase
         $note = $data['note'];
         $billingRows = $note['billing_rows'];
 
-        self::assertSame(17500, $note['outstanding_rupiah']);
+        self::assertSame(0, $note['outstanding_rupiah']);
         self::assertFalse(
             $note['can_show_payment_form'],
-            'Detail payment must not be offered when the only apparent outstanding is a refunded store-stock component that backend allocation skips.',
+            'Detail payment must not be offered when refunded store-stock components are no longer collectible debt.',
         );
 
         self::assertSame(
@@ -149,6 +149,155 @@ final class ManualFullRefundEditLifecycleMismatchFeatureTest extends TestCase
             )),
             'Refunded and inventory-reversed store-stock component must not be rendered as a payable billing row.',
         );
+    }
+
+    public function test_refunded_canceled_product_only_row_is_not_collectible_debt(): void
+    {
+        $noteId = 'note-owner-product-refund';
+
+        $this->seedNotePaymentProduct('prod-owner-product-only', 'OWNER-PO', 'Produk Owner Product Only', 'Owner', 100, 17500);
+        $this->seedInventory('prod-owner-product-only', 10);
+        $this->seedNoteBase($noteId, 'Pelanggan Owner Product Refund', '2026-06-26', 60000, 'closed');
+
+        $this->seedWorkItemBase(
+            'wi-owner-product-only',
+            $noteId,
+            1,
+            WorkItem::TYPE_STORE_STOCK_SALE_ONLY,
+            WorkItem::STATUS_CANCELED,
+            17500,
+        );
+        $this->seedStoreStockLineBase('ssl-owner-product-only', 'wi-owner-product-only', 'prod-owner-product-only', 1, 17500);
+
+        $this->seedWorkItemBase(
+            'wi-owner-service-only',
+            $noteId,
+            2,
+            WorkItem::TYPE_SERVICE_ONLY,
+            WorkItem::STATUS_OPEN,
+            60000,
+        );
+        $this->seedServiceDetailBase(
+            'wi-owner-service-only',
+            'Service Owner Product Refund',
+            60000,
+            ServiceDetail::PART_SOURCE_NONE,
+        );
+
+        $this->seedCurrentRevision($noteId, $noteId . '-r001', 'Pelanggan Owner Product Refund', null, '2026-06-26', 77500, [
+            [
+                'id' => $noteId . '-r001-line-01',
+                'work_item_root_id' => 'wi-owner-product-only',
+                'line_no' => 1,
+                'transaction_type' => WorkItem::TYPE_STORE_STOCK_SALE_ONLY,
+                'status' => WorkItem::STATUS_OPEN,
+                'service_label' => null,
+                'service_price_rupiah' => null,
+                'subtotal_rupiah' => 17500,
+                'payload' => [
+                    'work_item_root_id' => 'wi-owner-product-only',
+                    'transaction_type' => WorkItem::TYPE_STORE_STOCK_SALE_ONLY,
+                    'status' => WorkItem::STATUS_OPEN,
+                    'external_purchase_lines' => [],
+                    'store_stock_lines' => [[
+                        'id' => 'ssl-owner-product-only',
+                        'product_id' => 'prod-owner-product-only',
+                        'qty' => 1,
+                        'line_total_rupiah' => 17500,
+                    ]],
+                ],
+            ],
+            [
+                'id' => $noteId . '-r001-line-02',
+                'work_item_root_id' => 'wi-owner-service-only',
+                'line_no' => 2,
+                'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+                'status' => WorkItem::STATUS_OPEN,
+                'service_label' => 'Service Owner Product Refund',
+                'service_price_rupiah' => 60000,
+                'subtotal_rupiah' => 60000,
+                'payload' => [
+                    'work_item_root_id' => 'wi-owner-service-only',
+                    'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+                    'status' => WorkItem::STATUS_OPEN,
+                    'external_purchase_lines' => [],
+                    'store_stock_lines' => [],
+                    'service' => [
+                        'service_name' => 'Service Owner Product Refund',
+                        'service_price_rupiah' => 60000,
+                        'part_source' => ServiceDetail::PART_SOURCE_NONE,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->seedCustomerPaymentBase('payment-owner-product-refund', 77500, '2026-06-26');
+        DB::table('payment_component_allocations')->insert([
+            [
+                'id' => 'pca-owner-product-only',
+                'customer_payment_id' => 'payment-owner-product-refund',
+                'note_id' => $noteId,
+                'work_item_id' => 'wi-owner-product-only',
+                'component_type' => PaymentComponentType::PRODUCT_ONLY_WORK_ITEM,
+                'component_ref_id' => 'wi-owner-product-only',
+                'component_amount_rupiah_snapshot' => 17500,
+                'allocated_amount_rupiah' => 17500,
+                'allocation_priority' => 1,
+            ],
+            [
+                'id' => 'pca-owner-service-only',
+                'customer_payment_id' => 'payment-owner-product-refund',
+                'note_id' => $noteId,
+                'work_item_id' => 'wi-owner-service-only',
+                'component_type' => PaymentComponentType::SERVICE_FEE,
+                'component_ref_id' => 'wi-owner-service-only',
+                'component_amount_rupiah_snapshot' => 60000,
+                'allocated_amount_rupiah' => 60000,
+                'allocation_priority' => 2,
+            ],
+        ]);
+
+        DB::table('customer_refunds')->insert([
+            'id' => 'refund-owner-product-only',
+            'customer_payment_id' => 'payment-owner-product-refund',
+            'note_id' => $noteId,
+            'amount_rupiah' => 17500,
+            'refunded_at' => '2026-06-26',
+            'reason' => 'Owner product-only refund.',
+        ]);
+        DB::table('refund_component_allocations')->insert([
+            'id' => 'rca-owner-product-only',
+            'customer_refund_id' => 'refund-owner-product-only',
+            'customer_payment_id' => 'payment-owner-product-refund',
+            'note_id' => $noteId,
+            'work_item_id' => 'wi-owner-product-only',
+            'component_type' => PaymentComponentType::PRODUCT_ONLY_WORK_ITEM,
+            'component_ref_id' => 'wi-owner-product-only',
+            'refunded_amount_rupiah' => 17500,
+            'refund_priority' => 1,
+        ]);
+
+        app(NoteHistoryProjectionService::class)->syncNote($noteId);
+
+        $data = app(NoteDetailPageDataBuilder::class)->build($noteId);
+        self::assertIsArray($data);
+        $note = $data['note'];
+
+        self::assertSame(60000, $note['net_paid_rupiah']);
+        self::assertSame(0, $note['outstanding_rupiah']);
+        self::assertFalse($note['can_show_payment_form']);
+        self::assertSame(
+            [],
+            array_values(array_filter(
+                $note['billing_rows'],
+                static fn (array $row): bool => (string) $row['id'] === 'wi-owner-product-only::product_only_work_item::wi-owner-product-only'
+            )),
+        );
+
+        $projection = DB::table('note_history_projection')->where('note_id', $noteId)->first();
+        self::assertNotNull($projection);
+        self::assertSame(60000, (int) $projection->net_paid_rupiah);
+        self::assertSame(0, (int) $projection->outstanding_rupiah);
     }
 
     private function seedOwnerReportedRefundThenEditPackageLifecycle(): void
