@@ -57,10 +57,14 @@ final class EmployeeDebtReportPageFeatureTest extends TestCase
         $response->assertSee('Rp 310.000');
         $response->assertSee('Rp 110.000');
         $response->assertSee('Rp 200.000');
-        $response->assertSee('debt-1');
-        $response->assertSee('debt-4');
+        $response->assertSee('Rincian Ringkas');
+        $response->assertSee('Jumlah Data');
+        $response->assertSee('Sisa Hutang');
+        $response->assertDontSee('debt-1');
+        $response->assertDontSee('debt-4');
         $response->assertSee('paid');
         $response->assertSee('unpaid');
+        $response->assertDontSee('Detail Hutang');
         $response->assertSee(route('admin.reports.transaction_cash_ledger.index'), false);
         $response->assertSee(route('admin.reports.employee_debt.index'), false);
     }
@@ -101,8 +105,8 @@ final class EmployeeDebtReportPageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('07 Januari 2030 s/d 09 Januari 2030');
         $response->assertSee('Rp 150.000');
-        $response->assertSee('debt-in-1');
-        $response->assertSee('debt-in-2');
+        $response->assertDontSee('debt-in-1');
+        $response->assertDontSee('debt-in-2');
         $response->assertDontSee('debt-out');
     }
 
