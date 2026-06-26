@@ -804,12 +804,46 @@ Meaning:
 - operational expense Excel export remains available and preserves detailed
   numeric data.
 
-### RESIDUAL
+### UI TIGHTENING PROOF
 
-The operational expense screen still keeps the existing detail tables below the
-new owner-readable sections because existing UI tests currently cover those
-tables. A later UI-only tightening step may move or remove screen detail tables
-after each report family has the summary/PDF contract in place.
+The operational expense screen residual was removed after the main PDF contract
+was green.
+
+Patched:
+
+- `resources/views/admin/reporting/operational_expense/index.blade.php`
+  - removed table-shaped period/category/detail blocks from the owner-facing
+    page;
+  - added `Rincian Ringkas` cards for period totals and category totals;
+  - kept descriptions, payment methods, references, and row detail in Excel.
+- `tests/Feature/Reporting/OperationalExpenseReportPageFeatureTest.php`
+  - stopped expecting expense description detail rows on the screen report;
+  - asserted the page still shows period, category, total expense, and average
+    daily expense;
+  - asserted the old `Detail Biaya Operasional` table is not rendered.
+
+Command, from `/home/asyraf/Code/laravel/bengkel2/app`:
+
+```bash
+php artisan test tests/Feature/Reporting/OperationalExpenseReportPageFeatureTest.php tests/Feature/ReportingExports/OperationalExpenseReportPdfExportFeatureTest.php tests/Feature/ReportingExports/OperationalExpenseReportExcelExportFeatureTest.php
+```
+
+Result:
+
+```text
+PASS  Tests\Feature\Reporting\OperationalExpenseReportPageFeatureTest
+PASS  Tests\Feature\ReportingExports\OperationalExpenseReportPdfExportFeatureTest
+PASS  Tests\Feature\ReportingExports\OperationalExpenseReportExcelExportFeatureTest
+
+Tests: 15 passed, 98 assertions
+```
+
+Meaning:
+
+- operational expense screen now follows the same owner-readable direction as
+  the PDF;
+- operational expense PDF remains owner-readable;
+- operational expense Excel remains the detailed export surface.
 
 ### NEXT
 
