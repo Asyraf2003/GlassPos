@@ -1,6 +1,6 @@
 # 0046 PDF Report Table Layout Owner Readability Gap
 
-Status: Reported
+Status: Characterized RED
 
 Reported by owner on 2026-06-26. This log captures the report readability
 problem found after the latest `0045` lifecycle/report fixes.
@@ -375,7 +375,65 @@ Visible result:
 
 ## PROGRESS
 
-5%.
+10%.
 
-This issue is logged and source-mapped at intake level only. No production code
-has been changed yet.
+This issue is logged, source-mapped at intake level, and has an initial
+operational-profit RED characterization. No production code has been changed yet.
+
+## 2026-06-26 RED Characterization - Operational Profit Slice
+
+### FACT
+
+The first vertical slice is `operational_profit`.
+
+RED tests added:
+
+- `tests/Feature/ReportingExports/OperationalProfitReportPdfExportFeatureTest.php`
+  - `test_operational_profit_pdf_view_uses_owner_readable_report_sections_not_table_layout`
+- `tests/Feature/Reporting/OperationalProfitReportPageFeatureTest.php`
+  - `test_admin_sees_owner_readable_report_sections_on_operational_profit_page`
+
+The tests lock the desired screen/PDF report contract:
+
+- render `Ringkasan Utama`;
+- render `Catatan Laporan`;
+- render `Detail lengkap tersedia di Excel`;
+- PDF must not keep `<table class="summary">` as the report body layout.
+
+### PROOF
+
+Command, from `/home/asyraf/Code/laravel/bengkel2/app`:
+
+```bash
+php artisan test tests/Feature/ReportingExports/OperationalProfitReportPdfExportFeatureTest.php tests/Feature/Reporting/OperationalProfitReportPageFeatureTest.php
+```
+
+Result:
+
+```text
+FAIL  Tests\Feature\ReportingExports\OperationalProfitReportPdfExportFeatureTest
+✓ admin can export operational profit report as pdf
+✓ kasir cannot export operational profit report as pdf
+✓ operational profit pdf view contains indonesian report labels
+⨯ operational profit pdf view uses owner readable report sections not table layout
+
+FAIL  Tests\Feature\Reporting\OperationalProfitReportPageFeatureTest
+✓ guest is redirected to login when accessing operational profit report page
+✓ kasir is redirected back to cashier dashboard when accessing operational profit report page
+✓ admin can access operational profit report page and see cash based metrics
+⨯ admin sees owner readable report sections on operational profit page
+
+Tests: 2 failed, 6 passed, 37 assertions
+```
+
+Failure meaning:
+
+- PDF rendered HTML does not contain `Ringkasan Utama`.
+- Screen report HTML does not contain `Ringkasan Utama`.
+- The failure matches the owner-readable report layout gap, not a route/auth or
+  fixture failure.
+
+### NEXT
+
+Patch only the `operational_profit` screen/PDF presentation so these two RED
+tests become GREEN while keeping Excel export detail unchanged.

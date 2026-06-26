@@ -101,6 +101,25 @@ final class OperationalProfitReportPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Rp 35.000', $html);
     }
 
+    public function test_operational_profit_pdf_view_uses_owner_readable_report_sections_not_table_layout(): void
+    {
+        $html = view('admin.reporting.operational_profit.export_pdf', [
+            'title' => 'Laporan Laba Kas Operasional',
+            'periodLabel' => '01 Januari 2030 s/d 31 Januari 2030',
+            'generatedAt' => '31 Januari 2030 10:00',
+            'summaryItems' => [
+                ['label' => 'Uang Masuk', 'value' => 'Rp 200.000'],
+                ['label' => 'Pengembalian Dana', 'value' => 'Rp 10.000'],
+                ['label' => 'Laba Kas Operasional', 'value' => 'Rp 35.000'],
+            ],
+        ])->render();
+
+        $this->assertStringContainsString('Ringkasan Utama', $html);
+        $this->assertStringContainsString('Catatan Laporan', $html);
+        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('<table class="summary">', $html);
+    }
+
     private function user(string $role): User
     {
         $user = User::query()->create([

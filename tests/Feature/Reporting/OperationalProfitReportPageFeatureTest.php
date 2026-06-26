@@ -98,6 +98,21 @@ final class OperationalProfitReportPageFeatureTest extends TestCase
         $response->assertSee(route('admin.reports.operational_profit.index'), false);
     }
 
+    public function test_admin_sees_owner_readable_report_sections_on_operational_profit_page(): void
+    {
+        $response = $this->actingAs($this->user('admin'))->get(
+            route('admin.reports.operational_profit.index', [
+                'period_mode' => 'monthly',
+                'reference_date' => '2030-01-01',
+            ])
+        );
+
+        $response->assertOk();
+        $response->assertSee('Ringkasan Utama');
+        $response->assertSee('Catatan Laporan');
+        $response->assertSee('Detail lengkap tersedia di Excel');
+    }
+
     private function user(string $role): User
     {
         $user = User::query()->create([
