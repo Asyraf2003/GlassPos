@@ -162,6 +162,54 @@ final class InventoryStockValueReportPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Supra', $html);
     }
 
+    public function test_inventory_stock_value_pdf_view_uses_owner_readable_report_sections_not_detail_tables(): void
+    {
+        $html = view('admin.reporting.inventory_stock_value.export_pdf', [
+            'title' => 'Stok dan Nilai Persediaan',
+            'periodLabel' => '01 Januari 2030 s/d 31 Januari 2030',
+            'referenceDateLabel' => '31 Januari 2030',
+            'generatedAt' => '31 Januari 2030 10:00',
+            'summaryItems' => [
+                ['label' => 'Produk Snapshot', 'value' => 2],
+                ['label' => 'Nilai Persediaan', 'value' => 'Rp 96.000'],
+                ['label' => 'Qty Masuk Pembelian', 'value' => 13],
+            ],
+            'movementRows' => [
+                [
+                    'kode_barang' => 'KB-001',
+                    'nama_barang' => 'Supra',
+                    'supply_in_qty' => 10,
+                    'sale_out_qty' => 4,
+                    'refund_reversal_qty' => 0,
+                    'revision_correction_qty' => 0,
+                    'net_qty_delta' => 6,
+                    'net_cost_delta' => 'Rp 60.000',
+                    'current_qty_on_hand' => 6,
+                    'current_inventory_value' => 'Rp 60.000',
+                ],
+            ],
+            'snapshotRows' => [
+                [
+                    'kode_barang' => 'KB-001',
+                    'nama_barang' => 'Supra',
+                    'merek' => 'Federal',
+                    'ukuran' => 100,
+                    'current_qty_on_hand' => 6,
+                    'current_avg_cost' => 'Rp 10.000',
+                    'current_inventory_value' => 'Rp 60.000',
+                    'reorder_point_qty' => '-',
+                    'critical_threshold_qty' => '-',
+                ],
+            ],
+        ])->render();
+
+        $this->assertStringContainsString('Ringkasan Utama', $html);
+        $this->assertStringContainsString('Catatan Laporan', $html);
+        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('summary-grid', $html);
+        $this->assertStringNotContainsString('<table>', $html);
+    }
+
     private function user(string $role): User
     {
         $user = User::query()->create([

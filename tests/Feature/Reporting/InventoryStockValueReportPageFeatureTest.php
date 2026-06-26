@@ -110,6 +110,21 @@ final class InventoryStockValueReportPageFeatureTest extends TestCase
         $response->assertSee(route('admin.reports.inventory_stock_value.index'), false);
     }
 
+    public function test_admin_sees_owner_readable_report_sections_on_inventory_stock_value_page(): void
+    {
+        $response = $this->actingAs($this->user('admin'))->get(
+            route('admin.reports.inventory_stock_value.index', [
+                'period_mode' => 'monthly',
+                'reference_date' => '2030-01-31',
+            ])
+        );
+
+        $response->assertOk();
+        $response->assertSee('Ringkasan Utama');
+        $response->assertSee('Catatan Laporan');
+        $response->assertSee('Detail lengkap tersedia di Excel');
+    }
+
 
     public function test_custom_mode_uses_explicit_date_range_for_period_movements(): void
     {
