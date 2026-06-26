@@ -176,6 +176,133 @@ Forensic step 1:
 Current proof is owner manual evidence only. Automated/source/DB proof is still
 pending.
 
+## 2026-06-26 Forensic Update 1
+
+### FACT
+
+Local DB read-only proof found the manual note:
+
+- note id: `6f228325-df1c-425d-a038-9a4a3c7778c1`
+- customer: `Pelanggan baru`
+- current DB note state: `closed`
+- current total: `112500`
+- current revision: `6f228325-df1c-425d-a038-9a4a3c7778c1-r005`
+- latest revision number: `5`
+
+Revision chain matches owner scenario:
+
+- r001 total `190000`, 3 lines
+- r002 total `172500`, 2 lines
+- r003 total `190000`, 3 lines
+- r004 total `172500`, 2 lines
+- r005 total `112500`, 1 line
+
+`note_history_projection` after r005:
+
+- total_rupiah: `112500`
+- allocated_rupiah: `112500`
+- refunded_rupiah: `37500`
+- net_paid_rupiah: `75000`
+- outstanding_rupiah: `37500`
+- line_close_count: `1`
+- line_refund_count: `1`
+
+Actual allocation/refund rows:
+
+- refund `384911ea-0a35-43d5-b4b6-61dd826de00d` refunded `37500`
+  against r004 service package product components:
+  - `023567b3-1b7d-4e90-aeed-c0f1d91c2115`: `17500`
+  - `94a6a870-0adf-4e9c-82ae-bc2f6fbe0a62`: `20000`
+- r005 payment component allocations were replayed to new r005 package root
+  `a86434d5-59fd-4de5-988d-be40971d18a2`:
+  - product component `f7b8e707-713d-47ab-93da-45371959e6de`: `17500`
+  - product component `e2abbe5d-4337-4d33-8932-6f9794298088`: `20000`
+  - service fee `a86434d5-59fd-4de5-988d-be40971d18a2`: `75000`
+
+Inventory proof:
+
+- r004 refunded product components have stock_out then stock_in reversal.
+- r005 package product components have new stock_out rows dated `2026-06-26`.
+
+Blade/detail payload proof for current r005 page:
+
+- `can_show_payment_form=false`
+- `can_show_settle_payment_action=false`
+- `can_show_refund_form=true`
+- `can_edit_workspace=true`
+- current revision row is close/refundable.
+- billing projection still includes both:
+  - old r004 refunded package components as outstanding `37500`
+  - new r005 package components/service fee as paid `112500`
+
+### SOURCE MAP
+
+Payment/detail UI action source:
+
+- `app/Application/Note/Services/NoteDetailPageDataBuilder.php`
+- `app/Application/Note/Services/NoteDetailNotePayloadBuilder.php`
+- `app/Application/Note/Services/NoteDetailActionModalPayloadBuilder.php`
+
+Current revision panel source:
+
+- `app/Application/Note/Services/NoteWorkspacePanelDataBuilder.php`
+- `app/Application/Note/Services/CurrentRevision/CurrentRevisionRowSettlementProjector.php`
+- `app/Application/Note/Services/CurrentRevision/CurrentRevisionDetailRowMapper.php`
+
+Billing projection source:
+
+- `app/Application/Note/Services/NoteBillingProjectionBuilder.php`
+- `app/Application/Note/Services/NoteBillingProjectionRowMapper.php`
+
+Payment execution source:
+
+- `app/Application/Payment/Services/ResolveNotePayableComponents.php`
+- `app/Application/Payment/Services/AllocatePaymentAcrossComponents.php`
+- `app/Application/Payment/Services/ReversedRefundedStoreStockPartPaymentGuard.php`
+
+Refund execution source:
+
+- `app/Adapters/In/Http/Controllers/Note/RecordClosedNoteRefundController.php`
+- `app/Application/Note/Services/SelectedNoteRowsRefundPlanResolver.php`
+- `app/Application/Note/Services/SelectedNoteRowsRefundEligibilityGuard.php`
+
+Projection/report source:
+
+- `app/Application/Note/Services/NoteHistoryProjectionService.php`
+- `app/Adapters/Out/Note/DatabaseNoteHistoryProjectionSourceReaderAdapter.php`
+- `app/Adapters/Out/Note/Queries/NoteHistoryComponentLineSummarySubquery.php`
+
+### PRELIMINARY CONCLUSION
+
+The manual report is enough to locate a real lifecycle bug.
+
+There are two competing UI/read models after edit/refund:
+
+1. Current revision panel reads only current revision snapshots and can say the
+   r005 package is paid/close.
+2. Billing/projection/report read broader note-level allocation/refund history
+   and can still surface old r004 refunded components as outstanding.
+
+This explains the owner-observed pattern:
+
+- report/per-note can show `Sisa Tagihan 37500`
+- UI can expose payment/refund/edit decisions from a model that is not aligned
+  with backend allocatable components
+- backend payment allocator rejects payment when all apparent outstanding
+  components are reversed/refunded or otherwise not allocatable
+- edit-after-refund can create a new package root while old refunded component
+  rows remain part of note-level billing/projection history
+
+### DECISION
+
+The next patch should not be a simple hide button only.
+
+First characterization must lock the invariant:
+
+- current revision, billing projection, note history projection, reports, and
+  payment/refund action flags must agree on which components are current,
+  payable, refundable, reversed, historical, or closed.
+
 ## NEXT SAFE STEP
 
 Read the local source and DB state for the latest matching note. Update this log
