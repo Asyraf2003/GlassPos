@@ -334,6 +334,38 @@ This proves the issue is not only a Blade button. The current revision panel,
 detail billing projection, and note history/report projection are reading
 different lifecycle surfaces.
 
+## 2026-06-26 Patch Proof 1
+
+Patched:
+
+- `app/Application/Note/Services/NoteDetailPageDataBuilder.php`
+  - detail `billing_rows` now uses current revision workspace rows through
+    `NoteBillingProjectionFromWorkspaceRowsBuilder`, not all historical
+    `work_items`.
+- `app/Application/Note/Services/NoteHistoryProjectionService.php`
+  - when a current revision exists, collectible `net_paid_rupiah`,
+    `outstanding_rupiah`, and line open/close/refund counts are derived from
+    current revision settlement rows.
+  - cash/history fields `allocated_rupiah` and `refunded_rupiah` remain ledger
+    history and are not hidden.
+
+Proof commands:
+
+- `php -l app/Application/Note/Services/NoteHistoryProjectionService.php`
+- `php -l app/Application/Note/Services/NoteDetailPageDataBuilder.php`
+- `php artisan test tests/Feature/Note/ManualFullRefundEditLifecycleMismatchFeatureTest.php`
+
+Proof result:
+
+- syntax PASS for both patched PHP files.
+- target test PASS: `2 passed, 18 assertions`.
+
+Remaining scope:
+
+- Transaction summary/per-note report still has its own DTO formula for
+  outstanding: `gross - allocated + refunded`. It must be checked and aligned
+  with projection/current collectible outstanding before this issue is closed.
+
 ## NEXT SAFE STEP
 
 Read the local source and DB state for the latest matching note. Update this log
