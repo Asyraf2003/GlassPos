@@ -28,41 +28,35 @@
             margin-bottom: 10px;
         }
 
-        .summary,
-        .detail {
-            border-collapse: collapse;
-            width: 100%;
-        }
-
-        .summary {
-            margin-bottom: 9px;
-        }
-
-        .summary td,
-        .detail th,
-        .detail td {
+        .metric {
             border: 1px solid #d1d5db;
-            padding: 4px 5px;
-            vertical-align: top;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            padding: 7px 9px;
         }
 
-        .summary td:first-child,
-        .detail th {
-            background: #e5e7eb;
+        .metric-label {
+            color: #4b5563;
+            font-size: 8px;
+            margin-bottom: 2px;
+        }
+
+        .metric-value {
+            font-size: 12px;
             font-weight: bold;
         }
 
-        .summary td:first-child {
-            width: 32%;
+        .note {
+            background: #f9fafb;
+            border-left: 4px solid #d97706;
+            margin-bottom: 8px;
+            padding: 8px 10px;
         }
 
-        .number {
-            text-align: right;
-            white-space: nowrap;
-        }
-
-        .muted {
-            color: #6b7280;
+        .excel-note {
+            color: #374151;
+            font-size: 9px;
+            margin-top: 14px;
         }
     </style>
 </head>
@@ -74,111 +68,21 @@
         Dicetak: {{ $generatedAt }}
     </div>
 
-    <table class="summary">
-        <tbody>
-            @foreach ($summaryItems as $item)
-                <tr>
-                    <td>{{ $item['label'] }}</td>
-                    <td>{{ $item['value'] }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+    <h2>Ringkasan Utama</h2>
+    @foreach ($summaryItems as $item)
+        <div class="metric">
+            <div class="metric-label">{{ $item['label'] }}</div>
+            <div class="metric-value">{{ $item['value'] }}</div>
+        </div>
+    @endforeach
 
-    <h2>Rincian Per Tanggal</h2>
-    <table class="detail">
-        <thead>
-            <tr>
-                <th>Tanggal</th>
-                <th class="number">Invoice</th>
-                <th class="number">Total Tagihan</th>
-                <th class="number">Dibayar</th>
-                <th class="number">Outstanding</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($periodRows as $row)
-                <tr>
-                    <td>{{ $row['period_label'] }}</td>
-                    <td class="number">{{ number_format($row['total_rows'], 0, ',', '.') }}</td>
-                    <td class="number">{{ $row['grand_total'] }}</td>
-                    <td class="number">{{ $row['total_paid'] }}</td>
-                    <td class="number">{{ $row['outstanding'] }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="5" class="muted">Tidak ada faktur pada periode ini.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+    <h2>Catatan Laporan</h2>
+    <div class="note">
+        Laporan ini merangkum jumlah faktur pemasok, nilai tagihan, pembayaran
+        yang sudah dicatat, sisa yang belum dibayar, dan faktur yang perlu
+        perhatian berdasarkan tanggal referensi.
+    </div>
 
-    <h2>Rincian Pemasok</h2>
-    <table class="detail">
-        <thead>
-            <tr>
-                <th>Supplier</th>
-                <th class="number">Invoice</th>
-                <th class="number">Total Tagihan</th>
-                <th class="number">Dibayar</th>
-                <th class="number">Outstanding</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($supplierRows as $row)
-                <tr>
-                    <td>{{ $row['supplier'] }}</td>
-                    <td class="number">{{ number_format($row['total_rows'], 0, ',', '.') }}</td>
-                    <td class="number">{{ $row['grand_total'] }}</td>
-                    <td class="number">{{ $row['total_paid'] }}</td>
-                    <td class="number">{{ $row['outstanding'] }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="5" class="muted">Tidak ada pemasok pada periode ini.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-
-    <h2>Detail Hutang Pemasok</h2>
-    <table class="detail">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>No Faktur</th>
-                <th>Supplier</th>
-                <th>Tanggal Kirim</th>
-                <th>Due Date</th>
-                <th>Status</th>
-                <th class="number">Total Tagihan</th>
-                <th class="number">Dibayar</th>
-                <th class="number">Outstanding</th>
-                <th class="number">Receipt</th>
-                <th class="number">Qty Diterima</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($rows as $row)
-                <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td>{{ $row['invoice_no'] }}</td>
-                    <td>{{ $row['supplier'] }}</td>
-                    <td>{{ $row['shipment_date'] }}</td>
-                    <td>{{ $row['due_date'] }}</td>
-                    <td>{{ $row['status'] }}</td>
-                    <td class="number">{{ $row['grand_total'] }}</td>
-                    <td class="number">{{ $row['total_paid'] }}</td>
-                    <td class="number">{{ $row['outstanding'] }}</td>
-                    <td class="number">{{ number_format($row['receipt_count'], 0, ',', '.') }}</td>
-                    <td class="number">{{ number_format($row['total_received_qty'], 0, ',', '.') }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="11" class="muted">Tidak ada faktur pada periode ini.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+    <div class="excel-note">Detail lengkap tersedia di Excel.</div>
 </body>
 </html>

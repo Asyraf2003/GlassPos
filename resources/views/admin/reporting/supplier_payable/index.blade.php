@@ -35,6 +35,14 @@
     </div>
 </div>
 
+<div class="mb-3">
+    <h5 class="mb-1">Ringkasan Utama</h5>
+    <div class="text-muted small">
+        Laporan ini merangkum tagihan pemasok, pembayaran yang sudah dicatat,
+        dan sisa yang belum dibayar berdasarkan tanggal referensi.
+    </div>
+</div>
+
 <div class="row g-3 mb-4">
     <div class="col-12 col-md-6 col-xl-2">
         <div class="card">
@@ -124,6 +132,14 @@
                 <div class="fs-5 fw-bold text-success">{{ number_format($summary['settled_rows'] ?? 0, 0, ',', '.') }}</div>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="mb-3">
+    <h5 class="mb-2">Catatan Laporan</h5>
+    <div class="text-muted">
+        Gunakan bagian ini untuk melihat pemasok mana yang perlu diprioritaskan.
+        Detail lengkap tersedia di Excel.
     </div>
 </div>
 

@@ -131,8 +131,11 @@ final class SupplierPayableReportPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Hutang Pemasok', $html);
         $this->assertStringContainsString('Total Tagihan', $html);
         $this->assertStringContainsString('Outstanding', $html);
-        $this->assertStringContainsString('Rincian Pemasok', $html);
-        $this->assertStringContainsString('F-001', $html);
+        $this->assertStringContainsString('Ringkasan Utama', $html);
+        $this->assertStringContainsString('Catatan Laporan', $html);
+        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Rincian Pemasok', $html);
+        $this->assertStringNotContainsString('F-001', $html);
     }
 
     public function test_supplier_payable_pdf_view_uses_owner_readable_report_sections_not_detail_tables(): void
