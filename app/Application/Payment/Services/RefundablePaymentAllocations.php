@@ -32,7 +32,9 @@ final class RefundablePaymentAllocations
                     return false;
                 }
 
-                return RefundComponentTypePolicy::isDefaultRefundable($allocation->componentType());
+                return $selectedIds !== []
+                    ? RefundComponentTypePolicy::isSelectedRowRefundable($allocation->componentType())
+                    : RefundComponentTypePolicy::isDefaultRefundable($allocation->componentType());
             },
         );
 
