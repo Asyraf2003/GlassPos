@@ -21,7 +21,7 @@ final class TransactionSummaryPerNoteBuilder
      *   gross_transaction_rupiah:int,
  *   allocated_payment_rupiah:int,
  *   refunded_rupiah:int,
- *   refund_due_rupiah:int
+ *   refund_due_rupiah:int,
  *   outstanding_rupiah?:int
  * }> $rows
      * @return list<TransactionSummaryPerNoteRow>
