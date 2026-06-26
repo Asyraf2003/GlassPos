@@ -111,6 +111,43 @@ final class TransactionReportPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Ada Refund', $html);
     }
 
+    public function test_pdf_view_uses_owner_readable_report_sections_not_detail_tables(): void
+    {
+        $html = view('admin.reporting.transaction_summary.export_pdf', [
+            'title' => 'Laporan Transaksi',
+            'periodLabel' => '01 Januari 2030 s/d 31 Januari 2030',
+            'generatedAt' => '31 Januari 2030 10:00',
+            'summaryItems' => [
+                ['label' => 'Jumlah Nota', 'value' => 2],
+                ['label' => 'Nilai Bruto Transaksi', 'value' => 'Rp 150.000'],
+                ['label' => 'Dana Dikembalikan', 'value' => 'Rp 9.000'],
+                ['label' => 'Sisa Tagihan', 'value' => 'Rp 9.001'],
+            ],
+            'rows' => [
+                [
+                    'date' => '07 Januari 2030',
+                    'note_id' => 'note-1',
+                    'customer_name' => 'Budi',
+                    'total' => 'Rp 100.000',
+                    'paid' => 'Rp 99.999',
+                    'refund' => 'Rp 9.000',
+                    'refund_due' => 'Rp 0',
+                    'surplus_refund_paid' => 'Rp 0',
+                    'remaining_refund_due' => 'Rp 0',
+                    'net_paid' => 'Rp 90.999',
+                    'outstanding' => 'Rp 9.001',
+                    'status' => 'Ada Refund',
+                ],
+            ],
+        ])->render();
+
+        $this->assertStringContainsString('Ringkasan Utama', $html);
+        $this->assertStringContainsString('Catatan Laporan', $html);
+        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('<table class="summary">', $html);
+        $this->assertStringNotContainsString('<table class="detail">', $html);
+    }
+
     private function user(string $role): User
     {
         $user = User::query()->create([
