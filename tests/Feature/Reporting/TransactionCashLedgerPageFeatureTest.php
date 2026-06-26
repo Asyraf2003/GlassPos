@@ -72,6 +72,21 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertSee('Rp 11.000');
     }
 
+    public function test_admin_sees_owner_readable_report_sections_on_transaction_cash_ledger_page(): void
+    {
+        $response = $this->actingAs($this->user('admin'))->get(
+            route('admin.reports.transaction_cash_ledger.index', [
+                'period_mode' => 'monthly',
+                'reference_date' => '2026-04-01',
+            ])
+        );
+
+        $response->assertOk();
+        $response->assertSee('Ringkasan Utama');
+        $response->assertSee('Catatan Laporan');
+        $response->assertSee('Detail lengkap tersedia di Excel');
+    }
+
     public function test_admin_can_see_cash_and_transfer_money_in_split_on_transaction_cash_ledger_page(): void
     {
         $this->seedCashInEvent('note-page-cash', 'wi-page-cash', 'pay-page-cash', '2026-04-02', 85000, 'Cash Page', 'cash');

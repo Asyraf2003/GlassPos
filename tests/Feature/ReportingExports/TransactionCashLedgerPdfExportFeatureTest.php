@@ -97,6 +97,41 @@ final class TransactionCashLedgerPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('pay-1', $html);
     }
 
+    public function test_transaction_cash_ledger_pdf_view_uses_owner_readable_report_sections_not_detail_tables(): void
+    {
+        $html = view('admin.reporting.transaction_cash_ledger.export_pdf', [
+            'title' => 'Laporan Buku Kas Transaksi',
+            'periodLabel' => '01 Januari 2030 s/d 31 Januari 2030',
+            'generatedAt' => '31 Januari 2030 10:00',
+            'summaryItems' => [
+                ['label' => 'Total Kejadian', 'value' => 3],
+                ['label' => 'Kas Masuk', 'value' => 'Rp 12.000'],
+                ['label' => 'Kas Keluar', 'value' => 'Rp 1.000'],
+                ['label' => 'Nilai Bersih', 'value' => 'Rp 11.000'],
+            ],
+            'rows' => [
+                [
+                    'date' => '02 Januari 2030',
+                    'note_label' => 'Budi · 2030-01-02',
+                    'event_type' => 'Alokasi Pembayaran',
+                    'direction' => 'Masuk',
+                    'payment_marker' => 'Ada',
+                    'refund_marker' => '-',
+                    'source_table' => 'customer_payments',
+                    'source_id' => 'pay-1',
+                    'source_disposition_id' => '-',
+                    'amount' => 'Rp 8.000',
+                ],
+            ],
+        ])->render();
+
+        $this->assertStringContainsString('Ringkasan Utama', $html);
+        $this->assertStringContainsString('Catatan Laporan', $html);
+        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('<table class="summary">', $html);
+        $this->assertStringNotContainsString('<table class="detail">', $html);
+    }
+
     private function user(string $role): User
     {
         $user = User::query()->create([
