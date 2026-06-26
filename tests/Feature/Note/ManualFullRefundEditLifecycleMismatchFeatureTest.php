@@ -6,6 +6,7 @@ namespace Tests\Feature\Note;
 
 use App\Application\Note\Services\NoteDetailPageDataBuilder;
 use App\Application\Note\Services\NoteHistoryProjectionService;
+use App\Application\Note\Services\NoteOperationalStatusResolver;
 use App\Adapters\Out\Reporting\Queries\TransactionSummaryReportingQuery;
 use App\Application\Reporting\Services\TransactionSummaryPerNoteBuilder;
 use App\Core\Note\WorkItem\ServiceDetail;
@@ -13,6 +14,7 @@ use App\Core\Note\WorkItem\WorkItem;
 use App\Core\Payment\PaymentComponentAllocation\PaymentComponentType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use App\Ports\Out\Note\NoteReaderPort;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
 use Tests\TestCase;
 
@@ -90,6 +92,11 @@ final class ManualFullRefundEditLifecycleMismatchFeatureTest extends TestCase
         $admin = $this->loginAsAuthorizedAdmin();
 
         $this->seedOwnerReportedRefundThenEditPackageLifecycle();
+        $note = app(NoteReaderPort::class)->getById('note-owner-0045');
+        self::assertNotNull($note);
+
+        $status = app(NoteOperationalStatusResolver::class)->resolve($note);
+        self::assertTrue($status['is_close'], json_encode($status, JSON_THROW_ON_ERROR));
 
         $this->actingAs($admin)
             ->from(route('admin.notes.show', ['noteId' => 'note-owner-0045']))
