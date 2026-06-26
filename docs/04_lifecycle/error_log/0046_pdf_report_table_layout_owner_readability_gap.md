@@ -574,6 +574,70 @@ Run focused reporting export/page regression for all touched report families,
 then decide whether to add service-package PDF support or leave it as no-PDF
 route per current route map.
 
+## 2026-06-27 Focused Regression Proof
+
+### FACT
+
+All active PDF report families in `routes/web/admin_reporting.php` have now been
+converted to owner-readable PDF sections:
+
+- `operational_profit`
+- `transaction_cash_ledger`
+- `transaction_summary`
+- `supplier_payable`
+- `employee_debt`
+- `payroll`
+- `operational_expense`
+- `inventory_stock_value`
+
+For each family:
+
+- PDF keeps export route, PDF response, and PDF range guard behavior.
+- PDF renders `Ringkasan Utama`, `Catatan Laporan`, and
+  `Detail lengkap tersedia di Excel`.
+- PDF no longer renders detailed row tables.
+- Screen UI renders matching owner-readable sections.
+- Excel export tests remain green and preserve detail/numeric data.
+
+### PROOF
+
+Command, from `/home/asyraf/Code/laravel/bengkel2/app`:
+
+```bash
+php artisan test tests/Feature/ReportingExports/OperationalProfitReportPdfExportFeatureTest.php tests/Feature/Reporting/OperationalProfitReportPageFeatureTest.php tests/Feature/ReportingExports/OperationalProfitReportExcelExportFeatureTest.php tests/Feature/ReportingExports/TransactionCashLedgerPdfExportFeatureTest.php tests/Feature/Reporting/TransactionCashLedgerPageFeatureTest.php tests/Feature/ReportingExports/TransactionCashLedgerExcelExportFeatureTest.php tests/Feature/ReportingExports/TransactionReportPdfExportFeatureTest.php tests/Feature/Reporting/TransactionReportPageFeatureTest.php tests/Feature/ReportingExports/TransactionReportExcelExportFeatureTest.php tests/Feature/ReportingExports/SupplierPayableReportPdfExportFeatureTest.php tests/Feature/Reporting/SupplierPayableReportPageFeatureTest.php tests/Feature/ReportingExports/SupplierPayableReportExcelExportFeatureTest.php tests/Feature/ReportingExports/EmployeeDebtReportPdfExportFeatureTest.php tests/Feature/Reporting/EmployeeDebtReportPageFeatureTest.php tests/Feature/ReportingExports/EmployeeDebtReportExcelExportFeatureTest.php tests/Feature/ReportingExports/PayrollReportPdfExportFeatureTest.php tests/Feature/Reporting/PayrollReportPageFeatureTest.php tests/Feature/ReportingExports/PayrollReportExcelExportFeatureTest.php tests/Feature/ReportingExports/OperationalExpenseReportPdfExportFeatureTest.php tests/Feature/Reporting/OperationalExpenseReportPageFeatureTest.php tests/Feature/ReportingExports/OperationalExpenseReportExcelExportFeatureTest.php tests/Feature/ReportingExports/InventoryStockValueReportPdfExportFeatureTest.php tests/Feature/Reporting/InventoryStockValueReportPageFeatureTest.php tests/Feature/ReportingExports/InventoryStockValueReportExcelExportFeatureTest.php
+```
+
+Result:
+
+```text
+Tests: 123 passed, 836 assertions
+```
+
+Meaning:
+
+- focused regression for all touched report page/PDF/Excel export tests is
+  green;
+- Excel detail remains covered for every touched report family;
+- no query/domain/formula patch was needed for this presentation slice.
+
+### RESIDUAL
+
+- Screen pages still keep existing detail tables below the owner-readable
+  sections because existing UI tests cover those detail tables.
+- `service_package_profit_breakdown` has screen and Excel routes but no active
+  PDF route in `routes/web/admin_reporting.php`; this issue did not add a new
+  PDF route.
+- Full `make verify` has not been run after these presentation changes.
+
+### NEXT
+
+Either:
+
+- run full `make verify`; or
+- continue with a separate UI tightening slice to move/remove screen detail
+  tables after the owner-readable sections are proven across all report
+  families.
+
 ## 2026-06-27 RED And Patch Proof - Operational Expense Slice
 
 ### FACT
