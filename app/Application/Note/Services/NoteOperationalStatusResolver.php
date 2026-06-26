@@ -50,6 +50,7 @@ final class NoteOperationalStatusResolver
         $currentSettlement = $this->currentRevisionSettlement($note);
 
         if ($currentSettlement !== null) {
+            $grandTotal = $currentSettlement['gross_total_rupiah'];
             $netPaidRupiah = $currentSettlement['net_paid_rupiah'];
         }
 
@@ -77,7 +78,7 @@ final class NoteOperationalStatusResolver
         return $this->resolve($note)['is_close'];
     }
 
-    /** @return array{net_paid_rupiah:int,outstanding_rupiah:int}|null */
+    /** @return array{gross_total_rupiah:int,net_paid_rupiah:int,outstanding_rupiah:int}|null */
     private function currentRevisionSettlement(Note $note): ?array
     {
         if ($this->currentRevision === null || $this->currentRevisionSettlements === null) {
@@ -88,14 +89,16 @@ final class NoteOperationalStatusResolver
             return null;
         }
 
-        if ($note->totalRupiah()->amount() <= 0) {
+        $revision = $this->currentRevision->resolveOrFail($note->id());
+
+        if ($revision->grandTotalRupiah() <= 0) {
             return [
+                'gross_total_rupiah' => 0,
                 'net_paid_rupiah' => 0,
                 'outstanding_rupiah' => 0,
             ];
         }
 
-        $revision = $this->currentRevision->resolveOrFail($note->id());
         $settlements = $this->currentRevisionSettlements->build($revision->noteRootId(), $revision->lines());
         $netPaid = 0;
         $outstanding = 0;
@@ -108,6 +111,7 @@ final class NoteOperationalStatusResolver
         }
 
         return [
+            'gross_total_rupiah' => $revision->grandTotalRupiah(),
             'net_paid_rupiah' => $netPaid,
             'outstanding_rupiah' => $outstanding,
         ];
