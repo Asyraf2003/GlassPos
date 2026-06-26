@@ -6,8 +6,6 @@ namespace Tests\Unit\Application\Note\Services;
 
 use App\Application\Note\Services\NoteOperationalStatusEvaluator;
 use App\Application\Note\Services\NoteOperationalStatusResolver;
-use App\Application\Note\Services\CurrentRevision\CurrentRevisionRowSettlementProjector;
-use App\Application\Note\Services\NoteCurrentRevisionResolver;
 use App\Core\Note\Note\Note;
 use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\Payment\CustomerRefundReaderPort;
@@ -149,15 +147,10 @@ final class NoteOperationalStatusResolverTest extends TestCase
         PaymentAllocationReaderPort $allocations,
         CustomerRefundReaderPort $refunds,
     ): NoteOperationalStatusResolver {
-        $currentRevision = $this->createMock(NoteCurrentRevisionResolver::class);
-        $currentRevision->method('hasRevision')->willReturn(false);
-
         return new NoteOperationalStatusResolver(
             $allocations,
             $refunds,
             new NoteOperationalStatusEvaluator(),
-            $currentRevision,
-            $this->createMock(CurrentRevisionRowSettlementProjector::class),
         );
     }
 }
