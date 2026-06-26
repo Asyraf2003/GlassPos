@@ -23,48 +23,40 @@
             margin-bottom: 18px;
         }
 
-        .summary {
-            border-collapse: collapse;
-            margin-bottom: 18px;
-            width: 100%;
+        h2 {
+            font-size: 14px;
+            margin: 20px 0 8px;
         }
 
-        .summary td {
+        .metric {
             border: 1px solid #d1d5db;
-            padding: 7px 9px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            padding: 9px 11px;
         }
 
-        .summary td:first-child {
-            background: #f3f4f6;
+        .metric-label {
+            color: #4b5563;
+            font-size: 10px;
+            margin-bottom: 2px;
+        }
+
+        .metric-value {
+            font-size: 15px;
             font-weight: bold;
-            width: 42%;
         }
 
-        .detail {
-            border-collapse: collapse;
-            width: 100%;
+        .note {
+            background: #f9fafb;
+            border-left: 4px solid #dc2626;
+            margin-bottom: 8px;
+            padding: 9px 11px;
         }
 
-        .detail th,
-        .detail td {
-            border: 1px solid #d1d5db;
-            padding: 5px 6px;
-            vertical-align: top;
-        }
-
-        .detail th {
-            background: #e5e7eb;
-            font-weight: bold;
-            text-align: left;
-        }
-
-        .number {
-            text-align: right;
-            white-space: nowrap;
-        }
-
-        .muted {
-            color: #6b7280;
+        .excel-note {
+            color: #374151;
+            font-size: 10px;
+            margin-top: 16px;
         }
     </style>
 </head>
@@ -75,48 +67,20 @@
         Dicetak: {{ $generatedAt }}
     </div>
 
-    <table class="summary">
-        <tbody>
-            @foreach ($summaryItems as $item)
-                <tr>
-                    <td>{{ $item['label'] }}</td>
-                    <td>{{ $item['value'] }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+    <h2>Ringkasan Utama</h2>
+    @foreach ($summaryItems as $item)
+        <div class="metric">
+            <div class="metric-label">{{ $item['label'] }}</div>
+            <div class="metric-value">{{ $item['value'] }}</div>
+        </div>
+    @endforeach
 
-    <table class="detail">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Tanggal</th>
-                <th>ID Biaya</th>
-                <th>Kategori</th>
-                <th>Deskripsi</th>
-                <th>Metode</th>
-                <th>Referensi</th>
-                <th>Nominal</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($rows as $row)
-                <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td>{{ $row['date'] }}</td>
-                    <td>{{ $row['expense_id'] }}</td>
-                    <td>{{ $row['category_name'] }}</td>
-                    <td>{{ $row['description'] }}</td>
-                    <td>{{ $row['payment_method'] }}</td>
-                    <td>{{ $row['reference_no'] }}</td>
-                    <td class="number">{{ $row['amount'] }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="8" class="muted">Tidak ada biaya operasional pada periode ini.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+    <h2>Catatan Laporan</h2>
+    <div class="note">
+        Laporan ini merangkum biaya operasional aktif pada periode yang dipilih,
+        total biaya, kategori terbesar, dan rata-rata harian.
+    </div>
+
+    <div class="excel-note">Detail lengkap tersedia di Excel.</div>
 </body>
 </html>
