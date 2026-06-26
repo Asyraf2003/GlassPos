@@ -85,6 +85,31 @@ final class ManualFullRefundEditLifecycleMismatchFeatureTest extends TestCase
         self::assertSame(112500, $reportRows[0]->toArray()['net_cash_collected_rupiah']);
     }
 
+    public function test_refund_action_for_current_closed_revision_is_accepted_after_historical_package_refund(): void
+    {
+        $admin = $this->loginAsAuthorizedAdmin();
+
+        $this->seedOwnerReportedRefundThenEditPackageLifecycle();
+
+        $this->actingAs($admin)
+            ->from(route('admin.notes.show', ['noteId' => 'note-owner-0045']))
+            ->post(route('admin.notes.refunds.store', ['noteId' => 'note-owner-0045']), [
+                'selected_row_ids' => ['wi-owner-new-package'],
+                'refunded_at' => '2026-06-26',
+                'reason' => 'Refund current package after historical package refund.',
+            ])
+            ->assertRedirect(route('admin.notes.index'))
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('success');
+
+        $currentRefunded = (int) DB::table('refund_component_allocations')
+            ->where('note_id', 'note-owner-0045')
+            ->where('work_item_id', 'wi-owner-new-package')
+            ->sum('refunded_amount_rupiah');
+
+        self::assertSame(112500, $currentRefunded);
+    }
+
     private function seedOwnerReportedRefundThenEditPackageLifecycle(): void
     {
         $noteId = 'note-owner-0045';
