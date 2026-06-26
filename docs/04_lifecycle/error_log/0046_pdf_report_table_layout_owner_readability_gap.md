@@ -558,9 +558,28 @@ PASS  Tests\Feature\ReportingExports\TransactionCashLedgerExcelExportFeatureTest
 Tests: 9 passed, 83 assertions
 ```
 
-### NEXT
+### FULL VERIFY PROOF
 
-Run `make verify` again after the unit contract patch.
+Command, from `/home/asyraf/Code/laravel/bengkel2/app`:
+
+```bash
+make verify
+```
+
+Result after the unit contract patch:
+
+```text
+[OK] No errors
+Contract audit passed.
+Tests: 1439 passed (8559 assertions)
+```
+
+Meaning:
+
+- PHPStan passed;
+- line-limit and Blade PHP/directive checks passed;
+- contract audit passed;
+- the full Pest suite passed with the new PDF report contract.
 
 ## 2026-06-27 RED And Patch Proof - Inventory Stock Value Slice
 
