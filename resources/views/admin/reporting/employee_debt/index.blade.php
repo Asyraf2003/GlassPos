@@ -99,116 +99,72 @@
     </div>
 </div>
 
+<div class="mb-3">
+    <h5 class="mb-2">Rincian Ringkas</h5>
+    <div class="text-muted small">
+        Halaman ini menampilkan posisi hutang per tanggal dan status secara
+        ringkas. Referensi hutang, employee ID, dan baris detail tersedia di
+        Excel.
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    @forelse ($periodRows as $row)
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Tanggal Catat</div>
+                    <div class="fw-semibold mb-3">{{ $row['period_label'] }}</div>
+
+                    <div class="d-flex justify-content-between gap-3 mb-2">
+                        <span class="text-muted">Jumlah Data</span>
+                        <span class="fw-semibold">{{ number_format($row['total_rows'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between gap-3">
+                        <span class="text-muted">Sisa Hutang</span>
+                        <span class="fw-semibold text-danger">Rp {{ number_format($row['total_remaining_balance'], 0, ',', '.') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @empty
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-muted">
+                    Belum ada data hutang pada periode ini.
+                </div>
+            </div>
+        </div>
+    @endforelse
+</div>
+
 <div class="row g-3">
-    <div class="col-12 col-xl-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Rincian Per Tanggal</h5>
+    @forelse ($statusRows as $row)
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Status Hutang</div>
+                    <div class="fw-semibold mb-3">{{ $row['status'] }}</div>
 
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Tanggal</th>
-                                <th class="text-end">Data</th>
-                                <th class="text-end">Sisa</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($periodRows as $row)
-                                <tr>
-                                    <td>{{ $row['period_label'] }}</td>
-                                    <td class="text-end">{{ number_format($row['total_rows'], 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['total_remaining_balance'], 0, ',', '.') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="3" class="text-center text-muted">Belum ada data hutang pada periode ini.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                    <div class="d-flex justify-content-between gap-3 mb-2">
+                        <span class="text-muted">Jumlah Data</span>
+                        <span class="fw-semibold">{{ number_format($row['total_rows'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between gap-3">
+                        <span class="text-muted">Sisa Hutang</span>
+                        <span class="fw-semibold text-danger">Rp {{ number_format($row['total_remaining_balance'], 0, ',', '.') }}</span>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="col-12 col-xl-3">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Rincian Status</h5>
-
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Status</th>
-                                <th class="text-end">Data</th>
-                                <th class="text-end">Sisa</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($statusRows as $row)
-                                <tr>
-                                    <td>{{ $row['status'] }}</td>
-                                    <td class="text-end">{{ number_format($row['total_rows'], 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['total_remaining_balance'], 0, ',', '.') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="3" class="text-center text-muted">Belum ada data status pada periode ini.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+    @empty
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-muted">
+                    Belum ada data status pada periode ini.
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="col-12 col-xl-5">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Detail Hutang</h5>
-
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Tanggal Catat</th>
-                                <th>Referensi Hutang</th>
-                                <th>Employee ID</th>
-                                <th>Status</th>
-                                <th class="text-end">Total</th>
-                                <th class="text-end">Dibayar</th>
-                                <th class="text-end">Sisa</th>
-                            </tr>
-                        </thead>
-                        <tbody id="employee-debt-report-table-body">
-                            @forelse ($rows as $row)
-                                <tr>
-                                    <td>{{ $row['recorded_at'] }}</td>
-                                    <td>{{ $row['debt_id'] }}</td>
-                                    <td>{{ $row['employee_id'] }}</td>
-                                    <td>{{ $row['status'] }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['total_debt'], 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['total_paid_amount'], 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['remaining_balance'], 0, ',', '.') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted">Belum ada data hutang pada periode ini.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="mt-3 d-flex justify-content-end">
-                    @include('layouts.partials.pagination', ['paginator' => $rows])
-                </div>
-            </div>
-        </div>
-    </div>
+    @endforelse
 </div>
 @endsection
