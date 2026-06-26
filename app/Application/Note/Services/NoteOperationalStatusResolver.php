@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Note\Services;
 
+use App\Application\Note\Services\CurrentRevision\CurrentRevisionRowSettlementProjector;
 use App\Core\Note\Note\Note;
 use App\Ports\Out\Payment\CustomerRefundReaderPort;
 use App\Ports\Out\Payment\PaymentAllocationReaderPort;
@@ -14,6 +15,8 @@ final class NoteOperationalStatusResolver
         private readonly PaymentAllocationReaderPort $allocations,
         private readonly CustomerRefundReaderPort $refunds,
         private readonly NoteOperationalStatusEvaluator $statuses,
+        private readonly ?NoteCurrentRevisionResolver $currentRevision = null,
+        private readonly ?CurrentRevisionRowSettlementProjector $currentRevisionSettlements = null,
     ) {
     }
 
@@ -44,6 +47,11 @@ final class NoteOperationalStatusResolver
 
         $paidBasis = max($allocated->amount(), $grossPaid->amount());
         $netPaidRupiah = max($paidBasis - $refunded->amount(), 0);
+        $currentSettlement = $this->currentRevisionSettlement($note);
+
+        if ($currentSettlement !== null) {
+            $netPaidRupiah = $currentSettlement['net_paid_rupiah'];
+        }
 
         $status = $this->statuses->resolve($grandTotal, $netPaidRupiah);
 
@@ -67,5 +75,41 @@ final class NoteOperationalStatusResolver
     public function isClose(Note $note): bool
     {
         return $this->resolve($note)['is_close'];
+    }
+
+    /** @return array{net_paid_rupiah:int,outstanding_rupiah:int}|null */
+    private function currentRevisionSettlement(Note $note): ?array
+    {
+        if ($this->currentRevision === null || $this->currentRevisionSettlements === null) {
+            return null;
+        }
+
+        if (! $this->currentRevision->hasRevision($note->id())) {
+            return null;
+        }
+
+        if ($note->totalRupiah()->amount() <= 0) {
+            return [
+                'net_paid_rupiah' => 0,
+                'outstanding_rupiah' => 0,
+            ];
+        }
+
+        $revision = $this->currentRevision->resolveOrFail($note->id());
+        $settlements = $this->currentRevisionSettlements->build($revision->noteRootId(), $revision->lines());
+        $netPaid = 0;
+        $outstanding = 0;
+
+        foreach ($revision->lines() as $line) {
+            $key = $line->workItemRootId() ?? $line->id();
+            $settlement = $settlements[$key] ?? [];
+            $netPaid += (int) ($settlement['net_paid_rupiah'] ?? 0);
+            $outstanding += (int) ($settlement['outstanding_rupiah'] ?? $line->subtotalRupiah());
+        }
+
+        return [
+            'net_paid_rupiah' => $netPaid,
+            'outstanding_rupiah' => $outstanding,
+        ];
     }
 }
