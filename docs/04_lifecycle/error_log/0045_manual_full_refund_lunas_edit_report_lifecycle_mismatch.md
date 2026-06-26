@@ -498,6 +498,39 @@ Current status:
 - Transaction summary/per-note report outstanding: fixed.
 - Direct Blade/JS edits: not needed yet for these proven defects.
 
+## 2026-06-26 Full Verify Regression
+
+Owner ran `make verify` and reported failures after Patch Proof 3.
+
+Important failures:
+
+- `CashierDetailRenderedBillingRowsPaymentFeatureTest`
+  - canceled rows rendered as billing rows after switching detail billing to
+    workspace/current-revision rows.
+- `ClosedNoteFullRefund*` and `RefundReportingOwnerDecisionV2CharacterizationTest`
+  - selected-row refund started accepting `service_fee`, breaking established
+    policy that service-only/external/service fee refunds are blocked by default.
+- `RecordSelectedRowsCustomerRefundFeatureTest`
+  - selected-row refund order/policy changed from default product/part refund
+    to service fee.
+- `EditTransactionWorkspacePackageAutoSplitCharacterizationTest`
+  - package selected refund amount changed from product components only
+    (`130000`) to full package including service (`200000`).
+- `NoteRevisionStoreStockInventoryLifecycleFeatureTest`
+  - projection outstanding became `350000` while current revision total was
+    `250000`; current revision row settlement must be capped to revision grand
+    total.
+
+Updated decision:
+
+- Revert `service_fee` as selected-row/default refundable.
+- The current domain contract remains: normal selected-row refund refunds
+  product/store-stock components, not service fee.
+- Fix owner-visible issue by keeping current-revision status/report alignment
+  and by preventing canceled/historical/non-current rows from appearing as
+  payable/refundable UI rows.
+- Cap current-revision projection outstanding to current revision grand total.
+
 ## NEXT SAFE STEP
 
 Read the local source and DB state for the latest matching note. Update this log
