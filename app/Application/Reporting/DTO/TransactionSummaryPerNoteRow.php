@@ -15,6 +15,7 @@ final class TransactionSummaryPerNoteRow
         private readonly int $refundedRupiah,
         private readonly int $refundDueRupiah,
         private readonly string $paymentStatusLabel,
+        private readonly ?int $outstandingRupiah = null,
     ) {
     }
 
@@ -60,6 +61,10 @@ final class TransactionSummaryPerNoteRow
 
     public function outstandingRupiah(): int
     {
+        if ($this->outstandingRupiah !== null) {
+            return max($this->outstandingRupiah, 0);
+        }
+
         return max($this->grossTransactionRupiah - $this->allocatedPaymentRupiah + $this->refundedRupiah, 0);
     }
 
