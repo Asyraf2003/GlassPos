@@ -34,6 +34,14 @@
     </div>
 </div>
 
+<div class="mb-3">
+    <h5 class="mb-1">Ringkasan Utama</h5>
+    <div class="text-muted small">
+        Laporan ini merangkum posisi stok terbaru, nilai persediaan, dan mutasi
+        utama pada rentang movement yang dipilih.
+    </div>
+</div>
+
 <div class="row g-3 mb-4">
     <div class="col-12 col-md-6 col-xl-2">
         <div class="card"><div class="card-body">
@@ -103,6 +111,14 @@
             <div class="text-muted small">Selisih Nilai Pokok Periode</div>
             <div class="fs-5 fw-bold">Rp {{ number_format($summary['period_net_cost_delta_rupiah'] ?? 0, 0, ',', '.') }}</div>
         </div></div>
+    </div>
+</div>
+
+<div class="mb-3">
+    <h5 class="mb-2">Catatan Laporan</h5>
+    <div class="text-muted">
+        Gunakan ringkasan ini untuk membaca posisi persediaan dengan cepat.
+        Detail lengkap tersedia di Excel.
     </div>
 </div>
 

@@ -156,10 +156,12 @@ final class InventoryStockValueReportPdfExportFeatureTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('Stok dan Nilai Persediaan', $html);
-        $this->assertStringContainsString('Ringkasan Persediaan', $html);
-        $this->assertStringContainsString('Mutasi Periode', $html);
-        $this->assertStringContainsString('Snapshot Stok Saat Ini', $html);
-        $this->assertStringContainsString('Supra', $html);
+        $this->assertStringContainsString('Ringkasan Utama', $html);
+        $this->assertStringContainsString('Catatan Laporan', $html);
+        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Mutasi Periode', $html);
+        $this->assertStringNotContainsString('Snapshot Stok Saat Ini', $html);
+        $this->assertStringNotContainsString('Supra', $html);
     }
 
     public function test_inventory_stock_value_pdf_view_uses_owner_readable_report_sections_not_detail_tables(): void

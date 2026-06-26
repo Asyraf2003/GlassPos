@@ -25,62 +25,35 @@
             color: #374151;
         }
 
-        .summary-grid {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 12px;
-        }
-
-        .summary-grid td {
-            width: 25%;
+        .metric {
             border: 1px solid #d1d5db;
-            padding: 6px;
-            vertical-align: top;
+            border-radius: 4px;
+            margin-bottom: 7px;
+            padding: 8px 10px;
         }
 
-        .summary-label {
-            display: block;
+        .metric-label {
             color: #4b5563;
             font-size: 9px;
+            margin-bottom: 2px;
         }
 
-        .summary-value {
-            display: block;
-            margin-top: 3px;
+        .metric-value {
             font-weight: bold;
-            font-size: 11px;
+            font-size: 13px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            page-break-inside: auto;
+        .note {
+            background: #f9fafb;
+            border-left: 4px solid #059669;
+            margin-bottom: 8px;
+            padding: 8px 10px;
         }
 
-        th,
-        td {
-            border: 1px solid #d1d5db;
-            padding: 4px;
-            vertical-align: top;
-        }
-
-        th {
-            background: #f3f4f6;
-            font-weight: bold;
-            text-align: left;
-        }
-
-        tr {
-            page-break-inside: avoid;
-            page-break-after: auto;
-        }
-
-        .text-end {
-            text-align: right;
-        }
-
-        .muted {
-            color: #6b7280;
+        .excel-note {
+            color: #374151;
+            font-size: 9px;
+            margin-top: 14px;
         }
     </style>
 </head>
@@ -92,97 +65,20 @@
         Dicetak: {{ $generatedAt }}
     </div>
 
-    <h2>Ringkasan Persediaan</h2>
-    <table class="summary-grid">
-        <tbody>
-            @foreach (array_chunk($summaryItems, 4) as $summaryRow)
-                <tr>
-                    @foreach ($summaryRow as $item)
-                        <td>
-                            <span class="summary-label">{{ $item['label'] }}</span>
-                            <span class="summary-value">{{ $item['value'] }}</span>
-                        </td>
-                    @endforeach
-                    @for ($i = count($summaryRow); $i < 4; $i++)
-                        <td></td>
-                    @endfor
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+    <h2>Ringkasan Utama</h2>
+    @foreach ($summaryItems as $item)
+        <div class="metric">
+            <div class="metric-label">{{ $item['label'] }}</div>
+            <div class="metric-value">{{ $item['value'] }}</div>
+        </div>
+    @endforeach
 
-    <h2>Mutasi Periode</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Kode</th>
-                <th>Nama Barang</th>
-                <th class="text-end">Supply In</th>
-                <th class="text-end">Sale Out</th>
-                <th class="text-end">Refund/Reversal</th>
-                <th class="text-end">Koreksi/Revisi</th>
-                <th class="text-end">Net Qty</th>
-                <th class="text-end">Selisih Nilai</th>
-                <th class="text-end">Qty Saat Ini</th>
-                <th class="text-end">Nilai Saat Ini</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($movementRows as $row)
-                <tr>
-                    <td>{{ $row['kode_barang'] }}</td>
-                    <td>{{ $row['nama_barang'] }}</td>
-                    <td class="text-end">{{ $row['supply_in_qty'] }}</td>
-                    <td class="text-end">{{ $row['sale_out_qty'] }}</td>
-                    <td class="text-end">{{ $row['refund_reversal_qty'] }}</td>
-                    <td class="text-end">{{ $row['revision_correction_qty'] }}</td>
-                    <td class="text-end">{{ $row['net_qty_delta'] }}</td>
-                    <td class="text-end">{{ $row['net_cost_delta'] }}</td>
-                    <td class="text-end">{{ $row['current_qty_on_hand'] }}</td>
-                    <td class="text-end">{{ $row['current_inventory_value'] }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="10" class="muted">Tidak ada mutasi pada rentang ini.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+    <h2>Catatan Laporan</h2>
+    <div class="note">
+        Laporan ini merangkum posisi stok terbaru, nilai persediaan, dan mutasi
+        utama pada rentang movement yang dipilih.
+    </div>
 
-    <h2>Snapshot Stok Saat Ini</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Kode</th>
-                <th>Nama Barang</th>
-                <th>Merek</th>
-                <th class="text-end">Ukuran</th>
-                <th class="text-end">Qty</th>
-                <th class="text-end">Avg Cost</th>
-                <th class="text-end">Inventory Value</th>
-                <th class="text-end">ROP</th>
-                <th class="text-end">Critical</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($snapshotRows as $row)
-                <tr>
-                    <td>{{ $row['kode_barang'] }}</td>
-                    <td>{{ $row['nama_barang'] }}</td>
-                    <td>{{ $row['merek'] }}</td>
-                    <td class="text-end">{{ $row['ukuran'] }}</td>
-                    <td class="text-end">{{ $row['current_qty_on_hand'] }}</td>
-                    <td class="text-end">{{ $row['current_avg_cost'] }}</td>
-                    <td class="text-end">{{ $row['current_inventory_value'] }}</td>
-                    <td class="text-end">{{ $row['reorder_point_qty'] }}</td>
-                    <td class="text-end">{{ $row['critical_threshold_qty'] }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="9" class="muted">Tidak ada snapshot stok.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+    <div class="excel-note">Detail lengkap tersedia di Excel.</div>
 </body>
 </html>
