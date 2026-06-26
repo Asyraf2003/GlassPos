@@ -135,6 +135,44 @@ final class SupplierPayableReportPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('F-001', $html);
     }
 
+    public function test_supplier_payable_pdf_view_uses_owner_readable_report_sections_not_detail_tables(): void
+    {
+        $html = view('admin.reporting.supplier_payable.export_pdf', [
+            'title' => 'Hutang Pemasok',
+            'periodLabel' => '01 Januari 2030 s/d 31 Januari 2030',
+            'referenceDateLabel' => '31 Januari 2030',
+            'generatedAt' => '31 Januari 2030 10:00',
+            'summaryItems' => [
+                ['label' => 'Total Faktur', 'value' => 2],
+                ['label' => 'Total Tagihan', 'value' => 'Rp 150.000'],
+                ['label' => 'Total Dibayar', 'value' => 'Rp 120.000'],
+                ['label' => 'Outstanding', 'value' => 'Rp 30.000'],
+            ],
+            'periodRows' => [],
+            'supplierRows' => [],
+            'rows' => [
+                [
+                    'invoice_no' => 'F-001',
+                    'supplier' => 'PT Sumber Makmur',
+                    'shipment_date' => '07 Januari 2030',
+                    'due_date' => '20 Januari 2030',
+                    'status' => 'Lewat Jatuh Tempo',
+                    'grand_total' => 'Rp 100.000',
+                    'total_paid' => 'Rp 70.000',
+                    'outstanding' => 'Rp 30.000',
+                    'receipt_count' => 2,
+                    'total_received_qty' => 3,
+                ],
+            ],
+        ])->render();
+
+        $this->assertStringContainsString('Ringkasan Utama', $html);
+        $this->assertStringContainsString('Catatan Laporan', $html);
+        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('<table class="summary">', $html);
+        $this->assertStringNotContainsString('<table class="detail">', $html);
+    }
+
     private function user(string $role): User
     {
         $user = User::query()->create([

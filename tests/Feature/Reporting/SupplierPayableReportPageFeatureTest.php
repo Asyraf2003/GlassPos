@@ -85,6 +85,21 @@ final class SupplierPayableReportPageFeatureTest extends TestCase
         $response->assertSee(route('admin.reports.supplier_payable.index'), false);
     }
 
+    public function test_admin_sees_owner_readable_report_sections_on_supplier_payable_page(): void
+    {
+        $response = $this->actingAs($this->user('admin'))->get(
+            route('admin.reports.supplier_payable.index', [
+                'period_mode' => 'monthly',
+                'reference_date' => '2030-01-31',
+            ])
+        );
+
+        $response->assertOk();
+        $response->assertSee('Ringkasan Utama');
+        $response->assertSee('Catatan Laporan');
+        $response->assertSee('Detail lengkap tersedia di Excel');
+    }
+
     public function test_custom_mode_uses_explicit_date_range_and_date_to_as_default_reference_date(): void
     {
         $this->seedProduct('product-1', 'KB-001', 'Ban Luar', 'Federal', 100, 50000);
