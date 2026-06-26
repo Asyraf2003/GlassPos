@@ -89,12 +89,12 @@ final class TransactionCashLedgerPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Kas Masuk', $html);
         $this->assertStringContainsString('Kas Keluar', $html);
         $this->assertStringContainsString('Nilai Bersih', $html);
-        $this->assertStringContainsString('Alokasi Pembayaran', $html);
-        $this->assertStringContainsString('Tabel Sumber', $html);
-        $this->assertStringContainsString('ID Sumber', $html);
-        $this->assertStringContainsString('ID Disposisi Sumber', $html);
-        $this->assertStringContainsString('customer_payments', $html);
-        $this->assertStringContainsString('pay-1', $html);
+        $this->assertStringContainsString('Ringkasan Utama', $html);
+        $this->assertStringContainsString('Catatan Laporan', $html);
+        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Tabel Sumber', $html);
+        $this->assertStringNotContainsString('customer_payments', $html);
+        $this->assertStringNotContainsString('pay-1', $html);
     }
 
     public function test_transaction_cash_ledger_pdf_view_uses_owner_readable_report_sections_not_detail_tables(): void

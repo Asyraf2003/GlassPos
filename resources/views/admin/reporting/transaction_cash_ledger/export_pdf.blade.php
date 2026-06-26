@@ -23,48 +23,40 @@
             margin-bottom: 16px;
         }
 
-        .summary {
-            border-collapse: collapse;
-            margin-bottom: 16px;
-            width: 100%;
+        h2 {
+            font-size: 13px;
+            margin: 18px 0 8px;
         }
 
-        .summary td {
+        .metric {
             border: 1px solid #d1d5db;
-            padding: 7px 9px;
+            border-radius: 4px;
+            margin-bottom: 7px;
+            padding: 8px 10px;
         }
 
-        .summary td:first-child {
-            background: #f3f4f6;
+        .metric-label {
+            color: #4b5563;
+            font-size: 9px;
+            margin-bottom: 2px;
+        }
+
+        .metric-value {
+            font-size: 14px;
             font-weight: bold;
-            width: 42%;
         }
 
-        .detail {
-            border-collapse: collapse;
-            width: 100%;
+        .note {
+            background: #f9fafb;
+            border-left: 4px solid #2563eb;
+            margin-bottom: 8px;
+            padding: 9px 11px;
         }
 
-        .detail th,
-        .detail td {
-            border: 1px solid #d1d5db;
-            padding: 5px 6px;
-            vertical-align: top;
-        }
-
-        .detail th {
-            background: #e5e7eb;
-            font-weight: bold;
-            text-align: left;
-        }
-
-        .number {
-            text-align: right;
-            white-space: nowrap;
-        }
-
-        .muted {
-            color: #6b7280;
+        .excel-note {
+            color: #374151;
+            font-size: 10px;
+            margin-top: 16px;
         }
     </style>
 </head>
@@ -75,56 +67,21 @@
         Dicetak: {{ $generatedAt }}
     </div>
 
-    <table class="summary">
-        <tbody>
-            @foreach ($summaryItems as $item)
-                <tr>
-                    <td>{{ $item['label'] }}</td>
-                    <td>{{ $item['value'] }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+    <h2>Ringkasan Utama</h2>
+    @foreach ($summaryItems as $item)
+        <div class="metric">
+            <div class="metric-label">{{ $item['label'] }}</div>
+            <div class="metric-value">{{ $item['value'] }}</div>
+        </div>
+    @endforeach
 
-    <table class="detail">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Tanggal</th>
-                <th>Nota</th>
-                <th>Jenis Kejadian</th>
-                <th>Arah</th>
-                <th>Metode Pembayaran</th>
-                <th>Pembayaran</th>
-                <th>Refund</th>
-                <th>Tabel Sumber</th>
-                <th>ID Sumber</th>
-                <th>ID Disposisi Sumber</th>
-                <th>Nominal</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($rows as $row)
-                <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td>{{ $row['date'] }}</td>
-                    <td>{{ $row['note_label'] }}</td>
-                    <td>{{ $row['event_type'] }}</td>
-                    <td>{{ $row['direction'] }}</td>
-                    <td>{{ $row['payment_method'] ?? '-' }}</td>
-                    <td>{{ $row['payment_marker'] }}</td>
-                    <td>{{ $row['refund_marker'] }}</td>
-                    <td>{{ $row['source_table'] }}</td>
-                    <td>{{ $row['source_id'] }}</td>
-                    <td>{{ $row['source_disposition_id'] }}</td>
-                    <td class="number">{{ $row['amount'] }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="12" class="muted">Belum ada kejadian kas pada periode ini.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+    <h2>Catatan Laporan</h2>
+    <div class="note">
+        Laporan ini merangkum uang transaksi yang masuk dan uang yang keluar
+        karena refund pada periode yang dipilih. Detail per kejadian kas tidak
+        ditampilkan di PDF agar laporan mudah dibaca.
+    </div>
+
+    <div class="excel-note">Detail lengkap tersedia di Excel.</div>
 </body>
 </html>
