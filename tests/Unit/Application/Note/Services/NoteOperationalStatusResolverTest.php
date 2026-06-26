@@ -6,6 +6,8 @@ namespace Tests\Unit\Application\Note\Services;
 
 use App\Application\Note\Services\NoteOperationalStatusEvaluator;
 use App\Application\Note\Services\NoteOperationalStatusResolver;
+use App\Application\Note\Services\CurrentRevision\CurrentRevisionRowSettlementProjector;
+use App\Application\Note\Services\NoteCurrentRevisionResolver;
 use App\Core\Note\Note\Note;
 use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\Payment\CustomerRefundReaderPort;
@@ -24,11 +26,7 @@ final class NoteOperationalStatusResolverTest extends TestCase
         $allocations->method('getTotalPaymentAmountByNoteId')->with('note-1')->willReturn(Money::fromInt(20000));
         $refunds->method('getTotalRefundedAmountByNoteId')->with('note-1')->willReturn(Money::zero());
 
-        $service = new NoteOperationalStatusResolver(
-            $allocations,
-            $refunds,
-            new NoteOperationalStatusEvaluator(),
-        );
+        $service = $this->resolver($allocations, $refunds);
 
         $note = Note::rehydrate(
             'note-1',
@@ -65,11 +63,7 @@ final class NoteOperationalStatusResolverTest extends TestCase
         $allocations->method('getTotalPaymentAmountByNoteId')->with('note-1')->willReturn(Money::fromInt(50000));
         $refunds->method('getTotalRefundedAmountByNoteId')->with('note-1')->willReturn(Money::zero());
 
-        $service = new NoteOperationalStatusResolver(
-            $allocations,
-            $refunds,
-            new NoteOperationalStatusEvaluator(),
-        );
+        $service = $this->resolver($allocations, $refunds);
 
         $note = Note::rehydrate(
             'note-1',
@@ -102,11 +96,7 @@ final class NoteOperationalStatusResolverTest extends TestCase
         $allocations->method('getTotalPaymentAmountByNoteId')->with('note-1')->willReturn(Money::fromInt(50000));
         $refunds->method('getTotalRefundedAmountByNoteId')->with('note-1')->willReturn(Money::fromInt(10000));
 
-        $service = new NoteOperationalStatusResolver(
-            $allocations,
-            $refunds,
-            new NoteOperationalStatusEvaluator(),
-        );
+        $service = $this->resolver($allocations, $refunds);
 
         $note = Note::rehydrate(
             'note-1',
@@ -140,7 +130,7 @@ final class NoteOperationalStatusResolverTest extends TestCase
         $allocations->method('getTotalPaymentAmountByNoteId')->with('note-1')->willReturn(Money::fromInt(300000));
         $refunds->method('getTotalRefundedAmountByNoteId')->with('note-1')->willReturn(Money::zero());
 
-        $service = new NoteOperationalStatusResolver($allocations, $refunds, new NoteOperationalStatusEvaluator());
+        $service = $this->resolver($allocations, $refunds);
 
         $result = $service->resolve(Note::rehydrate(
             'note-1',
@@ -153,5 +143,21 @@ final class NoteOperationalStatusResolverTest extends TestCase
         $this->assertSame('close', $result['operational_status']);
         $this->assertSame(300000, $result['net_paid_rupiah']);
         $this->assertSame(0, $result['outstanding_rupiah']);
+    }
+
+    private function resolver(
+        PaymentAllocationReaderPort $allocations,
+        CustomerRefundReaderPort $refunds,
+    ): NoteOperationalStatusResolver {
+        $currentRevision = $this->createMock(NoteCurrentRevisionResolver::class);
+        $currentRevision->method('hasRevision')->willReturn(false);
+
+        return new NoteOperationalStatusResolver(
+            $allocations,
+            $refunds,
+            new NoteOperationalStatusEvaluator(),
+            $currentRevision,
+            $this->createMock(CurrentRevisionRowSettlementProjector::class),
+        );
     }
 }
