@@ -488,6 +488,91 @@ Meaning:
 Continue with the next report family using the same RED -> patch -> GREEN ->
 log-update sequence.
 
+## 2026-06-26 RED And Patch Proof - Transaction Summary Slice
+
+### FACT
+
+The third vertical slice is `transaction_summary`.
+
+RED tests added:
+
+- `tests/Feature/ReportingExports/TransactionReportPdfExportFeatureTest.php`
+  - `test_pdf_view_uses_owner_readable_report_sections_not_detail_tables`
+- `tests/Feature/Reporting/TransactionReportPageFeatureTest.php`
+  - `test_admin_sees_owner_readable_report_sections_on_transaction_report_page`
+
+Initial RED command:
+
+```bash
+php artisan test tests/Feature/ReportingExports/TransactionReportPdfExportFeatureTest.php tests/Feature/Reporting/TransactionReportPageFeatureTest.php
+```
+
+Initial RED result:
+
+```text
+Tests: 2 failed, 10 passed, 64 assertions
+```
+
+Failure meaning:
+
+- transaction summary PDF did not render `Ringkasan Utama`;
+- transaction summary screen did not render `Ringkasan Utama`.
+
+Patched presentation files:
+
+- `resources/views/admin/reporting/transaction_summary/export_pdf.blade.php`
+  - removed summary/detail tables from PDF body;
+  - added `Ringkasan Utama`;
+  - added `Catatan Laporan`;
+  - added `Detail lengkap tersedia di Excel`.
+- `resources/views/admin/reporting/transaction_summary/index.blade.php`
+  - added matching report sections to the screen.
+- `tests/Feature/ReportingExports/TransactionReportPdfExportFeatureTest.php`
+  - updated PDF expectation so per-note status detail stays out of PDF and
+    belongs to Excel/detail export.
+
+No query, controller, domain, payment/refund, inventory, or Excel writer file was
+changed for this slice.
+
+### GREEN PROOF
+
+Command, from `/home/asyraf/Code/laravel/bengkel2/app`:
+
+```bash
+php artisan test tests/Feature/ReportingExports/TransactionReportPdfExportFeatureTest.php tests/Feature/Reporting/TransactionReportPageFeatureTest.php tests/Feature/ReportingExports/TransactionReportExcelExportFeatureTest.php
+```
+
+Result:
+
+```text
+PASS  Tests\Feature\ReportingExports\TransactionReportPdfExportFeatureTest
+PASS  Tests\Feature\Reporting\TransactionReportPageFeatureTest
+PASS  Tests\Feature\ReportingExports\TransactionReportExcelExportFeatureTest
+
+Tests: 15 passed, 112 assertions
+```
+
+Meaning:
+
+- transaction summary PDF still exports as `%PDF`;
+- transaction summary PDF now renders owner-readable sections and no longer
+  renders per-note detail rows;
+- transaction summary screen now renders the same owner-readable sections;
+- transaction summary Excel export remains available and preserves detailed
+  numeric data.
+
+### RESIDUAL
+
+The transaction summary screen still keeps the existing detail tables below the
+new owner-readable sections because existing UI tests currently cover those
+tables. A later UI-only tightening step may move or remove screen detail tables
+after each report family has the summary/PDF contract in place.
+
+### NEXT
+
+Continue with the next report family using the same RED -> patch -> GREEN ->
+log-update sequence.
+
 ## 2026-06-26 RED And Patch Proof - Transaction Cash Ledger Slice
 
 ### FACT
