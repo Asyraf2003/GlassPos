@@ -303,6 +303,37 @@ First characterization must lock the invariant:
   payment/refund action flags must agree on which components are current,
   payable, refundable, reversed, historical, or closed.
 
+## 2026-06-26 Characterization Test Proof
+
+Added:
+
+- `tests/Feature/Note/ManualFullRefundEditLifecycleMismatchFeatureTest.php`
+
+Initial proof command:
+
+- `php artisan test tests/Feature/Note/ManualFullRefundEditLifecycleMismatchFeatureTest.php`
+
+Initial result:
+
+- FAIL, 2 tests.
+
+Failures are intentionally aligned with owner bug:
+
+1. Detail billing projection still exposes old historical refunded package root
+   `wi-owner-old-package` as current outstanding components:
+   - `ssl-owner-old-1` outstanding `17500`
+   - `ssl-owner-old-2` outstanding `20000`
+   - old package service fee outstanding `75000`
+2. Note history projection computes:
+   - allocated `112500`
+   - refunded `37500`
+   - net_paid `75000`
+   instead of current-revision collectible settlement net paid `112500`.
+
+This proves the issue is not only a Blade button. The current revision panel,
+detail billing projection, and note history/report projection are reading
+different lifecycle surfaces.
+
 ## NEXT SAFE STEP
 
 Read the local source and DB state for the latest matching note. Update this log
