@@ -97,6 +97,37 @@ final class PayrollReportPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Montir A', $html);
     }
 
+    public function test_payroll_pdf_view_uses_owner_readable_report_sections_not_detail_tables(): void
+    {
+        $html = view('admin.reporting.payroll.export_pdf', [
+            'title' => 'Laporan Gaji',
+            'periodLabel' => '01 Januari 2030 s/d 31 Januari 2030',
+            'generatedAt' => '31 Januari 2030 10:00',
+            'summaryItems' => [
+                ['label' => 'Jumlah Pencairan', 'value' => 3],
+                ['label' => 'Total Nominal', 'value' => 'Rp 100.000'],
+                ['label' => 'Mode Terbesar', 'value' => 'Harian'],
+            ],
+            'periodRows' => [],
+            'modeRows' => [],
+            'rows' => [
+                [
+                    'date' => '06 Januari 2030',
+                    'employee_name' => 'Montir A',
+                    'mode_label' => 'Harian',
+                    'notes' => 'Harian A',
+                    'amount' => 'Rp 50.000',
+                ],
+            ],
+        ])->render();
+
+        $this->assertStringContainsString('Ringkasan Utama', $html);
+        $this->assertStringContainsString('Catatan Laporan', $html);
+        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('<table class="summary">', $html);
+        $this->assertStringNotContainsString('<table class="detail">', $html);
+    }
+
     private function user(string $role): User
     {
         $user = User::query()->create([
