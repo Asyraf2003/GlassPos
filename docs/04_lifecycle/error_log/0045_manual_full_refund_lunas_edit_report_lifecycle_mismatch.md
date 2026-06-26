@@ -921,3 +921,34 @@ Still open:
 
 - exact edit-down-to-`20000` surplus/refund-due amount (`157500`) needs a DB or
   test reproduction before changing settlement/report behavior
+
+## 2026-06-26 Reopen 2 Full Verify Follow-up
+
+### FACT
+
+First `make verify` after Reopen 2 patches found three stale UI expectations:
+
+- unit mapper test still expected open rows to be refundable
+- open-note standby view still expected refund/cancel action on unpaid row
+- current-revision product-only detail row lost product-name display when the
+  refund affordance was removed from open rows
+
+### PATCH
+
+- Updated tests to encode close-only refund UI contract.
+- Added `CurrentRevisionStoreStockLineLabelResolver`.
+- Updated `CurrentRevisionDetailBaseRowMapper` to render current-revision
+  store-stock product labels/subtitles independently from refund affordance.
+
+### PROOF
+
+Command:
+
+```bash
+php artisan test tests/Unit/Application/Note/Services/NoteDetailRowMapperTest.php tests/Feature/Note/CashierNoteDetailProductNameDisplayFeatureTest.php tests/Feature/Note/CashierOpenNoteRefundStandbyViewFeatureTest.php
+```
+
+Result:
+
+- `4 passed`
+- `17 assertions`
