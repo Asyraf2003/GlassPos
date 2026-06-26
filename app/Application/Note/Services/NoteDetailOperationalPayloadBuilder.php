@@ -22,7 +22,9 @@ final class NoteDetailOperationalPayloadBuilder
         $refunded = (int) ($totals['total_refunded_rupiah'] ?? 0);
         $netPaid = (int) ($totals['net_paid_rupiah'] ?? 0);
         $outstanding = (int) ($totals['outstanding_rupiah'] ?? max($grandTotal - $netPaid, 0));
-        $status = $this->statuses->resolve($grandTotal, $netPaid);
+        $status = $outstanding <= 0
+            ? NoteOperationalStatusEvaluator::STATUS_CLOSE
+            : $this->statuses->resolve($grandTotal, $netPaid);
 
         return [
             'operational_status' => $status,
