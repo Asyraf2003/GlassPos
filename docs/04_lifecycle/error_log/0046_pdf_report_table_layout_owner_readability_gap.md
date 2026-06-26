@@ -488,6 +488,91 @@ Meaning:
 Continue with the next report family using the same RED -> patch -> GREEN ->
 log-update sequence.
 
+## 2026-06-27 RED And Patch Proof - Operational Expense Slice
+
+### FACT
+
+The seventh vertical slice is `operational_expense`.
+
+RED tests added:
+
+- `tests/Feature/ReportingExports/OperationalExpenseReportPdfExportFeatureTest.php`
+  - `test_operational_expense_pdf_view_uses_owner_readable_report_sections_not_detail_tables`
+- `tests/Feature/Reporting/OperationalExpenseReportPageFeatureTest.php`
+  - `test_admin_sees_owner_readable_report_sections_on_operational_expense_page`
+
+Initial RED command:
+
+```bash
+php artisan test tests/Feature/ReportingExports/OperationalExpenseReportPdfExportFeatureTest.php tests/Feature/Reporting/OperationalExpenseReportPageFeatureTest.php
+```
+
+Initial RED result:
+
+```text
+Tests: 2 failed, 10 passed, 52 assertions
+```
+
+Failure meaning:
+
+- operational expense PDF did not render `Ringkasan Utama`;
+- operational expense screen did not render `Ringkasan Utama`.
+
+Patched presentation files:
+
+- `resources/views/admin/reporting/operational_expense/export_pdf.blade.php`
+  - removed summary/detail tables from PDF body;
+  - added `Ringkasan Utama`;
+  - added `Catatan Laporan`;
+  - added `Detail lengkap tersedia di Excel`.
+- `resources/views/admin/reporting/operational_expense/index.blade.php`
+  - added matching report sections to the screen.
+- `tests/Feature/ReportingExports/OperationalExpenseReportPdfExportFeatureTest.php`
+  - updated PDF expectation so operational expense detail stays out of PDF and
+    belongs to Excel/detail export.
+
+No query, controller, domain, expense write logic, or Excel writer file was
+changed for this slice.
+
+### GREEN PROOF
+
+Command, from `/home/asyraf/Code/laravel/bengkel2/app`:
+
+```bash
+php artisan test tests/Feature/ReportingExports/OperationalExpenseReportPdfExportFeatureTest.php tests/Feature/Reporting/OperationalExpenseReportPageFeatureTest.php tests/Feature/ReportingExports/OperationalExpenseReportExcelExportFeatureTest.php
+```
+
+Result:
+
+```text
+PASS  Tests\Feature\ReportingExports\OperationalExpenseReportPdfExportFeatureTest
+PASS  Tests\Feature\Reporting\OperationalExpenseReportPageFeatureTest
+PASS  Tests\Feature\ReportingExports\OperationalExpenseReportExcelExportFeatureTest
+
+Tests: 15 passed, 93 assertions
+```
+
+Meaning:
+
+- operational expense PDF still exports as `%PDF`;
+- operational expense PDF now renders owner-readable sections and no longer
+  renders operational expense detail rows;
+- operational expense screen now renders the same owner-readable sections;
+- operational expense Excel export remains available and preserves detailed
+  numeric data.
+
+### RESIDUAL
+
+The operational expense screen still keeps the existing detail tables below the
+new owner-readable sections because existing UI tests currently cover those
+tables. A later UI-only tightening step may move or remove screen detail tables
+after each report family has the summary/PDF contract in place.
+
+### NEXT
+
+Continue with the next report family using the same RED -> patch -> GREEN ->
+log-update sequence.
+
 ## 2026-06-27 RED And Patch Proof - Payroll Slice
 
 ### FACT
