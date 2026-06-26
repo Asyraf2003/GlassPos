@@ -488,6 +488,91 @@ Meaning:
 Continue with the next report family using the same RED -> patch -> GREEN ->
 log-update sequence.
 
+## 2026-06-26 RED And Patch Proof - Employee Debt Slice
+
+### FACT
+
+The fifth vertical slice is `employee_debt`.
+
+RED tests added:
+
+- `tests/Feature/ReportingExports/EmployeeDebtReportPdfExportFeatureTest.php`
+  - `test_employee_debt_pdf_view_uses_owner_readable_report_sections_not_detail_tables`
+- `tests/Feature/Reporting/EmployeeDebtReportPageFeatureTest.php`
+  - `test_admin_sees_owner_readable_report_sections_on_employee_debt_page`
+
+Initial RED command:
+
+```bash
+php artisan test tests/Feature/ReportingExports/EmployeeDebtReportPdfExportFeatureTest.php tests/Feature/Reporting/EmployeeDebtReportPageFeatureTest.php
+```
+
+Initial RED result:
+
+```text
+Tests: 2 failed, 10 passed, 47 assertions
+```
+
+Failure meaning:
+
+- employee debt PDF did not render `Ringkasan Utama`;
+- employee debt screen did not render `Ringkasan Utama`.
+
+Patched presentation files:
+
+- `resources/views/admin/reporting/employee_debt/export_pdf.blade.php`
+  - removed summary/period/status/detail tables from PDF body;
+  - added `Ringkasan Utama`;
+  - added `Catatan Laporan`;
+  - added `Detail lengkap tersedia di Excel`.
+- `resources/views/admin/reporting/employee_debt/index.blade.php`
+  - added matching report sections to the screen.
+- `tests/Feature/ReportingExports/EmployeeDebtReportPdfExportFeatureTest.php`
+  - updated PDF expectation so debt detail stays out of PDF and belongs to
+    Excel/detail export.
+
+No query, controller, domain, employee finance, payroll, payment, or Excel writer
+file was changed for this slice.
+
+### GREEN PROOF
+
+Command, from `/home/asyraf/Code/laravel/bengkel2/app`:
+
+```bash
+php artisan test tests/Feature/ReportingExports/EmployeeDebtReportPdfExportFeatureTest.php tests/Feature/Reporting/EmployeeDebtReportPageFeatureTest.php tests/Feature/ReportingExports/EmployeeDebtReportExcelExportFeatureTest.php
+```
+
+Result:
+
+```text
+PASS  Tests\Feature\ReportingExports\EmployeeDebtReportPdfExportFeatureTest
+PASS  Tests\Feature\Reporting\EmployeeDebtReportPageFeatureTest
+PASS  Tests\Feature\ReportingExports\EmployeeDebtReportExcelExportFeatureTest
+
+Tests: 15 passed, 93 assertions
+```
+
+Meaning:
+
+- employee debt PDF still exports as `%PDF`;
+- employee debt PDF now renders owner-readable sections and no longer renders
+  debt detail rows;
+- employee debt screen now renders the same owner-readable sections;
+- employee debt Excel export remains available and preserves detailed numeric
+  data.
+
+### RESIDUAL
+
+The employee debt screen still keeps the existing detail tables below the new
+owner-readable sections because existing UI tests currently cover those tables.
+A later UI-only tightening step may move or remove screen detail tables after
+each report family has the summary/PDF contract in place.
+
+### NEXT
+
+Continue with the next report family using the same RED -> patch -> GREEN ->
+log-update sequence.
+
 ## 2026-06-26 RED And Patch Proof - Supplier Payable Slice
 
 ### FACT
