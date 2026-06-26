@@ -4,16 +4,11 @@ declare(strict_types=1);
 
 namespace App\Application\Note\Services;
 
-use App\Core\Payment\PaymentComponentAllocation\PaymentComponentType;
-use App\Ports\Out\Inventory\InventoryMovementReaderPort;
-
 final class NoteBillingProjectionComponentRowsBuilder
 {
-    private const STORE_STOCK_REVERSAL_SOURCE_TYPE = 'work_item_store_stock_line_reversal';
-
     public function __construct(
         private readonly NoteBillingProjectionComponentRowFactory $rows,
-        private readonly InventoryMovementReaderPort $inventoryMovements,
+        private readonly NoteBillingProjectionRefundedStoreStockComponentSkipper $refundedStoreStock,
     ) {
     }
 
@@ -50,10 +45,6 @@ final class NoteBillingProjectionComponentRowsBuilder
         return $billing;
     }
 
-    /**
-     * @param array<string, mixed> $row
-     * @return list<array<string, mixed>>
-     */
     private function sortedComponents(array $row): array
     {
         $components = is_array($row['billing_components'] ?? null)
@@ -68,11 +59,6 @@ final class NoteBillingProjectionComponentRowsBuilder
         return $components;
     }
 
-    /**
-     * @param array<string, mixed> $row
-     * @param array<string, mixed> $component
-     * @return array<string, mixed>|null
-     */
     private function componentRow(
         array $row,
         array $component,
@@ -94,7 +80,7 @@ final class NoteBillingProjectionComponentRowsBuilder
         $refunded = min(max($refundedRemainder, 0), $allocated);
         $refundedRemainder -= $refunded;
 
-        if ($this->isRefundedStoreStockComponentReversed($componentType, $componentRefId, $refunded)) {
+        if ($this->refundedStoreStock->shouldSkip($componentType, $componentRefId, $refunded)) {
             return null;
         }
 
@@ -104,12 +90,5 @@ final class NoteBillingProjectionComponentRowsBuilder
         $priorOutstanding += $outstanding;
 
         return $this->rows->build($row, $component, $componentType, $componentRefId, $total, $allocated, $refunded, $netPaid, $outstanding, $blocked);
-    }
-
-    private function isRefundedStoreStockComponentReversed(string $componentType, string $componentRefId, int $refunded): bool
-    {
-        return $componentType === PaymentComponentType::SERVICE_STORE_STOCK_PART
-            && $refunded > 0
-            && $this->inventoryMovements->getBySource(self::STORE_STOCK_REVERSAL_SOURCE_TYPE, $componentRefId) !== [];
     }
 }
