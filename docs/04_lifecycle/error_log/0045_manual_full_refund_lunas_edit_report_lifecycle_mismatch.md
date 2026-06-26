@@ -823,3 +823,31 @@ Source files inspected:
 - `NoteBillingProjectionComponentRowsBuilder`
 - `AllocatePaymentAcrossComponents`
 - `ReversedRefundedStoreStockPartPaymentGuard`
+
+## 2026-06-26 Reopen 2 Test Proof 1
+
+### FACT
+
+Added characterization tests:
+
+- `CashierRefundRejectsOpenLineFeatureTest::test_detail_does_not_render_open_partially_paid_line_as_refundable`
+- `ManualFullRefundEditLifecycleMismatchFeatureTest::test_detail_payment_does_not_offer_refunded_reversed_store_stock_component_as_payable`
+
+### PROOF
+
+Command:
+
+```bash
+php artisan test tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php tests/Feature/Note/ManualFullRefundEditLifecycleMismatchFeatureTest.php
+```
+
+Result:
+
+- `2 failed`, `4 passed`
+- open partially paid line still rendered `data-refund-row="1"`
+- detail still had `can_show_payment_form=true` when the only outstanding row
+  was a refunded/reversed store-stock component that backend allocation skips
+
+### ACTIVE STEP
+
+Patch refund row eligibility first, then patch payable billing row eligibility.
