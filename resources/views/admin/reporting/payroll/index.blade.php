@@ -80,112 +80,72 @@
     </div>
 </div>
 
+<div class="mb-3">
+    <h5 class="mb-2">Rincian Ringkas</h5>
+    <div class="text-muted small">
+        Halaman ini menampilkan total pencairan per tanggal dan mode secara
+        ringkas. Nama karyawan, catatan pencairan, dan baris detail tersedia di
+        Excel.
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    @forelse ($periodRows as $row)
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Tanggal</div>
+                    <div class="fw-semibold mb-3">{{ $row['period_label'] }}</div>
+
+                    <div class="d-flex justify-content-between gap-3 mb-2">
+                        <span class="text-muted">Jumlah Pencairan</span>
+                        <span class="fw-semibold">{{ number_format($row['total_rows'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between gap-3">
+                        <span class="text-muted">Total Pencairan</span>
+                        <span class="fw-semibold text-danger">Rp {{ number_format($row['total_amount_rupiah'], 0, ',', '.') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @empty
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-muted">
+                    Belum ada payroll pada periode ini.
+                </div>
+            </div>
+        </div>
+    @endforelse
+</div>
+
 <div class="row g-3">
-    <div class="col-12 col-xl-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Rincian Per Tanggal</h5>
+    @forelse ($modeRows as $row)
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Mode Pencairan</div>
+                    <div class="fw-semibold mb-3">{{ $row['mode_label'] }}</div>
 
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Tanggal</th>
-                                <th class="text-end">Data</th>
-                                <th class="text-end">Nominal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($periodRows as $row)
-                                <tr>
-                                    <td>{{ $row['period_label'] }}</td>
-                                    <td class="text-end">{{ number_format($row['total_rows'], 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['total_amount_rupiah'], 0, ',', '.') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="3" class="text-center text-muted">Belum ada payroll pada periode ini.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                    <div class="d-flex justify-content-between gap-3 mb-2">
+                        <span class="text-muted">Jumlah Pencairan</span>
+                        <span class="fw-semibold">{{ number_format($row['total_rows'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between gap-3">
+                        <span class="text-muted">Total Pencairan</span>
+                        <span class="fw-semibold text-danger">Rp {{ number_format($row['total_amount_rupiah'], 0, ',', '.') }}</span>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="col-12 col-xl-3">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Rincian Mode</h5>
-
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Mode</th>
-                                <th class="text-end">Data</th>
-                                <th class="text-end">Nominal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($modeRows as $row)
-                                <tr>
-                                    <td>{{ $row['mode_label'] }}</td>
-                                    <td class="text-end">{{ number_format($row['total_rows'], 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['total_amount_rupiah'], 0, ',', '.') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="3" class="text-center text-muted">Belum ada mode pada periode ini.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+    @empty
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-muted">
+                    Belum ada mode pencairan pada periode ini.
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="col-12 col-xl-5">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Detail Pencairan Gaji</h5>
-
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Tanggal</th>
-                                <th>Karyawan</th>
-                                <th>Mode</th>
-                                <th>Catatan</th>
-                                <th class="text-end">Nominal</th>
-                            </tr>
-                        </thead>
-                        <tbody id="payroll-report-table-body">
-                            @forelse ($rows as $row)
-                                <tr>
-                                    <td>{{ \App\Support\ViewDateFormatter::display($row['disbursement_date'] ?? null) }}</td>
-                                    <td>{{ $row['employee_name'] }}</td>
-                                    <td>{{ $row['mode_label'] }}</td>
-                                    <td>{{ $row['notes'] ?? '-' }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['amount_rupiah'], 0, ',', '.') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted">Belum ada payroll pada periode ini.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="mt-3 d-flex justify-content-end">
-                    @include('layouts.partials.pagination', ['paginator' => $rows])
-                </div>
-            </div>
-        </div>
-    </div>
+    @endforelse
 </div>
 @endsection

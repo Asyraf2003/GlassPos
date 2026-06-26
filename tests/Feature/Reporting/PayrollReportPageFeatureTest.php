@@ -45,12 +45,16 @@ final class PayrollReportPageFeatureTest extends TestCase
         $response->assertSee('name="date_from"', false);
         $response->assertSee('name="date_to"', false);
         $response->assertSee('01 Januari 2030 s/d 31 Januari 2030');
-        $response->assertSee('Montir A');
-        $response->assertSee('Montir B');
+        $response->assertSee('Rincian Ringkas');
+        $response->assertSee('Jumlah Pencairan');
+        $response->assertSee('Total Pencairan');
+        $response->assertDontSee('Montir A');
+        $response->assertDontSee('Montir B');
         $response->assertSee('Harian');
         $response->assertSee('Mingguan');
         $response->assertSee('Rp 100.000');
-        $response->assertSee('2030-01-07');
+        $response->assertSee('07 Januari 2030');
+        $response->assertDontSee('Detail Pencairan Gaji');
     }
 
     public function test_admin_sees_owner_readable_report_sections_on_payroll_page(): void
@@ -82,7 +86,8 @@ final class PayrollReportPageFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('07 Januari 2030 s/d 07 Januari 2030');
-        $response->assertSee('Montir Custom B');
+        $response->assertSee('Mingguan');
+        $response->assertDontSee('Montir Custom B');
         $response->assertDontSee('Montir Custom A');
         $response->assertSee('Rp 40.000');
         $response->assertDontSee('Rp 50.000');
