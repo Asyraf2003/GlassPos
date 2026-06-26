@@ -120,6 +120,40 @@ final class EmployeeDebtReportPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Kasbon A', $html);
     }
 
+    public function test_employee_debt_pdf_view_uses_owner_readable_report_sections_not_detail_tables(): void
+    {
+        $html = view('admin.reporting.employee_debt.export_pdf', [
+            'title' => 'Laporan Hutang Karyawan',
+            'periodLabel' => '01 Januari 2030 s/d 31 Januari 2030',
+            'generatedAt' => '31 Januari 2030 10:00',
+            'summaryItems' => [
+                ['label' => 'Total Hutang', 'value' => 'Rp 310.000'],
+                ['label' => 'Sudah Dibayar', 'value' => 'Rp 110.000'],
+                ['label' => 'Sisa Hutang', 'value' => 'Rp 200.000'],
+            ],
+            'periodRows' => [],
+            'statusRows' => [],
+            'rows' => [
+                [
+                    'recorded_at' => '07 Januari 2030',
+                    'debt_id' => 'debt-1',
+                    'employee_id' => 'employee-1',
+                    'status' => 'unpaid',
+                    'total_debt' => 'Rp 100.000',
+                    'total_paid_amount' => 'Rp 40.000',
+                    'remaining_balance' => 'Rp 60.000',
+                    'notes' => 'Kasbon A',
+                ],
+            ],
+        ])->render();
+
+        $this->assertStringContainsString('Ringkasan Utama', $html);
+        $this->assertStringContainsString('Catatan Laporan', $html);
+        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('<table class="summary">', $html);
+        $this->assertStringNotContainsString('<table class="detail">', $html);
+    }
+
     private function user(string $role): User
     {
         $user = User::query()->create([

@@ -65,6 +65,21 @@ final class EmployeeDebtReportPageFeatureTest extends TestCase
         $response->assertSee(route('admin.reports.employee_debt.index'), false);
     }
 
+    public function test_admin_sees_owner_readable_report_sections_on_employee_debt_page(): void
+    {
+        $response = $this->actingAs($this->user('admin'))->get(
+            route('admin.reports.employee_debt.index', [
+                'period_mode' => 'monthly',
+                'reference_date' => '2030-01-31',
+            ])
+        );
+
+        $response->assertOk();
+        $response->assertSee('Ringkasan Utama');
+        $response->assertSee('Catatan Laporan');
+        $response->assertSee('Detail lengkap tersedia di Excel');
+    }
+
     public function test_custom_mode_uses_explicit_date_range(): void
     {
         $this->seedEmployee('employee-1', 'Montir A');
