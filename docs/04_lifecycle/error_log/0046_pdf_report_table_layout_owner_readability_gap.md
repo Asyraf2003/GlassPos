@@ -1004,12 +1004,46 @@ Meaning:
 - employee debt Excel export remains available and preserves detailed numeric
   data.
 
-### RESIDUAL
+### UI TIGHTENING PROOF
 
-The employee debt screen still keeps the existing detail tables below the new
-owner-readable sections because existing UI tests currently cover those tables.
-A later UI-only tightening step may move or remove screen detail tables after
-each report family has the summary/PDF contract in place.
+The employee debt screen residual was removed after the main PDF contract was
+green.
+
+Patched:
+
+- `resources/views/admin/reporting/employee_debt/index.blade.php`
+  - removed table-shaped period/status/detail blocks from the owner-facing
+    page;
+  - added `Rincian Ringkas` cards for period totals and status totals;
+  - kept debt references, employee IDs, and row detail in Excel.
+- `tests/Feature/Reporting/EmployeeDebtReportPageFeatureTest.php`
+  - stopped expecting debt id detail rows on the screen report;
+  - asserted the page still shows period, total debt, paid amount, remaining
+    debt, and status summary;
+  - asserted the old `Detail Hutang` table is not rendered.
+
+Command, from `/home/asyraf/Code/laravel/bengkel2/app`:
+
+```bash
+php artisan test tests/Feature/Reporting/EmployeeDebtReportPageFeatureTest.php tests/Feature/ReportingExports/EmployeeDebtReportPdfExportFeatureTest.php tests/Feature/ReportingExports/EmployeeDebtReportExcelExportFeatureTest.php
+```
+
+Result:
+
+```text
+PASS  Tests\Feature\Reporting\EmployeeDebtReportPageFeatureTest
+PASS  Tests\Feature\ReportingExports\EmployeeDebtReportPdfExportFeatureTest
+PASS  Tests\Feature\ReportingExports\EmployeeDebtReportExcelExportFeatureTest
+
+Tests: 15 passed, 97 assertions
+```
+
+Meaning:
+
+- employee debt screen now follows the same owner-readable direction as the
+  PDF;
+- employee debt PDF remains owner-readable;
+- employee debt Excel remains the detailed export surface.
 
 ### NEXT
 
