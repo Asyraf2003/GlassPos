@@ -431,6 +431,73 @@ Status after this proof:
 - Broader report families outside transaction summary, cash ledger, and package
   revision regression were not fully re-run in this step.
 
+## 2026-06-26 Patch Proof 3
+
+Owner follow-up asked whether there are UI Blade/JS/report fixes.
+
+Answer from source/test work:
+
+- No direct Blade or JS file was required for the first fix because the visible
+  UI bug came from the data payload sent to Blade.
+- Report path was patched in transaction summary/per-note report.
+- A second UI/backend mismatch remained: current revision refund action could be
+  visible, but submit was rejected by backend with:
+  `Refund hanya bisa dicatat untuk nota yang sudah close/lunas.`
+
+Additional patched files:
+
+- `app/Application/Note/Services/NoteOperationalStatusResolver.php`
+  - when current revision exists, operational open/close status uses current
+    revision grand total and current revision settlement, not historical
+    aggregate work_items.
+- `app/Providers/NoteApplicationServiceProvider.php`
+  - binds `NoteOperationalStatusResolver` with current revision dependencies in
+    runtime Laravel container.
+- `app/Application/Payment/Services/RefundComponentTypePolicy.php`
+  - keeps generic/default refund limited to product/store-stock parts.
+  - adds selected-row refund policy that also allows `service_fee`.
+- `app/Application/Note/Services/SelectedRowsRefundBucketsBuilder.php`
+- `app/Application/Note/Services/SelectedNoteRowsRefundPlanFactory.php`
+- `app/Application/Payment/Services/RefundablePaymentAllocations.php`
+  - selected-row refund now includes service fee for the selected current row,
+    while generic refund behavior remains unchanged.
+- `tests/Feature/Note/ManualFullRefundEditLifecycleMismatchFeatureTest.php`
+  - adds proof that current closed revision refund is accepted after historical
+    package component refund and refunds the current row total `112500`.
+- `tests/Unit/Application/Note/Services/NoteOperationalStatusResolverTest.php`
+  - keeps legacy no-current-revision behavior covered.
+
+Important regression found and fixed:
+
+- Making `service_fee` globally default-refundable broke generic refund policy.
+- Final fix makes service fee refundable only for selected-row refunds.
+
+Proof commands:
+
+- `php -l app/Application/Note/Services/NoteOperationalStatusResolver.php`
+- `php -l app/Providers/NoteApplicationServiceProvider.php`
+- `php -l app/Application/Payment/Services/RefundComponentTypePolicy.php`
+- `php -l app/Application/Note/Services/SelectedRowsRefundBucketsBuilder.php`
+- `php -l app/Application/Note/Services/SelectedNoteRowsRefundPlanFactory.php`
+- `php -l app/Application/Payment/Services/RefundablePaymentAllocations.php`
+- `php artisan test tests/Feature/Note/ManualFullRefundEditLifecycleMismatchFeatureTest.php tests/Feature/Payment/RecordCustomerRefundFeatureTest.php`
+- `php artisan test tests/Feature/Note/ManualFullRefundEditLifecycleMismatchFeatureTest.php tests/Feature/Note/RefundAfterRevisionCurrentRowBoundaryFeatureTest.php tests/Feature/Payment/RecordCustomerRefundFeatureTest.php tests/Feature/Note/CashierClosedNoteRefundViewFeatureTest.php tests/Feature/Note/CashierRefundedNoteDetailViewFeatureTest.php tests/Feature/Payment/ServicePackageComponentRefundPayAgainMatrixTest.php tests/Feature/Reporting/TransactionSummaryReportingQueryFeatureTest.php tests/Feature/Reporting/GetTransactionReportDatasetFeatureTest.php tests/Feature/Reporting/TransactionReportPageFeatureTest.php tests/Feature/Reporting/PackageAutoSplitRevisionReportImpactFeatureTest.php tests/Unit/Application/Note/Services/NoteOperationalStatusResolverTest.php`
+
+Proof result:
+
+- syntax PASS for all changed PHP files listed above.
+- target refund/report policy test PASS: `7 passed, 47 assertions`.
+- selected regression PASS: `78 passed, 535 assertions`.
+
+Current status:
+
+- UI detail payload: fixed.
+- Backend refund guard matching UI current revision: fixed.
+- Selected-row refund service fee: fixed.
+- Generic refund default product/part behavior: preserved.
+- Transaction summary/per-note report outstanding: fixed.
+- Direct Blade/JS edits: not needed yet for these proven defects.
+
 ## NEXT SAFE STEP
 
 Read the local source and DB state for the latest matching note. Update this log
