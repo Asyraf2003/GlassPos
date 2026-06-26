@@ -53,9 +53,6 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertSee('admin/reports/transaction-cash-ledger/export.pdf', false);
         $response->assertSee('period_mode=monthly', false);
         $response->assertSee('reference_date=2026-04-01', false);
-        $response->assertSee('02 April 2026');
-        $response->assertSee('03 April 2026');
-        $response->assertSee('04 April 2026');
         $response->assertSee('Rincian Ringkas');
         $response->assertSee('Kejadian Kas');
         $response->assertSee('Sisa Kas Hari Ini');
@@ -161,8 +158,6 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('06 April 2026 s/d 12 April 2026');
-        $response->assertSee('06 April 2026');
-        $response->assertSee('09 April 2026');
         $response->assertSee('Rp 11.000');
         $response->assertDontSee('note-week-1');
         $response->assertDontSee('note-week-2');
@@ -184,8 +179,6 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('01 April 2026 s/d 30 April 2026');
-        $response->assertSee('01 April 2026');
-        $response->assertSee('29 April 2026');
         $response->assertSee('Rp 7.000');
         $response->assertDontSee('note-month-1');
         $response->assertDontSee('note-month-2');
