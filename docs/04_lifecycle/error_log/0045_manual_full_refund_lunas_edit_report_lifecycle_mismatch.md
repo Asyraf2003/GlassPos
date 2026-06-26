@@ -851,3 +851,44 @@ Result:
 ### ACTIVE STEP
 
 Patch refund row eligibility first, then patch payable billing row eligibility.
+
+## 2026-06-26 Reopen 2 Patch Proof 1
+
+### FACT
+
+Patches applied:
+
+- `CurrentRevisionDetailRowMapper`
+  - `can_refund` is now true only for operationally `close` rows.
+- `NoteDetailRowMapper`
+  - legacy/detail row mapper now follows the same close-only refund UI rule.
+- `NoteBillingProjectionComponentRowsBuilder`
+  - skips rendering a store-stock component as payable when that component has
+    refund money and an inventory reversal exists for the same
+    `component_ref_id`.
+
+### DECISION
+
+The UI now mirrors backend guards:
+
+- refund UI follows `SelectedNoteRowsRefundEligibilityGuard` close-only rule
+- payment UI follows `ReversedRefundedStoreStockPartPaymentGuard` for refunded
+  store-stock components
+
+### PROOF
+
+Command:
+
+```bash
+php artisan test tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php tests/Feature/Note/ManualFullRefundEditLifecycleMismatchFeatureTest.php
+```
+
+Result:
+
+- `6 passed`
+- `44 assertions`
+
+### NEXT
+
+Run payment/refund/report regression subset before investigating the exact
+`157500` refund-due report/edit-down amount.
