@@ -89,7 +89,10 @@ final class OperationalExpenseReportPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Jumlah Catatan', $html);
         $this->assertStringContainsString('Total Biaya', $html);
         $this->assertStringContainsString('Kategori Terbesar', $html);
-        $this->assertStringContainsString('Bayar listrik', $html);
+        $this->assertStringContainsString('Ringkasan Utama', $html);
+        $this->assertStringContainsString('Catatan Laporan', $html);
+        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Bayar listrik', $html);
     }
 
     public function test_operational_expense_pdf_view_uses_owner_readable_report_sections_not_detail_tables(): void
