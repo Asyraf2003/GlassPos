@@ -46,18 +46,6 @@
             font-weight: bold;
         }
 
-        .note {
-            background: #f9fafb;
-            border-left: 4px solid #dc2626;
-            margin-bottom: 8px;
-            padding: 8px 10px;
-        }
-
-        .excel-note {
-            color: #374151;
-            font-size: 9px;
-            margin-top: 14px;
-        }
     </style>
 </head>
 <body>
@@ -75,13 +63,5 @@
         </div>
     @endforeach
 
-    <h2>Catatan Laporan</h2>
-    <div class="note">
-        Laporan ini merangkum pencairan gaji pada periode yang dipilih, total
-        nominal, tanggal pencairan terakhir, mode terbesar, dan rata-rata
-        harian.
-    </div>
-
-    <div class="excel-note">Detail lengkap tersedia di Excel.</div>
 </body>
 </html>

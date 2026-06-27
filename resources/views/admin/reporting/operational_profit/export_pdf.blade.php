@@ -46,18 +46,6 @@
             font-weight: bold;
         }
 
-        .note {
-            background: #f9fafb;
-            border-left: 4px solid #2563eb;
-            margin-bottom: 8px;
-            padding: 9px 11px;
-        }
-
-        .excel-note {
-            color: #374151;
-            font-size: 10px;
-            margin-top: 16px;
-        }
     </style>
 </head>
 <body>
@@ -75,13 +63,5 @@
         </div>
     @endforeach
 
-    <h2>Catatan Laporan</h2>
-    <div class="note">
-        Laporan ini menunjukkan uang masuk lalu mengurangi pengembalian dana,
-        harga beli barang yang terpakai, biaya operasional, gaji, dan hutang
-        karyawan pada periode yang dipilih.
-    </div>
-
-    <div class="excel-note">Detail lengkap tersedia di Excel.</div>
 </body>
 </html>

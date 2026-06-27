@@ -46,18 +46,6 @@
             font-weight: bold;
         }
 
-        .note {
-            background: #f9fafb;
-            border-left: 4px solid #2563eb;
-            margin-bottom: 8px;
-            padding: 9px 11px;
-        }
-
-        .excel-note {
-            color: #374151;
-            font-size: 10px;
-            margin-top: 16px;
-        }
     </style>
 </head>
 <body>
@@ -75,13 +63,5 @@
         </div>
     @endforeach
 
-    <h2>Catatan Laporan</h2>
-    <div class="note">
-        Laporan ini merangkum uang transaksi yang masuk dan uang yang keluar
-        karena refund pada periode yang dipilih. Detail per kejadian kas tidak
-        ditampilkan di PDF agar laporan mudah dibaca.
-    </div>
-
-    <div class="excel-note">Detail lengkap tersedia di Excel.</div>
 </body>
 </html>
