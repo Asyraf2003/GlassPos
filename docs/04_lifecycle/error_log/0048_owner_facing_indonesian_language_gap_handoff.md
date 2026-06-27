@@ -499,3 +499,72 @@ Sesi ini sudah padat. Lanjut eksekusi di sesi baru lebih aman agar model tidak k
 - Slice 3 candidate B: transaction report Excel/PDF export labels.
 - Slice 3 candidate C: revision/versioning timeline labels.
 - Slice 3 candidate D: cash ledger source metadata labels.
+
+### Session Update - 2026-06-27 Slice 3A Transaction Report Page Indonesianized
+
+#### Scope
+
+- Issue source: `docs/04_lifecycle/error_log/0047_transaction_owner_facing_indonesian_language_gap.md`
+- Active slice: Slice 3A - transaction report screen/page owner-facing labels.
+- Patch boundary: Blade report page label + related feature test assertion only.
+- Production logic change: none.
+- Database enum/column/domain contract/route/request payload/API change: none.
+- Excel/PDF export scope: untouched.
+- Mobile/API scope: untouched.
+- Compiled assets scope: untouched.
+
+#### Files Changed
+
+- `resources/views/admin/reporting/transaction_summary/index.blade.php`
+- `tests/Feature/Reporting/TransactionReportPageFeatureTest.php`
+
+#### FACT
+
+- Focused scan before patch showed owner-facing English/accounting labels in transaction report page:
+  - `Nilai Bruto Transaksi`
+  - `Refund Due`
+  - `Surplus Refund Paid`
+  - `Sisa Refund Due`
+- Patch changed visible report page labels only.
+- Internal report keys and fixture identifiers were intentionally left unchanged:
+  - `allocated_payment_rupiah`
+  - `outstanding_rupiah`
+  - `outstanding_rows`
+  - `payment_allocations`
+  - `payment_component_allocations`
+  - `allocation_priority`
+- Post-patch focused scan returned no matches for:
+  - `Refund Due`
+  - `Refund Paid`
+  - `Surplus Refund Paid`
+  - `Sisa Refund Due`
+  - `Nilai Bruto Transaksi`
+- Focused page test passed:
+  - `7 passed`
+  - `52 assertions`
+  - duration `6.44s`
+
+#### Changes Applied
+
+- `Nilai Bruto Transaksi` -> `Total Nilai Transaksi`
+- `Refund Due` -> `Pengembalian Belum Dibayar`
+- `Surplus Refund Paid` -> `Pengembalian Surplus Sudah Dibayar`
+- `Sisa Refund Due` -> `Sisa Pengembalian Belum Dibayar`
+
+#### Tests
+
+- `php artisan test tests/Feature/Reporting/TransactionReportPageFeatureTest.php`
+- Result: PASS, `7 passed (52 assertions)`.
+
+#### DECISION
+
+- Slice 3A is complete and verified.
+- Do not translate internal report keys, DB table names, fixture ids, or query fields.
+- Error log 0047 remains open/in progress.
+- Next slice should stay narrow.
+
+#### NEXT CANDIDATE SLICES
+
+- Slice 3B: transaction report Excel/PDF export labels.
+- Slice 4: revision/versioning timeline labels.
+- Slice 5: cash ledger source metadata labels/export.
