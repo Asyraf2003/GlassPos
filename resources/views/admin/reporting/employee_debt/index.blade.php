@@ -29,10 +29,6 @@
 
 <div class="mb-3">
     <h5 class="mb-1">Ringkasan Utama</h5>
-    <div class="text-muted small">
-        Laporan ini merangkum hutang karyawan yang dicatat, sudah dibayar, dan
-        sisa yang masih perlu diselesaikan.
-    </div>
 </div>
 
 <div class="row g-3 mb-4">
@@ -92,20 +88,7 @@
 </div>
 
 <div class="mb-3">
-    <h5 class="mb-2">Catatan Laporan</h5>
-    <div class="text-muted">
-        Gunakan ringkasan ini untuk melihat posisi hutang karyawan dengan cepat.
-        Detail lengkap tersedia di Excel.
-    </div>
-</div>
-
-<div class="mb-3">
     <h5 class="mb-2">Rincian Ringkas</h5>
-    <div class="text-muted small">
-        Halaman ini menampilkan posisi hutang per tanggal dan status secara
-        ringkas. Referensi hutang, employee ID, dan baris detail tersedia di
-        Excel.
-    </div>
 </div>
 
 <div class="row g-3 mb-4">

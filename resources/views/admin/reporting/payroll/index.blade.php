@@ -29,10 +29,6 @@
 
 <div class="mb-3">
     <h5 class="mb-1">Ringkasan Utama</h5>
-    <div class="text-muted small">
-        Laporan ini merangkum pencairan gaji, total nominal, mode terbesar, dan
-        rata-rata harian pada periode yang dipilih.
-    </div>
 </div>
 
 <div class="row g-3 mb-4">
@@ -73,20 +69,7 @@
 </div>
 
 <div class="mb-3">
-    <h5 class="mb-2">Catatan Laporan</h5>
-    <div class="text-muted">
-        Gunakan ringkasan ini untuk membaca total pencairan gaji dengan cepat.
-        Detail lengkap tersedia di Excel.
-    </div>
-</div>
-
-<div class="mb-3">
     <h5 class="mb-2">Rincian Ringkas</h5>
-    <div class="text-muted small">
-        Halaman ini menampilkan total pencairan per tanggal dan mode secara
-        ringkas. Nama karyawan, catatan pencairan, dan baris detail tersedia di
-        Excel.
-    </div>
 </div>
 
 <div class="row g-3 mb-4">

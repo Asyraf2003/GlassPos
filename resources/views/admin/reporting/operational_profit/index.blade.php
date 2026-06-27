@@ -29,9 +29,6 @@
 
 <div class="mb-3">
     <h5 class="mb-1">Ringkasan Utama</h5>
-    <div class="text-muted small">
-        Laporan ini menunjukkan hasil kas operasional untuk periode yang dipilih.
-    </div>
 </div>
 
 <div class="row g-3">
@@ -101,11 +98,4 @@
     </div>
 </div>
 
-<div class="mt-4">
-    <h5 class="mb-2">Catatan Laporan</h5>
-    <div class="text-muted">
-        Uang masuk dikurangi pengembalian dana, harga beli barang yang terpakai,
-        biaya operasional, gaji, dan hutang karyawan. Detail lengkap tersedia di Excel.
-    </div>
-</div>
 @endsection
