@@ -55,7 +55,7 @@ final class TransactionCashLedgerPdfBladePaymentMethodTest extends TestCase
         $this->assertStringContainsString('Ringkasan Utama', $html);
         $this->assertStringContainsString('Tunai Masuk', $html);
         $this->assertStringContainsString('Transfer Masuk', $html);
-        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
         $this->assertStringNotContainsString('Metode Pembayaran', $html);
         $this->assertStringNotContainsString('INV-001', $html);
         $this->assertStringNotContainsString('payment_component_allocations', $html);
