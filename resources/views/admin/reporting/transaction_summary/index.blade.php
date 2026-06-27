@@ -11,7 +11,6 @@
     'resetUrl' => route('admin.reports.transaction_summary.index'),
     'rangeLabelText' => 'Rentang transaksi aktif',
     'basisDateLabel' => 'Tanggal transaksi nota',
-    'basisDateNote' => 'Mode harian hanya menghitung nota pada tanggal transaksi tersebut.',
     'exportActions' => [
         [
             'label' => 'Unduh Excel',
@@ -115,71 +114,33 @@
     <h5 class="mb-2">Rincian Ringkas</h5>
 </div>
 
-<div class="row g-3 mb-4">
-    @forelse ($periodRows as $row)
-        <div class="col-12 col-md-6 col-xl-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Tanggal Transaksi</div>
-                    <div class="fw-semibold mb-3">{{ $row['period_label'] }}</div>
-
-                    <div class="d-flex justify-content-between gap-3 mb-2">
-                        <span class="text-muted">Jumlah Nota</span>
-                        <span class="fw-semibold">{{ number_format($row['total_rows'], 0, ',', '.') }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between gap-3 mb-2">
-                        <span class="text-muted">Nilai Transaksi</span>
-                        <span class="fw-semibold">Rp {{ number_format($row['gross_transaction_rupiah'], 0, ',', '.') }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between gap-3">
-                        <span class="text-muted">Sisa Tagihan</span>
-                        <span class="fw-semibold text-danger">Rp {{ number_format($row['outstanding_rupiah'], 0, ',', '.') }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @empty
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-muted">
-                    Belum ada transaksi pada periode ini.
-                </div>
-            </div>
-        </div>
-    @endforelse
-</div>
-
 <div class="row g-3">
-    @forelse ($customerRows as $row)
-        <div class="col-12 col-md-6 col-xl-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Customer</div>
-                    <div class="fw-semibold mb-3">{{ $row['customer_name'] }}</div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card"><div class="card-body">
+            <div class="text-muted small">Nota Lunas</div>
+            <div class="fs-5 fw-bold">{{ number_format($summary['settled_rows'] ?? 0, 0, ',', '.') }}</div>
+        </div></div>
+    </div>
 
-                    <div class="d-flex justify-content-between gap-3 mb-2">
-                        <span class="text-muted">Jumlah Nota</span>
-                        <span class="fw-semibold">{{ number_format($row['total_rows'], 0, ',', '.') }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between gap-3 mb-2">
-                        <span class="text-muted">Nilai Transaksi</span>
-                        <span class="fw-semibold">Rp {{ number_format($row['gross_transaction_rupiah'], 0, ',', '.') }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between gap-3">
-                        <span class="text-muted">Sisa Refund Due</span>
-                        <span class="fw-semibold text-warning">Rp {{ number_format($row['remaining_refund_due_rupiah'] ?? 0, 0, ',', '.') }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @empty
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-muted">
-                    Belum ada customer pada periode ini.
-                </div>
-            </div>
-        </div>
-    @endforelse
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card"><div class="card-body">
+            <div class="text-muted small">Nota Sisa Tagihan</div>
+            <div class="fs-5 fw-bold">{{ number_format($summary['outstanding_rows'] ?? 0, 0, ',', '.') }}</div>
+        </div></div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card"><div class="card-body">
+            <div class="text-muted small">Sisa Tagihan</div>
+            <div class="fs-5 fw-bold text-danger">Rp {{ number_format($summary['outstanding_rupiah'] ?? 0, 0, ',', '.') }}</div>
+        </div></div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card"><div class="card-body">
+            <div class="text-muted small">Sisa Refund Due</div>
+            <div class="fs-5 fw-bold text-warning">Rp {{ number_format($summary['remaining_refund_due_rupiah'] ?? 0, 0, ',', '.') }}</div>
+        </div></div>
+    </div>
 </div>
 @endsection

@@ -31,13 +31,6 @@
                             </div>
                         </div>
 
-                        @if (!empty($basisDateNote))
-                            <div class="small text-muted">{{ $basisDateNote }}</div>
-                        @endif
-
-                        @if (!empty($noteText))
-                            <div class="small text-muted">{{ $noteText }}</div>
-                        @endif
                     </div>
                 </div>
             </div>

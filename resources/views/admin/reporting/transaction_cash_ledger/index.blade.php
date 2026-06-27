@@ -11,7 +11,6 @@
     'resetUrl' => route('admin.reports.transaction_cash_ledger.index'),
     'rangeLabelText' => 'Rentang kejadian aktif',
     'basisDateLabel' => 'Tanggal kejadian kas',
-    'basisDateNote' => 'Mode harian hanya menghitung kejadian kas pada tanggal tersebut, bukan akumulasi hari sebelumnya.',
     'supportsCustomRange' => true,
     'exportActions' => [
         [
@@ -94,34 +93,34 @@
 </div>
 
 <div class="row g-3">
-    @forelse ($periodRows as $row)
-        <div class="col-12 col-md-6 col-xl-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Tanggal</div>
-                    <div class="fw-semibold mb-3">{{ $row['period_label'] }}</div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card"><div class="card-body">
+            <div class="text-muted small">Kejadian Kas</div>
+            <div class="fs-5 fw-bold">{{ number_format($summary['total_events'], 0, ',', '.') }}</div>
+        </div></div>
+    </div>
 
-                    <div class="d-flex justify-content-between gap-3 mb-2">
-                        <span class="text-muted">Kejadian Kas</span>
-                        <span class="fw-semibold">{{ number_format($row['total_events'], 0, ',', '.') }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between gap-3">
-                        <span class="text-muted">Sisa Kas Hari Ini</span>
-                        <span class="fw-semibold {{ $row['net_amount_rupiah'] >= 0 ? 'text-primary' : 'text-danger' }}">
-                            Rp {{ number_format($row['net_amount_rupiah'], 0, ',', '.') }}
-                        </span>
-                    </div>
-                </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card"><div class="card-body">
+            <div class="text-muted small">Tunai Masuk</div>
+            <div class="fs-5 fw-bold text-success">Rp {{ number_format($summary['cash_in_rupiah'] ?? 0, 0, ',', '.') }}</div>
+        </div></div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card"><div class="card-body">
+            <div class="text-muted small">Transfer Masuk</div>
+            <div class="fs-5 fw-bold text-success">Rp {{ number_format($summary['transfer_in_rupiah'] ?? 0, 0, ',', '.') }}</div>
+        </div></div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card"><div class="card-body">
+            <div class="text-muted small">Nilai Bersih</div>
+            <div class="fs-5 fw-bold {{ $summary['net_amount_rupiah'] >= 0 ? 'text-primary' : 'text-danger' }}">
+                Rp {{ number_format($summary['net_amount_rupiah'], 0, ',', '.') }}
             </div>
-        </div>
-    @empty
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-muted">
-                    Belum ada kejadian kas pada periode ini.
-                </div>
-            </div>
-        </div>
-    @endforelse
+        </div></div>
+    </div>
 </div>
 @endsection
