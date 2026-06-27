@@ -1,6 +1,6 @@
 # 0046 PDF Report Table Layout Owner Readability Gap
 
-Status: Targeted Verified
+Status: Full Verified
 
 Reported by owner on 2026-06-26. This log captures the report readability
 problem found after the latest `0045` lifecycle/report fixes.
@@ -815,9 +815,29 @@ PASS  Tests\Feature\ReportingExports\InventoryStockValueReportExcelExportFeature
 Tests: 33 passed, 293 assertions
 ```
 
-### NEXT
+### FULL VERIFY PROOF
 
-Run full `make verify` again after this legacy UI contract patch.
+Command, from `/home/asyraf/Code/laravel/bengkel2/app`:
+
+```bash
+make verify
+```
+
+Result:
+
+```text
+[OK] No errors
+Contract audit passed.
+Tests: 1439 passed (8594 assertions)
+```
+
+Meaning:
+
+- PHPStan passed;
+- line-limit and Blade PHP/directive checks passed;
+- contract audit passed;
+- the full Pest suite passed after the UI owner-readable contract and legacy
+  test contract patches.
 
 ## 2026-06-27 RED And Patch Proof - Operational Expense Slice
 
