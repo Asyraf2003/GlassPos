@@ -25,4 +25,14 @@ final class ServicePackageProfitBreakdownQuery
             ->map(fn (object $row): array => $this->mapper->map($row))
             ->all();
     }
+
+    /**
+     * @return array<string, int>
+     */
+    public function summary(string $fromTransactionDate, string $toTransactionDate): array
+    {
+        $row = (array) $this->sourceRows->summary($fromTransactionDate, $toTransactionDate);
+
+        return array_map(static fn (mixed $value): int => (int) $value, $row);
+    }
 }

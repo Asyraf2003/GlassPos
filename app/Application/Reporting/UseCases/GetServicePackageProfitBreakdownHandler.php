@@ -24,6 +24,13 @@ final class GetServicePackageProfitBreakdownHandler
         ]);
     }
 
+    public function handleSummaryOnly(string $fromTransactionDate, string $toTransactionDate): Result
+    {
+        return Result::success([
+            'summary' => $this->sourceReader->getSummary($fromTransactionDate, $toTransactionDate),
+        ]);
+    }
+
     /**
      * @param list<array<string, int|string|null>> $rows
      * @return array<string, int>

@@ -17,7 +17,7 @@ final class ServicePackageProfitBreakdownReportPageController extends Controller
         GetServicePackageProfitBreakdownHandler $useCase,
     ): View {
         $query = TransactionReportPageQuery::fromValidated($request->validated());
-        $result = $useCase->handle($query->fromTransactionDate(), $query->toTransactionDate());
+        $result = $useCase->handleSummaryOnly($query->fromTransactionDate(), $query->toTransactionDate());
         $payload = is_array($result->data()) ? $result->data() : [];
         $filters = $query->toViewData();
 
