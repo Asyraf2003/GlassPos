@@ -24,7 +24,7 @@
                 class="btn btn-primary d-none"
                 id="workspace-payment-open-cash"
             >
-                Bayar Cash
+                Bayar Tunai
             </button>
         </div>
     </div>
@@ -37,7 +37,7 @@
             class="btn btn-primary"
             id="workspace-payment-submit-cash"
         >
-            Simpan Pembayaran Cash
+            Simpan Pembayaran Tunai
         </button>
     </div>
 </div>
