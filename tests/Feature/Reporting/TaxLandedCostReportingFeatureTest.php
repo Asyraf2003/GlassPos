@@ -53,7 +53,9 @@ final class TaxLandedCostReportingFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('Ban Pajak Report');
         $response->assertSee('Rp 22.000');
-        $response->assertSee('Rp 11.000');
+        $response->assertSee('Rincian Ringkas');
+        $response->assertDontSee('Rp 11.000');
+        $response->assertDontSee('TAX-RPT-001');
     }
 
     public function test_inventory_stock_value_report_period_movements_include_taxed_supplier_receipt_cost(): void
