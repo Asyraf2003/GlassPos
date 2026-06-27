@@ -26,4 +26,11 @@ final class DatabaseInventoryMovementReportingSourceReaderAdapter implements Inv
     {
         return InventoryCurrentSnapshotDatabaseQuery::get();
     }
+
+    public function getInventoryStockValueSummary(
+        string $fromMutationDate,
+        string $toMutationDate,
+    ): array {
+        return InventoryStockValueSummaryDatabaseQuery::get($fromMutationDate, $toMutationDate);
+    }
 }

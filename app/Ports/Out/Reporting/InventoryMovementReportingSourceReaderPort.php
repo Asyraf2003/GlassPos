@@ -56,4 +56,12 @@ interface InventoryMovementReportingSourceReaderPort
      * }>
      */
     public function getInventoryCurrentSnapshotRows(): array;
+
+    /**
+     * @return array<string, int>
+     */
+    public function getInventoryStockValueSummary(
+        string $fromMutationDate,
+        string $toMutationDate,
+    ): array;
 }

@@ -38,4 +38,14 @@ final class GetInventoryStockValueReportDatasetHandler
             'summary' => $this->summary->build($snapshotRows, $movementRows),
         ]);
     }
+
+    public function handleSummaryOnly(string $fromMutationDate, string $toMutationDate): Result
+    {
+        return Result::success([
+            'summary' => $this->sourceReader->getInventoryStockValueSummary(
+                $fromMutationDate,
+                $toMutationDate,
+            ),
+        ]);
+    }
 }

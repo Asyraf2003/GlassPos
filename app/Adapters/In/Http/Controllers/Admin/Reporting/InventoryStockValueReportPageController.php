@@ -17,7 +17,7 @@ final class InventoryStockValueReportPageController extends Controller
         GetInventoryStockValueReportDatasetHandler $useCase,
     ): View {
         $query = InventoryStockValueReportPageQuery::fromValidated($request->validated());
-        $result = $useCase->handle($query->fromMutationDate(), $query->toMutationDate());
+        $result = $useCase->handleSummaryOnly($query->fromMutationDate(), $query->toMutationDate());
         $payload = is_array($result->data()) ? $result->data() : [];
 
         return view('admin.reporting.inventory_stock_value.index', [
