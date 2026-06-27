@@ -2,9 +2,9 @@
   <div class="card-header">
     <div class="d-flex justify-content-between align-items-start gap-2">
       <div>
-        <h4 class="card-title mb-0">Versioning Nota</h4>
+        <h4 class="card-title mb-0">Riwayat Perubahan Nota</h4>
       </div>
-      <span class="badge border">{{ $revisionCount }} Revision</span>
+      <span class="badge border">{{ $revisionCount }} Perubahan</span>
     </div>
   </div>
 
@@ -16,7 +16,7 @@
     <div class="border rounded p-3 mb-4 bg-body">
       <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
         <div>
-          <div class="small text-muted">Revision Aktif</div>
+          <div class="small text-muted">Perubahan Aktif</div>
           {{-- Badge R-number sebagai "induk" — ukuran penuh, warna primer --}}
           <div class="fw-bold text-primary fs-5">
             R{{ (int) ($currentRevision['revision_number'] ?? 0) }}
@@ -28,7 +28,7 @@
       </div>
 
       @if (!empty($currentRevision['line_snapshot_rows']))
-        <div class="fw-semibold small mb-2 text-muted">Isi Revision Aktif</div>
+        <div class="fw-semibold small mb-2 text-muted">Isi Perubahan Aktif</div>
         <div class="d-flex flex-column gap-2 mb-3">
           @foreach (($currentRevision['line_snapshot_rows'] ?? []) as $line)
             {{-- Line item — style induk: border penuh, padding normal --}}
@@ -117,7 +117,7 @@
                 @endforeach
                 @if (!empty($entry['reason']))
                   <div class="small text-muted mt-1 fst-italic">
-                    <strong>Reason:</strong> {{ $entry['reason'] }}
+                    <strong>Alasan:</strong> {{ $entry['reason'] }}
                   </div>
                 @endif
               </div>

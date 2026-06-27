@@ -25,8 +25,8 @@ final class CashierNoteMutationHistoryViewFeatureTest extends TestCase
         $this->actingAs($user)
             ->get(route('cashier.notes.show', ['noteId' => 'note-1']))
             ->assertOk()
-            ->assertSee('Versioning Nota')
-            ->assertSee('Revision Aktif')
+            ->assertSee('Riwayat Perubahan Nota')
+            ->assertSee('Perubahan Aktif')
             ->assertDontSee('Riwayat Correction');
     }
 
