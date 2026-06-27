@@ -31,7 +31,7 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
 
         $response->assertOk();
         $response->assertSee('Laba Paket Service');
-        $response->assertSee('Hutang lalu lunas');
+        $response->assertDontSee('Hutang lalu lunas');
         $response->assertSee('Refund Komponen Produk');
         $response->assertSee('Refund Komponen Service');
 
@@ -63,7 +63,8 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         ]));
 
         $response->assertOk();
-        $response->assertSee('Inside Customer');
+        $response->assertSee('Rp 450.000');
+        $response->assertDontSee('Inside Customer');
         $response->assertDontSee('Outside Customer');
         $response->assertDontSee('Canceled Customer');
     }
