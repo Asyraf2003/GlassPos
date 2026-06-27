@@ -97,12 +97,19 @@ final class InventoryStockValueReportPageFeatureTest extends TestCase
         $response->assertSee('inventory-stock-value-report-filter-form', false);
         $response->assertSee('Notifikasi stok belum aktif.');
         $response->assertSee('01 Januari 2030 s/d 31 Januari 2030');
+        $response->assertSee('Rincian Ringkas');
+        $response->assertSee('Qty Tersedia');
+        $response->assertSee('Nilai Stok');
+        $response->assertSee('Selisih Qty');
         $response->assertSee('Rp 211.000');
         $response->assertSee('Supra');
         $response->assertSee('Vario');
         $response->assertSee('Beat');
         $response->assertSee('Scoopy');
         $response->assertSee('Rp 96.000');
+        $response->assertDontSee('Snapshot Stok Saat Ini');
+        $response->assertDontSee('Ringkasan Mutasi Periode');
+        $response->assertDontSee('KB-001');
         $response->assertSee(route('admin.reports.transaction_cash_ledger.index'), false);
         $response->assertSee(route('admin.reports.employee_debt.index'), false);
         $response->assertSee(route('admin.reports.operational_profit.index'), false);
@@ -192,6 +199,8 @@ final class InventoryStockValueReportPageFeatureTest extends TestCase
         $response->assertSee('Vario');
         $response->assertSee('Rp 52.000');
         $response->assertDontSee('Outside');
+        $response->assertDontSee('custom-sr1');
+        $response->assertDontSee('custom-sto1');
     }
 
     public function test_custom_mode_requires_explicit_date_range(): void
