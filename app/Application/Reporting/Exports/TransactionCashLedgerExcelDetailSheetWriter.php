@@ -30,7 +30,7 @@ final class TransactionCashLedgerExcelDetailSheetWriter
                 (int) ($row['event_amount_rupiah'] ?? 0),
                 (string) ($row['customer_payment_id'] ?? ''),
                 (string) ($row['refund_id'] ?? ''),
-                (string) ($row['source_table'] ?? ''),
+                $this->sourceLabel((string) ($row['source_table'] ?? '')),
                 (string) ($row['source_id'] ?? ''),
                 (string) ($row['source_disposition_id'] ?? ''),
             ];
@@ -47,9 +47,9 @@ final class TransactionCashLedgerExcelDetailSheetWriter
             'Nominal',
             'ID Pembayaran',
             'ID Pengembalian Dana',
-            'Tabel Sumber',
-            'ID Sumber',
-            'ID Disposisi Sumber',
+            'Asal Catatan',
+            'ID Asal Catatan',
+            'ID Disposisi Asal',
         ], $values);
 
         $this->tables->autosize($sheet, 13);
@@ -58,10 +58,25 @@ final class TransactionCashLedgerExcelDetailSheetWriter
     private function eventTypeLabel(string $type): string
     {
         return match ($type) {
-            'payment_allocation' => 'Alokasi Pembayaran',
+            'payment_allocation' => 'Pembayaran Tercatat',
             'payment' => 'Pembayaran',
             'refund' => 'Pengembalian Dana',
             default => $type,
+        };
+    }
+
+    private function sourceLabel(string $source): string
+    {
+        return match ($source) {
+            'payment_allocations' => 'Pembayaran Nota',
+            'payment_component_allocations' => 'Pembayaran Rincian Nota',
+            'customer_payments' => 'Pembayaran Pelanggan',
+            'customer_refunds' => 'Pengembalian Dana',
+            'refund_component_allocations' => 'Pengembalian Rincian Nota',
+            'note_revision_surplus_refund_payments' => 'Pengembalian Surplus Dibayar',
+            'note_revision_surplus_dispositions' => 'Pengembalian Surplus Ditandai',
+            '' => '-',
+            default => $source,
         };
     }
 

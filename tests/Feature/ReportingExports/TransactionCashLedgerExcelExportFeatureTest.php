@@ -58,16 +58,16 @@ final class TransactionCashLedgerExcelExportFeatureTest extends TestCase
         $this->assertSame('Tanggal Event', $detail->getCell('B1')->getValue());
         $this->assertSame('Metode Pembayaran', $detail->getCell('G1')->getValue());
         $this->assertSame('Nominal', $detail->getCell('H1')->getValue());
-        $this->assertSame('Tabel Sumber', $detail->getCell('K1')->getValue());
-        $this->assertSame('ID Sumber', $detail->getCell('L1')->getValue());
-        $this->assertSame('ID Disposisi Sumber', $detail->getCell('M1')->getValue());
+        $this->assertSame('Asal Catatan', $detail->getCell('K1')->getValue());
+        $this->assertSame('ID Asal Catatan', $detail->getCell('L1')->getValue());
+        $this->assertSame('ID Disposisi Asal', $detail->getCell('M1')->getValue());
         $this->assertSame('02 Januari 2030', $detail->getCell('B2')->getValue());
         $this->assertSame('note-1', $detail->getCell('C2')->getValue());
-        $this->assertSame('Alokasi Pembayaran', $detail->getCell('E2')->getValue());
+        $this->assertSame('Pembayaran Tercatat', $detail->getCell('E2')->getValue());
         $this->assertSame('Masuk', $detail->getCell('F2')->getValue());
         $this->assertSame('Tunai', $detail->getCell('G2')->getValue());
         $this->assertSame(8000, $detail->getCell('H2')->getValue());
-        $this->assertSame('payment_allocations', $detail->getCell('K2')->getValue());
+        $this->assertSame('Pembayaran Nota', $detail->getCell('K2')->getValue());
         $this->assertSame('pay-1', $detail->getCell('L2')->getValue());
         $this->assertNull($detail->getCell('M2')->getValue());
 
@@ -76,7 +76,7 @@ final class TransactionCashLedgerExcelExportFeatureTest extends TestCase
         $this->assertSame('Keluar', $detail->getCell('F4')->getValue());
         $this->assertSame('-', $detail->getCell('G4')->getValue());
         $this->assertSame(1000, $detail->getCell('H4')->getValue());
-        $this->assertSame('customer_refunds', $detail->getCell('K4')->getValue());
+        $this->assertSame('Pengembalian Dana', $detail->getCell('K4')->getValue());
         $this->assertSame('ref-1', $detail->getCell('L4')->getValue());
         $this->assertNull($detail->getCell('M4')->getValue());
         $this->assertNull($detail->getCell('C5')->getValue());

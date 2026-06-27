@@ -59,7 +59,7 @@ final class TransactionCashLedgerPdfViewDataBuilder
             'amount' => $this->rupiah($row['event_amount_rupiah'] ?? 0),
             'payment_marker' => $paymentId !== '' ? 'Ada' : '-',
             'refund_marker' => $refundId !== '' ? 'Ada' : '-',
-            'source_table' => $this->stringValue($row['source_table'] ?? '-') ?: '-',
+            'source_table' => $this->sourceLabel($this->stringValue($row['source_table'] ?? '-')),
             'source_id' => $this->stringValue($row['source_id'] ?? '-') ?: '-',
             'source_disposition_id' => $this->stringValue($row['source_disposition_id'] ?? '-') ?: '-',
         ];
@@ -78,10 +78,25 @@ final class TransactionCashLedgerPdfViewDataBuilder
     private function eventTypeLabel(string $type): string
     {
         return match ($type) {
-            'payment_allocation' => 'Alokasi Pembayaran',
+            'payment_allocation' => 'Pembayaran Tercatat',
             'payment' => 'Pembayaran',
             'refund' => 'Pengembalian Dana',
             default => $type,
+        };
+    }
+
+    private function sourceLabel(string $source): string
+    {
+        return match ($source) {
+            'payment_allocations' => 'Pembayaran Nota',
+            'payment_component_allocations' => 'Pembayaran Rincian Nota',
+            'customer_payments' => 'Pembayaran Pelanggan',
+            'customer_refunds' => 'Pengembalian Dana',
+            'refund_component_allocations' => 'Pengembalian Rincian Nota',
+            'note_revision_surplus_refund_payments' => 'Pengembalian Surplus Dibayar',
+            'note_revision_surplus_dispositions' => 'Pengembalian Surplus Ditandai',
+            '', '-' => '-',
+            default => $source,
         };
     }
 
