@@ -122,8 +122,8 @@ final class TransactionReportPageFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Ringkasan Utama');
-        $response->assertSee('Catatan Laporan');
-        $response->assertSee('Detail lengkap tersedia di Excel');
+        $response->assertDontSee('Catatan Laporan');
+        $response->assertDontSee('Detail lengkap tersedia di Excel');
     }
 
 

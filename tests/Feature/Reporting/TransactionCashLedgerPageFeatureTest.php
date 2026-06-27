@@ -75,8 +75,8 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Ringkasan Utama');
-        $response->assertSee('Catatan Laporan');
-        $response->assertSee('Detail lengkap tersedia di Excel');
+        $response->assertDontSee('Catatan Laporan');
+        $response->assertDontSee('Detail lengkap tersedia di Excel');
     }
 
     public function test_admin_can_see_cash_and_transfer_money_in_split_on_transaction_cash_ledger_page(): void
@@ -116,7 +116,7 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('Tunai Masuk');
         $response->assertSee('Transfer Masuk');
-        $response->assertSee('Detail lengkap tersedia di Excel');
+        $response->assertDontSee('Detail lengkap tersedia di Excel');
         $response->assertDontSee('Metode Pembayaran');
         $response->assertDontSee('note-page-detail-cash');
         $response->assertDontSee('note-page-detail-transfer');
