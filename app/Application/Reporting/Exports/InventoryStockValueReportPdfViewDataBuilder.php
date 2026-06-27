@@ -19,8 +19,6 @@ final class InventoryStockValueReportPdfViewDataBuilder
     public function build(array $dataset, array $filters): array
     {
         $summary = is_array($dataset['summary'] ?? null) ? $dataset['summary'] : [];
-        $snapshotRows = is_array($dataset['snapshot_rows'] ?? null) ? $dataset['snapshot_rows'] : [];
-        $movementRows = is_array($dataset['movement_rows'] ?? null) ? $dataset['movement_rows'] : [];
 
         return [
             'title' => 'Stok dan Nilai Persediaan',
@@ -31,8 +29,6 @@ final class InventoryStockValueReportPdfViewDataBuilder
             'referenceDateLabel' => $this->formatDate($this->stringValue($filters['reference_date'] ?? '')),
             'generatedAt' => $this->clock->now()->format('d/m/Y H:i'),
             'summaryItems' => $this->summaryItems($summary),
-            'movementRows' => array_map(fn (array $row): array => $this->movementRowData($row), $movementRows),
-            'snapshotRows' => array_map(fn (array $row): array => $this->snapshotRowData($row), $snapshotRows),
         ];
     }
 
@@ -58,34 +54,4 @@ final class InventoryStockValueReportPdfViewDataBuilder
         ];
     }
 
-    private function movementRowData(array $row): array
-    {
-        return [
-            'kode_barang' => $this->stringValue($row['kode_barang'] ?? ''),
-            'nama_barang' => $this->stringValue($row['nama_barang'] ?? ''),
-            'supply_in_qty' => $this->integerValue($row['supply_in_qty'] ?? 0),
-            'sale_out_qty' => $this->integerValue($row['sale_out_qty'] ?? 0),
-            'refund_reversal_qty' => $this->integerValue($row['refund_reversal_qty'] ?? 0),
-            'revision_correction_qty' => $this->integerValue($row['revision_correction_qty'] ?? 0),
-            'net_qty_delta' => $this->integerValue($row['net_qty_delta'] ?? 0),
-            'net_cost_delta' => $this->rupiah($row['net_cost_delta_rupiah'] ?? 0),
-            'current_qty_on_hand' => $this->integerValue($row['current_qty_on_hand'] ?? 0),
-            'current_inventory_value' => $this->rupiah($row['current_inventory_value_rupiah'] ?? 0),
-        ];
-    }
-
-    private function snapshotRowData(array $row): array
-    {
-        return [
-            'kode_barang' => $this->stringValue($row['kode_barang'] ?? ''),
-            'nama_barang' => $this->stringValue($row['nama_barang'] ?? ''),
-            'merek' => $this->stringValue($row['merek'] ?? ''),
-            'ukuran' => $this->nullableIntegerValue($row['ukuran'] ?? null),
-            'current_qty_on_hand' => $this->integerValue($row['current_qty_on_hand'] ?? 0),
-            'current_avg_cost' => $this->rupiah($row['current_avg_cost_rupiah'] ?? 0),
-            'current_inventory_value' => $this->rupiah($row['current_inventory_value_rupiah'] ?? 0),
-            'reorder_point_qty' => $this->nullableIntegerValue($row['reorder_point_qty'] ?? null),
-            'critical_threshold_qty' => $this->nullableIntegerValue($row['critical_threshold_qty'] ?? null),
-        ];
-    }
 }
