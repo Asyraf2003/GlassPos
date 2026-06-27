@@ -3,9 +3,9 @@
         <div class="card-header">
             <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
                 <div>
-                    <h4 class="card-title mb-1">Pembayaran Line Open Terpilih</h4>
+                    <h4 class="card-title mb-1">Pembayaran Rincian Terpilih</h4>
                     <p class="mb-0 text-muted">
-                        Form ini membaca line Open yang dipilih dari tabel line. Pembayaran dilakukan untuk baris yang dicentang, bukan untuk nota secara umum.
+                        Form ini membaca rincian yang dipilih dari tabel nota. Pembayaran dilakukan untuk baris yang dicentang, bukan untuk nota secara umum.
                     </p>
                 </div>
 
@@ -13,7 +13,7 @@
             </div>
 
             <p class="mt-2 mb-0 text-muted small">
-                Kontrak backend lama masih dipertahankan sementara, tetapi pilihan line sudah menjadi input utama untuk flow pembayaran baru.
+                Kontrak backend lama masih dipertahankan sementara, tetapi pilihan rincian sudah menjadi input utama untuk alur pembayaran baru.
             </p>
         </div>
 
@@ -30,15 +30,15 @@
                 <div id="selected-payment-row-inputs"></div>
 
                 <div class="border rounded p-3 mb-4">
-                    <div class="small text-muted mb-2">Ringkasan Line Terpilih</div>
+                    <div class="small text-muted mb-2">Ringkasan Rincian Terpilih</div>
 
                     <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <span class="text-muted">Jumlah Line Dipilih</span>
+                        <span class="text-muted">Jumlah Rincian Dipilih</span>
                         <strong id="selected-payment-row-count">0</strong>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <span class="text-muted">Total Outstanding Line Dipilih</span>
+                        <span class="text-muted">Total Sisa Tagihan Rincian Dipilih</span>
                         <strong id="selected-payment-outstanding-total">0</strong>
                     </div>
 
@@ -51,7 +51,7 @@
                 <div class="border rounded p-3 mb-4">
                     <div class="fw-semibold mb-1">Catatan Transisi</div>
                     <div class="small text-muted">
-                        Opsi penuh atau sebagian tidak lagi ditonjolkan. Fokus utamanya sekarang adalah memilih line Open lalu mengisi nominal pembayaran untuk line yang dipilih.
+                        Opsi penuh atau sebagian tidak lagi ditonjolkan. Fokus utamanya sekarang adalah memilih rincian lalu mengisi nominal pembayaran untuk rincian yang dipilih.
                     </div>
                 </div>
 
@@ -63,7 +63,7 @@
                     <div class="col-12">
                         <label class="form-label">Metode</label>
                         <select class="form-select" name="payment_method" id="payment-method">
-                            <option value="cash" {{ old('payment_method') === 'cash' ? 'selected' : '' }}>Cash</option>
+                            <option value="cash" {{ old('payment_method') === 'cash' ? 'selected' : '' }}>Tunai</option>
                             <option value="tf" {{ old('payment_method') === 'tf' ? 'selected' : '' }}>Transfer</option>
                         </select>
                     </div>
@@ -87,7 +87,7 @@
                             name="amount_paid"
                             id="amount-paid"
                             value="{{ old('amount_paid') }}"
-                            placeholder="Isi nominal untuk line Open yang dipilih"
+                            placeholder="Isi nominal untuk rincian yang dipilih"
                         >
                     </div>
 
@@ -99,7 +99,7 @@
                             name="amount_received"
                             id="amount-received"
                             value="{{ old('amount_received') }}"
-                            placeholder="Wajib untuk pembayaran cash"
+                            placeholder="Wajib untuk pembayaran tunai"
                         >
                     </div>
                 </div>
@@ -111,14 +111,14 @@
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted">Kembalian Cash</span>
+                        <span class="text-muted">Kembalian Tunai</span>
                         <strong id="payment-change-text">0</strong>
                     </div>
                 </div>
 
                 <div class="ui-form-actions mt-3">
                     <button type="submit" class="btn btn-primary" id="note-payment-submit">
-                        Catat Pembayaran Line
+                        Catat Pembayaran Rincian
                     </button>
                 </div>
             </form>

@@ -4,9 +4,9 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <div>
-                        <h5 class="modal-title mb-1">Refund Nota</h5>
+                        <h5 class="modal-title mb-1">Pengembalian Dana Nota</h5>
                         <p class="mb-0 text-muted small">
-                            Pilih line yang ingin direfund. Sumber pembayaran dan nominal refund diselesaikan otomatis oleh sistem.
+                            Pilih rincian yang ingin dikembalikan dananya. Sumber pembayaran dan nominal pengembalian diselesaikan otomatis oleh sistem.
                         </p>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
@@ -34,7 +34,7 @@
                         @endif
 
                         <div class="border rounded p-3 mb-4">
-                            <div class="fw-semibold mb-2">Line Close yang Bisa Direfund</div>
+                            <div class="fw-semibold mb-2">Rincian yang Bisa Dikembalikan Dananya</div>
                             <div class="d-flex flex-column gap-2">
                                 @foreach ($workspaceRefundRows as $row)
                                     <label class="border rounded px-3 py-2 d-flex align-items-start gap-2">
@@ -47,7 +47,7 @@
                                         >
                                         <span>
                                             <span class="d-block fw-semibold">
-                                                Line {{ $row['line_no'] }} · {{ $row['type_label'] }}
+                                                Rincian {{ $row['line_no'] }} · {{ $row['type_label'] }}
                                             </span>
                                             <small class="text-muted d-block">
                                                 Status: {{ $row['line_status'] }} ·
@@ -61,7 +61,7 @@
                         </div>
 
                         <div class="form-group mb-4">
-                            <label for="workspace_refund_refunded_at" class="form-label">Tanggal Refund</label>
+                            <label for="workspace_refund_refunded_at" class="form-label">Tanggal Pengembalian Dana</label>
                             <input
                                 type="date"
                                 data-ui-date="single"
@@ -74,13 +74,13 @@
                         </div>
 
                         <div class="form-group mb-0">
-                            <label for="workspace_refund_reason" class="form-label">Alasan Refund</label>
+                            <label for="workspace_refund_reason" class="form-label">Alasan Pengembalian Dana</label>
                             <textarea
                                 id="workspace_refund_reason"
                                 name="reason"
                                 rows="3"
                                 class="form-control"
-                                placeholder="Jelaskan alasan refund"
+                                placeholder="Jelaskan alasan pengembalian dana"
                                 required
                             >{{ old('reason') }}</textarea>
                         </div>
@@ -92,7 +92,7 @@
                                 Batal
                             </button>
                             <button type="submit" class="btn btn-primary">
-                                Catat Refund
+                                Catat Pengembalian Dana
                             </button>
                         </div>
                     </div>
