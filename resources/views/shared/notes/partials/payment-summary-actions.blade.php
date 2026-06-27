@@ -57,9 +57,9 @@
     @if (($canManageSurplusDisposition ?? false) && ($note['surplus_disposition']['has_pending_refund_due_action'] ?? false) && ! empty($note['surplus_disposition']['pending_items'] ?? []))
       <div class="border rounded p-3 bg-body mb-3">
         <div class="small text-muted mb-1">Surplus Nota</div>
-        <div class="fw-semibold text-body mb-2">Tandai Refund Due</div>
+        <div class="fw-semibold text-body mb-2">Tandai Pengembalian Belum Dibayar</div>
         <p class="small text-muted mb-3">
-          Surplus pending dapat ditandai sebagai Refund Due. Ini belum berarti uang sudah keluar.
+          Surplus pending dapat ditandai sebagai pengembalian belum dibayar. Ini belum berarti uang sudah keluar.
         </p>
 
         <div class="d-grid gap-3">
@@ -74,7 +74,7 @@
               @csrf
 
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="text-muted">Pending Refund Due</span>
+                <span class="text-muted">Pengembalian Belum Dibayar</span>
                 <strong class="text-body">
                   {{ number_format((int) ($pendingRefundDueItem['unresolved_pending_rupiah'] ?? 0), 0, ',', '.') }}
                 </strong>
@@ -82,7 +82,7 @@
 
               <div class="mb-3">
                 <label class="form-label small text-muted" for="refund-due-amount-{{ $pendingRefundDueItem['note_revision_settlement_id'] }}">
-                  Nominal Refund Due
+                  Nominal Pengembalian Belum Dibayar
                 </label>
                 <input
                   id="refund-due-amount-{{ $pendingRefundDueItem['note_revision_settlement_id'] }}"
@@ -115,9 +115,9 @@
                 type="submit"
                 class="btn btn-outline-primary w-100"
                 data-refund-due-submit
-                data-loading-text="Menyimpan Refund Due..."
+                data-loading-text="Menyimpan Pengembalian Belum Dibayar..."
               >
-                Tandai Refund Due
+                Tandai Pengembalian Belum Dibayar
               </button>
             </form>
           @endforeach
@@ -128,9 +128,9 @@
     @if (($canManageSurplusDisposition ?? false) && ($note['surplus_disposition']['has_pending_refund_paid_action'] ?? false) && ! empty($note['surplus_disposition']['refund_paid_items'] ?? []))
       <div class="border rounded p-3 bg-body mb-3">
         <div class="small text-muted mb-1">Surplus Nota</div>
-        <div class="fw-semibold text-body mb-2">Catat Refund Paid</div>
+        <div class="fw-semibold text-body mb-2">Catat Pengembalian Sudah Dibayar</div>
         <p class="small text-muted mb-3">
-          Refund Paid berarti uang surplus benar-benar sudah keluar dari kas.
+          Pengembalian sudah dibayar berarti uang surplus benar-benar sudah keluar dari kas.
         </p>
 
         <div class="d-grid gap-3">
@@ -145,7 +145,7 @@
               @csrf
 
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="text-muted">Sisa Refund Due</span>
+                <span class="text-muted">Sisa Pengembalian Belum Dibayar</span>
                 <strong class="text-body">
                   {{ number_format((int) ($refundPaidItem['remaining_refund_due_rupiah'] ?? 0), 0, ',', '.') }}
                 </strong>
@@ -153,7 +153,7 @@
 
               <div class="mb-3">
                 <label class="form-label small text-muted" for="refund-paid-amount-{{ $refundPaidItem['note_revision_surplus_disposition_id'] }}">
-                  Nominal Refund Paid
+                  Nominal Pengembalian Sudah Dibayar
                 </label>
                 <input
                   id="refund-paid-amount-{{ $refundPaidItem['note_revision_surplus_disposition_id'] }}"
@@ -171,7 +171,7 @@
 
               <div class="mb-3">
                 <label class="form-label small text-muted" for="refund-paid-effective-date-{{ $refundPaidItem['note_revision_surplus_disposition_id'] }}">
-                  Tanggal Refund Paid
+                  Tanggal Pengembalian Dibayar
                 </label>
                 <input
                   id="refund-paid-effective-date-{{ $refundPaidItem['note_revision_surplus_disposition_id'] }}"
@@ -206,9 +206,9 @@
                 type="submit"
                 class="btn btn-outline-danger w-100"
                 data-refund-paid-submit
-                data-loading-text="Menyimpan Refund Paid..."
+                data-loading-text="Menyimpan Pengembalian Sudah Dibayar..."
               >
-                Catat Refund Paid
+                Catat Pengembalian Sudah Dibayar
               </button>
             </form>
           @endforeach
@@ -220,19 +220,19 @@
     @if (! empty($note['surplus_disposition_audit_timeline'] ?? []))
       <div class="border rounded p-3 bg-body mb-3">
         <div class="small text-muted mb-1">Timeline Audit Surplus</div>
-        <div class="fw-semibold text-body mb-2">Riwayat Refund Due</div>
+        <div class="fw-semibold text-body mb-2">Riwayat Pengembalian Belum Dibayar</div>
         <div class="d-grid gap-2">
           @foreach (($note['surplus_disposition_audit_timeline'] ?? []) as $auditItem)
             <div class="border rounded p-2 bg-body">
               <div class="d-flex justify-content-between align-items-start gap-2">
                 <div>
-                  <div class="fw-semibold text-body">{{ $auditItem['label'] ?? 'Refund Due Ditandai' }}</div>
+                  <div class="fw-semibold text-body">{{ $auditItem['label'] ?? 'Pengembalian Belum Dibayar Ditandai' }}</div>
                   <div class="small text-muted">
-                    Amount {{ number_format((int) ($auditItem['amount_rupiah'] ?? 0), 0, ',', '.') }} ·
+                    Nominal {{ number_format((int) ($auditItem['amount_rupiah'] ?? 0), 0, ',', '.') }} ·
                     {{ $auditItem['remaining_label'] ?? 'Sisa pending' }} {{ number_format((int) ($auditItem['remaining_rupiah'] ?? ($auditItem['after_pending_rupiah'] ?? 0)), 0, ',', '.') }}
                   </div>
                   @if (! empty($auditItem['reason']))
-                    <div class="small text-muted fst-italic mt-1">Reason: {{ $auditItem['reason'] }}</div>
+                    <div class="small text-muted fst-italic mt-1">Alasan: {{ $auditItem['reason'] }}</div>
                   @endif
                 </div>
                 <div class="text-end small text-muted">

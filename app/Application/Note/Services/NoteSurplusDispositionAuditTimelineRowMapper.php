@@ -37,15 +37,15 @@ final class NoteSurplusDispositionAuditTimelineRowMapper
     private function label(string $eventName): string
     {
         return match ($eventName) {
-            'note_revision_surplus_refund_paid_recorded' => 'Refund Paid Dicatat',
-            default => 'Refund Due Ditandai',
+            'note_revision_surplus_refund_paid_recorded' => 'Pengembalian Sudah Dibayar Dicatat',
+            default => 'Pengembalian Belum Dibayar Ditandai',
         };
     }
 
     private function remainingLabel(string $eventName): string
     {
         return match ($eventName) {
-            'note_revision_surplus_refund_paid_recorded' => 'Sisa refund due',
+            'note_revision_surplus_refund_paid_recorded' => 'Sisa pengembalian belum dibayar',
             default => 'Sisa pending',
         };
     }
