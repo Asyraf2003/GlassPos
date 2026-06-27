@@ -9,12 +9,12 @@
 
         <form id="admin-note-filter-form">
             <div class="form-group mb-4">
-                <label for="admin-note-line-status" class="form-label">Status Line</label>
+                <label for="admin-note-line-status" class="form-label">Status Rincian</label>
                 <select id="admin-note-line-status" class="form-select">
                     <option value="" @selected($filters['line_status'] === '')>Semua Status</option>
-                    <option value="open" @selected($filters['line_status'] === 'open')>Open</option>
-                    <option value="close" @selected($filters['line_status'] === 'close')>Close</option>
-                    <option value="refund" @selected($filters['line_status'] === 'refund')>Refund</option>
+                    <option value="open" @selected($filters['line_status'] === 'open')>Belum Selesai</option>
+                    <option value="close" @selected($filters['line_status'] === 'close')>Selesai</option>
+                    <option value="refund" @selected($filters['line_status'] === 'refund')>Dikembalikan</option>
                 </select>
             </div>
 

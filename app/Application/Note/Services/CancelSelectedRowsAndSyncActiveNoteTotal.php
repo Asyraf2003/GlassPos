@@ -85,7 +85,7 @@ final class CancelSelectedRowsAndSyncActiveNoteTotal
                 'note_id' => $note->id(),
                 'selected_row_ids' => $resolved['selected_row_ids'],
                 'active_total_rupiah' => $note->totalRupiah()->amount(),
-            ], 'Line refund berhasil dinonaktifkan dari note aktif.');
+            ], 'Rincian pengembalian berhasil dinonaktifkan dari nota aktif.');
         } catch (DomainException $e) {
             return Result::failure($e->getMessage(), ['refund' => ['CANCEL_SELECTED_ROWS_FAILED']]);
         }

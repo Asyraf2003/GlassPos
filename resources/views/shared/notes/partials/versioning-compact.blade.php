@@ -31,12 +31,12 @@
         <div class="fw-semibold small mb-2 text-muted">Isi Perubahan Aktif</div>
         <div class="d-flex flex-column gap-2 mb-3">
           @foreach (($currentRevision['line_snapshot_rows'] ?? []) as $line)
-            {{-- Line item — style induk: border penuh, padding normal --}}
+            {{-- Rincian item - style induk: border penuh, padding normal --}}
             <div class="border rounded p-2 bg-body">
               <div class="d-flex justify-content-between gap-2">
                 <div>
                   <div class="fw-semibold text-body">
-                    Line {{ (int) ($line['line_no'] ?? 0) }} · {{ $line['label'] ?? '-' }}
+                    Rincian {{ (int) ($line['line_no'] ?? 0) }} · {{ $line['label'] ?? '-' }}
                   </div>
                   <div class="small text-muted">
                     {{ $line['type_label'] ?? '-' }} · {{ $line['status'] ?? '-' }}
@@ -89,13 +89,13 @@
             @if (!empty($entry['line_snapshot_rows']))
               <div class="d-flex flex-column gap-2 mb-3">
                 @foreach (($entry['line_snapshot_rows'] ?? []) as $line)
-                  {{-- Line item turunan — mengikuti induk tapi pakai border-start --}}
+                  {{-- Rincian item turunan - mengikuti induk tapi pakai border-start --}}
                   {{-- sebagai penanda hierarki, tetap konsisten dengan induk    --}}
                   <div class="border rounded p-2 bg-body border-start border-3 border-secondary ps-3">
                     <div class="d-flex justify-content-between gap-2">
                       <div>
                         <div class="small fw-bold text-body">
-                          Line {{ (int) ($line['line_no'] ?? 0) }} · {{ $line['label'] ?? '-' }}
+                          Rincian {{ (int) ($line['line_no'] ?? 0) }} · {{ $line['label'] ?? '-' }}
                         </div>
                         <div class="small text-muted" style="font-size: 0.75rem;">
                           {{ $line['type_label'] ?? '-' }} · {{ $line['status'] ?? '-' }}

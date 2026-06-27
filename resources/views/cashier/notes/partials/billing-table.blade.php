@@ -19,7 +19,7 @@
             <th>Status</th>
             <th class="text-end">Komponen</th>
             <th class="text-end">Sudah Dibayar</th>
-            <th class="text-end">Refund</th>
+            <th class="text-end">Pengembalian</th>
             <th class="text-end">Sisa</th>
             <th>Keterangan</th>
           </tr>

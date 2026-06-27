@@ -31,7 +31,7 @@
                                 {{ number_format((int) ($entry['after_total_rupiah'] ?? 0), 0, ',', '.') }}
                             </div>
                             <div class="col-md-4">
-                                <span class="text-muted">Refund Wajib:</span>
+                                <span class="text-muted">Pengembalian Wajib:</span>
                                 {{ number_format((int) ($entry['refund_required_rupiah'] ?? 0), 0, ',', '.') }}
                             </div>
                         </div>

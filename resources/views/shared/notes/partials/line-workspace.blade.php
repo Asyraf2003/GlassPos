@@ -185,7 +185,7 @@
         </div>
 
         <div class="note-detail-line-metric">
-          <div class="note-detail-line-metric-label">Refund</div>
+          <div class="note-detail-line-metric-label">Pengembalian</div>
           <div class="note-detail-line-metric-value">
             {{ number_format((int) ($row['refunded_rupiah'] ?? 0), 0, ',', '.') }}
           </div>
