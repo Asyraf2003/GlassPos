@@ -568,3 +568,81 @@ Sesi ini sudah padat. Lanjut eksekusi di sesi baru lebih aman agar model tidak k
 - Slice 3B: transaction report Excel/PDF export labels.
 - Slice 4: revision/versioning timeline labels.
 - Slice 5: cash ledger source metadata labels/export.
+
+### Session Update - 2026-06-28 Slice 3B Transaction Report Excel/PDF Export Indonesianized
+
+#### Scope
+
+- Issue source: `docs/04_lifecycle/error_log/0047_transaction_owner_facing_indonesian_language_gap.md`
+- Active slice: Slice 3B - transaction report Excel/PDF export owner-facing labels.
+- Patch boundary: export label/view-data/header text + related export test assertions only.
+- Production logic change: none.
+- Database enum/column/domain contract/route/request payload/API change: none.
+- Transaction report page/screen scope: already handled in Slice 3A.
+- Mobile/API scope: untouched.
+- Compiled assets scope: untouched.
+
+#### Files Changed
+
+- `app/Application/Reporting/Exports/TransactionReportPdfViewDataBuilder.php`
+- `app/Application/Reporting/Exports/TransactionReportExcelSummarySheetWriter.php`
+- `app/Application/Reporting/Exports/TransactionReportExcelDetailSheetWriter.php`
+- `app/Application/Reporting/Exports/TransactionReportExcelPeriodSheetWriter.php`
+- `app/Application/Reporting/Exports/TransactionReportExcelCustomerSheetWriter.php`
+- `tests/Feature/ReportingExports/TransactionReportExcelExportFeatureTest.php`
+- `tests/Feature/ReportingExports/TransactionReportPdfExportFeatureTest.php`
+- `tests/Unit/Application/Reporting/Exports/TransactionReportExportRefundDueVisibilityTest.php`
+
+#### FACT
+
+- Focused scan before patch showed owner-facing English/accounting labels in transaction report exports:
+  - `Nilai Bruto Transaksi`
+  - `Total Bruto Transaksi`
+  - `Refund Due`
+  - `Surplus Refund Paid`
+  - `Sisa Refund Due`
+- Patch changed visible Excel/PDF export labels only.
+- Internal report keys, DTO keys, DB fields, fixture names, and user/customer names were intentionally left unchanged:
+  - `refund_due_rupiah`
+  - `surplus_refund_paid_rupiah`
+  - `remaining_refund_due_rupiah`
+  - `gross_transaction_rupiah`
+  - `Customer Export Refund Due`
+  - `Customer Export Surplus Refund Paid`
+- Post-patch focused scan on production export files and related export tests returned no matches for:
+  - `Refund Due`
+  - `Surplus Refund Paid`
+  - `Sisa Refund Due`
+  - `Nilai Bruto Transaksi`
+  - `Total Bruto Transaksi`
+- Focused export tests were run by owner and reported PASS.
+- Exact assertion count was not captured in chat output.
+
+#### Changes Applied
+
+- `Nilai Bruto Transaksi` -> `Total Nilai Transaksi`
+- `Total Bruto Transaksi` -> `Total Nilai Transaksi`
+- `Refund Due` -> `Pengembalian Belum Dibayar`
+- `Total Refund Due` -> `Total Pengembalian Belum Dibayar`
+- `Surplus Refund Paid` -> `Pengembalian Surplus Sudah Dibayar`
+- `Total Surplus Refund Paid` -> `Total Pengembalian Surplus Sudah Dibayar`
+- `Sisa Refund Due` -> `Sisa Pengembalian Belum Dibayar`
+- `Total Sisa Refund Due` -> `Total Sisa Pengembalian Belum Dibayar`
+
+#### Tests
+
+- `php artisan test tests/Feature/ReportingExports/TransactionReportExcelExportFeatureTest.php tests/Feature/ReportingExports/TransactionReportPdfExportFeatureTest.php tests/Unit/Application/Reporting/Exports/TransactionReportExportRefundDueVisibilityTest.php`
+- Result: PASS, owner-reported.
+
+#### DECISION
+
+- Slice 3B is complete and verified by focused scan + owner-reported focused tests.
+- Do not translate internal report keys, DB fields, fixture IDs, or customer/user-entered values.
+- Error log 0047 remains open/in progress.
+- Next slice should stay narrow.
+
+#### NEXT CANDIDATE SLICES
+
+- Slice 4: revision/versioning timeline labels.
+- Slice 5: cash ledger source metadata labels/export.
+- Slice 6: supplier/procurement report labels that appeared in broad scan, but keep separate from transaction note work.
