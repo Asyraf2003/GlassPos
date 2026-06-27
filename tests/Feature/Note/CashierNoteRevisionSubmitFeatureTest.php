@@ -26,6 +26,7 @@ final class CashierNoteRevisionSubmitFeatureTest extends TestCase
         $this->actingAs($user)->get(route('cashier.notes.show', ['noteId' => 'note-1']))->assertOk();
 
         $response = $this->actingAs($user)->patch(route('cashier.notes.workspace.update', ['noteId' => 'note-1']), [
+            'reason' => 'Koreksi manual dari workspace.',
             'note' => [
                 'customer_name' => 'Budi Revised',
                 'customer_phone' => '08123',
@@ -62,6 +63,7 @@ final class CashierNoteRevisionSubmitFeatureTest extends TestCase
             'id' => 'note-1-r002',
             'note_root_id' => 'note-1',
             'revision_number' => 2,
+            'reason' => 'Koreksi manual dari workspace.',
             'customer_name' => 'Budi Revised',
         ]);
 

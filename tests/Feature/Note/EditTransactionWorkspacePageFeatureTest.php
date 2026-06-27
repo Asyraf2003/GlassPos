@@ -133,6 +133,9 @@ final class EditTransactionWorkspacePageFeatureTest extends TestCase
         $response->assertSee('Budi Santoso');
         $response->assertSee('08123456789');
         $response->assertSee('Proses Nota');
+        $response->assertSee('Alasan Perubahan Nota');
+        $response->assertSee('name="reason"', false);
+        $response->assertSee('Akan tampil di Riwayat Perubahan Nota.');
         $response->assertSee('id="workspace-payment-modal"', false);
         $response->assertSee('Bayar Penuh');
         $response->assertSee('Bayar Sebagian');

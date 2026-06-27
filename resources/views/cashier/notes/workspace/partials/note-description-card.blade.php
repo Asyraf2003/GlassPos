@@ -13,6 +13,23 @@
     </summary>
 
     <div class="workspace-step-body">
+        @if (($workspaceMode ?? 'create') === 'edit')
+            <div class="workspace-note-card mb-3">
+                <label for="note_revision_reason" class="form-label">Alasan Perubahan Nota</label>
+                <textarea
+                    id="note_revision_reason"
+                    name="reason"
+                    rows="3"
+                    class="form-control @error('reason') is-invalid @enderror"
+                    placeholder="Contoh: salah input harga, revisi item, atau koreksi setelah review"
+                >{{ old('reason') }}</textarea>
+                @error('reason')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+                <div class="form-text">Akan tampil di Riwayat Perubahan Nota.</div>
+            </div>
+        @endif
+
         <div class="workspace-note-card">
             <label for="note_operational_note" class="form-label">Keterangan Nota</label>
             <textarea
