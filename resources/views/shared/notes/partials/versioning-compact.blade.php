@@ -63,7 +63,7 @@
     {{-- ============================================================ --}}
     {{-- RIWAYAT REVISI — Turunan dari gaya induk di atas             --}}
     {{-- ============================================================ --}}
-    <h6 class="mb-3 text-muted">Riwayat Revisi</h6>
+    <h6 class="mb-3 text-muted">Riwayat Perubahan</h6>
     @if ($timelineRevisions === [])
       <div class="text-muted">Belum ada riwayat revisi.</div>
     @else
