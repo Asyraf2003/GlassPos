@@ -759,16 +759,65 @@ Meaning:
 - `service_package_profit_breakdown` has screen and Excel routes but no active
   PDF route in `routes/web/admin_reporting.php`; this issue did not add a new
   PDF route.
-- Full `make verify` has not been run after these presentation changes.
+
+## 2026-06-27 Full Verify Legacy UI Contract Patch
+
+### FACT
+
+Full `make verify` after UI tightening passed static checks and most tests, but
+found two remaining legacy UI contract tests:
+
+- `tests/Feature/Note/TransactionCashLedgerAfterRevisionRefundFeatureTest.php`
+  still expected cash-ledger screen detail rows such as note id, source table,
+  payment id, and refund id.
+- `tests/Feature/Reporting/TaxLandedCostReportingFeatureTest.php` still
+  expected inventory stock value screen detail such as average cost `Rp 11.000`
+  and item code.
+
+Those expectations conflict with the new screen/PDF contract: screen is now an
+owner-readable report, while row-level detail remains in Excel/read-model tests.
+
+### PATCH
+
+Patched:
+
+- `tests/Feature/Note/TransactionCashLedgerAfterRevisionRefundFeatureTest.php`
+  - screen assertion now verifies `Ringkasan Utama`, `Rincian Ringkas`,
+    `Detail lengkap tersedia di Excel`, and total money;
+  - screen assertion now verifies note/source/payment/refund ids do not render
+    on the owner-facing report page;
+  - Excel detail assertions remain unchanged and still prove refund-after-active
+    revision appears in the detail sheet.
+- `tests/Feature/Reporting/TaxLandedCostReportingFeatureTest.php`
+  - screen assertion now verifies product name, stock value, and
+    `Rincian Ringkas`;
+  - screen assertion now verifies detail-only average cost and item code do not
+    render on the owner-facing report page.
+
+### GREEN PROOF
+
+Command, from `/home/asyraf/Code/laravel/bengkel2/app`:
+
+```bash
+php artisan test tests/Feature/Note/TransactionCashLedgerAfterRevisionRefundFeatureTest.php tests/Feature/Reporting/TaxLandedCostReportingFeatureTest.php tests/Feature/Reporting/TransactionCashLedgerPageFeatureTest.php tests/Feature/Reporting/InventoryStockValueReportPageFeatureTest.php tests/Feature/ReportingExports/TransactionCashLedgerExcelExportFeatureTest.php tests/Feature/ReportingExports/InventoryStockValueReportExcelExportFeatureTest.php
+```
+
+Result:
+
+```text
+PASS  Tests\Feature\Note\TransactionCashLedgerAfterRevisionRefundFeatureTest
+PASS  Tests\Feature\Reporting\TaxLandedCostReportingFeatureTest
+PASS  Tests\Feature\Reporting\TransactionCashLedgerPageFeatureTest
+PASS  Tests\Feature\Reporting\InventoryStockValueReportPageFeatureTest
+PASS  Tests\Feature\ReportingExports\TransactionCashLedgerExcelExportFeatureTest
+PASS  Tests\Feature\ReportingExports\InventoryStockValueReportExcelExportFeatureTest
+
+Tests: 33 passed, 293 assertions
+```
 
 ### NEXT
 
-Either:
-
-- run full `make verify`; or
-- continue with a separate UI tightening slice to move/remove screen detail
-  tables after the owner-readable sections are proven across all report
-  families.
+Run full `make verify` again after this legacy UI contract patch.
 
 ## 2026-06-27 RED And Patch Proof - Operational Expense Slice
 
