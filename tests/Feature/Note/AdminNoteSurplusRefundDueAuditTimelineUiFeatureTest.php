@@ -50,8 +50,8 @@ final class AdminNoteSurplusRefundDueAuditTimelineUiFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Timeline Audit Surplus');
-        $response->assertSee('Riwayat Refund Due');
-        $response->assertSee('Refund Due Ditandai');
+        $response->assertSee('Riwayat Pengembalian Belum Dibayar');
+        $response->assertSee('Pengembalian Belum Dibayar Ditandai');
         $response->assertSee('Amount 122.000');
         $response->assertSee('Sisa pending 0');
         $response->assertSee('Customer minta refund due setelah koreksi nota.');
@@ -110,8 +110,8 @@ final class AdminNoteSurplusRefundDueAuditTimelineUiFeatureTest extends TestCase
 
     $response->assertOk();
     $response->assertSee('Timeline Audit Surplus');
-    $response->assertSee('Refund Due Ditandai');
-    $response->assertSee('Refund Paid Dicatat');
+    $response->assertSee('Pengembalian Belum Dibayar Ditandai');
+    $response->assertSee('Pengembalian Sudah Dibayar Dicatat');
     $response->assertSee('Amount 50.000');
     $response->assertSee('Sisa refund due 72.000');
     $response->assertSee('Refund paid dibayar tunai sebagian.');
@@ -134,8 +134,8 @@ final class AdminNoteSurplusRefundDueAuditTimelineUiFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertDontSee('Timeline Audit Surplus');
-        $response->assertDontSee('Riwayat Refund Due');
-        $response->assertDontSee('Refund Due Ditandai');
+        $response->assertDontSee('Riwayat Pengembalian Belum Dibayar');
+        $response->assertDontSee('Pengembalian Belum Dibayar Ditandai');
         $response->assertDontSee('refund_paid');
         $response->assertDontSee('customer_credit');
     }

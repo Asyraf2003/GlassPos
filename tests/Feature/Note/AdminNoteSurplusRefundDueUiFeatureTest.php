@@ -37,7 +37,7 @@ final class AdminNoteSurplusRefundDueUiFeatureTest extends TestCase
             ->get(route('admin.notes.show', ['noteId' => 'note-surplus-ui-001']));
 
         $response->assertOk();
-        $response->assertSee('Tandai Refund Due');
+        $response->assertSee('Tandai Pengembalian Belum Dibayar');
         $response->assertSee('122.000');
         $response->assertSee(route('admin.notes.revision-settlements.refund-due.store', [
             'settlementId' => 'settlement-surplus-ui-001',
@@ -49,7 +49,7 @@ final class AdminNoteSurplusRefundDueUiFeatureTest extends TestCase
         $response->assertSee('data-refund-due-max-rupiah="122000"', false);
         $response->assertSee('data-refund-due-amount', false);
         $response->assertSee('data-refund-due-submit', false);
-        $response->assertSee('data-loading-text="Menyimpan Refund Due..."', false);
+        $response->assertSee('data-loading-text="Menyimpan Pengembalian Belum Dibayar..."', false);
         $response->assertSee('assets/static/js/pages/note-surplus-refund-due.js', false);
         $response->assertSee('name="reason"', false);
         $response->assertDontSee('refund_paid');
@@ -70,7 +70,7 @@ final class AdminNoteSurplusRefundDueUiFeatureTest extends TestCase
             ->get(route('admin.notes.show', ['noteId' => 'note-surplus-ui-002']));
 
         $response->assertOk();
-        $response->assertDontSee('Tandai Refund Due');
+        $response->assertDontSee('Tandai Pengembalian Belum Dibayar');
         $response->assertDontSee('/admin/notes/revision-settlements/settlement-surplus-ui-002/refund-due', false);
         $response->assertDontSee('data-refund-due-form', false);
         $response->assertDontSee('refund_paid');

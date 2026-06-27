@@ -47,7 +47,7 @@ final class AdminNoteSurplusRefundPaidUiFeatureTest extends TestCase
             ->get(route('admin.notes.show', ['noteId' => 'note-surplus-paid-ui-001']));
 
         $response->assertOk();
-        $response->assertSee('Catat Refund Paid');
+        $response->assertSee('Catat Pengembalian Sudah Dibayar');
         $response->assertSee('72.000');
         $response->assertSee(route('admin.notes.revision-surplus-dispositions.refund-paid.store', [
             'dispositionId' => 'disp-surplus-paid-ui-001',
