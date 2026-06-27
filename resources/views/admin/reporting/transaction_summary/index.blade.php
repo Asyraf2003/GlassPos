@@ -123,137 +123,80 @@
     </div>
 </div>
 
+<div class="mb-3">
+    <h5 class="mb-2">Rincian Ringkas</h5>
+    <div class="text-muted small">
+        Halaman ini menampilkan transaksi per tanggal dan customer secara
+        ringkas. Nomor nota, status per nota, dan baris detail tersedia di
+        Excel.
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    @forelse ($periodRows as $row)
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Tanggal Transaksi</div>
+                    <div class="fw-semibold mb-3">{{ $row['period_label'] }}</div>
+
+                    <div class="d-flex justify-content-between gap-3 mb-2">
+                        <span class="text-muted">Jumlah Nota</span>
+                        <span class="fw-semibold">{{ number_format($row['total_rows'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between gap-3 mb-2">
+                        <span class="text-muted">Nilai Transaksi</span>
+                        <span class="fw-semibold">Rp {{ number_format($row['gross_transaction_rupiah'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between gap-3">
+                        <span class="text-muted">Sisa Tagihan</span>
+                        <span class="fw-semibold text-danger">Rp {{ number_format($row['outstanding_rupiah'], 0, ',', '.') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @empty
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-muted">
+                    Belum ada transaksi pada periode ini.
+                </div>
+            </div>
+        </div>
+    @endforelse
+</div>
+
 <div class="row g-3">
-    <div class="col-12 col-xl-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Breakdown Per Tanggal</h5>
+    @forelse ($customerRows as $row)
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Customer</div>
+                    <div class="fw-semibold mb-3">{{ $row['customer_name'] }}</div>
 
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Tanggal</th>
-                                <th class="text-end">Nota</th>
-                                <th class="text-end">Gross</th>
-                                <th class="text-end">Surplus Refund Paid</th>
-                                <th class="text-end">Sisa Refund Due</th>
-                                <th class="text-end">Sisa Tagihan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($periodRows as $row)
-                                <tr>
-                                    <td>{{ $row['period_label'] }}</td>
-                                    <td class="text-end">{{ number_format($row['total_rows'], 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['gross_transaction_rupiah'], 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['surplus_refund_paid_rupiah'] ?? 0, 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['remaining_refund_due_rupiah'] ?? 0, 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['outstanding_rupiah'], 0, ',', '.') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted">Belum ada transaksi pada periode ini.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                    <div class="d-flex justify-content-between gap-3 mb-2">
+                        <span class="text-muted">Jumlah Nota</span>
+                        <span class="fw-semibold">{{ number_format($row['total_rows'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between gap-3 mb-2">
+                        <span class="text-muted">Nilai Transaksi</span>
+                        <span class="fw-semibold">Rp {{ number_format($row['gross_transaction_rupiah'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between gap-3">
+                        <span class="text-muted">Sisa Refund Due</span>
+                        <span class="fw-semibold text-warning">Rp {{ number_format($row['remaining_refund_due_rupiah'] ?? 0, 0, ',', '.') }}</span>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="col-12 col-xl-3">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Breakdown Customer</h5>
-
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Customer</th>
-                                <th class="text-end">Nota</th>
-                                <th class="text-end">Gross</th>
-                                <th class="text-end">Surplus Refund Paid</th>
-                                <th class="text-end">Sisa Refund Due</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($customerRows as $row)
-                                <tr>
-                                    <td>{{ $row['customer_name'] }}</td>
-                                    <td class="text-end">{{ number_format($row['total_rows'], 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['gross_transaction_rupiah'], 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['surplus_refund_paid_rupiah'] ?? 0, 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['remaining_refund_due_rupiah'] ?? 0, 0, ',', '.') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted">Belum ada customer pada periode ini.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="mt-3 d-flex justify-content-end">
-                    @include('layouts.partials.pagination', ['paginator' => $customerRows])
+    @empty
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-muted">
+                    Belum ada customer pada periode ini.
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="col-12 col-xl-5">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Detail Per Nota</h5>
-
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Nota</th>
-                                <th>Tanggal</th>
-                                <th>Customer</th>
-                                <th class="text-end">Gross</th>
-                                <th class="text-end">Kas Bersih</th>
-                                <th class="text-end">Refund Due</th>
-                                <th class="text-end">Surplus Refund Paid</th>
-                                <th class="text-end">Sisa Refund Due</th>
-                                <th class="text-end">Sisa Tagihan</th>
-                            </tr>
-                        </thead>
-                        <tbody id="transaction-report-table-body">
-                            @forelse ($rows as $row)
-                                <tr>
-                                    <td>
-                                        <div class="fw-semibold">{{ $row['customer_name'] }}</div>
-                                        <div class="small text-muted">{{ \App\Support\ViewDateFormatter::display($row['transaction_date'] ?? null) }} · {{ $row['note_id'] }}</div>
-                                    </td>
-                                    <td>{{ \App\Support\ViewDateFormatter::display($row['transaction_date'] ?? null) }}</td>
-                                    <td>{{ $row['customer_name'] }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['gross_transaction_rupiah'], 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['net_cash_collected_rupiah'], 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['refund_due_rupiah'] ?? 0, 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['surplus_refund_paid_rupiah'] ?? 0, 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['remaining_refund_due_rupiah'] ?? 0, 0, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($row['outstanding_rupiah'], 0, ',', '.') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="9" class="text-center text-muted">Belum ada transaksi pada periode ini.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="mt-3 d-flex justify-content-end">
-                    @include('layouts.partials.pagination', ['paginator' => $rows])
-                </div>
-            </div>
-        </div>
-    </div>
+    @endforelse
 </div>
 @endsection
