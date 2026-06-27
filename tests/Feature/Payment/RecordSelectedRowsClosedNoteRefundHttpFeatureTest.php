@@ -65,8 +65,8 @@ final class RecordSelectedRowsClosedNoteRefundHttpFeatureTest extends TestCase
 
         $this->actingAs($user)->get(route('cashier.notes.show', ['noteId' => 'note-1']))
             ->assertOk()
-            ->assertSee('Refund')
-            ->assertSee('Refund / Batalkan Line')
+            ->assertSee('Pengembalian Dana')
+            ->assertSee('Pengembalian Dana / Batalkan Rincian')
             ->assertDontSee('Refund Line Close Terpilih')
             ->assertDontSee('Panel Refund');
     }

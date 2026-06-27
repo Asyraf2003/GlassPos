@@ -53,7 +53,7 @@
             <div class="workspace-gform-panel">
                 <div class="fw-semibold mb-1">Nominal Dibayar Sekarang</div>
                 <div class="text-muted small mb-3">
-                    Isi nominal pembayaran sebagian, lalu pilih transfer atau cash.
+                    Isi nominal pembayaran sebagian, lalu pilih transfer atau tunai.
                 </div>
 
                 <div class="form-group mb-0">

@@ -30,7 +30,7 @@
             <div class="text-end">{{ (int) ($currentRevision['line_count'] ?? 0) }}</div>
           </div>
           <div class="ui-key-value d-flex justify-content-between py-2 border-bottom">
-            <small>Grand Total</small>
+            <small>Total Nota</small>
             <div class="text-end">{{ number_format((int) ($currentRevision['grand_total_rupiah'] ?? 0), 0, ',', '.') }}</div>
           </div>
           <div class="ui-key-value d-flex justify-content-between py-2">
@@ -62,7 +62,7 @@
             <div class="text-end">{{ (int) ($baselineRevision['line_count'] ?? 0) }}</div>
           </div>
           <div class="ui-key-value d-flex justify-content-between py-2 border-bottom">
-            <small>Grand Total</small>
+            <small>Total Nota</small>
             <div class="text-end">{{ number_format((int) ($baselineRevision['grand_total_rupiah'] ?? 0), 0, ',', '.') }}</div>
           </div>
           <div class="ui-key-value d-flex justify-content-between py-2">

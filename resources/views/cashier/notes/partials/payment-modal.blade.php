@@ -13,7 +13,7 @@
         <div>
           <h5 class="modal-title mb-1" id="detail-payment-title">Proses Nota</h5>
           <p class="mb-0 text-muted small" id="detail-payment-subtitle">
-            Pilih aksi pembayaran, cek nominal, lalu bayar transfer atau cash.
+            Pilih aksi pembayaran, cek nominal, lalu bayar transfer atau tunai.
           </p>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
@@ -120,7 +120,7 @@
               <div class="border rounded p-4">
                 <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
                   <div>
-                    <div class="fw-semibold fs-4">Kalkulator Cash</div>
+                    <div class="fw-semibold fs-4">Kalkulator Tunai</div>
                     <div class="text-muted">
                       Hanya tiga angka utama. Angka tengah langsung bisa diisi.
                     </div>
@@ -157,7 +157,7 @@
                     >
 
                     <div class="form-text mt-3">
-                      Ketik nominal, cek kembalian, lalu simpan cash saat jumlah cukup.
+                      Ketik nominal, cek kembalian, lalu simpan tunai saat jumlah cukup.
                     </div>
                   </div>
 
@@ -179,7 +179,7 @@
                 Bayar Transfer
               </button>
               <button type="button" class="btn btn-primary" id="detail-payment-open-cash">
-                Bayar Cash
+                Bayar Tunai
               </button>
             </div>
           </div>
@@ -187,7 +187,7 @@
           <div class="ui-form-actions w-100 justify-content-between d-none" id="detail-payment-footer-cash">
             <button type="button" class="btn btn-outline-secondary" id="detail-payment-back-cash">Kembali</button>
             <button type="submit" class="btn btn-primary" id="detail-payment-submit-cash">
-              Simpan Cash
+              Simpan Tunai
             </button>
           </div>
         </div>
