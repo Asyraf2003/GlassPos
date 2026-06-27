@@ -67,14 +67,15 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
         );
 
         $pageResponse->assertOk();
-        $pageResponse->assertSee('note-ledger-revision-refund-001');
-        $pageResponse->assertSee('Alokasi Pembayaran');
-        $pageResponse->assertSee('Pengembalian Dana');
-        $pageResponse->assertSee('payment_allocations');
-        $pageResponse->assertSee('customer_refunds');
-        $pageResponse->assertSee('payment-ledger-revision-refund-001');
-        $pageResponse->assertSee($refundId);
+        $pageResponse->assertSee('Ringkasan Utama');
+        $pageResponse->assertSee('Rincian Ringkas');
+        $pageResponse->assertSee('Detail lengkap tersedia di Excel');
         $pageResponse->assertSee('Rp 100.000');
+        $pageResponse->assertDontSee('note-ledger-revision-refund-001');
+        $pageResponse->assertDontSee('payment_allocations');
+        $pageResponse->assertDontSee('customer_refunds');
+        $pageResponse->assertDontSee('payment-ledger-revision-refund-001');
+        $pageResponse->assertDontSee($refundId);
 
         $excelResponse = $this->actingAs($user)->get(
             route('admin.reports.transaction_cash_ledger.export_excel', [
