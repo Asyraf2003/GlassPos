@@ -39,12 +39,13 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         $response->assertSee('Rp 250.000');
         $response->assertSee('Rp 105.000');
         $response->assertSee('Rp 145.000');
-        $response->assertSee('Rp 150.000');
-        $response->assertSee('Rp 50.000');
+        $response->assertSee('Rp 200.000');
         $response->assertSee('Rp 15.000');
         $response->assertSee('Rp 5.000');
         $response->assertSee('Rp 345.000');
 
+        $response->assertDontSee('matrix-main-note');
+        $response->assertDontSee('matrix-main-wi');
         $response->assertDontSee('Rp 999.999');
     }
 

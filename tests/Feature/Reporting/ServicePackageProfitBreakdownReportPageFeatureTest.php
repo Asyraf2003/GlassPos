@@ -42,9 +42,12 @@ final class ServicePackageProfitBreakdownReportPageFeatureTest extends TestCase
         $response->assertSee('Laba Paket Service');
         $response->assertSee('service-package-profit-breakdown-filter-form', false);
         $response->assertSee('Tanggal transaksi nota');
+        $response->assertSee('Ringkasan Utama');
+        $response->assertSee('Rincian Ringkas');
         $response->assertSee('Jumlah Paket');
         $response->assertSee('Gross Profit Paket');
-        $response->assertSee('Belum ada paket service pada periode ini.');
+        $response->assertDontSee('Detail Paket Service');
+        $response->assertDontSee('Belum ada paket service pada periode ini.');
         $response->assertSee(route('admin.reports.service_package_profit_breakdown.index'), false);
     }
 }
