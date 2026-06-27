@@ -92,7 +92,7 @@ final class TransactionReportPageFeatureTest extends TestCase
         $response->assertSee('01 Januari 2030 s/d 31 Januari 2030');
         $response->assertSee('Rincian Ringkas');
         $response->assertSee('Jumlah Nota');
-        $response->assertSee('Nilai Bruto Transaksi');
+        $response->assertSee('Total Nilai Transaksi');
         $response->assertSee('Rp 150.000');
         $response->assertSee('Rp 149.999');
         $response->assertSee('Rp 9.000');
@@ -176,8 +176,8 @@ final class TransactionReportPageFeatureTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertSee('Surplus Refund Paid');
-        $response->assertSee('Sisa Refund Due');
+        $response->assertSee('Pengembalian Surplus Sudah Dibayar');
+        $response->assertSee('Sisa Pengembalian Belum Dibayar');
         $response->assertSee('Rp 3.000');
         $response->assertSee('Rp 4.000');
     }

@@ -39,7 +39,7 @@
 
     <div class="col-12 col-md-6 col-xl-2">
         <div class="card"><div class="card-body">
-            <div class="text-muted small">Nilai Bruto Transaksi</div>
+            <div class="text-muted small">Total Nilai Transaksi</div>
             <div class="fs-5 fw-bold">Rp {{ number_format($summary['gross_transaction_rupiah'] ?? 0, 0, ',', '.') }}</div>
         </div></div>
     </div>
@@ -67,21 +67,21 @@
 
     <div class="col-12 col-md-6 col-xl-2">
         <div class="card"><div class="card-body">
-            <div class="text-muted small">Refund Due</div>
+            <div class="text-muted small">Pengembalian Belum Dibayar</div>
             <div class="fs-5 fw-bold text-warning">Rp {{ number_format($summary['refund_due_rupiah'] ?? 0, 0, ',', '.') }}</div>
         </div></div>
     </div>
 
     <div class="col-12 col-md-6 col-xl-2">
         <div class="card"><div class="card-body">
-            <div class="text-muted small">Surplus Refund Paid</div>
+            <div class="text-muted small">Pengembalian Surplus Sudah Dibayar</div>
             <div class="fs-5 fw-bold text-danger">Rp {{ number_format($summary['surplus_refund_paid_rupiah'] ?? 0, 0, ',', '.') }}</div>
         </div></div>
     </div>
 
     <div class="col-12 col-md-6 col-xl-2">
         <div class="card"><div class="card-body">
-            <div class="text-muted small">Sisa Refund Due</div>
+            <div class="text-muted small">Sisa Pengembalian Belum Dibayar</div>
             <div class="fs-5 fw-bold text-warning">Rp {{ number_format($summary['remaining_refund_due_rupiah'] ?? 0, 0, ',', '.') }}</div>
         </div></div>
     </div>
@@ -138,7 +138,7 @@
 
     <div class="col-12 col-md-6 col-xl-3">
         <div class="card"><div class="card-body">
-            <div class="text-muted small">Sisa Refund Due</div>
+            <div class="text-muted small">Sisa Pengembalian Belum Dibayar</div>
             <div class="fs-5 fw-bold text-warning">Rp {{ number_format($summary['remaining_refund_due_rupiah'] ?? 0, 0, ',', '.') }}</div>
         </div></div>
     </div>
