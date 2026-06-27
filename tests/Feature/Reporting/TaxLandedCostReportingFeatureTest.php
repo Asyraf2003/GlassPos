@@ -51,7 +51,7 @@ final class TaxLandedCostReportingFeatureTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertSee('Ban Pajak Report');
+        $response->assertDontSee('Ban Pajak Report');
         $response->assertSee('Rp 22.000');
         $response->assertSee('Rincian Ringkas');
         $response->assertDontSee('Rp 11.000');
@@ -106,7 +106,7 @@ final class TaxLandedCostReportingFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('15 Maret 2026 s/d 15 Maret 2026');
-        $response->assertSee('Ban Pajak Report');
+        $response->assertDontSee('Ban Pajak Report');
         $response->assertSee('Rp 22.000');
         $response->assertDontSee('Luar Periode');
     }
