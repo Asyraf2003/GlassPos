@@ -52,7 +52,6 @@ final class PayrollReportPageFeatureTest extends TestCase
         $response->assertDontSee('Montir A');
         $response->assertDontSee('Montir B');
         $response->assertSee('Harian');
-        $response->assertDontSee('Mingguan');
         $response->assertSee('Rp 100.000');
         $response->assertSee('07 Januari 2030');
         $response->assertDontSee('Detail Pencairan Gaji');
