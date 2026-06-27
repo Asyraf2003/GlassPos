@@ -27,8 +27,8 @@ final class NoteBillingProjectionSupport
     {
         return match ($type) {
             PaymentComponentType::PRODUCT_ONLY_WORK_ITEM => 'Produk Toko',
-            PaymentComponentType::SERVICE_STORE_STOCK_PART => 'Part Toko',
-            PaymentComponentType::SERVICE_EXTERNAL_PURCHASE_PART => 'Part External',
+            PaymentComponentType::SERVICE_STORE_STOCK_PART => 'Sparepart Toko',
+            PaymentComponentType::SERVICE_EXTERNAL_PURCHASE_PART => 'Sparepart Luar',
             PaymentComponentType::SERVICE_FEE => 'Jasa',
             default => 'Komponen Tagihan',
         };
@@ -43,10 +43,10 @@ final class NoteBillingProjectionSupport
     {
         return match ($item->transactionType()) {
             WorkItem::TYPE_STORE_STOCK_SALE_ONLY => 'Produk Toko',
-            WorkItem::TYPE_SERVICE_ONLY => 'Service Only',
-            WorkItem::TYPE_SERVICE_WITH_STORE_STOCK_PART => 'Service + Part Toko',
-            WorkItem::TYPE_SERVICE_WITH_EXTERNAL_PURCHASE => 'Service + Part External',
-            default => 'Line Nota',
+            WorkItem::TYPE_SERVICE_ONLY => 'Servis',
+            WorkItem::TYPE_SERVICE_WITH_STORE_STOCK_PART => 'Servis + Sparepart Toko',
+            WorkItem::TYPE_SERVICE_WITH_EXTERNAL_PURCHASE => 'Servis + Sparepart Luar',
+            default => 'Rincian Nota',
         };
     }
 }

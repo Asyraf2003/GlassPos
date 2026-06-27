@@ -10,10 +10,10 @@ final class CurrentRevisionLinePresentationSupport
     {
         return match ($transactionType) {
             'store_stock_sale_only' => 'Produk Toko',
-            'service_only' => 'Service Only',
-            'service_with_store_stock_part' => 'Service + Part Toko',
-            'service_with_external_purchase' => 'Service + Part External',
-            default => 'Line Nota',
+            'service_only' => 'Servis',
+            'service_with_store_stock_part' => 'Servis + Sparepart Toko',
+            'service_with_external_purchase' => 'Servis + Sparepart Luar',
+            default => 'Rincian Nota',
         };
     }
 

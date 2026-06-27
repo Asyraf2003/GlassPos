@@ -82,7 +82,7 @@ final class RecordCustomerRefundTransaction
                     array_merge($this->formatSuccessPayload($refund), [
                         'refund_allocation_count' => $recorded->allocationCount(),
                     ]),
-                    'Customer refund berhasil dicatat.',
+                    'Pengembalian dana pelanggan berhasil dicatat.',
                 );
             });
         } catch (DomainException $e) {

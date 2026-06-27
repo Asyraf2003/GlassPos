@@ -47,7 +47,7 @@ final class RecordCustomerPaymentHandler
                     'paid_at' => $customerPayment->paidAt()->format('Y-m-d'),
                 ],
             ],
-            'Customer payment berhasil dicatat.'
+            'Pembayaran pelanggan berhasil dicatat.'
         );
     }
 

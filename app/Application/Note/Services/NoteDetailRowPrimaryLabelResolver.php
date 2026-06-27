@@ -20,15 +20,15 @@ final class NoteDetailRowPrimaryLabelResolver
         $serviceName = trim((string) ($item->serviceDetail()?->serviceName() ?? ''));
 
         return match ($item->transactionType()) {
-            WorkItem::TYPE_SERVICE_ONLY => $serviceName !== '' ? $serviceName : 'Service',
+            WorkItem::TYPE_SERVICE_ONLY => $serviceName !== '' ? $serviceName : 'Servis',
             WorkItem::TYPE_STORE_STOCK_SALE_ONLY => $this->storeStockPrimaryLabel($item->storeStockLines()) ?? 'Produk',
             WorkItem::TYPE_SERVICE_WITH_STORE_STOCK_PART => $serviceName !== ''
                 ? $serviceName
-                : ($this->storeStockPrimaryLabel($item->storeStockLines()) ?? 'Service + Part Toko'),
+                : ($this->storeStockPrimaryLabel($item->storeStockLines()) ?? 'Servis + Sparepart Toko'),
             WorkItem::TYPE_SERVICE_WITH_EXTERNAL_PURCHASE => $serviceName !== ''
                 ? $serviceName
-                : ($this->externalPrimaryLabel($item->externalPurchaseLines()) ?? 'Service + Part External'),
-            default => $serviceName !== '' ? $serviceName : 'Line Nota',
+                : ($this->externalPrimaryLabel($item->externalPurchaseLines()) ?? 'Servis + Sparepart Luar'),
+            default => $serviceName !== '' ? $serviceName : 'Rincian Nota',
         };
     }
 
