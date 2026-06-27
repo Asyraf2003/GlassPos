@@ -710,3 +710,107 @@ Sesi ini sudah padat. Lanjut eksekusi di sesi baru lebih aman agar model tidak k
 
 - Slice 5: cash ledger source metadata labels/export.
 - Slice 6: final broad owner-facing scan for remaining English/internal terms.
+
+### Session Update - 2026-06-28 Slice 4C/5/6 Owner-Facing Transaction Language Cleanup
+
+#### Scope
+
+- Issue source: `docs/04_lifecycle/error_log/0047_transaction_owner_facing_indonesian_language_gap.md`
+- Follow-up handoff: this file.
+- Owner addition: every user edit/action that requires a reason must have an `alasan` input and that reason must be displayed in UI.
+- Active execution focus: owner-facing Indonesian labels for note transaction UI, revision reason display, billing/detail labels, refund/payment labels, note history summaries, and cash ledger export source labels.
+- Boundary kept:
+  - no DB enum/column/key/route/input-name renames,
+  - no user-entered text translation,
+  - no schema change,
+  - no compiled asset build.
+
+#### Changes Applied
+
+- Revision reason display:
+  - `resources/views/cashier/notes/partials/note-revision-timeline.blade.php`
+  - existing stored revision reason now has a visible `Alasan:` label in the timeline.
+  - existing workspace edit reason textarea from Slice 4B remains the input source (`name="reason"`).
+
+- Billing/payment/refund wording:
+  - `Line/Open/Close/Refund/Cash/Customer/Grand Total/External/outstanding` visible labels were changed to Indonesian owner-facing wording in cashier/admin/shared note views and note payment/refund JS.
+  - Examples:
+    - `Line` -> `Rincian` / `Baris`
+    - `Open` -> `Belum Selesai`
+    - `Close` -> `Selesai`
+    - `Refund` -> `Pengembalian Dana` / `Dikembalikan`
+    - `Cash` -> `Tunai`
+    - `Customer` -> `Pelanggan`
+    - `Grand Total` -> `Total Nota`
+    - `External` -> `Komponen Luar`
+
+- Note history/presenter labels:
+  - `app/Adapters/Out/Note/Queries/CashierNoteHistoryValueFormatter.php`
+  - `app/Application/Note/Services/NoteLineSummaryBuilder.php`
+  - history table JSON/UI labels now return:
+    - `1 Belum Selesai`
+    - `1 Selesai`
+    - `1 Dikembalikan`
+    - `Belum Selesai: n • Selesai: n • Batal: n`
+
+- Cash ledger export/source labels:
+  - `TransactionCashLedgerExcelDetailSheetWriter`
+  - `TransactionCashLedgerPdfViewDataBuilder`
+  - visible source headers changed from internal table wording to owner-facing wording:
+    - `Tabel Sumber` -> `Asal Catatan`
+    - `ID Sumber` -> `ID Asal Catatan`
+    - `ID Disposisi Sumber` -> `ID Disposisi Asal`
+  - source table values are mapped to labels such as:
+    - `Pembayaran Nota`
+    - `Pembayaran Rincian Nota`
+    - `Pembayaran Pelanggan`
+    - `Pengembalian Dana`
+    - `Pengembalian Rincian Nota`
+
+- Backend-generated detail/billing labels:
+  - changed visible labels such as:
+    - `Service` -> `Servis`
+    - `Service + Part Toko` -> `Servis + Sparepart Toko`
+    - `Service + Part External` -> `Servis + Sparepart Luar`
+    - `Part External` -> `Sparepart Luar`
+    - `Line Nota` -> `Rincian Nota`
+    - `Total Line` / `Line Total` -> `Total Rincian`
+    - `Correction Nominal Service` -> `Koreksi Nominal Servis`
+    - `Customer payment berhasil dicatat.` -> `Pembayaran pelanggan berhasil dicatat.`
+    - `Customer refund berhasil dicatat.` -> `Pengembalian dana pelanggan berhasil dicatat.`
+
+#### Proof
+
+- Reason/billing focused tests:
+  - `php artisan test tests/Unit/Application/Note/Services/NoteBillingProjectionRowMapperTest.php tests/Feature/Note/EditTransactionWorkspacePageFeatureTest.php tests/Feature/Note/CashierNoteRevisionSubmitFeatureTest.php tests/Feature/Note/CashierNoteRevisionSmokeTest.php tests/Feature/Note/NoteDetailPageShowsNativeCorrectionHistoryFeatureTest.php`
+  - Result: PASS, `13 passed (76 assertions)`.
+
+- Cash ledger focused tests:
+  - `php artisan test tests/Feature/ReportingExports/TransactionCashLedgerExcelExportFeatureTest.php tests/Feature/ReportingExports/TransactionCashLedgerPdfExportFeatureTest.php tests/Unit/Application/Reporting/Exports/TransactionCashLedgerExcelDetailPaymentMethodTest.php tests/Unit/Application/Reporting/Exports/TransactionCashLedgerPdfDetailPaymentMethodTest.php tests/Unit/Application/Reporting/Exports/TransactionCashLedgerPdfBladePaymentMethodTest.php`
+  - Result: PASS, `11 passed (93 assertions)`.
+
+- Payment/refund/note detail focused tests:
+  - `php artisan test tests/Feature/Note/CashierClosedNoteRefundViewFeatureTest.php tests/Feature/Note/CashierOpenNoteRefundStandbyViewFeatureTest.php tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php tests/Feature/Note/CashierRefundSelectionFirstFeatureTest.php tests/Feature/Note/NoteDetailPageFeatureTest.php tests/Feature/Note/CashierNoteDetailSimplePaymentModalUxFeatureTest.php tests/Feature/Note/CashierWorkspacePaymentFlowJavascriptContractTest.php tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php tests/Feature/Note/EditTransactionWorkspacePageFeatureTest.php tests/Feature/Note/CashierNoteRevisionSubmitFeatureTest.php`
+  - Result: PASS, `30 passed (206 assertions)`.
+
+- Note history/detail focused tests:
+  - `php artisan test tests/Feature/Note/AdminNoteHistoryTableDataFeatureTest.php tests/Feature/Note/CashierNoteHistoryTableFeatureTest.php tests/Feature/Note/CashierNoteHistoryLegacyLineSummaryFeatureTest.php tests/Feature/Note/LegacyAllocatedNoteDetailFeatureTest.php tests/Feature/Note/NoteDetailPageFeatureTest.php tests/Feature/Note/EditTransactionWorkspacePageFeatureTest.php tests/Feature/Note/CashierNoteRevisionSubmitFeatureTest.php tests/Feature/Note/CashierClosedNoteRefundViewFeatureTest.php tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php`
+  - Result: PASS, `20 passed (137 assertions)`.
+
+- Backend label/correction focused tests:
+  - `php artisan test tests/Unit/Application/Note/Services/NoteDetailRowMapperTest.php tests/Unit/Application/Note/Services/NoteBillingProjectionRowMapperTest.php tests/Feature/Note/NoteDetailPageShowsExternalPurchaseCorrectionHistoryFeatureTest.php tests/Feature/Note/NoteCorrectionHistoryBuilderFeatureTest.php tests/Feature/Note/CorrectPaidServiceWithExternalPurchaseServiceFeeOnlyFeatureTest.php tests/Feature/Note/CorrectPaidServiceWithStoreStockPartServiceFeeOnlyFeatureTest.php`
+  - Result: PASS, `10 passed (54 assertions)`.
+
+#### DECISION
+
+- The required reason input/display path for workspace revision is now covered:
+  - input: `Alasan Perubahan Nota` (`name="reason"`)
+  - display: `Alasan:` in `Riwayat Perubahan`.
+- Owner-facing note transaction language cleanup has progressed across UI, JS-rendered text, formatter/presenter labels, and export labels.
+- Remaining broad scope still exists for unrelated modules and some internal exception messages. Continue with narrow slices only.
+
+#### NEXT CANDIDATE SLICES
+
+- Run a focused broad scan for remaining owner-facing note/report labels only.
+- Continue replacing visible `Versioning` / `Revision` terms in note views with `Riwayat Perubahan` / `Revisi` if not already covered.
+- Keep supplier/procurement report labels separate from transaction note/report work.
