@@ -97,7 +97,7 @@
 
     const rows = selectedRows();
     if (rows.length === 0) {
-      target.innerHTML = '<div class="p-3 text-muted small">Belum ada tagihan outstanding.</div>';
+      target.innerHTML = '<div class="p-3 text-muted small">Belum ada sisa tagihan.</div>';
       return;
     }
 

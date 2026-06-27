@@ -38,7 +38,7 @@
                 data-billing-row-id="{{ $row['id'] }}"
                 data-row-id="{{ $row['id'] }}"
                 data-work-item-id="{{ $row['work_item_id'] }}"
-                data-label="Line {{ $row['line_no'] }} · {{ $row['component_label'] }}"
+                data-label="Baris {{ $row['line_no'] }} · {{ $row['component_label'] }}"
                 data-type-label="{{ $row['domain_type_label'] ?? '-' }}"
                 data-outstanding-rupiah="{{ (int) ($row['outstanding_rupiah'] ?? 0) }}"
                 data-is-service-component="{{ ($row['is_service_component'] ?? false) ? '1' : '0' }}"
@@ -58,7 +58,7 @@
                     <div>
                       <div class="fw-semibold">Ringkasan Pembayaran</div>
                       <div class="small text-muted">
-                        Tagihan aktif dipilih otomatis. Data billing row tetap dikirim hidden untuk allocation.
+                        Tagihan aktif dipilih otomatis. Rincian tagihan dikirim otomatis agar pembayaran tercatat sesuai urutan.
                       </div>
                     </div>
                     <span class="badge border" id="detail-payment-mode-text">
@@ -67,7 +67,7 @@
                   </div>
 
                   <div class="d-flex flex-column gap-2" id="detail-payment-line-summary">
-                    <div class="p-3 text-muted small">Belum ada tagihan outstanding.</div>
+                    <div class="p-3 text-muted small">Belum ada sisa tagihan.</div>
                   </div>
                 </div>
               </div>
@@ -76,7 +76,7 @@
                 <div class="border rounded p-3 mb-3">
                   <div class="small text-muted mb-2">Ringkasan Nominal</div>
                   <div class="d-flex justify-content-between py-2 border-bottom">
-                    <span class="text-muted">Outstanding Terpilih</span>
+                    <span class="text-muted">Sisa Tagihan Terpilih</span>
                     <strong id="detail-payment-selected-total">0</strong>
                   </div>
                   <div class="d-flex justify-content-between pt-2">
@@ -96,7 +96,7 @@
                       placeholder="Contoh: 50.000"
                     >
                     <div class="small text-muted mt-2">
-                      Default mengikuti komponen service jika ada. Jika tidak ada service, default mengikuti outstanding terpilih.
+                      Otomatis mengikuti komponen servis jika ada. Jika tidak ada servis, mengikuti sisa tagihan terpilih.
                     </div>
                   </div>
                 @endif

@@ -5,7 +5,7 @@
         <h4 class="card-title mb-1">Rincian Tagihan</h4>
         <p class="mb-0 text-muted">Urutan tagihan yang dipakai saat pembayaran nota.</p>
       </div>
-      <span class="badge border">{{ count($note['billing_rows'] ?? []) }} Billing Row</span>
+      <span class="badge border">{{ count($note['billing_rows'] ?? []) }} Baris Tagihan</span>
     </div>
   </div>
   <div class="card-body">
@@ -13,8 +13,8 @@
       <table class="table table-striped align-middle mb-0">
         <thead>
           <tr>
-            <th>Line</th>
-            <th>Tipe Domain</th>
+            <th>Baris</th>
+            <th>Jenis Tagihan</th>
             <th>Komponen</th>
             <th>Status</th>
             <th class="text-end">Komponen</th>
@@ -44,17 +44,17 @@
                 @if ((bool) ($row['is_paid'] ?? false))
                   <div class="small text-muted">Komponen sudah lunas.</div>
                 @elseif (! ($row['can_select_manually'] ?? false))
-                  <div class="small text-muted">{{ $row['selection_blocked_reason'] ?? 'Ikuti urutan tagihan existing.' }}</div>
+                  <div class="small text-muted">{{ $row['selection_blocked_reason'] ?? 'Ikuti urutan tagihan sebelumnya.' }}</div>
                 @elseif ($row['eligible_for_dp_preset'] ?? false)
-                  <div class="small text-muted">Masuk prioritas preset DP.</div>
+                  <div class="small text-muted">Masuk prioritas pengaturan DP.</div>
                 @else
-                  <div class="small text-muted">Bisa dipilih manual setelah komponen sebelumnya clear.</div>
+                  <div class="small text-muted">Bisa dipilih manual setelah komponen sebelumnya lunas.</div>
                 @endif
               </td>
             </tr>
           @empty
             <tr>
-              <td colspan="9" class="text-center text-muted py-4">Belum ada billing projection row untuk nota ini.</td>
+              <td colspan="9" class="text-center text-muted py-4">Belum ada rincian tagihan untuk nota ini.</td>
             </tr>
           @endforelse
         </tbody>
