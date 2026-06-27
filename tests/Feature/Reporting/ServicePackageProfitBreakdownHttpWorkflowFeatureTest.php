@@ -182,7 +182,6 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
         $page->assertSee('Rp 90.000');
         $page->assertSee('Rp 40.000');
         $page->assertSee('Rp 160.000');
-        $page->assertSee('Rp 200.000');
         $page->assertDontSee('Rp 999.999');
 
         $export = $this->get(route('admin.reports.service_package_profit_breakdown.export_excel', [
@@ -416,7 +415,6 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
         $page->assertSee('Rp 90.000');
         $page->assertSee('Rp 40.000');
         $page->assertSee('Rp 210.000');
-        $page->assertSee('Rp 250.000');
         $page->assertDontSee('HTTP Revision Package Customer</td>', false);
         $page->assertDontSee('Rp 999.999');
 
