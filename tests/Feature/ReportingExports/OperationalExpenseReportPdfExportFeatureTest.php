@@ -90,8 +90,8 @@ final class OperationalExpenseReportPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Total Biaya', $html);
         $this->assertStringContainsString('Kategori Terbesar', $html);
         $this->assertStringContainsString('Ringkasan Utama', $html);
-        $this->assertStringContainsString('Catatan Laporan', $html);
-        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Catatan Laporan', $html);
+        $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
         $this->assertStringNotContainsString('Bayar listrik', $html);
     }
 
@@ -120,8 +120,8 @@ final class OperationalExpenseReportPdfExportFeatureTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('Ringkasan Utama', $html);
-        $this->assertStringContainsString('Catatan Laporan', $html);
-        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Catatan Laporan', $html);
+        $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
         $this->assertStringNotContainsString('<table class="summary">', $html);
         $this->assertStringNotContainsString('<table class="detail">', $html);
     }

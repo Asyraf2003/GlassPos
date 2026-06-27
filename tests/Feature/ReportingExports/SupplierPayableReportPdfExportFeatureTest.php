@@ -132,8 +132,8 @@ final class SupplierPayableReportPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Total Tagihan', $html);
         $this->assertStringContainsString('Outstanding', $html);
         $this->assertStringContainsString('Ringkasan Utama', $html);
-        $this->assertStringContainsString('Catatan Laporan', $html);
-        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Catatan Laporan', $html);
+        $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
         $this->assertStringNotContainsString('Rincian Pemasok', $html);
         $this->assertStringNotContainsString('F-001', $html);
     }
@@ -170,8 +170,8 @@ final class SupplierPayableReportPdfExportFeatureTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('Ringkasan Utama', $html);
-        $this->assertStringContainsString('Catatan Laporan', $html);
-        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Catatan Laporan', $html);
+        $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
         $this->assertStringNotContainsString('<table class="summary">', $html);
         $this->assertStringNotContainsString('<table class="detail">', $html);
     }

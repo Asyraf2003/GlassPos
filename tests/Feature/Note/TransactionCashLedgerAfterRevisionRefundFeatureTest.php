@@ -69,7 +69,7 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
         $pageResponse->assertOk();
         $pageResponse->assertSee('Ringkasan Utama');
         $pageResponse->assertSee('Rincian Ringkas');
-        $pageResponse->assertSee('Detail lengkap tersedia di Excel');
+        $pageResponse->assertDontSee('Detail lengkap tersedia di Excel');
         $pageResponse->assertSee('Rp 100.000');
         $pageResponse->assertDontSee('note-ledger-revision-refund-001');
         $pageResponse->assertDontSee('payment_allocations');

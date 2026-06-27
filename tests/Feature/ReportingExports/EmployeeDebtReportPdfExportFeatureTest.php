@@ -117,8 +117,8 @@ final class EmployeeDebtReportPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Total Hutang', $html);
         $this->assertStringContainsString('Sudah Dibayar', $html);
         $this->assertStringContainsString('Ringkasan Utama', $html);
-        $this->assertStringContainsString('Catatan Laporan', $html);
-        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Catatan Laporan', $html);
+        $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
         $this->assertStringNotContainsString('Rincian Status', $html);
         $this->assertStringNotContainsString('Kasbon A', $html);
     }
@@ -151,8 +151,8 @@ final class EmployeeDebtReportPdfExportFeatureTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('Ringkasan Utama', $html);
-        $this->assertStringContainsString('Catatan Laporan', $html);
-        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Catatan Laporan', $html);
+        $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
         $this->assertStringNotContainsString('<table class="summary">', $html);
         $this->assertStringNotContainsString('<table class="detail">', $html);
     }

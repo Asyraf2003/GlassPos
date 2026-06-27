@@ -109,8 +109,8 @@ final class TransactionReportPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Sisa Refund Due', $html);
         $this->assertStringContainsString('Sisa Piutang', $html);
         $this->assertStringContainsString('Ringkasan Utama', $html);
-        $this->assertStringContainsString('Catatan Laporan', $html);
-        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Catatan Laporan', $html);
+        $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
         $this->assertStringNotContainsString('Ada Refund', $html);
     }
 
@@ -145,8 +145,8 @@ final class TransactionReportPdfExportFeatureTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('Ringkasan Utama', $html);
-        $this->assertStringContainsString('Catatan Laporan', $html);
-        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Catatan Laporan', $html);
+        $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
         $this->assertStringNotContainsString('<table class="summary">', $html);
         $this->assertStringNotContainsString('<table class="detail">', $html);
     }

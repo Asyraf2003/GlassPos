@@ -94,8 +94,8 @@ final class PayrollReportPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Jumlah Pencairan', $html);
         $this->assertStringContainsString('Total Nominal', $html);
         $this->assertStringContainsString('Ringkasan Utama', $html);
-        $this->assertStringContainsString('Catatan Laporan', $html);
-        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Catatan Laporan', $html);
+        $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
         $this->assertStringNotContainsString('Rincian Mode', $html);
         $this->assertStringNotContainsString('Montir A', $html);
     }
@@ -125,8 +125,8 @@ final class PayrollReportPdfExportFeatureTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('Ringkasan Utama', $html);
-        $this->assertStringContainsString('Catatan Laporan', $html);
-        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Catatan Laporan', $html);
+        $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
         $this->assertStringNotContainsString('<table class="summary">', $html);
         $this->assertStringNotContainsString('<table class="detail">', $html);
     }

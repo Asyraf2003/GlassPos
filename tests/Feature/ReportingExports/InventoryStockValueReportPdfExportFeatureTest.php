@@ -157,8 +157,8 @@ final class InventoryStockValueReportPdfExportFeatureTest extends TestCase
 
         $this->assertStringContainsString('Stok dan Nilai Persediaan', $html);
         $this->assertStringContainsString('Ringkasan Utama', $html);
-        $this->assertStringContainsString('Catatan Laporan', $html);
-        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Catatan Laporan', $html);
+        $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
         $this->assertStringNotContainsString('Mutasi Periode', $html);
         $this->assertStringNotContainsString('Snapshot Stok Saat Ini', $html);
         $this->assertStringNotContainsString('Supra', $html);
@@ -206,8 +206,8 @@ final class InventoryStockValueReportPdfExportFeatureTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('Ringkasan Utama', $html);
-        $this->assertStringContainsString('Catatan Laporan', $html);
-        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Catatan Laporan', $html);
+        $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
         $this->assertStringNotContainsString('summary-grid', $html);
         $this->assertStringNotContainsString('<table>', $html);
     }

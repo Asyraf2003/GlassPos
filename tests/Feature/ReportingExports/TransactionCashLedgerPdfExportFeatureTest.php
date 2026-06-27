@@ -90,8 +90,8 @@ final class TransactionCashLedgerPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Kas Keluar', $html);
         $this->assertStringContainsString('Nilai Bersih', $html);
         $this->assertStringContainsString('Ringkasan Utama', $html);
-        $this->assertStringContainsString('Catatan Laporan', $html);
-        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Catatan Laporan', $html);
+        $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
         $this->assertStringNotContainsString('Tabel Sumber', $html);
         $this->assertStringNotContainsString('customer_payments', $html);
         $this->assertStringNotContainsString('pay-1', $html);
@@ -126,8 +126,8 @@ final class TransactionCashLedgerPdfExportFeatureTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('Ringkasan Utama', $html);
-        $this->assertStringContainsString('Catatan Laporan', $html);
-        $this->assertStringContainsString('Detail lengkap tersedia di Excel', $html);
+        $this->assertStringNotContainsString('Catatan Laporan', $html);
+        $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
         $this->assertStringNotContainsString('<table class="summary">', $html);
         $this->assertStringNotContainsString('<table class="detail">', $html);
     }

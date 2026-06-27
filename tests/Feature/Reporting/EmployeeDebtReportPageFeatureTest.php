@@ -80,8 +80,8 @@ final class EmployeeDebtReportPageFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Ringkasan Utama');
-        $response->assertSee('Catatan Laporan');
-        $response->assertSee('Detail lengkap tersedia di Excel');
+        $response->assertDontSee('Catatan Laporan');
+        $response->assertDontSee('Detail lengkap tersedia di Excel');
     }
 
     public function test_custom_mode_uses_explicit_date_range(): void
