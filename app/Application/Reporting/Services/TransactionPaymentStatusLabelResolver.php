@@ -15,11 +15,11 @@ final class TransactionPaymentStatusLabelResolver
         $outstandingRupiah = $grossTransactionRupiah - $allocatedPaymentRupiah + $refundedRupiah;
 
         if ($refundedRupiah > 0 && $netCashCollectedRupiah <= 0) {
-            return 'Refund Penuh';
+            return 'Pengembalian Dana Penuh';
         }
 
         if ($refundedRupiah > 0) {
-            return 'Ada Refund';
+            return 'Ada Pengembalian Dana';
         }
 
         if ($allocatedPaymentRupiah <= 0 && $outstandingRupiah > 0) {

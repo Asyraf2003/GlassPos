@@ -18,7 +18,7 @@ final class CreateNoteRevisionSurplusRefundDueRequest extends FormRequest
     {
         return [
             'amount_rupiah' => ['required', 'integer', 'min:1'],
-            'reason' => ['required', 'string'],
+            'reason' => ['required', 'string', 'max:500'],
         ];
     }
 }

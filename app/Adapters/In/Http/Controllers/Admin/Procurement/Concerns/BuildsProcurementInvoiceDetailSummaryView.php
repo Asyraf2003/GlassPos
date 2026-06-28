@@ -51,9 +51,6 @@ trait BuildsProcurementInvoiceDetailSummaryView
             'latest_revision_reason' => ($summary['latest_revision_change_reason'] ?? null) !== null
                 ? (string) $summary['latest_revision_change_reason']
                 : null,
-            'latest_revision_actor_id' => ($summary['latest_revision_actor_id'] ?? null) !== null
-                ? (string) $summary['latest_revision_actor_id']
-                : null,
             'latest_revision_changed_at' => ($summary['latest_revision_changed_at'] ?? null) !== null
                 ? (string) $summary['latest_revision_changed_at']
                 : null,

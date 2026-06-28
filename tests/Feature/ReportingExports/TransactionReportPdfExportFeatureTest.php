@@ -76,7 +76,7 @@ final class TransactionReportPdfExportFeatureTest extends TestCase
                 ['label' => 'Jumlah Nota', 'value' => 2],
                 ['label' => 'Total Transaksi', 'value' => 'Rp 150.000'],
                 ['label' => 'Total Dibayar', 'value' => 'Rp 149.999'],
-                ['label' => 'Total Refund', 'value' => 'Rp 9.000'],
+                ['label' => 'Total Dana Dikembalikan', 'value' => 'Rp 9.000'],
                 ['label' => 'Pengembalian Belum Dibayar', 'value' => 'Rp 0'],
                 ['label' => 'Pengembalian Surplus Sudah Dibayar', 'value' => 'Rp 0'],
                 ['label' => 'Sisa Pengembalian Belum Dibayar', 'value' => 'Rp 0'],
@@ -96,14 +96,14 @@ final class TransactionReportPdfExportFeatureTest extends TestCase
                     'remaining_refund_due' => 'Rp 0',
                     'net_paid' => 'Rp 90.999',
                     'outstanding' => 'Rp 9.001',
-                    'status' => 'Ada Refund',
+                    'status' => 'Ada Pengembalian Dana',
                 ],
             ],
         ])->render();
 
         $this->assertStringContainsString('Laporan Transaksi', $html);
         $this->assertStringContainsString('Jumlah Nota', $html);
-        $this->assertStringContainsString('Total Refund', $html);
+        $this->assertStringContainsString('Total Dana Dikembalikan', $html);
         $this->assertStringContainsString('Pengembalian Belum Dibayar', $html);
         $this->assertStringContainsString('Pengembalian Surplus Sudah Dibayar', $html);
         $this->assertStringContainsString('Sisa Pengembalian Belum Dibayar', $html);
@@ -111,7 +111,7 @@ final class TransactionReportPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Ringkasan Utama', $html);
         $this->assertStringNotContainsString('Catatan Laporan', $html);
         $this->assertStringNotContainsString('Detail lengkap tersedia di Excel', $html);
-        $this->assertStringNotContainsString('Ada Refund', $html);
+        $this->assertStringNotContainsString('Ada Pengembalian Dana', $html);
     }
 
     public function test_pdf_view_uses_owner_readable_report_sections_not_detail_tables(): void
@@ -139,7 +139,7 @@ final class TransactionReportPdfExportFeatureTest extends TestCase
                     'remaining_refund_due' => 'Rp 0',
                     'net_paid' => 'Rp 90.999',
                     'outstanding' => 'Rp 9.001',
-                    'status' => 'Ada Refund',
+                    'status' => 'Ada Pengembalian Dana',
                 ],
             ],
         ])->render();

@@ -27,7 +27,7 @@ final class CorrectPaidServiceOnlyWorkItemRequest extends FormRequest
                 ServiceDetail::PART_SOURCE_NONE,
                 ServiceDetail::PART_SOURCE_CUSTOMER_OWNED,
             ])],
-            'reason' => ['required', 'string'],
+            'reason' => ['required', 'string', 'max:500'],
         ];
     }
 }

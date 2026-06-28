@@ -26,7 +26,7 @@ final class CorrectPaidWorkItemStatusRequest extends FormRequest
                 WorkItem::STATUS_DONE,
                 WorkItem::STATUS_CANCELED,
             ])],
-            'reason' => ['required', 'string'],
+            'reason' => ['required', 'string', 'max:500'],
         ];
     }
 }

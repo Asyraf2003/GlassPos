@@ -45,7 +45,7 @@ final class TransactionReportExcelExportFeatureTest extends TestCase
 
         $spreadsheet = IOFactory::load($path);
 
-        $this->assertSame(['Ringkasan', 'Rincian Nota', 'Rekap Per Tanggal', 'Rekap Per Customer'], $spreadsheet->getSheetNames());
+        $this->assertSame(['Ringkasan', 'Rincian Nota', 'Rekap Per Tanggal', 'Rekap Per Pelanggan'], $spreadsheet->getSheetNames());
 
         $summary = $spreadsheet->getSheetByName('Ringkasan');
         $detail = $spreadsheet->getSheetByName('Rincian Nota');
@@ -80,7 +80,7 @@ final class TransactionReportExcelExportFeatureTest extends TestCase
         $this->assertSame(0, $detail->getCell('J2')->getValue());
         $this->assertSame(90999, $detail->getCell('K2')->getValue());
         $this->assertSame(9001, $detail->getCell('L2')->getValue());
-        $this->assertSame('Ada Refund', $detail->getCell('M2')->getValue());
+        $this->assertSame('Ada Pengembalian Dana', $detail->getCell('M2')->getValue());
         $this->assertSame('note-2', $detail->getCell('B3')->getValue());
         $this->assertNull($detail->getCell('B4')->getValue());
 

@@ -40,7 +40,7 @@ final class TransactionReportExcelDetailSheetWriter
             'No',
             'ID Nota',
             'Tanggal Transaksi',
-            'Nama Customer',
+            'Nama Pelanggan',
             'Total Nilai Transaksi',
             'Pembayaran Dialokasikan',
             'Dana Dikembalikan',

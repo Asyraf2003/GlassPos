@@ -96,12 +96,6 @@
                                 <div class="fw-semibold">{{ $summaryView['latest_revision_reason'] }}</div>
                             </div>
 
-                            @if (! empty($summaryView['latest_revision_actor_id']))
-                                <div class="mb-3">
-                                    <small class="text-muted d-block">Diproses oleh</small>
-                                    <div>{{ $summaryView['latest_revision_actor_id'] }}</div>
-                                </div>
-                            @endif
                         @endif
 
                         <hr>

@@ -36,7 +36,7 @@ final class TransactionReportExportRefundDueVisibilityTest extends TestCase
         $summary = $spreadsheet->getSheetByName('Ringkasan');
         $detail = $spreadsheet->getSheetByName('Rincian Nota');
         $period = $spreadsheet->getSheetByName('Rekap Per Tanggal');
-        $customer = $spreadsheet->getSheetByName('Rekap Per Customer');
+        $customer = $spreadsheet->getSheetByName('Rekap Per Pelanggan');
 
         $this->assertNotNull($summary);
         $this->assertNotNull($detail);
@@ -105,7 +105,7 @@ final class TransactionReportExportRefundDueVisibilityTest extends TestCase
         $summary = $spreadsheet->getSheetByName('Ringkasan');
         $detail = $spreadsheet->getSheetByName('Rincian Nota');
         $period = $spreadsheet->getSheetByName('Rekap Per Tanggal');
-        $customer = $spreadsheet->getSheetByName('Rekap Per Customer');
+        $customer = $spreadsheet->getSheetByName('Rekap Per Pelanggan');
 
         $this->assertNotNull($summary);
         $this->assertNotNull($detail);

@@ -14,7 +14,7 @@ final class TransactionReportExcelCustomerSheetWriter
 
     public function write(Worksheet $sheet, array $rows): void
     {
-        $sheet->setTitle('Rekap Per Customer');
+        $sheet->setTitle('Rekap Per Pelanggan');
         $values = [];
 
         foreach ($rows as $row) {
@@ -33,7 +33,7 @@ final class TransactionReportExcelCustomerSheetWriter
         }
 
         $this->tables->writeTable($sheet, 1, [
-            'Nama Customer',
+            'Nama Pelanggan',
             'Jumlah Nota',
             'Total Nilai Transaksi',
             'Pembayaran Dialokasikan',

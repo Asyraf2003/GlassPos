@@ -55,8 +55,8 @@ final class NoteDetailNotePayloadBuilder
             'refund_payment_options' => $refundPaymentOptions,
             'can_show_correction_actions' => false,
             'correction_notice' => $isClosed
-                ? 'Nota sudah close. Pembalikan dilakukan lewat refund flow.'
-                : ($isRefunded ? 'Nota sudah refunded. Workspace tidak dipakai lagi.' : null),
+                ? 'Nota sudah lunas. Pembalikan dilakukan lewat pengembalian dana.'
+                : ($isRefunded ? 'Nota sudah dikembalikan dan tidak bisa diedit dari workspace.' : null),
             'line_summary' => $workspacePanel['line_summary'],
             'rows' => $workspacePanel['rows'],
             'refund_rows' => $refundRows,
@@ -71,7 +71,7 @@ final class NoteDetailNotePayloadBuilder
     private function statusLabel(string $status, int $netPaid, bool $isRefunded): string
     {
         if ($isRefunded) {
-            return 'Refund';
+            return 'Dikembalikan';
         }
 
         return match ($status) {
