@@ -988,3 +988,110 @@ Do not patch:
 - supplier/procurement,
 - mobile API.
 
+
+## Session Update - 2026-06-28 Final Runtime UI Label Cleanup Verified
+
+### Slice
+
+- Active issue: 0047 owner-facing Indonesian language cleanup transaksi nota.
+- Handoff: 0048 owner-facing Indonesian language gap handoff.
+- Scope: transaksi nota visible UI/report/export labels.
+- Status: final runtime UI label cleanup verified.
+- Closure state: candidate to close after owner records this update.
+
+### FACT
+
+- Previous wrapper help text cleanup was verified with targeted `rg` returning no output.
+- Full `make verify` passed after wrapper help text cleanup.
+- Final classification scan found one remaining valid runtime UI label source:
+  - `app/Application/Note/Services/NoteCorrectionUiOptionsBuilder.php`
+- The remaining labels were owner-facing UI option labels:
+  - `Open`
+  - `Done`
+  - `Canceled`
+  - `Part Bawaan Customer`
+- Only `label` values were changed.
+- `value` enum/internal values were not changed.
+
+### Files Changed In This Update
+
+- `app/Application/Note/Services/NoteCorrectionUiOptionsBuilder.php`
+- `docs/04_lifecycle/error_log/0048_owner_facing_indonesian_language_gap_handoff.md`
+
+### Changes
+
+- `Open` -> `Belum Selesai`
+- `Done` -> `Selesai`
+- `Canceled` -> `Dibatalkan`
+- `Part Bawaan Customer` -> `Part Bawaan Pelanggan`
+
+### Proof
+
+Owner ran targeted scan:
+
+```bash
+rg -n --no-heading -S "(label' => 'Open|label' => 'Done|label' => 'Canceled|Part Bawaan Customer)" \
+  app/Application/Note/Services/NoteCorrectionUiOptionsBuilder.php
+```
+
+Result:
+
+```text
+(no output)
+```
+
+Owner ran full verification after this patch:
+
+```bash
+make verify
+```
+
+Result:
+
+```text
+PASS
+```
+
+### Final Classification
+
+No remaining known 0047 blocker in transaksi nota visible UI/report/export labels.
+
+Remaining scan hits are classified as non-blocking for 0047:
+
+- internal class/interface/service/DTO names,
+- enum values,
+- request keys,
+- route/controller/usecase names,
+- database/source keys such as `source_table`,
+- test fixture names or seeded names,
+- dashboard finance labels,
+- supplier/procurement payable labels,
+- demo chart label `Free Cash Flow`.
+
+### Out Of Scope For 0047
+
+Admin dashboard labels:
+
+- `Net Cash Bulan Ini`
+- `Outstanding Bulan Ini`
+- `Net Cash Flow Bulan Ini`
+- `Outstanding Transaksi`
+- `Outstanding Supplier`
+
+Supplier payable/reporting labels:
+
+- `Outstanding`
+- Procurement/supplier invoice revision labels.
+- Mobile API.
+- `docs/99_archive`.
+
+### Closure Recommendation
+
+0047 can be closed from the transaksi nota language-cleanup side.
+
+If owner wants further cleanup, create separate issues/slices for:
+
+- dashboard finance label Indonesian cleanup,
+- supplier payable/reporting label cleanup,
+- procurement revision request/message cleanup.
+
