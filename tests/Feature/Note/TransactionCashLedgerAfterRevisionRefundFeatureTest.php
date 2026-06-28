@@ -104,7 +104,7 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
             'Alokasi Pembayaran',
             'Masuk',
             100000,
-            'payment_allocations',
+            'Pembayaran Nota',
             'payment-ledger-revision-refund-001',
         );
 
@@ -114,7 +114,7 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
             'Pengembalian Dana',
             'Keluar',
             100000,
-            'customer_refunds',
+            'Pengembalian Dana',
             $refundId,
         );
 

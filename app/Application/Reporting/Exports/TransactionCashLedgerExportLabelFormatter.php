@@ -19,7 +19,7 @@ final class TransactionCashLedgerExportLabelFormatter
     public function eventTypeLabel(string $type): string
     {
         return match ($type) {
-            'payment_allocation' => 'Pembayaran Tercatat',
+            'payment_allocation' => 'Alokasi Pembayaran',
             'payment' => 'Pembayaran',
             'refund' => 'Pengembalian Dana',
             default => $type,
