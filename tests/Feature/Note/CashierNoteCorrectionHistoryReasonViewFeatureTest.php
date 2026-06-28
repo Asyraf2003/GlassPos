@@ -76,8 +76,8 @@ final class CashierNoteCorrectionHistoryReasonViewFeatureTest extends TestCase
             ->assertSee('Koreksi Nominal Servis')
             ->assertSee('Alasan:')
             ->assertSee('Koreksi nominal servis setelah review pelanggan.')
-            ->assertSee('Diproses oleh:')
-            ->assertSee('actor-kasir');
+            ->assertDontSee('Diproses oleh:')
+            ->assertDontSee('actor-kasir');
     }
 
     private function seedKasir(): User
