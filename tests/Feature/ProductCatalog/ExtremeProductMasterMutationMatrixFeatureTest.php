@@ -163,6 +163,7 @@ final class ExtremeProductMasterMutationMatrixFeatureTest extends TestCase
             'merek' => 'Federal',
             'ukuran' => 90,
             'harga_jual' => 35000,
+            'change_reason' => 'Update product dari matrix mutation test.',
             'reorder_point_qty' => 2,
             'critical_threshold_qty' => 1,
         ], $overrides);

@@ -89,6 +89,7 @@ final class ProductEditPageFeatureTest extends TestCase
                 'merek' => 'Federal',
                 'ukuran' => 110,
                 'harga_jual' => 18000,
+                'change_reason' => 'Update product dari halaman edit.',
             ]);
 
         $response->assertRedirect(route('admin.products.index'));
@@ -135,6 +136,7 @@ final class ProductEditPageFeatureTest extends TestCase
                 'merek' => 'Federal',
                 'ukuran' => 100,
                 'harga_jual' => 17000,
+                'change_reason' => 'Uji validasi duplikasi product.',
             ]);
 
         $response->assertRedirect(route('admin.products.edit', ['productId' => 'product-2']));
@@ -163,6 +165,7 @@ final class ProductEditPageFeatureTest extends TestCase
                 'merek' => 'Federal',
                 'ukuran' => 90,
                 'harga_jual' => 14000,
+                'change_reason' => 'Uji update product yang tidak ditemukan.',
             ]);
 
         $response->assertRedirect(route('admin.products.index'));
