@@ -324,7 +324,7 @@
           <span class="cashier-note-detail-number">1</span>
           <div>
             <h4 class="cashier-note-detail-title">Info Nota</h4>
-            <p class="cashier-note-detail-help">Identitas customer, tanggal, status, dan ringkasan pembayaran.</p>
+            <p class="cashier-note-detail-help">Identitas pelanggan, tanggal, status, dan ringkasan pembayaran.</p>
           </div>
           <span class="cashier-note-detail-toggle" aria-hidden="true">
             <i class="bi bi-chevron-down"></i>
@@ -343,7 +343,7 @@
           <span class="cashier-note-detail-number">2</span>
           <div>
             <h4 class="cashier-note-detail-title">Rincian Nota</h4>
-            <p class="cashier-note-detail-help">Daftar item, status, sisa tagihan, dan dampak refund per rincian.</p>
+            <p class="cashier-note-detail-help">Daftar item, status, sisa tagihan, dan dampak pengembalian dana per rincian.</p>
           </div>
           <span class="cashier-note-detail-toggle" aria-hidden="true">
             <i class="bi bi-chevron-down"></i>
@@ -363,7 +363,7 @@
           <span class="cashier-note-detail-number">3</span>
           <div>
             <h4 class="cashier-note-detail-title">Review &amp; Pembayaran</h4>
-            <p class="cashier-note-detail-help">Lanjut edit, pembayaran, atau refund setelah rincian nota dicek.</p>
+            <p class="cashier-note-detail-help">Lanjut edit, pembayaran, atau pengembalian dana setelah rincian nota dicek.</p>
           </div>
           <span class="cashier-note-detail-toggle" aria-hidden="true">
             <i class="bi bi-chevron-down"></i>
