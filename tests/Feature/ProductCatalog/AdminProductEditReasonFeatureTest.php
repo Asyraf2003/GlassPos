@@ -59,6 +59,13 @@ final class AdminProductEditReasonFeatureTest extends TestCase
             'reason' => 'Koreksi harga jual dan batas stok.',
             'source_channel' => 'web_admin',
         ]);
+
+        $detail = $this
+            ->actingAs($user)
+            ->get(route('admin.products.show', ['productId' => 'product-1']));
+
+        $detail->assertOk();
+        $detail->assertSee('Koreksi harga jual dan batas stok.');
     }
 
     private function seedProduct(): void
