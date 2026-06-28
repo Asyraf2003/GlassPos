@@ -142,6 +142,40 @@ final class ProcurementInvoiceDetailPageFeatureTest extends TestCase
         $response->assertDontSee('Belum ada pembayaran pemasok.');
     }
 
+    public function test_admin_can_see_latest_supplier_invoice_revision_reason_on_detail_page(): void
+    {
+        $this->seedProduct('product-1', 'KB-001', 'Ban Luar', 'Federal', 90, 35000);
+        $this->seedSupplier('supplier-1', 'PT Sumber Makmur', 'pt sumber makmur');
+
+        $this->seedSupplierInvoice('invoice-1', 'supplier-1', '2026-03-15', '2026-04-15', 20000);
+        $this->seedSupplierInvoiceLine('invoice-line-1', 'invoice-1', 'product-1', 2, 20000, 10000);
+
+        DB::table('supplier_invoices')
+            ->where('id', 'invoice-1')
+            ->update(['last_revision_no' => 2]);
+
+        DB::table('supplier_invoice_versions')->insert([
+            'id' => 'invoice-1-r002',
+            'supplier_invoice_id' => 'invoice-1',
+            'revision_no' => 2,
+            'event_name' => 'supplier_invoice_updated',
+            'changed_by_actor_id' => 'actor-admin',
+            'change_reason' => 'Koreksi qty dan pajak supplier.',
+            'changed_at' => '2026-03-16 10:00:00',
+            'snapshot_json' => json_encode(['supplier_invoice_id' => 'invoice-1'], JSON_THROW_ON_ERROR),
+        ]);
+
+        $response = $this->actingAs($this->user('admin'))
+            ->get(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']));
+
+        $response->assertOk();
+        $response->assertSee('Perubahan Terakhir');
+        $response->assertSee('Revisi 2');
+        $response->assertSee('Alasan Perubahan Terakhir');
+        $response->assertSee('Koreksi qty dan pajak supplier.');
+        $response->assertSee('actor-admin');
+    }
+
     private function user(string $role): User
     {
         $user = User::query()->create([

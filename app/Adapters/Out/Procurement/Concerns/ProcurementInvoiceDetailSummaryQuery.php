@@ -34,6 +34,11 @@ trait ProcurementInvoiceDetailSummaryQuery
 
         return DB::table('supplier_invoices')
             ->leftJoin('suppliers', 'suppliers.id', '=', 'supplier_invoices.supplier_id')
+            ->leftJoin('supplier_invoice_versions as latest_revision', function ($join): void {
+                $join
+                    ->on('latest_revision.supplier_invoice_id', '=', 'supplier_invoices.id')
+                    ->on('latest_revision.revision_no', '=', 'supplier_invoices.last_revision_no');
+            })
             ->leftJoinSub($paymentTotalsSubquery, 'payment_totals', function ($join): void {
                 $join->on('payment_totals.supplier_invoice_id', '=', 'supplier_invoices.id');
             })
@@ -59,6 +64,10 @@ trait ProcurementInvoiceDetailSummaryQuery
                 'supplier_invoices.tax_amount_rupiah',
                 'supplier_invoices.grand_total_rupiah',
                 'supplier_invoices.last_revision_no',
+                'latest_revision.event_name as latest_revision_event_name',
+                'latest_revision.change_reason as latest_revision_change_reason',
+                'latest_revision.changed_by_actor_id as latest_revision_actor_id',
+                'latest_revision.changed_at as latest_revision_changed_at',
                 'supplier_invoices.voided_at',
                 'supplier_invoices.void_reason',
                 DB::raw('COALESCE(payment_totals.total_paid_rupiah, 0) as total_paid_rupiah'),

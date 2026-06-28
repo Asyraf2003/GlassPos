@@ -44,6 +44,19 @@ trait BuildsProcurementInvoiceDetailSummaryView
             'can_record_payment' => $outstandingAmount > 0,
             'receipt_count' => (int) ($summary['receipt_count'] ?? 0),
             'total_received_qty' => (int) ($summary['total_received_qty'] ?? 0),
+            'last_revision_no' => (int) ($summary['last_revision_no'] ?? 0),
+            'latest_revision_event_name' => ($summary['latest_revision_event_name'] ?? null) !== null
+                ? (string) $summary['latest_revision_event_name']
+                : null,
+            'latest_revision_reason' => ($summary['latest_revision_change_reason'] ?? null) !== null
+                ? (string) $summary['latest_revision_change_reason']
+                : null,
+            'latest_revision_actor_id' => ($summary['latest_revision_actor_id'] ?? null) !== null
+                ? (string) $summary['latest_revision_actor_id']
+                : null,
+            'latest_revision_changed_at' => ($summary['latest_revision_changed_at'] ?? null) !== null
+                ? (string) $summary['latest_revision_changed_at']
+                : null,
         ];
     }
 }

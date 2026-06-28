@@ -80,6 +80,30 @@
                             @endif
                         </div>
 
+                        @if (! empty($summaryView['latest_revision_reason']))
+                            <hr>
+
+                            <div class="mb-3">
+                                <small class="text-muted d-block">Perubahan Terakhir</small>
+                                <strong>Revisi {{ $summaryView['last_revision_no'] }}</strong>
+                                @if (! empty($summaryView['latest_revision_changed_at']))
+                                    <small class="text-muted d-block">{{ $summaryView['latest_revision_changed_at'] }}</small>
+                                @endif
+                            </div>
+
+                            <div class="mb-3">
+                                <small class="text-muted d-block">Alasan Perubahan Terakhir</small>
+                                <div class="fw-semibold">{{ $summaryView['latest_revision_reason'] }}</div>
+                            </div>
+
+                            @if (! empty($summaryView['latest_revision_actor_id']))
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Diproses oleh</small>
+                                    <div>{{ $summaryView['latest_revision_actor_id'] }}</div>
+                                </div>
+                            @endif
+                        @endif
+
                         <hr>
 
                         <div class="mb-3">

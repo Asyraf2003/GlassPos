@@ -67,6 +67,18 @@ trait ProcurementInvoiceDetailPayload
                 'tax_amount_rupiah' => (int) ($summary->tax_amount_rupiah ?? 0),
                 'grand_total_rupiah' => (int) $summary->grand_total_rupiah,
                 'last_revision_no' => (int) $summary->last_revision_no,
+                'latest_revision_event_name' => $summary->latest_revision_event_name !== null
+                    ? (string) $summary->latest_revision_event_name
+                    : null,
+                'latest_revision_change_reason' => $summary->latest_revision_change_reason !== null
+                    ? (string) $summary->latest_revision_change_reason
+                    : null,
+                'latest_revision_actor_id' => $summary->latest_revision_actor_id !== null
+                    ? (string) $summary->latest_revision_actor_id
+                    : null,
+                'latest_revision_changed_at' => $summary->latest_revision_changed_at !== null
+                    ? (string) $summary->latest_revision_changed_at
+                    : null,
                 'total_paid_rupiah' => $totalPaidRupiah,
                 'outstanding_rupiah' => (int) $summary->outstanding_rupiah,
                 'receipt_count' => $receiptCount,
