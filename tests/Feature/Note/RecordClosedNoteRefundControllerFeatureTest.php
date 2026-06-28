@@ -50,6 +50,21 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
             'refunded_amount_rupiah' => 50000,
         ]);
 
+        $this->assertDatabaseHas('audit_logs', [
+            'event' => 'selected_rows_refund_plan_recorded',
+        ]);
+
+        $auditContext = json_decode(
+            (string) DB::table('audit_logs')
+                ->where('event', 'selected_rows_refund_plan_recorded')
+                ->value('context'),
+            true,
+            512,
+            JSON_THROW_ON_ERROR
+        );
+
+        $this->assertSame('Koreksi line produk', $auditContext['reason'] ?? null);
+
         $this->assertDatabaseHas('work_items', [
             'id' => 'wi-1',
             'status' => WorkItem::STATUS_CANCELED,

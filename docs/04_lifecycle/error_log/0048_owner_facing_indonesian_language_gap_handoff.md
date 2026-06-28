@@ -1095,3 +1095,220 @@ If owner wants further cleanup, create separate issues/slices for:
 - supplier payable/reporting label cleanup,
 - procurement revision request/message cleanup.
 
+
+## Session Update - 2026-06-28 Out-of-Band Edit Reason Visibility Cleanup
+
+### Slice
+
+- Original active issue: 0047 owner-facing Indonesian language cleanup transaksi nota.
+- This update is out-of-band from pure language cleanup.
+- Actual cleanup theme: owner-facing edit/change/refund reason visibility and audit propagation.
+- Status: focused slices 1-4 passed.
+- Closure state: reason visibility gaps covered for the targeted high-risk flows below.
+
+### Why This Was Done
+
+A follow-up audit found several edit/refund flows where `reason` / `change_reason` existed in some layers but was not consistently proven from input to owner-facing display or audit payload.
+
+The owner chose to fix the gaps in this session instead of opening a separate follow-up issue.
+
+### Slice 1 - Admin Product Edit Reason
+
+#### Files Changed
+
+- `resources/views/admin/products/edit.blade.php`
+- `app/Adapters/In/Http/Requests/ProductCatalog/UpdateProductRequest.php`
+- `app/Adapters/In/Http/Controllers/Admin/Product/UpdateProductController.php`
+- `tests/Feature/ProductCatalog/AdminProductEditReasonFeatureTest.php`
+
+#### Result
+
+- Admin product edit form now has required `change_reason`.
+- Admin product update validation requires `change_reason` only for admin product update route.
+- Admin product controller passes `change_reason` into `ProductChangeContext`.
+- Product reason is persisted through existing product version/audit infrastructure.
+- Product detail timeline display is proven by test.
+
+#### Proof
+
+Focused tests passed:
+
+```bash
+php artisan test \
+  tests/Feature/ProductCatalog/AdminProductEditReasonFeatureTest.php \
+  tests/Feature/ProductCatalog/UpdateProductFeatureTest.php \
+  tests/Feature/ProductCatalog/ProductDetailPageFeatureTest.php
+```
+
+Result:
+
+```text
+PASS
+```
+
+### Slice 2 - Supplier Invoice Latest Revision Reason Display
+
+#### Files Changed
+
+- `app/Adapters/Out/Procurement/Concerns/ProcurementInvoiceDetailSummaryQuery.php`
+- `app/Adapters/Out/Procurement/Concerns/ProcurementInvoiceDetailPayload.php`
+- `app/Adapters/In/Http/Controllers/Admin/Procurement/Concerns/BuildsProcurementInvoiceDetailSummaryView.php`
+- `resources/views/admin/procurement/supplier_invoices/show.blade.php`
+- `tests/Feature/Procurement/ProcurementInvoiceDetailPageFeatureTest.php`
+
+#### Result
+
+- Supplier invoice detail query now joins latest `supplier_invoice_versions` by `supplier_invoices.last_revision_no`.
+- Latest revision event metadata and `change_reason` are exposed to the detail payload.
+- Supplier invoice detail page now displays latest revision reason as `Alasan Perubahan Terakhir`.
+- Display is proven by feature test.
+
+#### Proof
+
+Focused tests passed:
+
+```bash
+php artisan test \
+  tests/Feature/Procurement/ProcurementInvoiceDetailPageFeatureTest.php \
+  tests/Feature/Procurement/UpdateSupplierInvoiceFeatureTest.php
+```
+
+Result:
+
+```text
+PASS
+```
+
+### Slice 3 - Closed/Paid Note Correction History Reason Display
+
+#### Files Changed
+
+- `resources/views/shared/notes/show.blade.php`
+- `tests/Feature/Note/CashierNoteCorrectionHistoryReasonViewFeatureTest.php`
+
+#### Result
+
+- Root cause: cashier note detail route renders `shared.notes.show`, not the older `cashier.notes.show`.
+- Existing correction history partial already rendered:
+  - `Riwayat Mutasi Nota`
+  - mutation label
+  - `Alasan:`
+  - actor id
+- `shared.notes.show` now includes `cashier.notes.partials.correction-history`.
+- New test seeds current revision correctly and proves correction reason appears in note detail HTML.
+
+#### Proof
+
+Focused tests passed:
+
+```bash
+php artisan test \
+  tests/Feature/Note/CashierNoteCorrectionHistoryReasonViewFeatureTest.php \
+  tests/Feature/Note/CashierNoteMutationHistoryViewFeatureTest.php \
+  tests/Feature/Note/CorrectPaidServiceOnlyWritesMutationTimelineFeatureTest.php
+```
+
+Result:
+
+```text
+PASS
+```
+
+### Slice 4 - Selected Rows Refund Reason Audit Payload
+
+#### Files Changed
+
+- `app/Application/Payment/Services/RecordSelectedRowsRefundPlanTransaction.php`
+- `app/Application/Payment/Services/RecordSelectedRowsRefundPlanAuditRecorder.php`
+- `tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php`
+- `tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php`
+
+#### Result
+
+- `RecordSelectedRowsRefundPlanTransaction` now passes refund reason into `RecordSelectedRowsRefundPlanAuditRecorder`.
+- `selected_rows_refund_plan_recorded` audit payload now includes trimmed reason.
+- Direct `RecordCustomerRefundHandler` test keeps proof that `customer_refunds.reason` is stored.
+- HTTP closed-note refund test now proves the selected-rows refund plan audit payload includes reason.
+- Incorrect assertion was removed from the direct customer refund handler test because that path emits `customer_refund_recorded`, not `selected_rows_refund_plan_recorded`.
+
+#### Proof
+
+Focused tests passed:
+
+```bash
+php artisan test \
+  tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php \
+  tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php
+```
+
+Result:
+
+```text
+PASS
+```
+
+### Current Coverage Summary
+
+Covered and proven:
+
+- Product edit reason:
+  - input
+  - validation
+  - backend propagation
+  - DB/audit persistence
+  - detail display
+- Supplier invoice edit reason:
+  - existing input/backend
+  - latest revision query exposure
+  - detail display
+- Closed/paid note correction reason:
+  - native mutation event reason
+  - correction history reader
+  - shared note detail display
+- Selected rows refund reason:
+  - `customer_refunds.reason`
+  - selected rows refund audit payload reason
+
+### Known Non-Goals In This Update
+
+- No database enum/key/route/internal contract rename.
+- No mobile API cleanup.
+- No `docs/99_archive` patch.
+- No broad refund-history UI redesign.
+- No dashboard finance label cleanup.
+- No supplier payable/reporting label cleanup beyond latest supplier invoice revision reason display.
+
+### Recommended Next Proof
+
+Run the combined focused suite:
+
+```bash
+php artisan test \
+  tests/Feature/ProductCatalog/AdminProductEditReasonFeatureTest.php \
+  tests/Feature/ProductCatalog/UpdateProductFeatureTest.php \
+  tests/Feature/ProductCatalog/ProductDetailPageFeatureTest.php \
+  tests/Feature/Procurement/ProcurementInvoiceDetailPageFeatureTest.php \
+  tests/Feature/Procurement/UpdateSupplierInvoiceFeatureTest.php \
+  tests/Feature/Note/CashierNoteCorrectionHistoryReasonViewFeatureTest.php \
+  tests/Feature/Note/CashierNoteMutationHistoryViewFeatureTest.php \
+  tests/Feature/Note/CorrectPaidServiceOnlyWritesMutationTimelineFeatureTest.php \
+  tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php \
+  tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php
+```
+
+Then run full verification:
+
+```bash
+make verify
+```
+
+### Closure Recommendation
+
+The targeted owner-facing reason visibility/audit gaps fixed in this out-of-band cleanup can be considered covered after the combined focused suite and `make verify` pass.
+
+If further cleanup is desired, create separate follow-up slices for:
+
+- stock adjustment reason display,
+- refund history owner-facing UI summary,
+- broader audit log reason report/export surface.
+
