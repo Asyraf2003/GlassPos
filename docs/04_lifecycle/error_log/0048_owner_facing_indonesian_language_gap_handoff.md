@@ -903,3 +903,88 @@ Sesi ini sudah padat. Lanjut eksekusi di sesi baru lebih aman agar model tidak k
 - No further bypass is needed for these files.
 - Continue remaining 0047 work with broad owner-facing scan only; do not rename DB enums, DTO keys, route names, request fields, or user-provided fixture values.
 
+
+## Session Update - 2026-06-28 Note Wrapper Help Text Cleaned
+
+### Slice
+
+- Active issue: 0047 owner-facing Indonesian language cleanup transaksi nota.
+- Handoff: 0048 owner-facing Indonesian language gap handoff.
+- Scope: transaksi nota visible UI only.
+- Status: note detail wrapper help text cleaned.
+
+### FACT
+
+- `make verify` was reported PASS before this final wrapper patch.
+- Final targeted wrapper scan found remaining visible English/internal terms in:
+  - `resources/views/cashier/notes/show.blade.php`
+  - `resources/views/shared/notes/show.blade.php`
+- Remaining visible terms were limited to help text:
+  - `Identitas customer`
+  - `status setiap line`
+  - `refund setelah`
+  - `dampak refund`
+  - `atau refund`
+- These were visible owner-facing UI strings, not enum, key, route, request field, fixture, class, or method names.
+
+### Files Changed
+
+- `resources/views/cashier/notes/show.blade.php`
+- `resources/views/shared/notes/show.blade.php`
+- `docs/04_lifecycle/error_log/0048_owner_facing_indonesian_language_gap_handoff.md`
+
+### Changes
+
+- `Identitas customer, tanggal, status, dan ringkasan pembayaran.`
+  -> `Identitas pelanggan, tanggal, status, dan ringkasan pembayaran.`
+- `Daftar item, status, sisa tagihan, dan dampak refund per rincian.`
+  -> `Daftar item, status, sisa tagihan, dan dampak pengembalian dana per rincian.`
+- `Lanjut edit, pembayaran, atau refund setelah rincian nota dicek.`
+  -> `Lanjut edit, pembayaran, atau pengembalian dana setelah rincian nota dicek.`
+- `Identitas customer, tanggal, dan status nota.`
+  -> `Identitas pelanggan, tanggal, dan status nota.`
+- `Daftar rincian nota dan status setiap line.`
+  -> `Daftar rincian nota dan status setiap rincian.`
+- `Edit, pembayaran, dan refund setelah rincian nota dicek.`
+  -> `Edit, pembayaran, dan pengembalian dana setelah rincian nota dicek.`
+
+### Proof
+
+Owner ran:
+
+```bash
+rg -n --no-heading -S '(Identitas customer|status setiap line|refund setelah|dampak refund|atau refund)' \
+  resources/views/shared/notes/show.blade.php \
+  resources/views/cashier/notes/show.blade.php
+```
+
+Result:
+
+```text
+(no output)
+```
+
+### Remaining Work
+
+- Run full final classification scan for 0047.
+- Run `make verify` after this wrapper patch.
+- If no visible transaksi nota/report/PDF/Excel English/internal-facing string remains, close 0047 with final handoff update.
+- Dashboard labels and supplier payable labels remain out of scope for 0047 and must be handled in separate issue/slice if needed.
+
+### Boundary Reminder
+
+Do not patch:
+
+- enum database,
+- column names,
+- DTO keys,
+- route names,
+- request field names,
+- hidden input names,
+- class names,
+- method names,
+- fixture/user input,
+- docs/99_archive,
+- supplier/procurement,
+- mobile API.
+
