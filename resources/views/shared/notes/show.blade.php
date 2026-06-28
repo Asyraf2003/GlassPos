@@ -362,6 +362,7 @@
             'timelineRevisions' => array_slice(($note['revision_timeline']['timeline'] ?? []), 0, 3),
             'revisionCount' => count($note['revision_timeline']['timeline'] ?? []),
           ])
+          @include('cashier.notes.partials.correction-history')
         </div>
       </details>
     </div>
