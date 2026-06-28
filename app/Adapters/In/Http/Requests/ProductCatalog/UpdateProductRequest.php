@@ -18,6 +18,7 @@ final class UpdateProductRequest extends FormRequest
     {
         $this->merge([
             'kode_barang' => $this->normalizeNullableString($this->input('kode_barang')),
+            'change_reason' => $this->normalizeNullableString($this->input('change_reason')),
         ]);
     }
 
@@ -27,6 +28,7 @@ final class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         $productId = $this->route('productId');
+        $changeReasonPresence = $this->routeIs('admin.products.update') ? 'required' : 'nullable';
 
         return [
             'kode_barang' => [
@@ -42,6 +44,7 @@ final class UpdateProductRequest extends FormRequest
             'harga_jual' => ['required', 'integer', 'min:1'],
             'reorder_point_qty' => ['nullable', 'integer', 'min:0'],
             'critical_threshold_qty' => ['nullable', 'integer', 'min:0'],
+            'change_reason' => [$changeReasonPresence, 'string', 'min:3', 'max:255'],
         ];
     }
 
@@ -52,6 +55,7 @@ final class UpdateProductRequest extends FormRequest
     {
         return [
             'kode_barang.unique' => 'Kode barang sudah dipakai product lain.',
+            'change_reason.required' => 'Catatan perubahan wajib diisi.',
         ];
     }
 

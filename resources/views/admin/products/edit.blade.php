@@ -181,6 +181,24 @@
                                         @enderror
                                     </div>
                                 </div>
+                                <div class="col-12">
+                                    <div class="form-group mb-4">
+                                        <label for="change_reason" class="form-label">Catatan Perubahan</label>
+                                        <textarea
+                                            id="change_reason"
+                                            name="change_reason"
+                                            rows="3"
+                                            class="form-control @error('change_reason') is-invalid @enderror"
+                                            placeholder="Contoh: koreksi harga jual, update kode barang, atau penyesuaian batas stok"
+                                            required
+                                        >{{ old('change_reason') }}</textarea>
+                                        @error('change_reason')
+                                            <div class="invalid-feedback">
+                                                {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="ui-form-actions">

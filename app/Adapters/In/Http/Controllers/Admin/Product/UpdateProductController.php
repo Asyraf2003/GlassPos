@@ -27,7 +27,7 @@ final class UpdateProductController extends Controller
             $actorId !== null ? (string) $actorId : null,
             null,
             'web_admin',
-            null,
+            isset($data['change_reason']) ? (string) $data['change_reason'] : null,
         );
 
         $result = $useCase->handle(
