@@ -13,10 +13,6 @@
                             <div class="mt-2"><span class="text-muted">Alasan:</span> {{ $entry['reason'] }}</div>
                         @endif
 
-                        @if ($entry['performed_by_actor_id'] !== null)
-                            <div><span class="text-muted">Diproses oleh:</span> {{ $entry['performed_by_actor_id'] }}</div>
-                        @endif
-
                         @if ($entry['target_status'] !== null)
                             <div><span class="text-muted">Status tujuan:</span> {{ $entry['target_status'] }}</div>
                         @endif

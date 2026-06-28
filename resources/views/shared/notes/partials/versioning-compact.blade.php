@@ -78,11 +78,6 @@
               </div>
               <div class="text-end small text-muted">
                 <div>{{ \App\Support\ViewDateFormatter::display($entry['created_at'] ?? null, true) }}</div>
-                @if (!empty($entry['created_by_actor_id']))
-                  <div class="badge mt-1">
-                    {{ $entry['created_by_actor_id'] }}
-                  </div>
-                @endif
               </div>
             </div>
 

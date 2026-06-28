@@ -104,12 +104,6 @@
                 </div>
               @endif
 
-              @if (!empty($entry['created_by_actor_id']))
-                <div class="small mb-2">
-                  <span class="text-muted">Diproses oleh:</span> {{ $entry['created_by_actor_id'] }}
-                </div>
-              @endif
-
               <div class="border rounded p-3">
                 <div class="row g-3">
                   <div class="col-12 col-md-4">
