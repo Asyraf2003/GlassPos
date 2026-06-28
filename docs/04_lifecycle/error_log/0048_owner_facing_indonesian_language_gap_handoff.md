@@ -1312,3 +1312,75 @@ If further cleanup is desired, create separate follow-up slices for:
 - refund history owner-facing UI summary,
 - broader audit log reason report/export surface.
 
+
+## Session Update - 2026-06-28 Full Verification Passed After Product Reason Fixture Fix
+
+### Slice
+
+- Original active issue: 0047 owner-facing Indonesian language cleanup transaksi nota.
+- Follow-up context: out-of-band owner-facing edit/change/refund reason visibility and audit propagation.
+- Status: full verification passed after test fixture alignment.
+
+### FACT
+
+- Combined focused reason visibility suite passed.
+- First full `make verify` after the out-of-band reason visibility cleanup failed.
+- Failure was caused by existing product update feature tests not sending the newly required `change_reason` field.
+- Runtime validation correctly rejected those old test payloads with:
+  - `Catatan perubahan wajib diisi.`
+- This was classified as stale test fixture data, not a production validation bug.
+
+### Files Changed In This Fix
+
+- `tests/Feature/ProductCatalog/ExtremeProductMasterMutationMatrixFeatureTest.php`
+- `tests/Feature/ProductCatalog/ExtremeProductMasterValidationMatrixFeatureTest.php`
+- `tests/Feature/ProductCatalog/ProductEditPageFeatureTest.php`
+
+### Changes
+
+- Added default `change_reason` to product master mutation matrix payload helper.
+- Added default `change_reason` to product master validation matrix payload helper.
+- Added `change_reason` to direct product edit page update payloads.
+
+### Proof
+
+Focused product tests passed after fixture alignment:
+
+```bash
+php artisan test \
+  tests/Feature/ProductCatalog/ExtremeProductMasterMutationMatrixFeatureTest.php \
+  tests/Feature/ProductCatalog/ExtremeProductMasterValidationMatrixFeatureTest.php \
+  tests/Feature/ProductCatalog/ProductEditPageFeatureTest.php
+```
+
+Result:
+
+```text
+PASS
+```
+
+Full verification passed after fixture alignment:
+
+```bash
+make verify
+```
+
+Result:
+
+```text
+PASS
+```
+
+### Closure Recommendation
+
+The 0047 transaksi nota language cleanup and the out-of-band reason visibility/audit cleanup are now verified from the available proof.
+
+0047 can be closed from the transaksi nota owner-facing cleanup side.
+
+Further cleanup should be handled as separate issues/slices, especially:
+
+- dashboard finance label Indonesian cleanup,
+- supplier payable/reporting label cleanup,
+- procurement revision request/message cleanup,
+- broader refund/audit reason report or export surfaces.
+
