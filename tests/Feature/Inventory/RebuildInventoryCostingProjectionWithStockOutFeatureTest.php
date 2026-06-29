@@ -94,4 +94,77 @@ final class RebuildInventoryCostingProjectionWithStockOutFeatureTest extends Tes
             'inventory_value_rupiah' => 60000,
         ]);
     }
+    public function test_rebuild_costing_projection_does_not_skip_same_day_stock_out_before_stock_in(): void
+    {
+        $this->seedInventoryProduct('product-1', 'KB-001', 'Ban Luar', 'Federal', 100, 12000);
+
+        DB::table('inventory_movements')->insert([
+            [
+                'id' => 'm1-stock-out-first',
+                'product_id' => 'product-1',
+                'movement_type' => 'stock_out',
+                'source_type' => 'work_item_store_stock_line',
+                'source_id' => 'work-line-1',
+                'tanggal_mutasi' => '2026-06-29',
+                'qty_delta' => -1,
+                'unit_cost_rupiah' => 1150,
+                'total_cost_rupiah' => -1150,
+            ],
+            [
+                'id' => 'm2-reversal',
+                'product_id' => 'product-1',
+                'movement_type' => 'stock_in',
+                'source_type' => 'work_item_store_stock_line_reversal',
+                'source_id' => 'work-line-1',
+                'tanggal_mutasi' => '2026-06-29',
+                'qty_delta' => 1,
+                'unit_cost_rupiah' => 1150,
+                'total_cost_rupiah' => 1150,
+            ],
+            [
+                'id' => 'm3-receipt',
+                'product_id' => 'product-1',
+                'movement_type' => 'stock_in',
+                'source_type' => 'supplier_receipt_line',
+                'source_id' => 'receipt-line-1',
+                'tanggal_mutasi' => '2026-06-29',
+                'qty_delta' => 10,
+                'unit_cost_rupiah' => 1150,
+                'total_cost_rupiah' => 11500,
+            ],
+            [
+                'id' => 'm4-adjustment-out',
+                'product_id' => 'product-1',
+                'movement_type' => 'stock_out',
+                'source_type' => 'stock_adjustment',
+                'source_id' => 'adjustment-1',
+                'tanggal_mutasi' => '2026-06-29',
+                'qty_delta' => -1,
+                'unit_cost_rupiah' => 1150,
+                'total_cost_rupiah' => -1150,
+            ],
+            [
+                'id' => 'm5-cost-revaluation',
+                'product_id' => 'product-1',
+                'movement_type' => 'cost_revaluation',
+                'source_type' => 'supplier_invoice_cost_revaluation',
+                'source_id' => 'invoice-line-1',
+                'tanggal_mutasi' => '2026-06-30',
+                'qty_delta' => 0,
+                'unit_cost_rupiah' => 0,
+                'total_cost_rupiah' => 300,
+            ],
+        ]);
+
+        $handler = app(RebuildInventoryCostingProjectionHandler::class);
+
+        $handler->handle();
+
+        $this->assertDatabaseHas('product_inventory_costing', [
+            'product_id' => 'product-1',
+            'avg_cost_rupiah' => 1183,
+            'inventory_value_rupiah' => 10650,
+        ]);
+    }
+
 }
