@@ -8,6 +8,7 @@ use App\Adapters\Out\Reporting\Queries\TransactionCashLedgerReportingQuery;
 use App\Application\Note\UseCases\CreateNoteRevisionHandler;
 use App\Application\Note\UseCases\CreateTransactionWorkspaceHandler;
 use App\Application\Payment\UseCases\RecordAndAllocateNotePaymentHandler;
+use App\Application\Reporting\UseCases\GetDashboardOperationalPerformanceDatasetHandler;
 use App\Application\Reporting\UseCases\GetInventoryMovementSummaryHandler;
 use App\Application\Reporting\UseCases\GetOperationalProfitSummaryHandler;
 use App\Application\Reporting\UseCases\GetTransactionReportDatasetHandler;
@@ -206,6 +207,11 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         self::assertSame(120000, $profitRow['store_stock_cogs_rupiah']);
         self::assertSame(120000, $profitRow['product_purchase_cost_rupiah']);
         self::assertSame(230000, $profitRow['cash_operational_profit_rupiah']);
+
+        $dashboard = app(GetDashboardOperationalPerformanceDatasetHandler::class)
+            ->handle('2026-05-01', '2026-05-31');
+
+        self::assertSame(230000, $dashboard['summary']['total_operational_profit_rupiah']);
     }
 
     private function seedStoreStockProduct(): void
