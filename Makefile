@@ -1,5 +1,6 @@
 include mk/push.mk
 include mk/hexagonal.mk
+include mk/audit.mk
 
 push:
 	@$(MAKE) git-push
@@ -8,13 +9,20 @@ pushc: push
 	@clear
 
 # >>> docs targets >>>
-.PHONY: docs-help
+.PHONY: docs-help help
+
+help:
+	@echo "Tersedia Perintah Kerja:"
+	@echo "  make audit-git                      Menjalankan audit laporan arsitektur dan statistik Git"
+	@echo "  make verify-service-product-template  Validasi sintaks rute, controller, views, dan test"
+	@echo "  make docs-help                      Melihat dokumentasi bantuan proyek"
 
 docs-help:
 	@cat docs/DOCS_HELP.md
 # <<< docs targets <<<
 
 include mk/seed.mk
+
 .PHONY: verify-service-product-template
 verify-service-product-template:
 	php -l routes/web/admin_service_catalog.php
