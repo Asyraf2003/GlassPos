@@ -21,7 +21,7 @@ final class ViewDateValueParser
             return self::parseSlashDate($trimmed);
         }
 
-        return Carbon::parse($value);
+        return Carbon::parse($value, self::sourceTimezone());
     }
 
     private static function isSlashDate(string $value): bool
@@ -53,5 +53,22 @@ final class ViewDateValueParser
                 (int) ($errors['warning_count'] ?? 0) === 0
                 && (int) ($errors['error_count'] ?? 0) === 0
             );
+    }
+
+    private static function sourceTimezone(): string
+    {
+        if (function_exists('config')) {
+            try {
+                $configured = config('app.timezone');
+            } catch (\Throwable) {
+                $configured = null;
+            }
+
+            if (is_string($configured) && trim($configured) !== '') {
+                return trim($configured);
+            }
+        }
+
+        return 'UTC';
     }
 }
