@@ -145,3 +145,64 @@ Create a failing regression test before patching production code.
 Target file:
 
 `tests/Feature/Inventory/RebuildInventoryCostingProjectionWithStockOutFeatureTest.php`
+
+## Session Update - Targeted Patch Applied
+
+### Status Update
+
+PATCHED - targeted regression proof PASS.
+
+### Files Changed
+
+- `app/Application/Inventory/Services/InventoryCostingProjectionBuilder.php`
+- `tests/Feature/Inventory/RebuildInventoryCostingProjectionWithStockOutFeatureTest.php`
+
+### Patch Summary
+
+`InventoryCostingProjectionBuilder` was changed from order-sensitive replay logic into ledger aggregation logic.
+
+The rebuilt costing projection now derives:
+
+```text
+qty   = SUM(qty_delta) per product
+value = SUM(total_cost_rupiah) per product
+avg   = intdiv(value, qty)
+```
+
+This removes the previous silent skip behavior where `stock_out` could be ignored when replay state qty was zero.
+
+### Regression Proof
+
+Added targeted regression test:
+
+```text
+test_rebuild_costing_projection_does_not_skip_same_day_stock_out_before_stock_in
+```
+
+The test reproduced the confirmed bug:
+
+```text
+buggy actual:
+avg_cost_rupiah         = 1180
+inventory_value_rupiah = 11800
+```
+
+Expected ledger-safe result:
+
+```text
+avg_cost_rupiah         = 1183
+inventory_value_rupiah = 10650
+```
+
+After patch, targeted test passed.
+
+### Remaining Follow-up
+
+Run broader inventory/reporting tests and re-run read-only residual diagnostics to confirm:
+
+```text
+value_diff = 0 for projection vs movement ledger
+```
+
+Remaining residuals should be true integer average-cost rounding residuals only.
+
