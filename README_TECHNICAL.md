@@ -26,17 +26,19 @@ Important boundary: this repository does not contain the production database. Pr
 
 Snapshot source: `make audit-git`.
 
+Latest local audit snapshot:
+
 | Area | Count |
 |---|---:|
-| Total files | 21,727 |
-| Total directories | 3,006 |
+| Total files | 21,739 |
+| Total directories | 3,009 |
 | PHP files | 2,088 |
 | Blade files | 132 |
 | Markdown docs | 444 |
 | Migrations | 95 |
 | Test files | 498 |
 | Route files | 23 |
-| Total commits | 3,370 |
+| Total commits | 3,385 |
 | Unique commit days | 102 |
 
 LOC snapshot:
@@ -49,6 +51,13 @@ LOC snapshot:
 | `resources/` Blade | 17,265 |
 | `docs/` Markdown | 125,869 |
 
+Commit overview:
+
+| Signal | Value |
+|---|---|
+| First commit | `aa732343 chore: fresh start laravel installation` |
+| Last commit at snapshot | `e69eea9a commit 3385` |
+
 Commit distribution:
 
 | Month | Commits |
@@ -56,9 +65,104 @@ Commit distribution:
 | 2026-03 | 397 |
 | 2026-04 | 1,096 |
 | 2026-05 | 947 |
-| 2026-06 | 930 |
+| 2026-06 | 945 |
+
+Commit weekday distribution:
+
+| Weekday | Commits |
+|---|---:|
+| Friday | 629 |
+| Saturday | 517 |
+| Sunday | 499 |
+| Monday | 488 |
+| Thursday | 473 |
+| Wednesday | 471 |
+| Tuesday | 308 |
+
+Most changed files at snapshot:
+
+| Changes | File |
+|---:|---|
+| 103 | `app/Providers/HexagonalServiceProvider.php` |
+| 61 | `resources/views/admin/dashboard/index.blade.php` |
+| 45 | `routes/web/note.php` |
+| 43 | `resources/views/cashier/notes/workspace/create.blade.php` |
+| 42 | `resources/views/layouts/partials/sidebar-admin.blade.php` |
+| 41 | `resources/views/admin/procurement/supplier_invoices/show.blade.php` |
+| 40 | `resources/views/admin/procurement/supplier_invoices/create.blade.php` |
+| 39 | `app/Application/Note/Services/NoteDetailPageDataBuilder.php` |
+| 38 | `resources/views/cashier/notes/show.blade.php` |
+| 35 | `resources/views/cashier/notes/partials/note-rows-table.blade.php` |
 
 This density exists because the application touches mutable operational state. A wrong change can silently corrupt money, stock, debt, payable, payment allocation, refund status, or report totals.
+
+## Migration Timeline Snapshot
+
+Snapshot source: `make audit-git`.
+
+| Date | Migration count |
+|---|---:|
+| 0001-01-01 | 3 |
+| 2026-03-10 | 3 |
+| 2026-03-11 | 1 |
+| 2026-03-12 | 8 |
+| 2026-03-13 | 1 |
+| 2026-03-14 | 7 |
+| 2026-03-15 | 7 |
+| 2026-03-16 | 4 |
+| 2026-04-02 | 4 |
+| 2026-04-04 | 1 |
+| 2026-04-06 | 8 |
+| 2026-04-07 | 2 |
+| 2026-04-09 | 1 |
+| 2026-04-10 | 2 |
+| 2026-04-11 | 1 |
+| 2026-04-17 | 1 |
+| 2026-04-18 | 4 |
+| 2026-04-19 | 4 |
+| 2026-04-22 | 3 |
+| 2026-04-23 | 4 |
+| 2026-04-27 | 4 |
+| 2026-05-13 | 3 |
+| 2026-05-15 | 8 |
+| 2026-05-23 | 1 |
+| 2026-05-25 | 1 |
+| 2026-05-29 | 1 |
+| 2026-06-04 | 2 |
+| 2026-06-17 | 2 |
+| 2026-06-18 | 1 |
+| 2026-06-19 | 1 |
+| 2026-06-22 | 1 |
+| 2026-06-23 | 1 |
+
+## Test Coverage by Domain Snapshot
+
+Snapshot source: `make audit-git`.
+
+| Domain | Test files |
+|---|---:|
+| Note | 139 |
+| Procurement | 56 |
+| Reporting | 48 |
+| EmployeeFinance | 29 |
+| Expense | 22 |
+| Database | 21 |
+| ProductCatalog | 19 |
+| ReportingExports | 17 |
+| Payment | 12 |
+| AuditLog | 12 |
+| PushNotification | 7 |
+| Inventory | 7 |
+| ServiceProductTemplate | 4 |
+| IdentityAccess | 3 |
+| Seeder | 2 |
+| Foundation | 2 |
+| Auth | 2 |
+| Admin | 2 |
+| Support | 1 |
+| ServiceCatalog | 1 |
+| Http | 1 |
+| Cashier | 1 |
 
 ## Architecture
 
@@ -498,7 +602,14 @@ make docs-help
 
 `make audit-git` is expected to generate repository density and architecture statistics.
 
-If the script prints noise around arithmetic parsing, treat it as a tooling cleanup issue, not as source truth for application behavior. The output should be cleaned so repository audit proof is not noisy.
+Current observed noise:
+
+```text
+scripts/git_report.sh: line 119: 0
+0: arithmetic syntax error in expression
+```
+
+The report still reaches `REPORT SELESAI`. Treat the arithmetic message as a tooling cleanup issue, not as source truth for application behavior. The output should be cleaned so repository audit proof is not noisy.
 
 ## Reader Boundary
 
