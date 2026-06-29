@@ -289,6 +289,150 @@ final class InventoryStockValueReportExcelExportFeatureTest extends TestCase
         $spreadsheet->disconnectWorksheets();
     }
 
+    public function test_inventory_stock_value_excel_export_keeps_deleted_and_orphan_movement_labels_without_snapshot_pollution(): void
+    {
+        DB::table('products')->insert([
+            [
+                'id' => 'excel-product-active',
+                'kode_barang' => 'KB-X-ACT',
+                'nama_barang' => 'Excel Active Part',
+                'merek' => 'Federal',
+                'ukuran' => 100,
+                'harga_jual' => 15000,
+                'deleted_at' => null,
+            ],
+            [
+                'id' => 'excel-product-deleted',
+                'kode_barang' => 'KB-X-DEL',
+                'nama_barang' => 'Excel Deleted Part',
+                'merek' => 'Federal',
+                'ukuran' => 100,
+                'harga_jual' => 15000,
+                'deleted_at' => '2030-01-15 10:00:00',
+            ],
+        ]);
+
+        DB::table('inventory_movements')->insert([
+            [
+                'id' => 'excel-movement-active-in',
+                'product_id' => 'excel-product-active',
+                'movement_type' => 'stock_in',
+                'source_type' => 'supplier_receipt_line',
+                'source_id' => 'excel-receipt-active-line',
+                'tanggal_mutasi' => '2030-01-10',
+                'qty_delta' => 5,
+                'unit_cost_rupiah' => 1000,
+                'total_cost_rupiah' => 5000,
+            ],
+            [
+                'id' => 'excel-movement-deleted-in',
+                'product_id' => 'excel-product-deleted',
+                'movement_type' => 'stock_in',
+                'source_type' => 'supplier_receipt_line',
+                'source_id' => 'excel-receipt-deleted-line',
+                'tanggal_mutasi' => '2030-01-11',
+                'qty_delta' => 2,
+                'unit_cost_rupiah' => 2000,
+                'total_cost_rupiah' => 4000,
+            ],
+        ]);
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+
+        try {
+            DB::table('inventory_movements')->insert([
+                'id' => 'excel-movement-orphan-in',
+                'product_id' => 'excel-product-orphan',
+                'movement_type' => 'stock_in',
+                'source_type' => 'supplier_receipt_line',
+                'source_id' => 'excel-receipt-orphan-line',
+                'tanggal_mutasi' => '2030-01-12',
+                'qty_delta' => 3,
+                'unit_cost_rupiah' => 3000,
+                'total_cost_rupiah' => 9000,
+            ]);
+        } finally {
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        }
+
+        DB::table('product_inventory')->insert([
+            ['product_id' => 'excel-product-active', 'qty_on_hand' => 5],
+            ['product_id' => 'excel-product-deleted', 'qty_on_hand' => 2],
+        ]);
+
+        DB::table('product_inventory_costing')->insert([
+            ['product_id' => 'excel-product-active', 'avg_cost_rupiah' => 1000, 'inventory_value_rupiah' => 5000],
+            ['product_id' => 'excel-product-deleted', 'avg_cost_rupiah' => 2000, 'inventory_value_rupiah' => 4000],
+        ]);
+
+        $response = $this->actingAs($this->user('admin'))->get(
+            route('admin.reports.inventory_stock_value.export_excel', [
+                'period_mode' => 'monthly',
+                'reference_date' => '2030-01-31',
+            ])
+        );
+
+        $response->assertOk();
+
+        $path = tempnam(sys_get_temp_dir(), 'inventory-stock-value-deleted-orphan-labels-');
+        file_put_contents($path, $response->streamedContent());
+
+        $spreadsheet = IOFactory::load($path);
+        $snapshot = $spreadsheet->getSheetByName('Snapshot Stok');
+        $movement = $spreadsheet->getSheetByName('Mutasi Periode');
+
+        $this->assertNotNull($snapshot);
+        $this->assertNotNull($movement);
+
+        $snapshotProductIds = [];
+        foreach (range(2, 20) as $rowNumber) {
+            $value = $snapshot->getCell('A' . $rowNumber)->getValue();
+
+            if ($value !== null) {
+                $snapshotProductIds[] = $value;
+            }
+        }
+
+        $this->assertSame(['excel-product-active'], $snapshotProductIds);
+
+        $movementRowsByProductId = [];
+        foreach (range(2, 20) as $rowNumber) {
+            $productId = $movement->getCell('A' . $rowNumber)->getValue();
+
+            if ($productId === null) {
+                continue;
+            }
+
+            $movementRowsByProductId[$productId] = [
+                'kode_barang' => $movement->getCell('B' . $rowNumber)->getValue(),
+                'nama_barang' => $movement->getCell('C' . $rowNumber)->getValue(),
+                'supply_in_qty' => $movement->getCell('D' . $rowNumber)->getValue(),
+                'net_cost_delta_rupiah' => $movement->getCell('M' . $rowNumber)->getValue(),
+            ];
+        }
+
+        $this->assertSame('Excel Active Part', $movementRowsByProductId['excel-product-active']['nama_barang']);
+        $this->assertSame('KB-X-ACT', $movementRowsByProductId['excel-product-active']['kode_barang']);
+
+        $this->assertSame('[Produk terhapus] Excel Deleted Part', $movementRowsByProductId['excel-product-deleted']['nama_barang']);
+        $this->assertSame('KB-X-DEL', $movementRowsByProductId['excel-product-deleted']['kode_barang']);
+
+        $this->assertSame('[Produk tidak ditemukan: excel-product-orphan]', $movementRowsByProductId['excel-product-orphan']['nama_barang']);
+        $this->assertSame('', $movementRowsByProductId['excel-product-orphan']['kode_barang']);
+
+        $this->assertSame(5, $movementRowsByProductId['excel-product-active']['supply_in_qty']);
+        $this->assertSame(2, $movementRowsByProductId['excel-product-deleted']['supply_in_qty']);
+        $this->assertSame(3, $movementRowsByProductId['excel-product-orphan']['supply_in_qty']);
+
+        $this->assertSame(5000, $movementRowsByProductId['excel-product-active']['net_cost_delta_rupiah']);
+        $this->assertSame(4000, $movementRowsByProductId['excel-product-deleted']['net_cost_delta_rupiah']);
+        $this->assertSame(9000, $movementRowsByProductId['excel-product-orphan']['net_cost_delta_rupiah']);
+
+        unlink($path);
+        $spreadsheet->disconnectWorksheets();
+    }
+
+
     public function test_kasir_cannot_export_inventory_stock_value_report(): void
     {
         $response = $this->actingAs($this->user('kasir'))->get(
