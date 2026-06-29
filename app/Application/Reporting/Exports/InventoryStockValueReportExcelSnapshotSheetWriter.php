@@ -25,6 +25,12 @@ final class InventoryStockValueReportExcelSnapshotSheetWriter
             'Inventory Value',
             'Reorder Point',
             'Critical Threshold',
+            'Nilai Avg x Qty',
+            'Residual Pembulatan HPP',
+            'Qty Ledger',
+            'Nilai Ledger',
+            'Selisih Qty Ledger',
+            'Selisih Nilai Ledger',
         ];
 
         foreach ($headers as $index => $header) {
@@ -45,11 +51,17 @@ final class InventoryStockValueReportExcelSnapshotSheetWriter
             $sheet->setCellValue('H'.$excelRow, $this->int($row['current_inventory_value_rupiah'] ?? 0));
             $sheet->setCellValue('I'.$excelRow, $row['reorder_point_qty'] ?? null);
             $sheet->setCellValue('J'.$excelRow, $row['critical_threshold_qty'] ?? null);
+            $sheet->setCellValue('K'.$excelRow, $this->int($row['current_inventory_value_by_average_rupiah'] ?? 0));
+            $sheet->setCellValue('L'.$excelRow, $this->int($row['current_rounding_residual_rupiah'] ?? 0));
+            $sheet->setCellValue('M'.$excelRow, $this->int($row['ledger_qty_on_hand'] ?? 0));
+            $sheet->setCellValue('N'.$excelRow, $this->int($row['ledger_inventory_value_rupiah'] ?? 0));
+            $sheet->setCellValue('O'.$excelRow, $this->int($row['ledger_qty_diff'] ?? 0));
+            $sheet->setCellValue('P'.$excelRow, $this->int($row['ledger_value_diff_rupiah'] ?? 0));
         }
 
-        $sheet->getStyle('A1:J1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:P1')->getFont()->setBold(true);
 
-        foreach (range('A', 'J') as $column) {
+        foreach (range('A', 'P') as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
     }

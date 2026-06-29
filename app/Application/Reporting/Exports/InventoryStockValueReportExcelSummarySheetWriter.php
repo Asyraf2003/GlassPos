@@ -35,6 +35,12 @@ final class InventoryStockValueReportExcelSummarySheetWriter
             ['Produk Low', $this->int($summary['stock_low_product_rows'] ?? 0)],
             ['Produk Critical', $this->int($summary['stock_critical_product_rows'] ?? 0)],
             ['Produk Belum Konfigurasi Threshold', $this->int($summary['stock_unconfigured_product_rows'] ?? 0)],
+            [null, null],
+            ['Diagnostik Internal', null],
+            ['Nilai Berdasar Avg x Qty', $this->int($summary['total_inventory_value_by_average_rupiah'] ?? 0)],
+            ['Residual Pembulatan HPP', $this->int($summary['total_rounding_residual_rupiah'] ?? 0)],
+            ['Selisih Qty Ledger', $this->int($summary['total_ledger_qty_diff'] ?? 0)],
+            ['Selisih Nilai Ledger', $this->int($summary['total_ledger_value_diff_rupiah'] ?? 0)],
         ];
 
         foreach ($rows as $index => $row) {
@@ -44,7 +50,7 @@ final class InventoryStockValueReportExcelSummarySheetWriter
         }
 
         $sheet->getStyle('A1')->getFont()->setBold(true);
-        $sheet->getStyle('A6:A21')->getFont()->setBold(true);
+        $sheet->getStyle('A6:A26')->getFont()->setBold(true);
         $sheet->getColumnDimension('A')->setWidth(38);
         $sheet->getColumnDimension('B')->setWidth(24);
     }

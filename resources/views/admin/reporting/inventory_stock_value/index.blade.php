@@ -107,6 +107,35 @@
             <div class="fs-5 fw-bold">Rp {{ number_format($summary['period_net_cost_delta_rupiah'] ?? 0, 0, ',', '.') }}</div>
         </div></div>
     </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card border-warning"><div class="card-body">
+            <div class="text-muted small">Nilai Berdasar Avg x Qty</div>
+            <div class="fs-5 fw-bold">Rp {{ number_format($summary['total_inventory_value_by_average_rupiah'] ?? 0, 0, ',', '.') }}</div>
+        </div></div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card border-warning"><div class="card-body">
+            <div class="text-muted small">Residual Pembulatan HPP</div>
+            <div class="fs-5 fw-bold">Rp {{ number_format($summary['total_rounding_residual_rupiah'] ?? 0, 0, ',', '.') }}</div>
+        </div></div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card border-info"><div class="card-body">
+            <div class="text-muted small">Selisih Qty Ledger</div>
+            <div class="fs-5 fw-bold">{{ number_format($summary['total_ledger_qty_diff'] ?? 0, 0, ',', '.') }}</div>
+        </div></div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card border-info"><div class="card-body">
+            <div class="text-muted small">Selisih Nilai Ledger</div>
+            <div class="fs-5 fw-bold">Rp {{ number_format($summary['total_ledger_value_diff_rupiah'] ?? 0, 0, ',', '.') }}</div>
+        </div></div>
+    </div>
+
 </div>
 
 <div class="mb-3">
