@@ -293,3 +293,58 @@ php artisan test \
 - No main inventory value semantics change.
 - Residual is now visible as diagnostic, not treated as ledger mismatch.
 
+## Session Update - 0057 Inventory Deleted Product Movement Report Visibility
+
+### Status
+
+Resolved.
+
+### Scope
+
+Slice 0057 memastikan movement report tetap audit-friendly ketika produk sudah soft-deleted atau ketika ada legacy/corrupt movement dengan `product_id` orphan/missing.
+
+### Files Changed
+
+- `app/Adapters/Out/Reporting/InventoryMovementSummaryDatabaseQuery.php`
+- `tests/Feature/Reporting/InventoryDeletedProductMovementReportVisibilityFeatureTest.php`
+- `docs/04_lifecycle/error_log/0057_inventory_deleted_product_movement_report_visibility.md`
+- this handoff file
+
+### FACT
+
+- Movement summary tetap memakai `inventory_movements` sebagai source utama.
+- Join ke `products` tetap `leftJoin`.
+- Current snapshot tetap source dari `products` aktif dan tetap exclude deleted/orphan/ledger-only product.
+- No costing engine changes.
+- No HPP changes.
+- No `inventory_value_rupiah` semantic changes.
+- No migration.
+- No source-type bucket membership changes.
+- No production repair/write.
+
+### Behavior Locked
+
+- Active product movement displays normal product name.
+- Soft-deleted product movement displays `[Produk terhapus] {nama_barang}`.
+- Orphan product movement displays `[Produk tidak ditemukan: {product_id}]`.
+- Deleted/orphan movement contributes to period movement summary.
+- Deleted/orphan product does not enter current snapshot.
+
+### Proof
+
+Owner reported targeted regression PASS:
+
+```bash
+php artisan test \
+  tests/Feature/Reporting/InventoryDeletedProductMovementReportVisibilityFeatureTest.php \
+  tests/Feature/Reporting/GetInventoryMovementSummaryFeatureTest.php \
+  tests/Feature/Reporting/InventoryMovementSummaryHardeningFeatureTest.php \
+  tests/Feature/Reporting/GetInventoryStockValueReportDatasetFeatureTest.php
+```
+
+Result:
+
+```text
+PASS
+```
+
