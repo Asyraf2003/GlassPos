@@ -773,6 +773,66 @@ final class SupplierInvoiceTaxFinancialInvariantFeatureTest extends TestCase
     }
 
 
+    public function test_received_invoice_tax_only_revision_with_missing_previous_line_id_pairs_by_same_line_product_and_qty(): void
+    {
+        $this->seedReceivedHeaderTaxInvoice();
+
+        DB::table('product_inventory')
+            ->where('product_id', 'product-tax-1')
+            ->update(['qty_on_hand' => 0]);
+
+        $response = $this->actingAs($this->user('admin'))
+            ->from(route('admin.procurement.supplier-invoices.edit', [
+                'supplierInvoiceId' => 'invoice-tax-1',
+            ]))
+            ->put(route('admin.procurement.supplier-invoices.update', [
+                'supplierInvoiceId' => 'invoice-tax-1',
+            ]), $this->updatePayload([
+                'tax_input' => '20%',
+                'lines' => [
+                    [
+                        'previous_line_id' => '',
+                        'line_no' => 1,
+                        'product_id' => 'product-tax-1',
+                        'qty_pcs' => 2,
+                        'line_total_rupiah' => 20000,
+                    ],
+                ],
+            ]));
+
+        $response->assertRedirect(route('admin.procurement.supplier-invoices.show', [
+            'supplierInvoiceId' => 'invoice-tax-1',
+        ]));
+        $response->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('supplier_invoices', [
+            'id' => 'invoice-tax-1',
+            'subtotal_before_tax_rupiah' => 20000,
+            'tax_input' => '20%',
+            'tax_mode' => 'percent',
+            'tax_rate_basis_points' => 2000,
+            'tax_amount_rupiah' => 4000,
+            'grand_total_rupiah' => 24000,
+            'last_revision_no' => 2,
+        ]);
+
+        $this->assertDatabaseHas('inventory_movements', [
+            'product_id' => 'product-tax-1',
+            'movement_type' => 'cost_revaluation',
+            'source_type' => 'supplier_invoice_cost_revaluation',
+            'qty_delta' => 0,
+            'unit_cost_rupiah' => 0,
+            'total_cost_rupiah' => 2000,
+        ]);
+
+        $this->assertDatabaseMissing('inventory_movements', [
+            'product_id' => 'product-tax-1',
+            'movement_type' => 'stock_out',
+            'source_type' => 'supplier_invoice_revision_delta_line',
+        ]);
+    }
+
+
     public function test_received_invoice_base_price_decrease_revision_creates_negative_cost_revaluation(): void
     {
         $this->seedReceivedHeaderTaxInvoice();
