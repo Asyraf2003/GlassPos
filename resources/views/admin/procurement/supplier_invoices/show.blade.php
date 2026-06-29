@@ -361,6 +361,17 @@
                                             @endif
                                         </div>
 
+                                        @if (($entry['change_summary'] ?? []) !== [])
+                                            <div class="mb-3">
+                                                <div class="fw-semibold mb-1">Ringkasan Perubahan</div>
+                                                <ul class="mb-0 ps-3">
+                                                    @foreach ($entry['change_summary'] as $changeSummary)
+                                                        <li>{{ $changeSummary }}</li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+                                        @endif
+
                                         <div class="border rounded p-3 bg-light-subtle">
                                             <div class="row g-3 mb-3">
                                                 <div class="col-12 col-md-6">
