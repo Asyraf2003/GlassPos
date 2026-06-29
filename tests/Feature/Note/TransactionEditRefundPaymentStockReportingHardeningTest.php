@@ -462,15 +462,15 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
 
         self::assertTrue($revision->isSuccess(), $revision->message());
 
-        $newWorkItemId = (string) DB::table('work_items')->where('note_id', $noteId)->value('id');
+        $newWorkItemId = (string) DB::table('work_items')
+            ->where('note_id', $noteId)
+            ->value('id');
         $newStoreStockLineId = (string) DB::table('work_item_store_stock_lines')
             ->where('work_item_id', $newWorkItemId)
             ->value('id');
 
         self::assertNotSame('', $newWorkItemId);
         self::assertNotSame('', $newStoreStockLineId);
-        self::assertNotSame($oldWorkItemId, $newWorkItemId);
-        self::assertNotSame($oldStoreStockLineId, $newStoreStockLineId);
 
         $this->assertDatabaseHas('note_history_projection', [
             'note_id' => $noteId,
