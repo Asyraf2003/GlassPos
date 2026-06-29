@@ -18,8 +18,10 @@ final class InventoryMovementSummaryDatabaseQuery
             ->whereBetween('inventory_movements.tanggal_mutasi', [$fromMutationDate, $toMutationDate])
             ->groupBy(
                 'inventory_movements.product_id',
+                'products.id',
                 'products.kode_barang',
                 'products.nama_barang',
+                'products.deleted_at',
                 'product_inventory.qty_on_hand',
                 'product_inventory_costing.avg_cost_rupiah',
                 'product_inventory_costing.inventory_value_rupiah',
@@ -41,7 +43,13 @@ final class InventoryMovementSummaryDatabaseQuery
         return [
             'inventory_movements.product_id',
             'products.kode_barang',
-            DB::raw('COALESCE(products.nama_barang, inventory_movements.product_id) as nama_barang'),
+            DB::raw("
+                CASE
+                    WHEN products.id IS NULL THEN CONCAT('[Produk tidak ditemukan: ', inventory_movements.product_id, ']')
+                    WHEN products.deleted_at IS NOT NULL THEN CONCAT('[Produk terhapus] ', products.nama_barang)
+                    ELSE products.nama_barang
+                END as nama_barang
+            "),
             DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.source_type = {$supplierReceiptLine} AND inventory_movements.qty_delta > 0 THEN inventory_movements.qty_delta ELSE 0 END), 0) as supply_in_qty"),
             DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.source_type IN ({$saleOutSourceTypes}) AND inventory_movements.qty_delta < 0 THEN ABS(inventory_movements.qty_delta) ELSE 0 END), 0) as sale_out_qty"),
             DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.source_type = {$storeStockLineReversal} AND inventory_movements.qty_delta > 0 THEN inventory_movements.qty_delta ELSE 0 END), 0) as refund_reversal_qty"),
