@@ -2,9 +2,9 @@
 
 ## Status
 
-ACTIVE - baseline reporting reconciliation coverage mapped, not final closed.
+FINAL CLOSED.
 
-This log remains open until UI, PDF, Excel, ordered lifecycle checklist, and final verification proof are completed.
+Closed after transaction summary, cash ledger, operational profit, inventory stock value, service package profit breakdown, lifecycle regression, final combined targeted run, and full `make verify` all passed.
 
 ## Problem
 
@@ -533,3 +533,70 @@ Still required:
 - final combined targeted run
 - full `make verify`
 - final status update to `FINAL CLOSED` only after both pass
+
+## Final Closure - 2026-06-29 WITA
+
+### Status
+
+FINAL CLOSED.
+
+### Final Proof Summary
+
+`0051` is closed after the following proof chain passed:
+
+- transaction summary dataset/query, UI, PDF, and Excel baseline
+- transaction cash ledger UI, PDF, Excel, and revision/refund lifecycle behavior
+- operational profit UI, PDF, and Excel baseline
+- inventory stock value UI, PDF, and Excel baseline
+- service package profit breakdown query, page, HTTP workflow, UI scenario matrix, and Excel export
+- lifecycle regression baseline for full refund/edit mismatch, package auto-split revision impact, and cash ledger after revision/refund
+- final combined targeted run
+- full `make verify`
+
+### Full Verification Proof
+
+Owner reported full verification PASS:
+
+```text
+Tests:    1464 passed (8825 assertions)
+Duration: 80.20s
+```
+
+### Infra Note
+
+An earlier `make verify` attempt failed because the testing database schema was dirty:
+
+```text
+SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'password_reset_tokens' already exists
+Database: bengkelhex_test
+```
+
+That was classified as test database state pollution, not a `0051` business logic failure.
+
+After resetting the testing database, full verification passed.
+
+### Service Package PDF Scope Note
+
+No dedicated service package profit breakdown PDF export route/test was found during this closure pass.
+
+The covered service package scope is:
+
+- query/read model
+- report page
+- HTTP workflow
+- UI scenario matrix
+- Excel export
+
+Do not claim service package PDF coverage unless a dedicated route/test is added later.
+
+### Final Decision
+
+No production code patch is required for this closure.
+
+The `0051` manual transaction reporting sequential QA matrix is considered closed by automated baseline coverage plus full repository verification.
+
+### Remaining Follow-up
+
+None under `0051`.
+
+Future transaction/reporting bugs must open a new focused error log instead of reopening this matrix.
