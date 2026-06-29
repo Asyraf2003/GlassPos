@@ -1,4 +1,4 @@
-# 0051 - Inventory Costing Rebuild Same-day Stock-out Skip
+# 0050 - Inventory Costing Rebuild Same-day Stock-out Skip
 
 ## Status
 

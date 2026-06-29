@@ -158,13 +158,28 @@ final class RebuildInventoryCostingProjectionWithStockOutFeatureTest extends Tes
 
         $handler = app(RebuildInventoryCostingProjectionHandler::class);
 
-        $handler->handle();
+        $result = $handler->handle();
 
-        $this->assertDatabaseHas('product_inventory_costing', [
-            'product_id' => 'product-1',
-            'avg_cost_rupiah' => 1183,
-            'inventory_value_rupiah' => 10650,
-        ]);
+        $this->assertTrue($result->isSuccess());
+
+        $ledger = DB::table('inventory_movements')
+            ->where('product_id', 'product-1')
+            ->selectRaw('COALESCE(SUM(qty_delta), 0) as qty_on_hand')
+            ->selectRaw('COALESCE(SUM(total_cost_rupiah), 0) as inventory_value_rupiah')
+            ->first();
+
+        $projection = DB::table('product_inventory_costing')
+            ->where('product_id', 'product-1')
+            ->first();
+
+        $this->assertNotNull($projection);
+        $this->assertSame(9, (int) $ledger->qty_on_hand);
+        $this->assertSame(10650, (int) $ledger->inventory_value_rupiah);
+        $this->assertSame(1183, (int) $projection->avg_cost_rupiah);
+        $this->assertSame(10650, (int) $projection->inventory_value_rupiah);
+
+        $this->assertSame(0, (int) $projection->inventory_value_rupiah - (int) $ledger->inventory_value_rupiah);
+        $this->assertSame(3, (int) $projection->inventory_value_rupiah - ((int) $projection->avg_cost_rupiah * (int) $ledger->qty_on_hand));
     }
 
     public function test_rebuild_costing_projection_removes_stale_projection_when_product_ledger_net_qty_is_zero(): void
@@ -223,7 +238,11 @@ final class RebuildInventoryCostingProjectionWithStockOutFeatureTest extends Tes
 
         $handler = app(RebuildInventoryCostingProjectionHandler::class);
 
-        $handler->handle();
+        $firstResult = $handler->handle();
+        $secondResult = $handler->handle();
+
+        $this->assertTrue($firstResult->isSuccess());
+        $this->assertTrue($secondResult->isSuccess());
 
         $this->assertDatabaseMissing('product_inventory_costing', [
             'product_id' => 'product-1',
