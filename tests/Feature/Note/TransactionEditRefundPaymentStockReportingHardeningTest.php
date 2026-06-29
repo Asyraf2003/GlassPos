@@ -643,8 +643,14 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         self::assertTrue($revision->isSuccess(), $revision->message());
 
         $newWorkItemId = (string) DB::table('work_items')->where('note_id', $noteId)->value('id');
-        $newStoreStockLineId = (string) DB::table('work_item_store_stock_lines')
-            ->where('work_item_id', $newWorkItemId)
+        $newStoreStockLineId = (string) DB::table('inventory_movements')
+            ->where('product_id', 'product-0062-a')
+            ->where('movement_type', 'stock_out')
+            ->where('source_type', 'work_item_store_stock_line')
+            ->where('tanggal_mutasi', '2026-05-22')
+            ->where('qty_delta', -1)
+            ->where('total_cost_rupiah', -40000)
+            ->where('source_id', '<>', $oldStoreStockLineId)
             ->value('id');
 
         self::assertNotSame('', $newWorkItemId);
