@@ -6,7 +6,6 @@ namespace App\Application\Procurement\Services;
 
 use App\Core\Inventory\Movement\InventoryMovement;
 use App\Core\Procurement\SupplierInvoice\SupplierInvoice;
-use App\Core\Procurement\SupplierInvoice\SupplierInvoiceLine;
 use DateTimeImmutable;
 
 final class SupplierInvoiceRevisionDeltaMovementsBuilder
@@ -15,6 +14,7 @@ final class SupplierInvoiceRevisionDeltaMovementsBuilder
         private readonly SupplierInvoiceRevisionMovementFactory $movements,
         private readonly SupplierInvoiceRevisionLineMapFactory $lineMaps,
         private readonly SupplierInvoiceRevisionPairedLineDeltaResolver $pairedDeltaResolver,
+        private readonly SupplierInvoiceRevisionPreviousLineResolver $previousLineResolver,
     ) {
     }
 
@@ -43,7 +43,7 @@ final class SupplierInvoiceRevisionDeltaMovementsBuilder
                 continue;
             }
 
-            $previousLineId = $this->resolvePreviousLineId(
+            $previousLineId = $this->previousLineResolver->resolve(
                 $requestLine,
                 $newLine,
                 $oldLinesById,
@@ -75,72 +75,5 @@ final class SupplierInvoiceRevisionDeltaMovementsBuilder
         }
 
         return $deltaMovements;
-    }
-
-    /**
-     * @param array<string, mixed> $requestLine
-     * @param array<string, SupplierInvoiceLine> $oldLinesById
-     * @param array<string, bool> $referencedOldIds
-     */
-    private function resolvePreviousLineId(
-        array $requestLine,
-        SupplierInvoiceLine $newLine,
-        array $oldLinesById,
-        array $referencedOldIds,
-    ): ?string {
-        $previousLineId = $this->previousLineId($requestLine);
-
-        if ($previousLineId !== '' && isset($oldLinesById[$previousLineId]) && ! isset($referencedOldIds[$previousLineId])) {
-            return $previousLineId;
-        }
-
-        return $this->fallbackPreviousLineId($newLine, $oldLinesById, $referencedOldIds);
-    }
-
-    /**
-     * @param array<string, SupplierInvoiceLine> $oldLinesById
-     * @param array<string, bool> $referencedOldIds
-     */
-    private function fallbackPreviousLineId(
-        SupplierInvoiceLine $newLine,
-        array $oldLinesById,
-        array $referencedOldIds,
-    ): ?string {
-        $matchedOldLineId = null;
-
-        foreach ($oldLinesById as $oldLineId => $oldLine) {
-            if (isset($referencedOldIds[$oldLineId])) {
-                continue;
-            }
-
-            if (! $this->isSafeFallbackPair($oldLine, $newLine)) {
-                continue;
-            }
-
-            if ($matchedOldLineId !== null) {
-                return null;
-            }
-
-            $matchedOldLineId = $oldLineId;
-        }
-
-        return $matchedOldLineId;
-    }
-
-    private function isSafeFallbackPair(SupplierInvoiceLine $oldLine, SupplierInvoiceLine $newLine): bool
-    {
-        return $oldLine->lineNo() === $newLine->lineNo()
-            && $oldLine->productId() === $newLine->productId()
-            && $oldLine->qtyPcs() === $newLine->qtyPcs();
-    }
-
-    /**
-     * @param array<string, mixed> $requestLine
-     */
-    private function previousLineId(array $requestLine): string
-    {
-        $value = $requestLine['previous_line_id'] ?? null;
-
-        return is_string($value) ? trim($value) : '';
     }
 }

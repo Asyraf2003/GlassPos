@@ -361,8 +361,6 @@
                                             @endif
                                         </div>
 
-                                        @php($versionDetailId = 'supplier-invoice-version-detail-' . $loop->index)
-
                                         @if (($entry['change_summary'] ?? []) !== [])
                                             <div class="mb-3">
                                                 <div class="fw-semibold mb-1">Ringkasan Perubahan</div>
@@ -380,14 +378,14 @@
                                             type="button"
                                             class="btn btn-sm btn-outline-secondary mb-3"
                                             data-bs-toggle="collapse"
-                                            data-bs-target="#{{ $versionDetailId }}"
+                                            data-bs-target="#{{ $entry['detail_id'] }}"
                                             aria-expanded="false"
-                                            aria-controls="{{ $versionDetailId }}"
+                                            aria-controls="{{ $entry['detail_id'] }}"
                                         >
                                             Lihat Detail Versi
                                         </button>
 
-                                        <div class="collapse" id="{{ $versionDetailId }}">
+                                        <div class="collapse" id="{{ $entry['detail_id'] }}">
                                             <div class="border rounded p-3 bg-light-subtle">
                                             <div class="row g-3 mb-3">
                                                 <div class="col-12 col-md-6">
