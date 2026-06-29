@@ -17,32 +17,40 @@ final class InventoryCostingProjectionBuilder
     public function build(array $movements): array
     {
         $state = [];
-        foreach ($movements as $m) {
-            $pId = $m->productId();
-            if (!isset($state[$pId])) $state[$pId] = ['qty' => 0, 'value' => 0];
 
-            if ($m->movementType() === 'stock_in') {
-                $state[$pId]['qty'] += $m->qtyDelta();
-                $state[$pId]['value'] += $m->totalCostRupiah()->amount();
-            } elseif ($m->movementType() === 'stock_out' && $state[$pId]['qty'] > 0) {
-                $issue = abs($m->qtyDelta());
-                $state[$pId]['qty'] -= $issue;
-                $state[$pId]['value'] -= abs($m->totalCostRupiah()->amount());
-                if ($state[$pId]['value'] < 0) $state[$pId]['value'] = 0;
-            } elseif ($m->movementType() === 'cost_revaluation') {
-                $state[$pId]['value'] += $m->totalCostRupiah()->amount();
-                if ($state[$pId]['value'] < 0) $state[$pId]['value'] = 0;
+        foreach ($movements as $movement) {
+            $productId = $movement->productId();
+
+            if (! isset($state[$productId])) {
+                $state[$productId] = [
+                    'qty' => 0,
+                    'value' => 0,
+                ];
             }
+
+            $state[$productId]['qty'] += $movement->qtyDelta();
+            $state[$productId]['value'] += $movement->totalCostRupiah()->amount();
         }
 
         ksort($state);
+
         $result = [];
-        foreach ($state as $pId => $s) {
-            if ($s['qty'] <= 0) continue;
-            $val = Money::fromInt($s['value']);
-            $avg = Money::fromInt(intdiv($s['value'], $s['qty']));
-            $result[] = ProductInventoryCosting::create($pId, $avg, $val);
+
+        foreach ($state as $productId => $row) {
+            $qty = (int) $row['qty'];
+            $value = max(0, (int) $row['value']);
+
+            if ($qty <= 0) {
+                continue;
+            }
+
+            $result[] = ProductInventoryCosting::create(
+                $productId,
+                Money::fromInt(intdiv($value, $qty)),
+                Money::fromInt($value),
+            );
         }
+
         return $result;
     }
 }
