@@ -53,9 +53,7 @@ trait BuildsProcurementInvoiceDetailViewData
             'revision_label' => 'Revisi ' . (int) ($version['revision_no'] ?? 0),
             'event_name' => (string) ($version['event_name'] ?? ''),
             'changed_at' => (string) ($version['changed_at'] ?? ''),
-            'actor_label' => ($version['changed_by_actor_id'] ?? null) !== null
-                ? 'Actor: ' . (string) $version['changed_by_actor_id']
-                : null,
+            'actor_label' => null,
             'reason_label' => ($version['change_reason'] ?? null) !== null
                 ? (string) $version['change_reason']
                 : null,
