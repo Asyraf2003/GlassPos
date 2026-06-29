@@ -1,55 +1,59 @@
 <!-- HYPERPOS_LATEST_HANDOFF_START -->
-Latest Handoff: docs/04_lifecycle/error_log/0048_owner_facing_indonesian_language_gap_handoff.md
+Latest Handoff: docs/99_archive/04_lifecycle/error_log/0049_manual_qa_supplier_invoice_revision_and_timezone_gap.md
+Latest Supporting Handoff: docs/99_archive/04_lifecycle/handoff/0050_legacy_timestamp_repair_handoff.md
+Status: FINAL CLOSED / 0049-0050 FIXED / no production timestamp repair recommended
 <!-- HYPERPOS_LATEST_HANDOFF_END -->
 
 # App Kasir Hexagonal
 
 ## ✅ Latest Closed Workflow
 
-Owner-facing Indonesian language cleanup and reason visibility/audit cleanup is **FINAL CLOSED**.
+Supplier invoice manual QA follow-up, timestamp display, and production timestamp repair assessment are **FINAL CLOSED**.
 
 Source of truth:
-- `docs/04_lifecycle/error_log/0048_owner_facing_indonesian_language_gap_handoff.md`
+- `docs/99_archive/04_lifecycle/error_log/0049_manual_qa_supplier_invoice_revision_and_timezone_gap.md`
+- `docs/99_archive/04_lifecycle/handoff/0050_legacy_timestamp_repair_handoff.md`
 
 Status:
-FINAL CLOSED / 0047-0048 FIXED / targeted owner-facing language + reason visibility cleanup complete
+FINAL CLOSED / 0049-0050 FIXED / supplier invoice revision + note correction history + timestamp display + production read-only diagnostic complete
 
 Purpose:
-Dokumen ini adalah pointer terbaru untuk AI/operator agar tidak mengulang cleanup owner-facing label, reason visibility, dan audit propagation yang sudah diverifikasi.
+Dokumen ini adalah pointer terbaru untuk AI/operator agar tidak mengulang investigasi supplier invoice revision, note correction history, owner-facing timestamp display, atau legacy production timestamp repair yang sudah diselesaikan.
 
 Final scope closed:
-- owner-facing Indonesian label cleanup for transaction/note/report surfaces
-- product edit `change_reason` input, validation, propagation, persistence, and detail proof
-- supplier invoice latest revision reason query and detail display
-- closed/paid note correction history reason display in shared note detail
-- selected rows refund reason audit payload propagation
-- final targeted regression and full verification proof
+- supplier invoice edit reason propagation and latest reason display
+- supplier invoice version timeline and owner-facing revision summary
+- supplier invoice tax-only revision negative stock false blocker
+- supplier invoice edit localStorage draft revision isolation
+- note correction history manual failure reclassified as data/setup-specific
+- owner-facing timestamp display conversion to Asia/Makassar
+- production read-only timestamp diagnostic
+- no production timestamp repair recommended
 
 Final proof:
-- Focused reason visibility/audit suite GREEN.
-- Final `make verify` GREEN:
-  - phpstan no errors
-  - line audit PASS
-  - Blade PHP audit PASS
-  - contract audit PASS
-  - Pest 1443 passed, 8631 assertions
+- Focused procurement and note tests passed during the 0049 slices.
+- `make audit-lines` passed after splitting oversized files.
+- `make audit-blade` passed after removing PHP/directive PHP from supplier invoice Blade.
+- Production diagnostic used SQL `SELECT` only.
+- Production diagnostic found recent audit/supplier invoice timestamps UTC-like and several note/refund/mutation candidate tables empty.
+- Date-only business fields remain excluded from timestamp shifting.
 
 Canonical closure docs:
-- `docs/04_lifecycle/error_log/0048_owner_facing_indonesian_language_gap_handoff.md`
-- `docs/04_lifecycle/error_log/0039_cashier_note_create_edit_refund_reporting_final_closure.md`
-- `docs/03_blueprints/finance/0011_cashier_note_consistency_workflow_index.md`
-- `docs/03_blueprints/finance/0016_cashier_note_final_regression_matrix.md`
+- `docs/99_archive/04_lifecycle/error_log/0049_manual_qa_supplier_invoice_revision_and_timezone_gap.md`
+- `docs/99_archive/04_lifecycle/handoff/0050_legacy_timestamp_repair_handoff.md`
+- `docs/99_archive/04_lifecycle/error_log/0048_owner_facing_indonesian_language_gap_handoff.md`
 
 Important:
-- `0048` is the latest owner-facing language and reason visibility closure pointer.
-- `0039` remains the previous cashier note create/edit/refund/reporting final closure pointer.
-- `0011` remains the workflow ledger.
-- `0016` remains the final regression matrix for the earlier cashier note consistency workflow.
+- `0049` is the latest manual QA follow-up closure pointer.
+- `0050` is the production timestamp repair decision pointer.
+- `0048` remains the previous owner-facing language/reason visibility closure pointer.
+- Active lifecycle folders should be reserved for open or in-progress work.
 
 Do not reopen without new bug evidence:
-- Do not restart owner-facing language cleanup scans unless a new concrete label gap is reported.
-- Do not reopen reason visibility/audit propagation unless a new failing test, production bug, or owner request explicitly opens a new workflow.
-- Do not mix future mobile API cleanup, dashboard polish, or broad report redesign into this closed workflow.
+- Do not restart supplier invoice revision/reason/timeline investigation unless a new concrete failing test, production bug, or owner request opens a new workflow.
+- Do not run production timestamp repair unless future rows are proven local-like with reliable owner action-time evidence.
+- Do not treat empty note mutation/refund tables as UI bugs without row-level evidence.
+- Do not shift date-only business fields.
 
 Boundaries still locked:
 - No DB enum/key rename.
@@ -60,15 +64,14 @@ Boundaries still locked:
 - No Mobile API scope.
 - No Operational Profit formula change.
 - No refund policy change.
-- No supplier payable/reporting redesign from this closure.
+- No production write repair from this closure.
 - No git operation requested by this document.
 
 Final stop rule:
-STOP. This workflow is closed after final `make verify` PASS.
+STOP. This workflow is closed after final local verification passes.
 
 Operator/AI rule:
-Use this README pointer as the latest closure guard. Do not reopen 0047/0048 unless there is new concrete failing test evidence, production bug evidence, or explicit owner instruction.
-
+Use this README pointer as the latest closure guard. Do not reopen 0048/0049/0050 unless there is new concrete failing test evidence, production bug evidence, or explicit owner instruction.
 ---
 
 > Sistem kasir dan operasional servis-sparepart yang dibangun dengan fokus pada **presisi data**, **kerahasiaan data klien**, **arsitektur modular**, dan **auditability**.

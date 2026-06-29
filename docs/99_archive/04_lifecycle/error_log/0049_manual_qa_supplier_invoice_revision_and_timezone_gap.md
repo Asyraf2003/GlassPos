@@ -2,7 +2,7 @@
 
 ## Status
 
-Open.
+Final closed.
 
 ## Source
 
@@ -761,3 +761,28 @@ These may be audited because they represent event time / audit timeline time:
 - No global timestamp migration.
 - Prefer display fix over data mutation unless legacy data is proven wrong.
 
+
+
+## 2026-06-29 Final Closure
+
+Status: FINAL CLOSED.
+
+### Closure Summary
+
+The manual QA follow-up workflow is closed.
+
+Resolved/reclassified scope:
+
+- Supplier invoice edit reason propagation and latest reason visibility were fixed.
+- Supplier invoice version timeline was added.
+- Supplier invoice tax-only revision false negative-stock blocker was fixed.
+- Supplier invoice edit draft lifecycle was hardened by revision-scoped draft keys.
+- Note correction history manual failure was reclassified as data/setup-specific when `note_mutation_events` rows are absent.
+- Owner-facing timestamp display was fixed by converting timestamp display to `APP_DISPLAY_TIMEZONE` / Asia/Makassar.
+- Production timestamp repair was assessed through read-only SQL diagnostic and no repair write was recommended.
+
+### Final Decision
+
+No further action is required for 0049 unless new concrete bug evidence appears.
+
+This document has been archived because the workflow is no longer active.

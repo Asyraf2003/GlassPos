@@ -213,3 +213,22 @@ A write repair would be unsafe because:
 - No date-only business field was treated as a repair candidate.
 - No bulk timestamp shift is needed.
 - Repair write remains forbidden unless future rows are proven local-like with reliable owner action-time evidence.
+
+
+## 2026-06-29 Final Closure
+
+Status: FINAL CLOSED.
+
+### Closure Summary
+
+Production read-only timestamp diagnostic was completed.
+
+Final decision:
+
+- No legacy timestamp repair write is recommended.
+- Proven recent audit/supplier invoice rows are UTC-like.
+- Empty note/refund/mutation candidate tables are not repair candidates.
+- Older rows without owner action-time evidence remain unknown and must not be bulk-shifted.
+- Date-only business fields remain excluded.
+
+This document has been archived as the production timestamp repair decision record.
