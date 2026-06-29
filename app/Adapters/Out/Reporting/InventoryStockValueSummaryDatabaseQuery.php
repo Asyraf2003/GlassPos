@@ -29,8 +29,7 @@ final class InventoryStockValueSummaryDatabaseQuery
             ->where(static function ($query): void {
                 $query
                     ->whereNotNull('product_inventory.product_id')
-                    ->orWhereNotNull('product_inventory_costing.product_id')
-                    ->orWhereNotNull('inventory_movement_ledger.product_id');
+                    ->orWhereNotNull('product_inventory_costing.product_id');
             })
             ->selectRaw('COUNT(*) as snapshot_product_rows')
             ->selectRaw('COALESCE(SUM(COALESCE(product_inventory.qty_on_hand, 0)), 0) as total_qty_on_hand')

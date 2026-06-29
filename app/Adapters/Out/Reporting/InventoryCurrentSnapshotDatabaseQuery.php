@@ -26,8 +26,7 @@ final class InventoryCurrentSnapshotDatabaseQuery
             ->where(static function ($query): void {
                 $query
                     ->whereNotNull('product_inventory.product_id')
-                    ->orWhereNotNull('product_inventory_costing.product_id')
-                    ->orWhereNotNull('inventory_movement_ledger.product_id');
+                    ->orWhereNotNull('product_inventory_costing.product_id');
             })
             ->orderBy('products.id')
             ->get(self::columns())
