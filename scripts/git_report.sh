@@ -7,99 +7,120 @@ divider() { echo -e "${CYAN}═════════════════�
 header()  { divider; echo -e "${BOLD}$1${RESET}"; divider; }
 
 header "1. FILE & DIR COUNT"
-echo "Total files  : $(find . -not -path './.git/*' -type f | wc -l)"
-echo "Total dirs   : $(find . -not -path './.git/*' -type d | wc -l)"
-echo "PHP files    : $(find app tests database -name '*.php' | wc -l)"
-echo "Blade files  : $(find resources -name '*.blade.php' | wc -l)"
-echo "Markdown docs: $(find docs -name '*.md' | wc -l)"
-echo "Migrations   : $(find database/migrations -name '*.php' | wc -l)"
-echo "Test files   : $(find tests -name '*.php' | wc -l)"
-echo "Route files  : $(find routes -name '*.php' | wc -l)"
+echo "Total files  : $(find . -not -path './.git/*' -type f 2>/dev/null | wc -l)"
+echo "Total dirs   : $(find . -not -path './.git/*' -type d 2>/dev/null | wc -l)"
+echo "PHP files    : $(find app tests database -type f -name '*.php' 2>/dev/null | wc -l || echo 0)"
+echo "Blade files  : $(find resources -type f -name '*.blade.php' 2>/dev/null | wc -l || echo 0)"
+echo "Markdown docs: $(find docs -type f -name '*.md' 2>/dev/null | wc -l || echo 0)"
+echo "Migrations   : $(find database/migrations -type f -name '*.php' 2>/dev/null | wc -l || echo 0)"
+echo "Test files   : $(find tests -type f -name '*.php' 2>/dev/null | wc -l || echo 0)"
+echo "Route files  : $(find routes -type f -name '*.php' 2>/dev/null | wc -l || echo 0)"
 
 header "2. LINES OF CODE (LOC)"
 echo -e "${YELLOW}PHP (app/):${RESET}"
-find app -name '*.php' | xargs wc -l 2>/dev/null | tail -1
+find app -type f -name '*.php' 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 || echo "0 total"
 echo -e "${YELLOW}PHP (tests/):${RESET}"
-find tests -name '*.php' | xargs wc -l 2>/dev/null | tail -1
+find tests -type f -name '*.php' 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 || echo "0 total"
 echo -e "${YELLOW}PHP (database/):${RESET}"
-find database -name '*.php' | xargs wc -l 2>/dev/null | tail -1
+find database -type f -name '*.php' 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 || echo "0 total"
 echo -e "${YELLOW}Blade (resources/):${RESET}"
-find resources -name '*.blade.php' | xargs wc -l 2>/dev/null | tail -1
+find resources -type f -name '*.blade.php' 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 || echo "0 total"
 echo -e "${YELLOW}Markdown (docs/):${RESET}"
-find docs -name '*.md' | xargs wc -l 2>/dev/null | tail -1
+find docs -type f -name '*.md' 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 || echo "0 total"
 
 header "3. GIT COMMIT OVERVIEW"
-FIRST_COMMIT=$(git log --oneline | tail -1)
-LAST_COMMIT=$(git log --oneline | head -1)
-TOTAL_COMMITS=$(git rev-list --count HEAD)
-echo "Total commits  : $TOTAL_COMMITS
+FIRST_COMMIT=$(git log --oneline 2>/dev/null | tail -1 || echo "None")
+LAST_COMMIT=$(git log --oneline 2>/dev/null | head -1 || echo "None")
+TOTAL_COMMITS=$(git rev-list --count HEAD 2>/dev/null || echo 0)
+echo "Total commits  : $TOTAL_COMMITS"
 echo "First commit   : $FIRST_COMMIT"
 echo "Last commit    : $LAST_COMMIT"
-echo ""
-echo -e "${YELLOW}Commits per month:${RESET}"
-git log --format='%ad' --date=format:'%Y-%m' | sort | uniq -c | sort -k2
 
-# ── 5. COMMIT FREQUENCY ────────────────────────
+header "4. GIT COMMIT SUMMARY (Monthly)"
+if git rev-parse --git-dir > /dev/null 2>&1; then
+    git log --format='%ad' --date=format:'%Y-%m' | sort | uniq -c | sort -k2
+else
+    echo "Bukan repositori git."
+fi
+
 header "5. COMMIT FREQUENCY (days with commits)"
-git log --format='%ad' --date=format:'%Y-%m-%d' | sort -u | wc -l | xargs echo "Unique days with commits:"
-echo ""
-echo -e "${YELLOW}Commits per weekday:${RESET}"
-git log --format='%ad' --date=format:'%A' | sort | uniq -c | sort -rn
+if git rev-parse --git-dir > /dev/null 2>&1; then
+    git log --format='%ad' --date=format:'%Y-%m-%d' | sort -u | wc -l | xargs echo "Unique days with commits:"
+    echo ""
+    echo -e "${YELLOW}Commits per weekday:${RESET}"
+    git log --format='%ad' --date=format:'%A' | sort | uniq -c | sort -rn
+else
+    echo "Bukan repositori git."
+fi
 
-# ── 6. CHURN — MOST CHANGED FILES ──────────────
 header "6. TOP 20 MOST CHANGED FILES (churn)"
-git log --name-only --format='' | grep '\.php$' | sort | uniq -c | sort -rn | head -20
+if git rev-parse --git-dir > /dev/null 2>&1; then
+    git log --name-only --format='' | grep '\.php$' | sort | uniq -c | sort -rn | head -20 || true
+else
+    echo "Bukan repositori git."
+fi
 
-# ── 7. BIGGEST FILES ───────────────────────────
 header "7. TOP 15 BIGGEST PHP FILES (LOC)"
-find app tests -name '*.php' | xargs wc -l 2>/dev/null | sort -rn | head -16
+find app tests -type f -name '*.php' 2>/dev/null | xargs wc -l 2>/dev/null | sort -rn | head -16 || true
 
 header "8. MIGRATION TIMELINE"
-ls database/migrations/*.php 2>/dev/null | sed 's|database/migrations/||' | \
-  awk -F'_' '{print $1"-"$2"-"$3}' | sort | uniq -c
+if [ -d "database/migrations" ] && [ "$(ls -A database/migrations/*.php 2>/dev/null)" ]; then
+    ls database/migrations/*.php 2>/dev/null | sed 's|database/migrations/||' | \
+        awk -F'_' '{print $1"-"$2"-"$3}' | sort | uniq -c
+else
+    echo "Tidak ada file migrasi ditemukan."
+fi
 
 header "9. TEST COUNT PER DOMAIN"
-for dir in tests/Feature/*/; do
-  domain=$(basename "$dir")
-  count=$(find "$dir" -name '*.php' | wc -l)
-  echo "  $domain: $count"
-done | sort -t: -k2 -rn
+if [ -d "tests/Feature" ]; then
+    for dir in tests/Feature/*/ ; do
+        [ -d "$dir" ] || continue
+        domain=$(basename "$dir")
+        count=$(find "$dir" -type f -name '*.php' 2>/dev/null | wc -l)
+        echo "  $domain: $count"
+    done | sort -t: -k2 -rn || true
+else
+    echo "Folder tests/Feature tidak ditemukan."
+fi
 
 header "10. PORT / ADAPTER / CORE RATIO"
-ports=$(find app/Ports -name '*.php' | wc -l)
-adapters_in=$(find app/Adapters/In -name '*.php' | wc -l)
-adapters_out=$(find app/Adapters/Out -name '*.php' | wc -l)
-core=$(find app/Core -name '*.php' | wc -l)
-application=$(find app/Application -name '*.php' | wc -l)
+ports=$(find app/Ports -type f -name '*.php' 2>/dev/null | wc -l || echo 0)
+adapters_in=$(find app/Adapters/In -type f -name '*.php' 2>/dev/null | wc -l || echo 0)
+adapters_out=$(find app/Adapters/Out -type f -name '*.php' 2>/dev/null | wc -l || echo 0)
+core=$(find app/Core -type f -name '*.php' 2>/dev/null | wc -l || echo 0)
+application=$(find app/Application -type f -name '*.php' 2>/dev/null | wc -l || echo 0)
+t_files=$(find tests -type f -name '*.php' 2>/dev/null | wc -l || echo 0)
+a_files=$(find app -type f -name '*.php' 2>/dev/null | wc -l || echo 0)
 echo "  Ports        : $ports"
 echo "  Adapters/In  : $adapters_in"
 echo "  Adapters/Out : $adapters_out"
 echo "  Core         : $core"
 echo "  Application  : $application"
-echo "  Ratio test:src = $(find tests -name '*.php' | wc -l):$(find app -name '*.php' | wc -l)"
+echo "  Ratio test:src = $t_files:$a_files"
 
-# ── 11. DECLARE STRICT_TYPES COVERAGE ──────────
 header "11. STRICT_TYPES COVERAGE"
-total_php=$(find app -name '*.php' | wc -l)
-strict=$(grep -rl "declare(strict_types=1)" app | wc -l)
-pct=$(echo "scale=1; $strict * 100 / $total_php" | bc)
-echo "  Files with strict_types : $strict / $total_php (${pct}%)"
+total_php=$(find app -type f -name '*.php' 2>/dev/null | wc -l || echo 0)
+if [ "$total_php" -gt 0 ]; then
+    strict=$(grep -rl "declare(strict_types=1)" app --include="*.php" 2>/dev/null | wc -l || echo 0)
+    pct=$(echo "scale=1; $strict * 100 / $total_php" | bc)
+    echo "  Files with strict_types : $strict / $total_php (${pct}%)"
+else
+    echo "  Tidak ada file PHP di folder app/."
+fi
 
-# ── 12. FINAL CLASS USAGE ──────────────────────
 header "12. FINAL CLASS USAGE"
-total=$(find app -name '*.php' | xargs grep -l "^class\|^final class\|^abstract class" 2>/dev/null | wc -l)
-final=$(find app -name '*.php' | xargs grep -l "^final class" 2>/dev/null | wc -l)
-abstract=$(find app -name '*.php' | xargs grep -l "^abstract class" 2>/dev/null | wc -l)
-iface=$(find app -name '*.php' | xargs grep -l "^interface" 2>/dev/null | wc -l)
+total=$(find app -type f -name '*.php' 2>/dev/null | xargs grep -l "^class\|^final class\|^abstract class" 2>/dev/null | wc -l || echo 0)
+final=$(find app -type f -name '*.php' 2>/dev/null | xargs grep -l "^final class" 2>/dev/null | wc -l || echo 0)
+abstract=$(find app -type f -name '*.php' 2>/dev/null | xargs grep -l "^abstract class" 2>/dev/null | wc -l || echo 0)
+iface=$(find app -type f -name '*.php' 2>/dev/null | xargs grep -l "^interface" 2>/dev/null | wc -l || echo 0)
 echo "  final class    : $final"
 echo "  abstract class : $abstract"
 echo "  interface      : $iface"
 echo "  (approx open class: $((total - final - abstract - iface)))"
 
-# ── 13. READONLY PROPERTY USAGE ────────────────
 header "13. READONLY / IMMUTABILITY SIGNALS"
-readonly_count=$(grep -r "private readonly\|public readonly\|protected readonly" app --include="*.php" | wc -l)
-immutable_dt=$(grep -r "DateTimeImmutable" app --include="*.php" | wc -l)
+readonly_count=$(grep -r "private readonly\|public readonly\|protected readonly" app --include="*.php" 2>/dev/null | wc -l || echo 0)
+immutable_dt=$(grep -r "DateTimeImmutable" app --include="*.php" 2>/dev/null | wc -l || echo 0)
 echo "  'readonly' properties  : $readonly_count occurrences"
 echo "  DateTimeImmutable uses : $immutable_dt occurrences"
 
