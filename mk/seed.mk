@@ -324,8 +324,8 @@ seed-help:
 	@echo "All aliases run existing create-only seed paths; transaction seeders use the application create handler."
 	@echo "Run from repo root."
 
-.PHONY: help
-help:
+.PHONY: seed-help-full
+seed-help-full:
 	@echo ""
 	@echo "HyperPOS create-only seed targets"
 	@echo "================================="
