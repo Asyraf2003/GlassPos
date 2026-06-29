@@ -211,32 +211,6 @@ Recommended order:
 5. Active lifecycle file only if you are continuing current work:  
    `docs/04_lifecycle/error_log/0051_manual_transaction_reporting_sequential_qa_matrix.md`
 
-## Screenshot Assets
-
-README screenshots are stored under:
-
-```text
-.github/assets/readme/
-```
-
-Current public README image assets:
-
-| Asset | Purpose |
-|---|---|
-| `.github/assets/readme/cashier-dashboard.png` | Cashier dashboard |
-| `.github/assets/readme/cashier-create-note.png` | Cashier create-note workspace |
-| `.github/assets/readme/cashier-note-list.png` | Cashier note list |
-| `.github/assets/readme/cashier-note-detail.png` | Cashier note detail |
-| `.github/assets/readme/admin-supplier-payment-proof.png` | Admin supplier payment proof |
-| `.github/assets/readme/admin-dashboard.png` | Admin dashboard |
-| `.github/assets/readme/dashboard-report.png` | Dashboard report surface |
-| `.github/assets/readme/admin-product-table.png` | Admin product table |
-| `.github/assets/readme/operational-cash-profit-report.png` | Operational cash/profit report screen |
-| `.github/assets/readme/report-export-pdf.png` | PDF export preview |
-| `.github/assets/readme/report-export-excel.png` | Excel export preview |
-
-Only place screenshots in the public README when they explain product capability. Put deeper proof screenshots in lifecycle docs or audit evidence.
-
 ## Production Safety
 
 This repository does not contain production database dumps, private customer data, credentials, or operational secrets.

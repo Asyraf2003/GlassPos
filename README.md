@@ -148,8 +148,6 @@ That is why the repository contains ADRs, lifecycle logs, handoffs, error logs, 
 
 ![Cashier create note](.github/assets/readme/cashier-create-note.png)
 
-![Cashier note list](.github/assets/readme/cashier-note-list.png)
-
 ![Cashier note detail](.github/assets/readme/cashier-note-detail.png)
 
 ### Admin and Reporting
@@ -160,16 +158,11 @@ That is why the repository contains ADRs, lifecycle logs, handoffs, error logs, 
 
 ![Admin product table](.github/assets/readme/admin-product-table.png)
 
-![Operational cash profit report](.github/assets/readme/operational-cash-profit-report.png)
-
 ![Supplier payment proof](.github/assets/readme/admin-supplier-payment-proof.png)
 
-### Exports
-
-![PDF export](.github/assets/readme/report-export-pdf.png)
+### Export
 
 ![Excel export](.github/assets/readme/report-export-excel.png)
-
 
 ## Production Context
 
@@ -208,14 +201,11 @@ The project separates:
 
 The point is to keep business rules from being buried inside controllers, views, and random SQL fragments. Revolutionary, apparently.
 
-Technical details are available in:
+## Documentation
 
-- [`README_TECHNICAL.md`](README_TECHNICAL.md)
-- [`docs/01_standards/`](docs/01_standards/)
-- [`docs/02_architecture/`](docs/02_architecture/)
-- [`docs/03_blueprints/`](docs/03_blueprints/)
-- [`docs/04_lifecycle/`](docs/04_lifecycle/)
-- [`docs/99_archive/`](docs/99_archive/)
+- [`README_SETUP.md`](README_SETUP.md) — local installation, seed data, demo login, and verification.
+- [`README_TECHNICAL.md`](README_TECHNICAL.md) — architecture, domain boundaries, tests, and production metadata.
+- [`docs/0001_docs_help.md`](docs/0001_docs_help.md) — entrypoint for standards, ADRs, blueprints, lifecycle logs, and archives.
 
 ## Engineering Highlights
 
