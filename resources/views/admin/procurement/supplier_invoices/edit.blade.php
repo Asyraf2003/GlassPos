@@ -13,7 +13,7 @@
             novalidate
             id="procurement-edit-form"
             data-procurement-edit-form="1"
-            data-procurement-draft-key="admin.procurement.edit-supplier-invoice.{{ $summary['supplier_invoice_id'] }}.draft.v1"
+            data-procurement-draft-key="admin.procurement.edit-supplier-invoice.{{ $summary['supplier_invoice_id'] }}.revision.{{ $formDefaults['expected_revision_no'] }}.draft.v1"
         >
             @csrf
             @method('PUT')
