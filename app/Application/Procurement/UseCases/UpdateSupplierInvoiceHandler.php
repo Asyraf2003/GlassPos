@@ -94,6 +94,7 @@ final class UpdateSupplierInvoiceHandler
             $performedByActorId,
             $performedByActorRole,
             $sourceChannel,
+            $changeReason,
         );
     }
 }

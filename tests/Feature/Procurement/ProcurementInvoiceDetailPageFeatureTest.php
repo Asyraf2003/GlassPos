@@ -160,7 +160,7 @@ final class ProcurementInvoiceDetailPageFeatureTest extends TestCase
             'revision_no' => 2,
             'event_name' => 'supplier_invoice_updated',
             'changed_by_actor_id' => 'actor-admin',
-            'change_reason' => 'Koreksi qty dan pajak supplier.',
+            'change_reason' => 'Koreksi qty dan pajak <script>alert("supplier")</script>.',
             'changed_at' => '2026-03-16 10:00:00',
             'snapshot_json' => json_encode(['supplier_invoice_id' => 'invoice-1'], JSON_THROW_ON_ERROR),
         ]);
@@ -172,7 +172,8 @@ final class ProcurementInvoiceDetailPageFeatureTest extends TestCase
         $response->assertSee('Perubahan Terakhir');
         $response->assertSee('Revisi 2');
         $response->assertSee('Alasan Perubahan Terakhir');
-        $response->assertSee('Koreksi qty dan pajak supplier.');
+        $response->assertSee('Koreksi qty dan pajak &lt;script&gt;alert(&quot;supplier&quot;)&lt;/script&gt;.', false);
+        $response->assertDontSee('Koreksi qty dan pajak <script>alert("supplier")</script>.', false);
         $response->assertDontSee('actor-admin');
     }
 

@@ -24,6 +24,7 @@ final class UpdateSupplierInvoiceTransactionalRunner
         ?string $performedByActorId,
         ?string $performedByActorRole,
         string $sourceChannel,
+        ?string $changeReason = null,
     ): Result {
         $started = false;
 
@@ -35,7 +36,7 @@ final class UpdateSupplierInvoiceTransactionalRunner
                 $performedByActorId,
                 $performedByActorRole,
                 $sourceChannel,
-                'supplier_invoice_updated',
+                $changeReason,
             );
 
             $result = $callback();

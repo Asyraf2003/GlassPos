@@ -53,12 +53,14 @@ final class UpdateSupplierInvoiceFeatureTest extends TestCase
             'supplier_invoice_id' => 'invoice-1',
             'revision_no' => 2,
             'event_name' => 'supplier_invoice_updated',
+            'change_reason' => 'Perbaikan data faktur supplier.',
         ]);
 
         $this->assertDatabaseHas('audit_events', [
             'aggregate_type' => 'supplier_invoice',
             'aggregate_id' => 'invoice-1',
             'event_name' => 'supplier_invoice_updated',
+            'reason' => 'Perbaikan data faktur supplier.',
         ]);
     }
 
