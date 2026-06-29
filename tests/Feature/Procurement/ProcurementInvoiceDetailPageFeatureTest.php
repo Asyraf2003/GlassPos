@@ -273,6 +273,8 @@ final class ProcurementInvoiceDetailPageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('Riwayat Versi Nota Pemasok');
         $response->assertSee('Ringkasan Perubahan');
+        $response->assertSee('Lihat Detail Versi');
+        $response->assertSee('data-bs-toggle="collapse"', false);
         $response->assertSeeText('Nomor Faktur: INV-SUP-001 → INV-SUP-001-REV');
         $response->assertSeeText('Tanggal Pengiriman: 2026-03-15 → 2026-03-16');
         $response->assertSeeText('Total Nota: Rp 20.000 → Rp 45.000');

@@ -361,6 +361,8 @@
                                             @endif
                                         </div>
 
+                                        @php($versionDetailId = 'supplier-invoice-version-detail-' . $loop->index)
+
                                         @if (($entry['change_summary'] ?? []) !== [])
                                             <div class="mb-3">
                                                 <div class="fw-semibold mb-1">Ringkasan Perubahan</div>
@@ -370,9 +372,23 @@
                                                     @endforeach
                                                 </ul>
                                             </div>
+                                        @else
+                                            <p class="text-muted small mb-3">Versi awal nota pemasok.</p>
                                         @endif
 
-                                        <div class="border rounded p-3 bg-light-subtle">
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-secondary mb-3"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#{{ $versionDetailId }}"
+                                            aria-expanded="false"
+                                            aria-controls="{{ $versionDetailId }}"
+                                        >
+                                            Lihat Detail Versi
+                                        </button>
+
+                                        <div class="collapse" id="{{ $versionDetailId }}">
+                                            <div class="border rounded p-3 bg-light-subtle">
                                             <div class="row g-3 mb-3">
                                                 <div class="col-12 col-md-6">
                                                     <small class="text-muted d-block">Nomor Faktur</small>
@@ -449,6 +465,7 @@
                                                         @endforelse
                                                     </tbody>
                                                 </table>
+                                            </div>
                                             </div>
                                         </div>
                                     </div>
