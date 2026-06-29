@@ -672,3 +672,92 @@ Close only after:
 
 - `php artisan test --filter=CashierNoteCorrectionHistoryReasonViewFeatureTest` passed.
 
+
+## Session Update - 2026-06-29 Production Timestamp Repair Risk Assessment
+
+### Slice
+
+- Follow-up for timestamp mismatch / timezone display issue.
+- Context:
+  - Lab tests passed for `ViewDateFormatterTest`.
+  - Formatter now displays database timestamp `2026-06-29 02:07:45` as `29 Juni 2026 10:07` in Asia/Makassar operational timezone.
+  - Date-only business values are not shifted.
+- Production constraint:
+  - Real production is on shared hosting.
+  - Lab environment is separate from production.
+  - Production data may contain legacy timestamp inconsistencies.
+
+### Current Proof
+
+- `php artisan test --filter=ViewDateFormatterTest` passed:
+  - 8 tests passed.
+  - 10 assertions passed.
+- Existing formatter behavior protects:
+  - timestamp display conversion from app timezone/source timezone to `app.display_timezone`;
+  - date-only display from unwanted timezone shifting.
+
+### Risk
+
+- Do not blindly update old production timestamps.
+- Some legacy rows may be stored as UTC-like values.
+- Some legacy rows may already be stored as local Asia/Makassar-like values.
+- Blind `+8 hours` or `-8 hours` updates can corrupt audit history and financial timeline labels.
+- Date-only business fields must not be shifted.
+
+### Fields That Must Not Be Bulk-Shifted
+
+Treat these as business dates unless a specific table proves otherwise:
+
+- `refunded_at`
+- `transaction_date`
+- `shipment_date`
+- `due_date`
+- `expense_date`
+- `payment_date`
+- report period labels / date range fields
+
+### Candidate Timestamp Fields For Diagnosis Only
+
+These may be audited because they represent event time / audit timeline time:
+
+- `audit_events.occurred_at`
+- `audit_events.created_at`
+- `note_mutation_events.occurred_at`
+- `note_revision_surplus_dispositions.occurred_at`
+- `note_revision_surplus_dispositions.created_at`
+- `note_revision_surplus_refund_payments.occurred_at`
+- `note_revision_surplus_refund_payments.created_at`
+- note revision `created_at`
+- supplier invoice history `occurred_at` / `created_at`
+
+### Decision
+
+- Do not execute production timestamp repair yet.
+- First implement and run lab-only diagnostic.
+- Production should be handled later with:
+  1. full database backup/export;
+  2. read-only diagnostic query;
+  3. sample comparison against known real action times;
+  4. dry-run repair plan;
+  5. maintenance window;
+  6. narrow table/row update only if proven necessary;
+  7. post-repair UI/report verification.
+
+### Recommended Next Session Scope
+
+- Build a lab-only timestamp diagnostic plan.
+- Add a safe artisan command or SQL checklist that can:
+  - print config timezone and display timezone;
+  - sample recent rows from candidate audit/history tables;
+  - classify whether rows look UTC-like or local-like;
+  - run in read-only mode by default.
+- Do not write production repair command until diagnostic output proves a correction strategy.
+
+### Production Rule
+
+- Lab first.
+- No production write without backup.
+- No date-only field shifting.
+- No global timestamp migration.
+- Prefer display fix over data mutation unless legacy data is proven wrong.
+
