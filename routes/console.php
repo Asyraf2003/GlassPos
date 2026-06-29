@@ -5,9 +5,11 @@ use App\Application\Procurement\Services\SupplierInvoiceListProjectionService;
 use App\Application\Procurement\Services\SupplierListProjectionService;
 use App\Application\PushNotification\UseCases\SendDueNoteReminderPushHandler;
 use App\Application\PushNotification\UseCases\SendSupplierPayableReminderPushHandler;
+use App\Support\ViewDateFormatter;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -152,6 +154,177 @@ Artisan::command(
         return $summary->failedCount > 0 ? 1 : 0;
     }
 )->purpose('Send push notification untuk hutang pemasok yang mendekati atau melewati jatuh tempo');
+
+
+
+
+Artisan::command(
+    'diagnostics:timestamp-readonly {--limit=5 : Jumlah row terbaru per field} {--table=all : Batasi ke satu table kandidat, atau all}',
+    function (): int {
+        $limit = max(1, min((int) $this->option('limit'), 50));
+        $requestedTable = strtolower(trim((string) $this->option('table')));
+        $displayTimezone = trim((string) config('app.display_timezone', 'Asia/Makassar'));
+
+        $candidates = [
+            [
+                'table' => 'audit_events',
+                'column' => 'occurred_at',
+                'label_columns' => ['event_name', 'aggregate_type', 'bounded_context'],
+            ],
+            [
+                'table' => 'audit_events',
+                'column' => 'created_at',
+                'label_columns' => ['event_name', 'aggregate_type', 'bounded_context'],
+            ],
+            [
+                'table' => 'audit_event_snapshots',
+                'column' => 'created_at',
+                'label_columns' => ['snapshot_kind', 'audit_event_id'],
+            ],
+            [
+                'table' => 'note_mutation_events',
+                'column' => 'occurred_at',
+                'label_columns' => ['mutation_type', 'actor_role', 'note_id'],
+            ],
+            [
+                'table' => 'note_revision_surplus_dispositions',
+                'column' => 'occurred_at',
+                'label_columns' => ['disposition_type', 'status', 'note_root_id'],
+            ],
+            [
+                'table' => 'note_revision_surplus_dispositions',
+                'column' => 'created_at',
+                'label_columns' => ['disposition_type', 'status', 'note_root_id'],
+            ],
+            [
+                'table' => 'note_revision_surplus_refund_payments',
+                'column' => 'occurred_at',
+                'label_columns' => ['status', 'note_root_id', 'audit_event_id'],
+            ],
+            [
+                'table' => 'note_revision_surplus_refund_payments',
+                'column' => 'created_at',
+                'label_columns' => ['status', 'note_root_id', 'audit_event_id'],
+            ],
+            [
+                'table' => 'note_revisions',
+                'column' => 'created_at',
+                'label_columns' => ['note_root_id', 'revision_number'],
+            ],
+            [
+                'table' => 'supplier_invoice_versions',
+                'column' => 'changed_at',
+                'label_columns' => ['supplier_invoice_id', 'revision_no', 'event_name'],
+            ],
+        ];
+
+        $knownTables = array_values(array_unique(array_map(
+            static fn (array $candidate): string => $candidate['table'],
+            $candidates
+        )));
+
+        if ($requestedTable !== 'all' && ! in_array($requestedTable, $knownTables, true)) {
+            $this->error('Table harus all atau salah satu dari: '.implode(', ', $knownTables));
+
+            return 1;
+        }
+
+        if ($requestedTable !== 'all') {
+            $candidates = array_values(array_filter(
+                $candidates,
+                static fn (array $candidate): bool => $candidate['table'] === $requestedTable
+            ));
+        }
+
+        $this->info('Timestamp read-only diagnostic');
+        $this->line('mode: READ ONLY');
+        $this->line('app.timezone: '.(string) config('app.timezone'));
+        $this->line('app.display_timezone: '.$displayTimezone);
+        $this->line('now(): '.now()->toDateTimeString());
+        $this->line('now(display): '.now($displayTimezone)->toDateTimeString());
+        $this->line('limit per field: '.$limit);
+        $this->newLine();
+
+        foreach ($candidates as $candidate) {
+            $table = $candidate['table'];
+            $column = $candidate['column'];
+            $fieldName = "{$table}.{$column}";
+
+            if (! Schema::hasTable($table)) {
+                $this->warn("SKIP {$fieldName}: table tidak ada.");
+                continue;
+            }
+
+            if (! Schema::hasColumn($table, $column)) {
+                $this->warn("SKIP {$fieldName}: column tidak ada.");
+                continue;
+            }
+
+            $columns = ['id', $column];
+
+            foreach ($candidate['label_columns'] as $labelColumn) {
+                if (Schema::hasColumn($table, $labelColumn)) {
+                    $columns[] = $labelColumn;
+                }
+            }
+
+            $columns = array_values(array_unique($columns));
+
+            $rows = DB::table($table)
+                ->select($columns)
+                ->whereNotNull($column)
+                ->orderByDesc($column)
+                ->limit($limit)
+                ->get();
+
+            if ($rows->isEmpty()) {
+                $this->line("EMPTY {$fieldName}: tidak ada row sample.");
+                continue;
+            }
+
+            $outputRows = [];
+
+            foreach ($rows as $row) {
+                $raw = (string) ($row->{$column} ?? '');
+
+                $labelParts = [];
+
+                foreach ($candidate['label_columns'] as $labelColumn) {
+                    if (! property_exists($row, $labelColumn)) {
+                        continue;
+                    }
+
+                    $labelValue = $row->{$labelColumn};
+
+                    if ($labelValue === null || $labelValue === '') {
+                        continue;
+                    }
+
+                    $labelParts[] = $labelColumn.'='.(string) $labelValue;
+                }
+
+                $outputRows[] = [
+                    'table' => $table,
+                    'id' => property_exists($row, 'id') ? (string) $row->id : '-',
+                    'field' => $column,
+                    'raw_db' => $raw,
+                    'display' => ViewDateFormatter::display($raw, true),
+                    'label' => $labelParts === [] ? '-' : implode(' | ', $labelParts),
+                ];
+            }
+
+            $this->table(
+                ['table', 'id', 'field', 'raw_db', 'display', 'label'],
+                $outputRows
+            );
+        }
+
+        $this->newLine();
+        $this->info('Diagnostic selesai. Tidak ada repair/write yang dijalankan.');
+
+        return 0;
+    }
+)->purpose('Read-only diagnostic timestamp audit/history untuk membandingkan raw DB dan tampilan timezone operasional');
 
 
 if (! app()->runningUnitTests()) {
