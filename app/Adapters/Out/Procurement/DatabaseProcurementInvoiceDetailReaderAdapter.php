@@ -7,6 +7,7 @@ namespace App\Adapters\Out\Procurement;
 use App\Adapters\Out\Procurement\Concerns\ProcurementInvoiceDetailLinesQuery;
 use App\Adapters\Out\Procurement\Concerns\ProcurementInvoiceDetailPayload;
 use App\Adapters\Out\Procurement\Concerns\ProcurementInvoiceDetailSummaryQuery;
+use App\Adapters\Out\Procurement\Concerns\ProcurementInvoiceDetailVersionTimelineQuery;
 use App\Ports\Out\Procurement\ProcurementInvoiceDetailReaderPort;
 
 final class DatabaseProcurementInvoiceDetailReaderAdapter implements ProcurementInvoiceDetailReaderPort
@@ -14,6 +15,7 @@ final class DatabaseProcurementInvoiceDetailReaderAdapter implements Procurement
     use ProcurementInvoiceDetailLinesQuery;
     use ProcurementInvoiceDetailPayload;
     use ProcurementInvoiceDetailSummaryQuery;
+    use ProcurementInvoiceDetailVersionTimelineQuery;
 
     public function getById(string $supplierInvoiceId): ?array
     {
@@ -26,6 +28,7 @@ final class DatabaseProcurementInvoiceDetailReaderAdapter implements Procurement
         return $this->toDetailPayload(
             $summary,
             $this->getLineRows($supplierInvoiceId),
+            $this->getVersionTimelineRows($supplierInvoiceId),
         );
     }
 }

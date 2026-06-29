@@ -24,7 +24,7 @@ trait ProcurementInvoiceDetailPayload
      *   lines: list<array<string, mixed>>
      * }
      */
-    private function toDetailPayload(object $summary, array $lines): array
+    private function toDetailPayload(object $summary, array $lines, array $versionTimeline): array
     {
         $totalPaidRupiah = (int) $summary->total_paid_rupiah;
         $receiptCount = (int) $summary->receipt_count;
@@ -90,6 +90,7 @@ trait ProcurementInvoiceDetailPayload
                 'allowed_actions' => $allowedActions,
             ],
             'lines' => $lines,
+            'version_timeline' => $versionTimeline,
         ];
     }
 }
