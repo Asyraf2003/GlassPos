@@ -1,139 +1,183 @@
-# App Kasir Hexagonal
+# HyperPOS
 
-Sistem kasir dan operasional bengkel untuk servis, sparepart, stok, pembelian supplier, pembayaran, koreksi transaksi, audit perubahan, dan laporan.
+HyperPOS is a workshop POS and operations system built with Laravel and MySQL.
 
-Project ini dibangun untuk satu jenis masalah yang sering diremehkan: aplikasi kasir yang terlihat sederhana di layar, tetapi sebenarnya menyentuh uang, stok, hutang, piutang, koreksi data, histori transaksi, dan laporan bisnis. Kalau bagian itu longgar, aplikasi tetap bisa terlihat “jalan”, sambil diam-diam membuat laporan dan stok rusak.
+It is designed for a real automotive workshop workflow where a "simple sale" can actually involve service jobs, spare parts, supplier invoices, stock movement, partial payments, refunds, corrections, audit history, and business reports.
 
-## Gambaran singkat
+This project exists because many POS systems look clean on the screen while quietly making money, stock, and reports drift apart. HyperPOS is built to make those changes traceable.
 
-App ini bukan hanya form penjualan.
+## What Problem Does It Solve?
 
-App ini mencakup alur operasional bengkel dari depan sampai belakang:
+A workshop transaction is rarely just:
 
-- kasir membuat nota servis dan sparepart;
-- admin mengelola produk, stok, supplier, faktur supplier, dan laporan;
-- transaksi bisa berisi jasa, sparepart toko, produk luar, atau paket servis;
-- pembayaran bisa dicatat dan dilacak;
-- nota yang sudah berjalan tetap bisa dikoreksi lewat jalur yang diaudit;
-- refund dan perubahan setelah transaksi tidak dibiarkan menghilang tanpa jejak;
-- stok dan nilai persediaan dijaga agar tetap bisa dijelaskan;
-- laporan dibangun dari data yang punya riwayat, bukan dari angka yang jatuh dari langit.
+> sell item, print receipt, done.
 
-## Kenapa app ini padat?
+In a real workshop:
 
-Karena domain bengkel tidak sesederhana “jual barang, cetak nota”.
+- one invoice can include service labor and spare parts;
+- parts may come from store stock or outside purchase;
+- a customer can pay partially, then pay the rest later;
+- a transaction may need correction after it was paid;
+- a refund can affect cash, stock, and reports;
+- supplier invoices can affect stock cost and payable balance;
+- reports must still make sense after all of those changes.
 
-Dalam praktik nyata:
+HyperPOS tries to handle that mess explicitly instead of hiding it behind a generic "Save" button.
 
-- satu nota bisa berisi jasa dan sparepart sekaligus;
-- barang bisa dari stok toko atau produk luar;
-- pembayaran bisa terjadi sebelum atau setelah koreksi;
-- nota bisa lunas, belum lunas, dibatalkan, direvisi, atau direfund;
-- faktur supplier bisa mengubah harga modal dan pajak;
-- stok tidak boleh minus tanpa aturan;
-- laporan harus tetap cocok dengan transaksi, pembayaran, refund, dan stok;
-- perubahan data harus bisa dilacak siapa, kapan, dan kenapa.
+## Core Capabilities
 
-App ini mencoba menangani keruwetan itu secara eksplisit, bukan menutupinya dengan tombol “Simpan”.
+### Cashier Transaction Workspace
 
-## Modul utama
+Cashiers can create multi-line workshop transactions that may include:
 
-### Transaksi kasir
+- product-only sales;
+- service-only work;
+- service with store-stock spare parts;
+- service with external purchase / case-cost parts;
+- package/template-based service rows;
+- cash or transfer payment;
+- partial or full payment.
 
-Kasir dapat membuat nota transaksi untuk servis dan penjualan sparepart. Nota dapat memuat beberapa jenis rincian, termasuk jasa, barang toko, produk luar, dan paket servis.
+The workspace is built to keep transaction details structured, because once money and stock are involved, vague data becomes expensive. Humans keep inventing edge cases. Software gets blamed for not reading minds. Naturally.
 
-Setiap nota membawa data yang dibutuhkan untuk pembayaran, stok, histori, dan laporan.
+### Payment Lifecycle
 
-### Workspace transaksi
+HyperPOS tracks payment as part of the transaction lifecycle, not as a loose number.
 
-Alur input transaksi dibuat sebagai workspace agar transaksi kompleks tetap bisa dikelola. Tujuannya bukan sekadar cepat input, tetapi juga menjaga agar rincian transaksi tidak kehilangan konteks.
+It supports:
 
-### Produk dan stok
+- full payment;
+- partial payment;
+- cash payment;
+- transfer payment;
+- payment allocation;
+- paid-note closing;
+- payment visibility in transaction and cash reports.
 
-Produk sparepart dikelola sebagai master data. Stok diperlakukan sebagai data sensitif karena memengaruhi operasional, pembelian, laporan, dan nilai persediaan.
+The goal is to prevent the common POS failure where the screen says "paid", the database says "maybe", and the report says "good luck".
 
-Perubahan stok tidak dianggap sebagai angka bebas. Perubahan harus punya sumber dan alasan yang bisa dilacak.
+### Refund and Correction Flow
 
-### Supplier dan faktur pembelian
+Refunds and corrections are treated as business events.
 
-Admin dapat mencatat faktur supplier, rincian barang, tanggal pengiriman, jatuh tempo, pajak supplier, total faktur, status penerimaan, dan riwayat revisi.
+The system is built to preserve context when a transaction changes after creation or after payment. That includes:
 
-Faktur supplier tidak hanya disimpan sebagai dokumen diam. Jika direvisi, sistem menyimpan versi dan ringkasan perubahan agar owner bisa melihat perubahan antar versi.
+- selected-row refunds;
+- full refund lifecycle;
+- paid transaction correction;
+- revision history;
+- refund impact on reports;
+- refund impact on stock where applicable;
+- protection against non-refundable items being treated as refundable.
 
-### Pembayaran
+### Product and Stock Management
 
-Sistem menangani pembayaran customer dan pembayaran supplier sebagai bagian dari lifecycle transaksi.
+Stock is treated as operational ledger data, not just a number in a product table.
 
-Pembayaran tidak boleh membuat data menjadi ambigu. Status transaksi, total tagihan, saldo, dan laporan harus tetap sejalan.
+HyperPOS covers:
 
-### Koreksi nota
+- product catalog;
+- stock adjustment;
+- stock adjustment reversal;
+- stock movement history;
+- stock projection rebuild;
+- inventory costing projection;
+- negative-stock guardrails;
+- product versioning;
+- soft delete and restore.
 
-Transaksi yang sudah dibuat dapat dikoreksi lewat jalur yang terkontrol. Koreksi setelah transaksi selesai adalah area yang rawan merusak data, jadi sistem membuatnya eksplisit dan tercatat.
+This matters because a workshop can survive a messy UI faster than it can survive invisible stock drift.
 
-Koreksi bukan sekadar edit bebas. Koreksi harus tetap menjaga hubungan antara nota, pembayaran, refund, stok, dan laporan.
+### Supplier and Procurement
 
-### Refund
+The system includes supplier invoice workflows, including:
 
-Refund diperlakukan sebagai event bisnis, bukan sekadar angka negatif. Sistem membedakan tanggal bisnis refund dan timestamp audit agar laporan tidak kacau hanya karena timezone atau format tampilan.
+- supplier invoice creation;
+- supplier invoice edit and revision;
+- supplier invoice version timeline;
+- supplier receipt;
+- supplier payment;
+- supplier payment reversal;
+- supplier payment proof upload;
+- supplier payable reporting;
+- tax input handling;
+- landed-cost allocation;
+- rounding residue handling;
+- received invoice cost revaluation.
 
-### Laporan
+Supplier invoices affect inventory and payable balance, so they are not treated as isolated documents.
 
-Sistem menyediakan laporan untuk membantu owner melihat kondisi operasional, transaksi, pembayaran, stok, dan profit.
+### Reporting
 
-Targetnya bukan hanya “ada tabel”, tetapi laporan yang bisa dipertanggungjawabkan karena sumber datanya jelas.
+HyperPOS includes reporting surfaces for operational visibility:
 
-### Audit dan riwayat perubahan
+- transaction summary;
+- transaction cash ledger;
+- operational profit;
+- inventory stock value;
+- supplier payable;
+- service package profit breakdown;
+- employee debt;
+- payroll;
+- operational expense;
+- dashboard summaries;
+- PDF exports;
+- Excel exports.
 
-Bagian penting dari sistem ini adalah auditability.
+The reporting goal is not just "show a table". The goal is to keep the report explainable after payment, refund, revision, inventory movement, and supplier changes.
 
-Perubahan sensitif harus punya riwayat. Owner harus bisa melihat data berubah dari apa ke apa, kapan terjadi, dan alasan perubahan jika relevan.
+### Audit and History
 
-## Nilai utama project
+The system keeps audit and history as first-class concerns.
 
-### 1. Presisi data
+Important changes are expected to be explainable:
 
-Uang, stok, pembayaran, dan laporan tidak boleh “kurang lebih benar”. Selisih kecil dalam sistem operasional bisa menjadi masalah besar.
+- what changed;
+- when it changed;
+- why it changed, where relevant;
+- what the previous state was;
+- how the change affected money, stock, and reports.
 
-### 2. Auditability
+That is why the repository contains ADRs, lifecycle logs, handoffs, error logs, regression notes, and manual QA matrices. It is paperwork, yes. But the alternative is guessing. Guessing is just debugging with a blindfold and confidence issues.
 
-Setiap perubahan penting harus bisa dijelaskan. Sistem tidak boleh menjadi kotak hitam yang hanya menyimpan hasil akhir.
+## Production Context
 
-### 3. Editable, tapi tetap aman
+HyperPOS has been operated as a live Laravel/MySQL application for a real workshop environment.
 
-Operasional nyata butuh data bisa dikoreksi. Tetapi koreksi tidak boleh menghapus jejak atau membuat laporan kehilangan makna.
+Owner-reported operation metadata:
 
-### 4. Arsitektur modular
+| Signal | Value |
+|---|---:|
+| Runtime | Laravel + MySQL |
+| Deployment style | Shared hosting / constrained hosting |
+| MySQL update cycles while live | 12 |
+| File update cycles while live | 31 |
+| User-visible downtime during those update cycles | 0 reported |
+| Production data in this repository | None, metadata only |
 
-Project ini menggunakan pendekatan Hexagonal Architecture agar aturan bisnis tidak tenggelam di controller, view, atau query database.
+The repository does not contain production database dumps, private customer data, credentials, or operational secrets.
 
-### 5. Testing serius
+Production repair policy is conservative: diagnose read-only first, then decide. No blind mutation of production data.
 
-Project ini memiliki test suite besar karena banyak alur bisnis saling terkait. Ketika satu fitur menyentuh uang, stok, atau laporan, perubahan kecil pun harus dibuktikan.
+## Architecture
 
-## Untuk siapa repository ini?
+HyperPOS follows a Hexagonal / Ports and Adapters direction.
 
-Repository ini cocok dibaca oleh:
+The project separates:
 
-- owner bisnis yang ingin memahami arah sistem;
-- recruiter atau reviewer yang ingin melihat kompleksitas project;
-- developer yang ingin melihat contoh aplikasi Laravel dengan domain operasional yang padat;
-- auditor teknis yang ingin melihat bagaimana transaksi, stok, pembayaran, dan laporan dijaga;
-- saya di masa depan, ketika lupa kenapa semua ini dibuat seketat ini.
+- domain rules;
+- use cases;
+- ports/contracts;
+- HTTP controllers;
+- database adapters;
+- reporting queries;
+- Blade presentation;
+- tests;
+- documentation.
 
-## Stack ringkas
+The point is to keep business rules from being buried inside controllers, views, and random SQL fragments. Revolutionary, apparently.
 
-- Laravel
-- Blade
-- MySQL
-- Hexagonal Architecture
-- Feature tests dan characterization tests
-- Dokumentasi ADR, blueprint, lifecycle, dan archive
-
-## Dokumentasi teknis
-
-README ini sengaja dibuat untuk pembaca umum.
-
-Untuk pembahasan teknis berat, lihat:
+Technical details are available in:
 
 - [`README_TECHNICAL.md`](README_TECHNICAL.md)
 - [`docs/01_standards/`](docs/01_standards/)
@@ -142,25 +186,103 @@ Untuk pembahasan teknis berat, lihat:
 - [`docs/04_lifecycle/`](docs/04_lifecycle/)
 - [`docs/99_archive/`](docs/99_archive/)
 
-## Status
+## Engineering Highlights
 
-Project ini aktif dikembangkan dan sudah melewati banyak siklus audit, perbaikan bug, hardening, dan verifikasi.
+HyperPOS includes work around:
 
-Beberapa area yang sudah diperkuat:
+- multi-item transaction lifecycle;
+- edit-after-payment handling;
+- refund and payment allocation;
+- inventory movement and reversal;
+- supplier invoice versioning;
+- supplier tax and landed cost handling;
+- service package auto-split;
+- owner-facing report labels;
+- PDF and Excel report consistency;
+- audit trail;
+- transactional audit outbox;
+- role and access boundary;
+- XSS and public-surface hardening;
+- idempotency and repeated-submit protection;
+- timestamp display for Asia/Makassar;
+- read-only production diagnostics.
 
-- transaksi kasir multi-item;
-- koreksi nota setelah transaksi;
-- refund dan laporan refund;
-- supplier invoice dan version timeline;
-- pajak supplier;
-- payment lifecycle;
-- audit log;
-- owner-facing Indonesian UI cleanup;
-- timestamp display Asia/Makassar;
-- production diagnostic tanpa repair data berbahaya.
+## Failure Cases Considered
 
-## Catatan akhir
+The system is designed and tested around failure modes that happen in real usage:
 
-App ini padat karena masalahnya memang padat.
+- double-click create;
+- double-click payment;
+- double-click refund;
+- browser refresh after submit;
+- browser back after submit;
+- repeated submit;
+- malformed numeric input;
+- zero or excessive payment input;
+- over-refund attempt;
+- stale modal data;
+- stale report projection;
+- negative stock risk;
+- UI action visible but backend allocation rejects it;
+- screen report disagreeing with PDF or Excel export;
+- production timestamp confusion.
 
-Aplikasi kasir yang menyentuh uang, stok, pembayaran, hutang, piutang, refund, dan laporan tidak cukup hanya “bisa CRUD”. Kalau sistem seperti ini dibuat terlalu santai, yang santai biasanya cuma developernya. Datanya tidak.
+These are boring problems until they touch money. Then suddenly everyone becomes a philosopher.
+
+## Testing and Verification
+
+This repository uses a large test and documentation workflow because the domain is interconnected.
+
+Typical verification commands:
+
+```bash
+make help
+make audit-git
+make audit-lines
+make audit-blade
+make audit-contract
+make verify
+```
+
+Focused areas include:
+
+```bash
+php artisan test tests/Feature/Note
+php artisan test tests/Feature/Payment
+php artisan test tests/Feature/Procurement
+php artisan test tests/Feature/Reporting
+php artisan test tests/Feature/ReportingExports
+php artisan test tests/Unit
+php artisan test tests/Arch
+```
+
+## Who This Repository Is For
+
+This repository is useful for:
+
+- recruiters reviewing backend/domain complexity;
+- developers studying Laravel beyond CRUD;
+- engineers interested in transaction lifecycle design;
+- auditors looking at money/stock/report consistency;
+- business owners who want to understand why POS reliability matters.
+
+## Current Status
+
+HyperPOS is actively developed and hardened.
+
+Recent focus areas include:
+
+- manual QA for transaction lifecycle and reports;
+- owner-facing language cleanup;
+- supplier invoice revision hardening;
+- timestamp display correctness;
+- production-safe read-only diagnostics;
+- technical and public README cleanup.
+
+## Final Note
+
+HyperPOS is dense because the business problem is dense.
+
+A POS that handles money, stock, debt, payable balance, refunds, corrections, and reports cannot stay reliable by pretending everything is a basic create-read-update-delete screen.
+
+CRUD is the alphabet. This project is about what happens after the alphabet starts touching cash.
