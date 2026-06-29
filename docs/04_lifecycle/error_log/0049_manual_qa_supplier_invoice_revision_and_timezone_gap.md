@@ -358,6 +358,55 @@ Remaining open items:
 - Timestamp UTC vs Asia/Makassar display still needs focused reproduction and patch.
 - Full `make verify` not yet run for 0049.
 
+## 2026-06-29 Slice 3 Update - Owner-Facing Timestamp Display
+
+Status: UTC vs Asia/Makassar presentation gap patched and focused tests passed.
+
+Source map result:
+
+- Application timezone remains UTC in `config/app.php`; this is the storage/source timezone for DB and audit timestamps.
+- Owner-facing timestamp labels flow through `App\Support\ViewDateFormatter`.
+- Note correction history, note revision timeline, refund due/paid audit timeline, audit log rows, product detail history, and service product template detail use `ViewDateFormatter::display(..., true)` for timestamps.
+- Refund business date fields such as `refunded_at` remain date-only in request/storage/reporting paths and are not changed by this patch.
+
+Root cause:
+
+- `ViewDateFormatter` parsed DB timestamp strings and formatted them in the source timezone, so a UTC timestamp such as `2026-06-29 02:07:45` rendered as `02:07` instead of local `10:07` Asia/Makassar.
+
+Patch:
+
+- Added `app.display_timezone` config with default `Asia/Makassar`.
+- Added `APP_DISPLAY_TIMEZONE=Asia/Makassar` to `.env.example`.
+- Updated `ViewDateValueParser` to parse non-legacy DB/date strings with source timezone `app.timezone` fallback `UTC`.
+- Updated `ViewDateFormatter` to convert timestamp displays to `app.display_timezone` only when time is requested.
+- Preserved legacy slash date text as already-local display input.
+- Preserved date-only business values without timezone shifting.
+
+Proof:
+
+```text
+php artisan test tests/Unit/Support/ViewDateFormatterTest.php tests/Feature/Note/CashierNoteCorrectionHistoryReasonViewFeatureTest.php tests/Feature/Note/AdminNoteSurplusRefundDueAuditTimelineUiFeatureTest.php tests/Feature/Note/AdminNoteSurplusRefundPaidUiFeatureTest.php
+
+PASS  Tests\Unit\Support\ViewDateFormatterTest
+PASS  Tests\Feature\Note\CashierNoteCorrectionHistoryReasonViewFeatureTest
+PASS  Tests\Feature\Note\AdminNoteSurplusRefundDueAuditTimelineUiFeatureTest
+PASS  Tests\Feature\Note\AdminNoteSurplusRefundPaidUiFeatureTest
+Tests: 14 passed (68 assertions)
+Duration: 6.08s
+```
+
+Verified behavior:
+
+- `2026-06-29 02:07:45` displays as `29 Juni 2026 10:07` for owner-facing timestamps.
+- `2026-06-29` remains `29 Juni 2026`.
+- `01/06/2026 14:30` remains `01 Juni 2026 14:30` as legacy local text.
+- Refund/audit UI tests still pass.
+
+Remaining open items:
+
+- Run combined focused tests for all 0049 slices.
+- Run full `make verify`.
+
 Run targeted tests for any changed areas.
 
 Then run:
