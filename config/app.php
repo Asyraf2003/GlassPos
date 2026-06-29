@@ -69,6 +69,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Owner-Facing Display Timezone
+    |--------------------------------------------------------------------------
+    |
+    | Database and audit timestamps are stored using the application timezone.
+    | Owner-facing timestamp labels are rendered in the shop's operational
+    | timezone so audit timelines match local business time.
+    |
+    */
+
+    'display_timezone' => env('APP_DISPLAY_TIMEZONE', 'Asia/Makassar'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |
