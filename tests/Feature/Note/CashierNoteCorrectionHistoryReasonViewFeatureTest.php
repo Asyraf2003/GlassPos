@@ -99,7 +99,7 @@ final class CashierNoteCorrectionHistoryReasonViewFeatureTest extends TestCase
             ->assertSee('Riwayat Perubahan Nota')
             ->assertSee('Perubahan Aktif')
             ->assertDontSee('Riwayat Mutasi Nota')
-            ->assertDontSee('Alasan:');
+            ->assertDontSee('Total Sebelum:');
     }
 
     private function seedKasir(): User
