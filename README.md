@@ -140,6 +140,40 @@ Important changes are expected to be explainable:
 
 That is why the repository contains ADRs, lifecycle logs, handoffs, error logs, regression notes, and manual QA matrices. It is paperwork, yes. But the alternative is guessing. Guessing is just debugging with a blindfold and confidence issues.
 
+## Screenshots
+
+### Cashier Flow
+
+![Cashier dashboard](.github/assets/readme/cashier-dashboard.png)
+
+![Cashier create note](.github/assets/readme/cashier-create-note.png)
+
+![Cashier note list](.github/assets/readme/cashier-note-list.png)
+
+![Cashier note detail](.github/assets/readme/cashier-note-detail.png)
+
+### Admin and Reporting
+
+![Admin dashboard](.github/assets/readme/admin-dashboard.png)
+
+![Dashboard report](.github/assets/readme/dashboard-report.png)
+
+![Admin product table](.github/assets/readme/admin-product-table.png)
+
+![Operational cash profit report](.github/assets/readme/operational-cash-profit-report.png)
+
+![Supplier payment proof](.github/assets/readme/admin-supplier-payment-proof.png)
+
+### Exports
+
+![PDF export](.github/assets/readme/report-export-pdf.png)
+
+![Excel export](.github/assets/readme/report-export-excel.png)
+
+Example PDF export:
+
+- [Operational cash/profit report PDF](.github/assets/readme/operational-cash-profit-report-2026-06.pdf)
+
 ## Production Context
 
 HyperPOS has been operated as a live Laravel/MySQL application for a real workshop environment.

@@ -213,27 +213,30 @@ Recommended order:
 
 ## Screenshot Assets
 
-README screenshots should be stored under:
+README screenshots are stored under:
 
 ```text
 .github/assets/readme/
 ```
 
-Recommended public README image set:
+Current public README image assets:
 
-```text
-.github/assets/readme/dashboard-report.png
-.github/assets/readme/admin-dashboard.png
-.github/assets/readme/product-table.png
-.github/assets/readme/cashier-mobile-dashboard.png
-.github/assets/readme/cashier-create-note-mobile.png
-.github/assets/readme/note-detail-mobile.png
-.github/assets/readme/supplier-payment-proof-mobile.png
-.github/assets/readme/report-export-excel.png
-.github/assets/readme/report-export-pdf.png
-```
+| Asset | Purpose |
+|---|---|
+| `.github/assets/readme/cashier-dashboard.png` | Cashier dashboard |
+| `.github/assets/readme/cashier-create-note.png` | Cashier create-note workspace |
+| `.github/assets/readme/cashier-note-list.png` | Cashier note list |
+| `.github/assets/readme/cashier-note-detail.png` | Cashier note detail |
+| `.github/assets/readme/admin-supplier-payment-proof.png` | Admin supplier payment proof |
+| `.github/assets/readme/admin-dashboard.png` | Admin dashboard |
+| `.github/assets/readme/dashboard-report.png` | Dashboard report surface |
+| `.github/assets/readme/admin-product-table.png` | Admin product table |
+| `.github/assets/readme/operational-cash-profit-report.png` | Operational cash/profit report screen |
+| `.github/assets/readme/report-export-pdf.png` | PDF export preview |
+| `.github/assets/readme/report-export-excel.png` | Excel export preview |
+| `.github/assets/readme/operational-cash-profit-report-2026-06.pdf` | Example exported operational cash/profit PDF |
 
-Keep screenshots in the public README only when they help explain what the system does. Put deeper proof screenshots in docs or lifecycle evidence, not on the front page.
+Only place screenshots in the public README when they explain product capability. Put deeper proof screenshots in lifecycle docs or audit evidence.
 
 ## Production Safety
 
