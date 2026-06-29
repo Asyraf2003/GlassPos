@@ -177,6 +177,113 @@ final class ProcurementInvoiceDetailPageFeatureTest extends TestCase
         $response->assertDontSee('actor-admin');
     }
 
+    public function test_admin_can_see_supplier_invoice_version_timeline_snapshots_on_detail_page(): void
+    {
+        $this->seedProduct('product-1', 'KB-001', 'Ban Luar', 'Federal', 90, 35000);
+        $this->seedProduct('product-2', 'KB-002', 'Oli Mesin', 'Federal Oil', 1, 15000);
+        $this->seedSupplier('supplier-1', 'PT Sumber Makmur', 'pt sumber makmur');
+
+        $this->seedSupplierInvoice('invoice-1', 'supplier-1', '2026-03-15', '2026-04-15', 45000);
+        $this->seedSupplierInvoiceLine('invoice-line-1', 'invoice-1', 'product-1', 3, 30000, 10000);
+        $this->seedSupplierInvoiceLine('invoice-line-2', 'invoice-1', 'product-2', 1, 15000, 15000, 'KB-002', 'Oli Mesin', 'Federal Oil', 1);
+
+        DB::table('supplier_invoices')
+            ->where('id', 'invoice-1')
+            ->update(['last_revision_no' => 2]);
+
+        DB::table('supplier_invoice_versions')->insert([
+            [
+                'id' => 'invoice-1-r001',
+                'supplier_invoice_id' => 'invoice-1',
+                'revision_no' => 1,
+                'event_name' => 'supplier_invoice_created',
+                'changed_by_actor_id' => 'actor-admin',
+                'change_reason' => null,
+                'changed_at' => '2026-03-15 02:00:00',
+                'snapshot_json' => json_encode([
+                    'nomor_faktur' => 'INV-SUP-001',
+                    'supplier' => ['nama_pt_pengirim_snapshot' => 'PT Sumber Makmur'],
+                    'tanggal_pengiriman' => '2026-03-15',
+                    'jatuh_tempo' => '2026-04-15',
+                    'subtotal_before_tax_rupiah' => 20000,
+                    'tax_amount_rupiah' => 0,
+                    'grand_total_rupiah' => 20000,
+                    'lines' => [
+                        [
+                            'line_no' => 1,
+                            'product_kode_barang_snapshot' => 'KB-001',
+                            'product_nama_barang_snapshot' => 'Ban Luar',
+                            'product_merek_snapshot' => 'Federal',
+                            'product_ukuran_snapshot' => 90,
+                            'qty_pcs' => 2,
+                            'line_subtotal_before_tax_rupiah' => 20000,
+                            'tax_amount_rupiah' => 0,
+                            'line_total_rupiah' => 20000,
+                        ],
+                    ],
+                ], JSON_THROW_ON_ERROR),
+            ],
+            [
+                'id' => 'invoice-1-r002',
+                'supplier_invoice_id' => 'invoice-1',
+                'revision_no' => 2,
+                'event_name' => 'supplier_invoice_updated',
+                'changed_by_actor_id' => 'actor-admin',
+                'change_reason' => 'Tambah oli dan koreksi qty <script>alert("invoice")</script>.',
+                'changed_at' => '2026-03-16 02:00:00',
+                'snapshot_json' => json_encode([
+                    'nomor_faktur' => 'INV-SUP-001-REV',
+                    'supplier' => ['nama_pt_pengirim_snapshot' => 'PT Sumber Makmur'],
+                    'tanggal_pengiriman' => '2026-03-16',
+                    'jatuh_tempo' => '2026-04-15',
+                    'subtotal_before_tax_rupiah' => 45000,
+                    'tax_amount_rupiah' => 0,
+                    'grand_total_rupiah' => 45000,
+                    'lines' => [
+                        [
+                            'line_no' => 1,
+                            'product_kode_barang_snapshot' => 'KB-001',
+                            'product_nama_barang_snapshot' => 'Ban Luar',
+                            'product_merek_snapshot' => 'Federal',
+                            'product_ukuran_snapshot' => 90,
+                            'qty_pcs' => 3,
+                            'line_subtotal_before_tax_rupiah' => 30000,
+                            'tax_amount_rupiah' => 0,
+                            'line_total_rupiah' => 30000,
+                        ],
+                        [
+                            'line_no' => 2,
+                            'product_kode_barang_snapshot' => 'KB-002',
+                            'product_nama_barang_snapshot' => 'Oli Mesin',
+                            'product_merek_snapshot' => 'Federal Oil',
+                            'product_ukuran_snapshot' => 1,
+                            'qty_pcs' => 1,
+                            'line_subtotal_before_tax_rupiah' => 15000,
+                            'tax_amount_rupiah' => 0,
+                            'line_total_rupiah' => 15000,
+                        ],
+                    ],
+                ], JSON_THROW_ON_ERROR),
+            ],
+        ]);
+
+        $response = $this->actingAs($this->user('admin'))
+            ->get(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']));
+
+        $response->assertOk();
+        $response->assertSee('Riwayat Versi Nota Pemasok');
+        $response->assertSee('Revisi 2');
+        $response->assertSee('Revisi 1');
+        $response->assertSee('INV-SUP-001-REV');
+        $response->assertSee('INV-SUP-001');
+        $response->assertSee('Ban Luar');
+        $response->assertSee('Oli Mesin');
+        $response->assertSee('Rp 45.000');
+        $response->assertSee('Rp 20.000');
+        $response->assertSee('Tambah oli dan koreksi qty &lt;script&gt;alert(&quot;invoice&quot;)&lt;/script&gt;.', false);
+        $response->assertDontSee('Tambah oli dan koreksi qty <script>alert("invoice")</script>.', false);
+    }
+
     private function user(string $role): User
     {
         $user = User::query()->create([
