@@ -633,3 +633,42 @@ Close only after:
 - Scope edit draft by invoice id and expected revision number.
 - Do not reuse drafts across supplier invoice revisions.
 
+
+## Session Update - 2026-06-29 Note Correction History Manual Failure Reclassified
+
+### Slice
+
+- Follow-up for manual QA tests 11-15 from error log 0049.
+- Scope: cashier note correction history reason display, empty history behavior, and HTML/XSS escaping.
+
+### Investigation Result
+
+- Existing targeted test was found:
+  - `tests/Feature/Note/CashierNoteCorrectionHistoryReasonViewFeatureTest.php`
+- Targeted test run passed:
+  - `CashierNoteCorrectionHistoryReasonViewFeatureTest`
+  - 2 tests passed
+  - 19 assertions passed
+
+### Existing Automated Coverage Confirmed
+
+- Correction history reason display is covered.
+- `Riwayat Mutasi Nota` is asserted visible when mutation history exists.
+- `Alasan:` is asserted visible when reason exists.
+- HTML/script reason is asserted escaped:
+  - escaped text is visible;
+  - raw `<script>` reason is not visible.
+- Actor internals are asserted not visible.
+- Note without correction history is asserted not to show an empty mutation history block.
+- The same page asserts `Riwayat Perubahan Nota` and `Perubahan Aktif`, so the combined note detail view with revision timeline and correction history is covered.
+
+### Decision
+
+- No production patch required for this slice at this time.
+- Manual failure is reclassified as likely manual data/setup mismatch unless owner can reproduce with a note that has rows in `note_mutation_events`.
+- If the issue reappears, first inspect the tested note id and confirm whether it has related mutation events and snapshots.
+
+### Verification
+
+- `php artisan test --filter=CashierNoteCorrectionHistoryReasonViewFeatureTest` passed.
+
