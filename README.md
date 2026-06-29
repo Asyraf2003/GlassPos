@@ -160,28 +160,24 @@ That is why the repository contains ADRs, lifecycle logs, handoffs, error logs, 
 
 ### Admin and Reporting
 
+<img src=".github/assets/readme/admin-dashboard.png" alt="Admin dashboard">
+
+<img src=".github/assets/readme/dashboard-report.png" alt="Dashboard report">
+
+<img src=".github/assets/readme/admin-product-table.png" alt="Admin product table">
+
+### Payment and Export
+
 <table>
   <tr>
     <td width="50%">
-      <img src=".github/assets/readme/admin-dashboard.png" alt="Admin dashboard">
-    </td>
-    <td width="50%">
-      <img src=".github/assets/readme/dashboard-report.png" alt="Dashboard report">
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src=".github/assets/readme/admin-product-table.png" alt="Admin product table">
-    </td>
-    <td width="50%">
       <img src=".github/assets/readme/admin-supplier-payment-proof.png" alt="Supplier payment proof">
+    </td>
+    <td width="50%">
+      <img src=".github/assets/readme/report-export-excel.png" alt="Excel export">
     </td>
   </tr>
 </table>
-
-### Export
-
-<img src=".github/assets/readme/report-export-excel.png" alt="Excel export">
 
 ## Production Context
 
