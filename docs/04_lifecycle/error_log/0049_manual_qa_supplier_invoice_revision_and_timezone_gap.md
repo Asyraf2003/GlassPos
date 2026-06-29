@@ -407,6 +407,55 @@ Remaining open items:
 - Run combined focused tests for all 0049 slices.
 - Run full `make verify`.
 
+## 2026-06-29 Slice 4 Update - Supplier Invoice Version Timeline
+
+Status: supplier invoice detail now has a version timeline similar to product detail, while preserving the existing supplier invoice actor visibility boundary.
+
+Owner follow-up:
+
+- Product detail has `Riwayat Versi Produk` with per-revision snapshots and reasons.
+- Supplier invoice detail previously only showed `Perubahan Terakhir` and `Alasan Perubahan Terakhir`.
+- Owner expected the invoice to show v1/v2 history with previous/current invoice data and reason.
+
+Source comparison:
+
+- Product detail reads `product_versions` timeline and renders each version snapshot.
+- Supplier invoice already writes `supplier_invoice_versions.snapshot_json`, but detail did not read or render the full version timeline.
+
+Patch:
+
+- Added `ProcurementInvoiceDetailVersionTimelineQuery` to read `supplier_invoice_versions`.
+- Extended procurement invoice detail payload with `version_timeline`.
+- Added view mapping for supplier invoice version snapshots.
+- Added `Riwayat Versi Nota Pemasok` card on supplier invoice detail.
+- The card renders revision label, event name, changed timestamp, reason, invoice header snapshot, totals, and line snapshots for each version.
+- Actor id remains hidden on supplier invoice detail to preserve the prior detail-page visibility contract.
+
+Proof:
+
+```text
+php artisan test tests/Feature/Procurement/ProcurementInvoiceDetailPageFeatureTest.php tests/Feature/Procurement/UpdateSupplierInvoiceFeatureTest.php
+
+PASS  Tests\Feature\Procurement\ProcurementInvoiceDetailPageFeatureTest
+PASS  Tests\Feature\Procurement\UpdateSupplierInvoiceFeatureTest
+Tests: 15 passed (128 assertions)
+Duration: 6.25s
+```
+
+Verified behavior:
+
+- Detail page displays `Riwayat Versi Nota Pemasok`.
+- Detail page displays `Revisi 1` and `Revisi 2`.
+- Version snapshots show invoice number, supplier, dates, subtotal, tax, total, and line items.
+- Added/changed lines are visible through the per-version line snapshot table.
+- Version reason HTML is escaped.
+- `actor-admin` is not shown on supplier invoice detail.
+
+Remaining open items:
+
+- Run combined focused tests for all 0049 slices.
+- Run full `make verify`.
+
 Run targeted tests for any changed areas.
 
 Then run:
