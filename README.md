@@ -135,14 +135,12 @@ README ini sengaja dibuat untuk pembaca umum.
 
 Untuk pembahasan teknis berat, lihat:
 
-- `README_TECHNICAL.md`
-- `docs/01_standards/`
-- `docs/02_architecture/`
-- `docs/03_blueprints/`
-- `docs/04_lifecycle/`
-- `docs/99_archive/`
-
-## Status
+- [`README_TECHNICAL.md`](README_TECHNICAL.md)
+- [`docs/01_standards/`](docs/01_standards/)
+- [`docs/02_architecture/`](docs/02_architecture/)
+- [`docs/03_blueprints/`](docs/03_blueprints/)
+- [`docs/04_lifecycle/`](docs/04_lifecycle/)
+- [`docs/99_archive/`](docs/99_archive/)## Status
 
 Project ini aktif dikembangkan dan sudah melewati banyak siklus audit, perbaikan bug, hardening, dan verifikasi.
 
