@@ -274,6 +274,7 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
             ->value('id');
         $newStoreStockLineId = (string) DB::table('work_item_store_stock_lines')
             ->where('work_item_id', $newWorkItemId)
+            ->where('id', '<>', $oldStoreStockLineId)
             ->value('id');
 
         self::assertNotSame('', $newWorkItemId);
