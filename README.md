@@ -1,131 +1,139 @@
-<!-- HYPERPOS_LATEST_HANDOFF_START -->
-Latest Handoff: docs/99_archive/04_lifecycle/error_log/0049_manual_qa_supplier_invoice_revision_and_timezone_gap.md
-Latest Supporting Handoff: docs/99_archive/04_lifecycle/handoff/0050_legacy_timestamp_repair_handoff.md
-Status: FINAL CLOSED / 0049-0050 FIXED / no production timestamp repair recommended
-<!-- HYPERPOS_LATEST_HANDOFF_END -->
-
 # App Kasir Hexagonal
 
-App Kasir Hexagonal adalah sistem operasional bengkel untuk mengelola transaksi servis, sparepart, stok, pembelian supplier, pembayaran, koreksi data, dan laporan.
+Sistem kasir dan operasional bengkel untuk servis, sparepart, stok, pembelian supplier, pembayaran, koreksi transaksi, audit perubahan, dan laporan.
 
-Project ini bukan sekadar aplikasi kasir sederhana. Fokus utamanya adalah menjaga data uang, stok, riwayat perubahan, dan laporan tetap bisa ditelusuri dengan jelas.
+Project ini dibangun untuk satu jenis masalah yang sering diremehkan: aplikasi kasir yang terlihat sederhana di layar, tetapi sebenarnya menyentuh uang, stok, hutang, piutang, koreksi data, histori transaksi, dan laporan bisnis. Kalau bagian itu longgar, aplikasi tetap bisa terlihat “jalan”, sambil diam-diam membuat laporan dan stok rusak.
 
-## Untuk siapa aplikasi ini?
+## Gambaran singkat
 
-Aplikasi ini dirancang untuk operasional bengkel atau toko sparepart yang butuh sistem kasir dengan kontrol data lebih ketat.
+App ini bukan hanya form penjualan.
 
-Contoh kebutuhan yang ditangani:
+App ini mencakup alur operasional bengkel dari depan sampai belakang:
 
-- mencatat transaksi servis dan penjualan sparepart;
-- mengelola stok barang;
-- mencatat faktur pembelian dari supplier;
-- mencatat pembayaran customer dan pembayaran supplier;
-- mengelola koreksi transaksi setelah nota dibuat;
-- menyimpan riwayat perubahan penting;
-- membuat laporan operasional dan keuangan.
+- kasir membuat nota servis dan sparepart;
+- admin mengelola produk, stok, supplier, faktur supplier, dan laporan;
+- transaksi bisa berisi jasa, sparepart toko, produk luar, atau paket servis;
+- pembayaran bisa dicatat dan dilacak;
+- nota yang sudah berjalan tetap bisa dikoreksi lewat jalur yang diaudit;
+- refund dan perubahan setelah transaksi tidak dibiarkan menghilang tanpa jejak;
+- stok dan nilai persediaan dijaga agar tetap bisa dijelaskan;
+- laporan dibangun dari data yang punya riwayat, bukan dari angka yang jatuh dari langit.
 
-## Kenapa project ini terlihat padat?
+## Kenapa app ini padat?
 
-Karena domain kasir bengkel ternyata tidak sesederhana “barang keluar, uang masuk”.
+Karena domain bengkel tidak sesederhana “jual barang, cetak nota”.
 
-Dalam operasional nyata, banyak kasus yang harus tetap aman:
+Dalam praktik nyata:
 
-- nota bisa salah input;
-- barang bisa direvisi setelah transaksi;
-- pembayaran bisa sebagian atau penuh;
-- refund bisa terjadi setelah nota selesai;
-- harga modal bisa berubah setelah barang diterima;
-- faktur supplier bisa direvisi;
-- stok tidak boleh berubah tanpa jejak;
-- laporan harus tetap cocok dengan riwayat transaksi.
+- satu nota bisa berisi jasa dan sparepart sekaligus;
+- barang bisa dari stok toko atau produk luar;
+- pembayaran bisa terjadi sebelum atau setelah koreksi;
+- nota bisa lunas, belum lunas, dibatalkan, direvisi, atau direfund;
+- faktur supplier bisa mengubah harga modal dan pajak;
+- stok tidak boleh minus tanpa aturan;
+- laporan harus tetap cocok dengan transaksi, pembayaran, refund, dan stok;
+- perubahan data harus bisa dilacak siapa, kapan, dan kenapa.
 
-Kalau hal seperti ini ditangani asal-asalan, sistem kasir bisa terlihat jalan, tapi laporan dan stok pelan-pelan rusak. Kelihatannya sepele, lalu tiba-tiba manusia panik di depan Excel. Tradisi purba yang sayangnya masih bertahan.
+App ini mencoba menangani keruwetan itu secara eksplisit, bukan menutupinya dengan tombol “Simpan”.
 
-## Prinsip utama
+## Modul utama
 
-Project ini dibangun dengan beberapa prinsip:
+### Transaksi kasir
 
-1. Data uang harus presisi.
-2. Perubahan stok harus punya jejak.
-3. Koreksi data harus tercatat.
-4. UI boleh dibuat mudah, tapi aturan bisnis tidak boleh kabur.
-5. Laporan harus berasal dari data yang bisa dipertanggungjawabkan.
-6. Perubahan penting harus diuji sebelum dianggap selesai.
+Kasir dapat membuat nota transaksi untuk servis dan penjualan sparepart. Nota dapat memuat beberapa jenis rincian, termasuk jasa, barang toko, produk luar, dan paket servis.
 
-## Fitur utama
+Setiap nota membawa data yang dibutuhkan untuk pembayaran, stok, histori, dan laporan.
 
-### Transaksi bengkel
+### Workspace transaksi
 
-Sistem mendukung transaksi yang bisa berisi beberapa jenis item, seperti jasa servis, sparepart toko, dan item luar.
+Alur input transaksi dibuat sebagai workspace agar transaksi kompleks tetap bisa dikelola. Tujuannya bukan sekadar cepat input, tetapi juga menjaga agar rincian transaksi tidak kehilangan konteks.
 
-Transaksi tidak hanya dicatat sebagai total akhir, tetapi juga membawa detail yang diperlukan untuk stok, pembayaran, laporan, dan audit.
+### Produk dan stok
 
-### Stok dan produk
+Produk sparepart dikelola sebagai master data. Stok diperlakukan sebagai data sensitif karena memengaruhi operasional, pembelian, laporan, dan nilai persediaan.
 
-Produk sparepart dikelola sebagai data utama. Perubahan stok tidak dianggap sekadar angka, tetapi bagian dari riwayat operasional.
+Perubahan stok tidak dianggap sebagai angka bebas. Perubahan harus punya sumber dan alasan yang bisa dilacak.
 
-Tujuannya agar stok tidak berubah diam-diam tanpa alasan yang jelas.
+### Supplier dan faktur pembelian
 
-### Faktur supplier
+Admin dapat mencatat faktur supplier, rincian barang, tanggal pengiriman, jatuh tempo, pajak supplier, total faktur, status penerimaan, dan riwayat revisi.
 
-Sistem mendukung pencatatan faktur supplier, rincian barang, pajak, total nota, status penerimaan, dan riwayat revisi.
-
-Jika faktur direvisi, sistem menyimpan versi perubahan agar owner bisa melihat apa yang berubah.
+Faktur supplier tidak hanya disimpan sebagai dokumen diam. Jika direvisi, sistem menyimpan versi dan ringkasan perubahan agar owner bisa melihat perubahan antar versi.
 
 ### Pembayaran
 
-Pembayaran customer dan supplier diperlakukan sebagai bagian penting dari lifecycle transaksi.
+Sistem menangani pembayaran customer dan pembayaran supplier sebagai bagian dari lifecycle transaksi.
 
-Sistem menjaga agar pembayaran tidak membuat saldo, laporan, atau status transaksi menjadi tidak konsisten.
+Pembayaran tidak boleh membuat data menjadi ambigu. Status transaksi, total tagihan, saldo, dan laporan harus tetap sejalan.
 
-### Koreksi dan refund
+### Koreksi nota
 
-Aplikasi mendukung koreksi transaksi setelah nota dibuat, termasuk alur refund tertentu.
+Transaksi yang sudah dibuat dapat dikoreksi lewat jalur yang terkontrol. Koreksi setelah transaksi selesai adalah area yang rawan merusak data, jadi sistem membuatnya eksplisit dan tercatat.
 
-Bagian ini dibuat hati-hati karena koreksi setelah transaksi selesai adalah salah satu sumber kerusakan data paling umum di aplikasi operasional. Rupanya uang tidak suka diperlakukan seperti teks bebas di kolom komentar.
+Koreksi bukan sekadar edit bebas. Koreksi harus tetap menjaga hubungan antara nota, pembayaran, refund, stok, dan laporan.
+
+### Refund
+
+Refund diperlakukan sebagai event bisnis, bukan sekadar angka negatif. Sistem membedakan tanggal bisnis refund dan timestamp audit agar laporan tidak kacau hanya karena timezone atau format tampilan.
 
 ### Laporan
 
-Laporan dibuat untuk membantu owner melihat kondisi operasional, bukan sekadar menampilkan tabel.
+Sistem menyediakan laporan untuk membantu owner melihat kondisi operasional, transaksi, pembayaran, stok, dan profit.
 
-Targetnya adalah laporan yang bisa dipercaya karena berasal dari data transaksi, pembayaran, stok, dan audit yang saling terkait.
+Targetnya bukan hanya “ada tabel”, tetapi laporan yang bisa dipertanggungjawabkan karena sumber datanya jelas.
 
-## Arsitektur singkat
+### Audit dan riwayat perubahan
 
-Project ini menggunakan pendekatan Hexagonal Architecture.
+Bagian penting dari sistem ini adalah auditability.
 
-Penjelasan sederhananya:
+Perubahan sensitif harus punya riwayat. Owner harus bisa melihat data berubah dari apa ke apa, kapan terjadi, dan alasan perubahan jika relevan.
 
-- aturan bisnis utama ditempatkan di bagian inti aplikasi;
-- controller dan tampilan tidak menjadi sumber kebenaran;
-- database, UI, dan framework adalah lapisan luar;
-- perubahan UI tidak boleh diam-diam merusak aturan bisnis.
+## Nilai utama project
 
-Pendekatan ini membuat project lebih padat, tapi lebih aman untuk aplikasi yang menyentuh uang, stok, dan laporan.
+### 1. Presisi data
 
-## Status project
+Uang, stok, pembayaran, dan laporan tidak boleh “kurang lebih benar”. Selisih kecil dalam sistem operasional bisa menjadi masalah besar.
 
-Project ini aktif dikembangkan dan sudah melewati banyak siklus audit internal, perbaikan bug, dan penguatan lifecycle.
+### 2. Auditability
 
-Workflow terbaru yang sudah ditutup:
+Setiap perubahan penting harus bisa dijelaskan. Sistem tidak boleh menjadi kotak hitam yang hanya menyimpan hasil akhir.
 
-- supplier invoice revision/reason;
-- supplier invoice version timeline;
-- note correction history;
-- timestamp display Asia/Makassar;
-- production timestamp diagnostic;
-- keputusan bahwa production timestamp repair tidak diperlukan saat ini.
+### 3. Editable, tapi tetap aman
 
-Dokumen teknis dan closure terbaru ada di:
+Operasional nyata butuh data bisa dikoreksi. Tetapi koreksi tidak boleh menghapus jejak atau membuat laporan kehilangan makna.
 
-- `docs/99_archive/04_lifecycle/error_log/0049_manual_qa_supplier_invoice_revision_and_timezone_gap.md`
-- `docs/99_archive/04_lifecycle/handoff/0050_legacy_timestamp_repair_handoff.md`
+### 4. Arsitektur modular
 
-## Untuk pembaca teknis
+Project ini menggunakan pendekatan Hexagonal Architecture agar aturan bisnis tidak tenggelam di controller, view, atau query database.
 
-README ini sengaja dibuat lebih mudah dipahami.
+### 5. Testing serius
 
-Dokumentasi teknis tersedia di:
+Project ini memiliki test suite besar karena banyak alur bisnis saling terkait. Ketika satu fitur menyentuh uang, stok, atau laporan, perubahan kecil pun harus dibuktikan.
+
+## Untuk siapa repository ini?
+
+Repository ini cocok dibaca oleh:
+
+- owner bisnis yang ingin memahami arah sistem;
+- recruiter atau reviewer yang ingin melihat kompleksitas project;
+- developer yang ingin melihat contoh aplikasi Laravel dengan domain operasional yang padat;
+- auditor teknis yang ingin melihat bagaimana transaksi, stok, pembayaran, dan laporan dijaga;
+- saya di masa depan, ketika lupa kenapa semua ini dibuat seketat ini.
+
+## Stack ringkas
+
+- Laravel
+- Blade
+- MySQL
+- Hexagonal Architecture
+- Feature tests dan characterization tests
+- Dokumentasi ADR, blueprint, lifecycle, dan archive
+
+## Dokumentasi teknis
+
+README ini sengaja dibuat untuk pembaca umum.
+
+Untuk pembahasan teknis berat, lihat:
 
 - `README_TECHNICAL.md`
 - `docs/01_standards/`
@@ -134,10 +142,25 @@ Dokumentasi teknis tersedia di:
 - `docs/04_lifecycle/`
 - `docs/99_archive/`
 
-## Catatan
+## Status
 
-Project ini tidak mengejar tampilan repository yang minimalis.
+Project ini aktif dikembangkan dan sudah melewati banyak siklus audit, perbaikan bug, hardening, dan verifikasi.
 
-Project ini mengejar satu hal yang lebih penting untuk aplikasi operasional: perubahan data harus bisa dijelaskan.
+Beberapa area yang sudah diperkuat:
 
-Kalau sebuah sistem menyentuh uang, stok, transaksi, dan laporan, maka “yang penting jalan” bukan standar yang cukup.
+- transaksi kasir multi-item;
+- koreksi nota setelah transaksi;
+- refund dan laporan refund;
+- supplier invoice dan version timeline;
+- pajak supplier;
+- payment lifecycle;
+- audit log;
+- owner-facing Indonesian UI cleanup;
+- timestamp display Asia/Makassar;
+- production diagnostic tanpa repair data berbahaya.
+
+## Catatan akhir
+
+App ini padat karena masalahnya memang padat.
+
+Aplikasi kasir yang menyentuh uang, stok, pembayaran, hutang, piutang, refund, dan laporan tidak cukup hanya “bisa CRUD”. Kalau sistem seperti ini dibuat terlalu santai, yang santai biasanya cuma developernya. Datanya tidak.

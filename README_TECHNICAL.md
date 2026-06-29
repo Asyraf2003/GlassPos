@@ -1,370 +1,439 @@
-# Technical README
+# App Kasir Hexagonal - Technical README
 
-<!-- HYPERPOS_LATEST_HANDOFF_START -->
-Latest Handoff: docs/99_archive/04_lifecycle/error_log/0049_manual_qa_supplier_invoice_revision_and_timezone_gap.md
-Latest Supporting Handoff: docs/99_archive/04_lifecycle/handoff/0050_legacy_timestamp_repair_handoff.md
-Status: FINAL CLOSED / 0049-0050 FIXED / no production timestamp repair recommended
-<!-- HYPERPOS_LATEST_HANDOFF_END -->
+Dokumen ini adalah README teknis untuk repository App Kasir Hexagonal.
 
-# App Kasir Hexagonal - Technical Notes
+README publik ada di `README.md`. File ini sengaja lebih padat, lebih teknis, dan lebih eksplisit karena repository ini bukan sekadar demo CRUD Laravel. Ini sistem operasional bengkel dengan transaksi, stok, supplier procurement, payment lifecycle, refund, audit trail, reporting, dan workflow documentation yang cukup besar untuk membuat README biasa menyerah lebih dulu.
 
-## ✅ Latest Closed Workflow
+## Latest lifecycle pointer
 
-Supplier invoice manual QA follow-up, timestamp display, and production timestamp repair assessment are **FINAL CLOSED**.
+Latest closed lifecycle:
 
-Source of truth:
 - `docs/99_archive/04_lifecycle/error_log/0049_manual_qa_supplier_invoice_revision_and_timezone_gap.md`
 - `docs/99_archive/04_lifecycle/handoff/0050_legacy_timestamp_repair_handoff.md`
 
 Status:
-FINAL CLOSED / 0049-0050 FIXED / supplier invoice revision + note correction history + timestamp display + production read-only diagnostic complete
-
-Purpose:
-Dokumen ini adalah pointer terbaru untuk AI/operator agar tidak mengulang investigasi supplier invoice revision, note correction history, owner-facing timestamp display, atau legacy production timestamp repair yang sudah diselesaikan.
-
-Final scope closed:
-- supplier invoice edit reason propagation and latest reason display
-- supplier invoice version timeline and owner-facing revision summary
-- supplier invoice tax-only revision negative stock false blocker
-- supplier invoice edit localStorage draft revision isolation
-- note correction history manual failure reclassified as data/setup-specific
-- owner-facing timestamp display conversion to Asia/Makassar
-- production read-only timestamp diagnostic
-- no production timestamp repair recommended
 
-Final proof:
-- Focused procurement and note tests passed during the 0049 slices.
-- `make audit-lines` passed after splitting oversized files.
-- `make audit-blade` passed after removing PHP/directive PHP from supplier invoice Blade.
-- Production diagnostic used SQL `SELECT` only.
-- Production diagnostic found recent audit/supplier invoice timestamps UTC-like and several note/refund/mutation candidate tables empty.
-- Date-only business fields remain excluded from timestamp shifting.
+- 0049 final closed.
+- 0050 final closed.
+- Production timestamp repair: not recommended.
+- Production diagnostic: read-only SQL only.
+- Owner-facing timestamp display: fixed via display timezone.
+- Date-only business fields: not shifted.
+
+## Repository density snapshot
+
+Snapshot dari `make audit-git`:
+
+| Area | Count |
+|---|---:|
+| Total files | 21,726 |
+| Total dirs | 3,008 |
+| PHP files | 2,088 |
+| Blade files | 132 |
+| Markdown docs | 443 |
+| Migrations | 95 |
+| Test files | 498 |
+| Route files | 23 |
+| Total commits | 3,363 |
+| Unique commit days | 102 |
+
+LOC snapshot:
+
+| Area | LOC |
+|---|---:|
+| `app/` PHP | 70,482 |
+| `tests/` PHP | 77,205 |
+| `database/` PHP | 15,440 |
+| `resources/` Blade | 17,265 |
+| `docs/` Markdown | 125,637 |
+
+Commit distribution:
+
+| Month | Commits |
+|---|---:|
+| 2026-03 | 397 |
+| 2026-04 | 1,096 |
+| 2026-05 | 947 |
+| 2026-06 | 923 |
+
+The repository is documentation-heavy and test-heavy by design. This is not accidental bloat. This app touches mutable operational state, money, stock, payment settlement, refunds, supplier invoices, and reports.
+
+## Architecture position
+
+The project follows a Hexagonal / Ports and Adapters direction.
+
+High-level split:
+
+| Layer | Role |
+|---|---|
+| Core | Domain rules, invariants, value objects, domain entities |
+| Application | Use cases, orchestration, transactional flows |
+| Ports | Contracts between application and infrastructure |
+| Adapters/In | HTTP controllers, web entry points, UI-facing adapters |
+| Adapters/Out | Persistence, read models, external implementation details |
+| Resources/Blade | Presentation only, no embedded PHP directives |
+| Database | Migrations, seeders, persistence schema |
+| Tests | Feature, characterization, regression, domain and support coverage |
+| Docs | ADR, blueprint, lifecycle, audit evidence, handoff/archive |
+
+Current structural signal from `make audit-git`:
+
+| Group | Count |
+|---|---:|
+| Ports | 133 |
+| Adapters/In | 288 |
+| Adapters/Out | 295 |
+| Core | 91 |
+| Application | 590 |
+| test:src ratio | 498:1418 |
+
+Strict typing:
+
+| Signal | Value |
+|---|---:|
+| `strict_types` coverage | 1418 / 1418 PHP source files |
+| `final class` usage | 1111 |
+| Interfaces | 133 |
+| `readonly` property occurrences | 1370 |
+| `DateTimeImmutable` uses | 305 |
+
+## Main business domains
+
+### Note / Transaction domain
+
+The Note domain is the heaviest part of the system.
+
+It covers:
+
+- cashier transaction workspace;
+- multi-line note creation;
+- store-stock product lines;
+- service lines;
+- external product/case-cost lines;
+- service package pricing;
+- inline payment lifecycle;
+- closed/paid note correction;
+- note revision;
+- settlement carry-forward;
+- surplus disposition;
+- refund due;
+- refund paid;
+- note current projection;
+- payment allocation;
+- reporting consistency;
+- audit timeline.
+
+Test count signal:
 
-Canonical closure docs:
-- `docs/99_archive/04_lifecycle/error_log/0049_manual_qa_supplier_invoice_revision_and_timezone_gap.md`
-- `docs/99_archive/04_lifecycle/handoff/0050_legacy_timestamp_repair_handoff.md`
-- `docs/99_archive/04_lifecycle/error_log/0048_owner_facing_indonesian_language_gap_handoff.md`
+- Note: 139 test files.
+- Payment: 12 test files.
+- Cashier: 1 test file.
+- Related reporting and refund characterization tests are also spread under Reporting and Feature/Note.
+
+### Procurement domain
 
-Important:
-- `0049` is the latest manual QA follow-up closure pointer.
-- `0050` is the production timestamp repair decision pointer.
-- `0048` remains the previous owner-facing language/reason visibility closure pointer.
-- Active lifecycle folders should be reserved for open or in-progress work.
+Procurement covers supplier invoices and inventory receipt/costing.
 
-Do not reopen without new bug evidence:
-- Do not restart supplier invoice revision/reason/timeline investigation unless a new concrete failing test, production bug, or owner request opens a new workflow.
-- Do not run production timestamp repair unless future rows are proven local-like with reliable owner action-time evidence.
-- Do not treat empty note mutation/refund tables as UI bugs without row-level evidence.
-- Do not shift date-only business fields.
+It includes:
 
-Boundaries still locked:
-- No DB enum/key rename.
-- No route rename.
-- No request field rename.
-- No DTO key rename.
-- No event literal rename.
-- No Mobile API scope.
-- No Operational Profit formula change.
-- No refund policy change.
-- No production write repair from this closure.
-- No git operation requested by this document.
+- supplier invoice creation;
+- supplier invoice update/revision;
+- supplier invoice version writer;
+- supplier invoice version timeline;
+- tax input and tax amount handling;
+- rounding residue confirmation;
+- received invoice cost revaluation;
+- inventory movement effects;
+- negative stock guard;
+- supplier invoice payment proof;
+- supplier payable/reporting surfaces.
 
-Final stop rule:
-STOP. This workflow is closed after final local verification passes.
+Relevant recent hardening:
+
+- supplier invoice edit reason propagation fixed;
+- supplier invoice version timeline added;
+- tax-only revision false negative-stock blocker fixed;
+- edit draft key isolated by expected revision number;
+- Blade PHP directive removed from supplier invoice version timeline;
+- oversized procurement view/service files split to satisfy audit-lines.
 
-Operator/AI rule:
-Use this README pointer as the latest closure guard. Do not reopen 0048/0049/0050 unless there is new concrete failing test evidence, production bug evidence, or explicit owner instruction.
----
+Test count signal:
+
+- Procurement: 56 test files.
+- Biggest procurement tests include supplier invoice financial invariant and create/update/detail regression suites.
+
+### Product / Inventory domain
 
-> Sistem kasir dan operasional servis-sparepart yang dibangun dengan fokus pada **presisi data**, **kerahasiaan data klien**, **arsitektur modular**, dan **auditability**.
->
-> Project ini dibuat bukan untuk terlihat “ramai” di permukaan, tetapi untuk membuktikan bahwa aplikasi operasional yang menyentuh **uang, stok, riwayat, dan koreksi data** bisa dibangun dengan disiplin engineering yang serius.
+Product and inventory concerns include:
 
----
+- product catalog;
+- stock projection;
+- stock in/out movement;
+- inventory value;
+- stock value reporting;
+- product versions;
+- product edit reason;
+- threshold/dashboard signal.
 
-## 🎯 Apa project ini?
+The system treats stock as a sensitive operational ledger, not a casual integer column.
 
-**App Kasir Hexagonal** adalah aplikasi operasional untuk kebutuhan kasir, servis, sparepart, stok, suplai, pembayaran, dan riwayat perubahan data.
+### Reporting domain
 
-Project ini sengaja diarahkan menjadi **lebih dari sekadar aplikasi kasir biasa**.
+Reporting covers:
 
-Fokusnya bukan hanya “transaksi bisa jalan”, tetapi:
+- operational profit summary;
+- transaction reports;
+- refund reports;
+- stock value export;
+- dashboard reports;
+- owner-facing report labels;
+- export safety such as formula injection prevention.
 
-- data uang dan stok harus presisi
-- perubahan sensitif harus bisa ditelusuri
-- data klien harus diperlakukan secara hati-hati
-- fitur harus bisa berkembang tanpa merusak fondasi inti
-- setiap perubahan harus lolos pengujian dan Definition of Done sebelum dianggap selesai
+Test count signal:
 
-Dengan kata lain, ini adalah project yang mencoba menjawab satu pertanyaan penting:
+- Reporting: 48 test files.
+- ReportingExports: 17 test files.
 
-**bagaimana membangun aplikasi operasional yang tetap fleksibel untuk bisnis, tetapi tetap ketat terhadap integritas data?**
+### Employee Finance / Expense
 
----
+The app includes finance-adjacent internal modules:
 
-## 🧭 Kenapa project ini dibuat seperti ini?
+- employee finance;
+- payroll/debt lifecycle;
+- operational expense;
+- expense reporting boundaries.
 
-Banyak aplikasi operasional gagal bukan karena tampilannya jelek, tetapi karena fondasinya longgar:
+Test count signal:
 
-- stok berubah tanpa jejak yang jelas
-- riwayat koreksi data kabur
-- aturan bisnis tersebar di controller, view, dan query
-- perubahan kecil merusak flow lama
-- data klien diperlakukan terlalu longgar
-- testing hanya jadi formalitas
+- EmployeeFinance: 29 test files.
+- Expense: 22 test files.
 
-Project ini dibangun dengan arah yang berbeda.
+### Audit / Security / Access
 
-**App Kasir Hexagonal** memakai pendekatan bahwa:
+The project carries multiple audit/security workflows:
 
-- UI boleh berkembang
-- fitur boleh bertambah
-- mekanisme boleh diganti
-- tetapi **inti aturan bisnis, presisi data, dan tanggung jawab tiap layer harus tetap terkunci**
+- audit event write path;
+- transactional outbox audit runtime;
+- role/capability boundaries;
+- cashier/admin access separation;
+- public storage helper hardening;
+- XSS hardening;
+- JavaScript URL hardening;
+- login/rate-limit analysis;
+- seeder credential boundary;
+- export formula injection hardening.
 
----
+Test count signal:
 
-## ✨ Nilai pembeda utama
+- AuditLog: 12 test files.
+- IdentityAccess: 3 test files.
+- Seeder: 2 test files.
+- Auth: 2 test files.
 
-### 1. Presisi data sebagai prioritas utama
-Project ini dibangun dengan sensitivitas tinggi terhadap:
+## Documentation map
 
-- nominal uang
-- stok
-- mutasi data
-- laporan
-- riwayat perubahan
+Root documentation currently includes:
 
-Targetnya jelas: **sistem tidak boleh “kurang lebih benar”**.  
-Untuk aplikasi operasional, selisih kecil tetap dianggap masalah.
+- `docs/01_standards/`
+- `docs/02_architecture/adr/`
+- `docs/03_blueprints/`
+- `docs/04_lifecycle/`
+- `docs/05_audits/`
+- `docs/99_archive/`
 
-### 2. Kerahasiaan data klien bukan tempelan
-Kerahasiaan data tidak diperlakukan sebagai gimmick.
+Document categories:
 
-Desain project ini menempatkan kehati-hatian terhadap data sebagai bagian dari tanggung jawab sistem, bukan sekadar pesan di README.
+| Path | Purpose |
+|---|---|
+| `docs/01_standards/` | engineering standards, workflow rules, AI/operator rules |
+| `docs/02_architecture/adr/` | architecture decisions |
+| `docs/03_blueprints/` | implementation plans, matrices, source maps |
+| `docs/04_lifecycle/` | active lifecycle work only |
+| `docs/05_audits/` | audit reports |
+| `docs/99_archive/` | closed workflow, historical handoff, old proof |
 
-### 3. Hexagonal architecture untuk fleksibilitas yang terkontrol
-Project ini memakai pendekatan **hexagonal architecture** agar:
+Policy:
 
-- aturan bisnis tetap hidup di core
-- detail framework tidak menguasai domain
-- adapter bisa diganti
-- fitur bisa dibongkar-pasang dengan lebih aman
-- perubahan tidak memaksa rewrite besar di seluruh aplikasi
+- active lifecycle folders must not become graveyards;
+- closed error logs must move to archive;
+- closed runbooks and diagnostic SQL must move to archive;
+- README public must not start with handoff metadata;
+- technical lifecycle pointers belong here, not in public README.
 
-Tujuannya bukan terlihat “canggih”, tetapi supaya project tetap sehat saat tumbuh.
+## Guardrails
 
-### 4. Editable, tapi tetap punya log dan riwayat
-Kebutuhan bisnis nyata sering menuntut data bisa dikoreksi.
+The project uses Makefile audits and strict workflow checks.
 
-Project ini mengambil posisi yang tegas:
+Important checks include:
 
-- **editable** bila memang dibutuhkan operasional
-- tetapi **setiap perubahan sensitif harus tetap bisa ditelusuri**
+- line limit audit;
+- Blade PHP/directive audit;
+- contract audit;
+- static analysis;
+- test suite;
+- verification target.
 
-Jadi fleksibilitas tidak dibayar dengan hilangnya jejak.
+Recent guardrail fixes:
 
-### 5. Testing brutal + DoD ketat
-Project ini tidak menempatkan testing sebagai pelengkap.
+- oversized `BuildsProcurementInvoiceDetailViewData.php` split into smaller view traits;
+- oversized `SupplierInvoiceRevisionDeltaMovementsBuilder.php` split by extracting previous-line resolver;
+- `@php` directive removed from supplier invoice Blade;
+- collapse detail ID moved from Blade logic into view data;
+- active error log archive cleanup started.
 
-Filosofinya sederhana:
+## Blade boundary
 
-- kalau menyentuh perilaku penting, harus ada pembuktian
-- kalau belum lolos verifikasi, belum layak dianggap selesai
-- kalau belum memenuhi DoD, belum pantas diluncurkan
+Blade is presentation only.
 
----
+Forbidden:
 
-## 🧱 Fokus arsitektur
+- `@php`
+- raw PHP directive
+- business logic
+- data assembly
+- formatting logic that belongs in view-data builder
 
-Project ini dibangun dengan pembagian tanggung jawab yang tegas.
+Allowed:
 
-### Core / Domain
-Tempat hidupnya aturan bisnis inti:
+- rendering prepared data;
+- Blade control flow for display;
+- escaped output;
+- simple conditional visibility.
 
-- perilaku domain
-- validasi bisnis
-- invariant penting
-- aturan presisi data
-- tanggung jawab yang tidak boleh bocor ke UI
+The supplier invoice version timeline is a recent example: version detail collapse IDs must be prepared in the view data layer, not generated with `@php` in Blade.
 
-### Application / Use Case
-Tempat orkestrasi alur kerja:
+## Timestamp policy
 
-- menjalankan proses bisnis
-- menghubungkan request dengan domain
-- memastikan flow berjalan lewat jalur yang benar
+Application timezone remains UTC for source/storage interpretation.
 
-### Adapters
-Tempat detail implementasi berada:
+Owner-facing display timezone:
 
-- HTTP
-- persistence
-- database
-- integrasi lain
-- input/output boundary
+- `APP_DISPLAY_TIMEZONE`
+- default: `Asia/Makassar`
 
-### UI
-UI diposisikan sebagai lapisan interaksi, **bukan sumber kebenaran**.
+Rules:
 
-Artinya:
-- UI mengikuti aturan inti
-- UI tidak menjadi tempat logika bisnis utama
-- perubahan UI tidak boleh mengubah makna domain secara diam-diam
+- timestamp display converts to owner-facing display timezone;
+- date-only business values must not be shifted;
+- production timestamp repair must not run without proof;
+- production diagnostic must be read-only first;
+- UTC-like rows should not be repaired;
+- unknown rows should not be bulk-shifted.
 
----
+Recent production diagnostic result:
 
-## 🔒 Filosofi tanggung jawab data
+- MySQL runtime appeared WIB-like / UTC+7.
+- Owner operational timezone is WITA / UTC+8.
+- Recent audit/supplier invoice rows were UTC-like.
+- Several note/refund/mutation candidate tables were empty.
+- No legacy timestamp repair write is recommended.
 
-Project ini dibangun di atas filosofi berikut:
+## Current closure state
 
-### User-centric di permukaan
-Pengguna butuh flow yang masuk akal, cepat, dan bisa dikoreksi saat operasional berubah.
+Latest resolved workflows:
 
-### Precision-centric di inti
-Meski user experience penting, sistem tetap harus keras pada:
+### 0048
 
-- konsistensi data
-- riwayat perubahan
-- pembuktian transaksi
-- integritas stok dan nominal
+Owner-facing Indonesian cleanup and reason visibility/audit cleanup.
 
-### Editable without losing accountability
-Data yang boleh diubah harus tetap punya akuntabilitas.
+Status:
 
-### Modular without becoming chaotic
-Fitur boleh modular, tetapi tidak boleh membuat aturan inti tercerai-berai.
+- archived;
+- closed;
+- previous closure pointer.
 
----
+### 0049
 
-## 📌 Cakupan sistem saat ini
+Manual QA supplier invoice revision and timestamp display gap.
 
-Project ini sudah berada pada tahap di mana **inti sistem operasional, jalur koreksi transaksi, pembayaran komponen, dan sebagian laporan finansial penting telah dibangun serta diverifikasi**.
+Closed scope:
 
-### Area yang sudah menjadi fokus implementasi inti
-- kontrol akses dan pembatasan tanggung jawab
-- master data inti
-- alur barang / sparepart
-- alur stok dan perubahan stok
-- alur suplai / data masuk
-- alur transaksi inti berbasis domain
-- koreksi data dengan jejak riwayat
-- selected-row payment dan settlement komponen pembayaran
-- selected-row refund dengan audit reason propagation
-- supplier invoice revision reason visibility
-- owner-facing Indonesian label consistency
-- service package profit breakdown report
-- Excel export laporan paket service
-- auditability dan histori perubahan
-- pengujian untuk flow penting
-- quality gate berbasis DoD dan audit-lines
+- supplier invoice edit reason propagation;
+- latest reason display;
+- supplier invoice version timeline;
+- tax-only revision false negative-stock blocker;
+- edit draft lifecycle hardening;
+- note correction history manual failure reclassification;
+- timestamp display fix;
+- file split for line audit;
+- Blade PHP directive cleanup.
 
-### Area yang masih menjadi pekerjaan lanjutan
-- polish UI transaksi
-- polish UI laporan dan konsistensi export antar laporan
-- hardening skenario operasional baru bila ada bukti bug atau kebutuhan owner baru
+Status:
 
-Dengan posisi ini, project sudah menunjukkan bahwa yang dibangun bukan sekadar tampilan, tetapi **fondasi sistem operasional yang serius**.
+- archived;
+- closed;
+- latest manual QA follow-up closure.
 
----
+### 0050
 
-## 🧪 Standar kualitas project
+Legacy timestamp repair handoff.
 
-Project ini memakai standar kerja yang sengaja dibuat ketat.
+Closed scope:
 
-### Definition of Done tidak bersifat kosmetik
-Sebuah task tidak dianggap selesai hanya karena “sudah jalan”.
+- production read-only diagnostic;
+- schema timestamp type classification;
+- data candidate classification;
+- no repair recommendation.
 
-Task baru dianggap selesai bila:
-- perilaku yang dituju benar
-- hasilnya bisa dibuktikan
-- pengujian relevan lulus
-- perubahan tidak merusak kontrak penting
-- kualitas implementasi lolos pagar yang sudah ditetapkan
+Status:
 
-### Testing diperlakukan sebagai alat validasi nyata
-Testing di project ini bukan sekadar angka atau formalitas.
+- archived;
+- closed;
+- production timestamp repair decision record.
 
-Pengujian dipakai untuk memastikan:
-- flow penting tidak pecah
-- koreksi data tidak merusak histori
-- perubahan tidak menghasilkan regresi diam-diam
-- perilaku sistem tetap konsisten saat fitur bertambah
-- UI dan export menampilkan logic yang sama dengan source of truth laporan
+## Verification practice
 
-### Launch harus layak, bukan sekadar cepat
-Prinsip yang dipakai:
-**lebih baik lambat sedikit tetapi benar, daripada cepat tapi meninggalkan utang keandalan.**
+Typical final verification pattern:
 
----
+```bash
+make audit-lines
+make audit-blade
+make verify
+```
 
-## 🧠 Apa yang ingin ditunjukkan project ini?
+For focused procurement work:
 
-README ini tidak ditulis untuk menjual “fitur banyak”.
+```bash
+php artisan test \
+  tests/Feature/Procurement/SupplierInvoiceTaxFinancialInvariantFeatureTest.php \
+  tests/Feature/Procurement/ProcurementInvoiceDetailPageFeatureTest.php \
+  tests/Feature/Procurement/UpdateSupplierInvoiceFeatureTest.php
+```
 
-Yang ingin ditunjukkan dari project ini adalah kualitas berpikir di baliknya:
+For timestamp support:
 
-- kemampuan merancang aplikasi operasional yang sensitif terhadap data
-- kemampuan menjaga boundary arsitektur
-- kemampuan membangun sistem yang tetap fleksibel tanpa kehilangan kontrol
-- kemampuan menjadikan testing dan DoD sebagai alat kerja nyata
-- kemampuan memosisikan software sebagai alat yang harus bisa dipercaya, bukan sekadar dipakai
+```bash
+php artisan test tests/Unit/Support/ViewDateFormatterTest.php
+```
 
-Bagi HRD teknis, founder, atau pihak yang memegang keputusan teknis, project ini dimaksudkan untuk menunjukkan bahwa pendekatan engineering di baliknya:
+For note correction history:
 
-- sadar risiko
-- sadar tanggung jawab
-- sadar kualitas
-- dan tidak membangun sistem bisnis penting secara serampangan
+```bash
+php artisan test --filter=CashierNoteCorrectionHistoryReasonViewFeatureTest
+```
 
----
+## Known tooling note
 
-## 🚧 Status saat ini
+`make audit-git` currently prints the report successfully but shows an arithmetic syntax error around the final class / interface section:
 
-**Current status:** active development
+```text
+scripts/git_report.sh: line 119: 0
+0: arithmetic syntax error in expression
+```
 
-Posisi saat ini secara garis besar:
-- core logic dan fondasi sistem sudah menjadi fokus implementasi utama
-- disiplin arsitektur, testing, dan riwayat perubahan sudah menjadi bagian dari karakter project
-- owner-facing Indonesian label cleanup dan reason visibility/audit propagation sudah ditutup untuk flow prioritas
-- pekerjaan lanjutan terutama berada pada polish UI/UX, skenario operasional baru, dan pengembangan fitur berikutnya bila ada bukti kebutuhan owner baru
+The report still completes afterward, but the script should be cleaned later so audit output is not noisy.
 
-Artinya, project ini sudah cukup matang untuk menunjukkan **arah engineering dan kualitas fondasi**, dengan lapisan presentasi yang terus dipoles tanpa mengorbankan integritas data.
+## Operator rule
 
----
+Public-facing explanation goes in:
 
-## 🤝 Untuk siapa project ini relevan?
+- `README.md`
 
-Project ini relevan untuk pihak yang menghargai software dengan karakter berikut:
+Technical density, lifecycle closure, audit stats, and AI/operator context go in:
 
-- serius terhadap data
-- tidak gegabah terhadap perubahan
-- peduli terhadap jejak audit
-- ingin sistem yang bisa berkembang tanpa rewrite total
-- melihat kualitas engineering sebagai aset bisnis, bukan biaya tambahan
+- `README_TECHNICAL.md`
+- `docs/`
 
----
+Do not put handoff metadata at the top of public README.
 
-## 📜 Lisensi
-
-Repository ini **bukan open source permissive**.
-
-Kode sumber disediakan dalam model **source-available** untuk tujuan:
-- membaca
-- mempelajari
-- mengevaluasi pendekatan arsitektur dan engineering
-
-**Tidak diizinkan untuk penggunaan komersial atau distribusi ulang tanpa izin tertulis.**
-
-Lihat file `LICENSE.md` untuk detail lengkap.
-
----
-
-## Penutup
-
-**App Kasir Hexagonal** adalah project yang dirancang untuk menunjukkan satu hal dengan jelas:
-
-> aplikasi operasional yang menyentuh transaksi, stok, histori, dan data klien seharusnya dibangun dengan disiplin tinggi — bukan hanya supaya berjalan, tetapi supaya bisa dipercaya.
-
-Jika Anda mencari project yang hanya menonjolkan tampilan, ini bukan itu.  
-Tetapi jika yang dicari adalah **ketelitian data, arsitektur yang sadar tanggung jawab, auditability, dan quality bar yang serius**, maka project ini memang dibuat untuk berbicara di area tersebut.
+Do not reopen archived lifecycle work without new concrete failing test, production bug evidence, or explicit owner instruction.
