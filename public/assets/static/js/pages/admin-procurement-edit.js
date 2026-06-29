@@ -846,15 +846,6 @@
     updateTaxModeFields();
     updateDraftPanelState();
 
-    const topLine = getTopLine();
-    if (topLine && !isLineCompletelyEmpty(topLine)) {
-      const workingLine = insertLine(null, "top");
-      if (workingLine) {
-        focusField(getLineFields(workingLine).product);
-        return;
-      }
-    }
-
     const firstHeader = headerFields()[0];
     if (firstHeader) {
       focusField(firstHeader);
@@ -1303,9 +1294,6 @@
   if (initialDraft) {
     restoreDraft();
   } else {
-    const workingLine = ensureTopWorkingLine();
-    if (workingLine) {
-      focusField(document.getElementById("nomor_faktur"));
-    }
+    focusField(document.getElementById("nomor_faktur"));
   }
 })();
