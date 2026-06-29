@@ -2,9 +2,9 @@
 
 ## Status
 
-Proposed.
+ACTIVE - baseline reporting reconciliation coverage mapped, not final closed.
 
-Reported by owner on 2026-06-29 WITA after completing owner-facing language cleanup and make-help documentation cleanup.
+This log remains open until UI, PDF, Excel, ordered lifecycle checklist, and final verification proof are completed.
 
 ## Problem
 
@@ -204,17 +204,17 @@ This log can only be closed when there is proof for:
 Initial proof required:
 
 ```bash
-test -f docs/04_lifecycle/error_log/0048_manual_transaction_reporting_sequential_qa_matrix.md
+test -f docs/04_lifecycle/error_log/0051_manual_transaction_reporting_sequential_qa_matrix.md
 python - <<'PY'
 from pathlib import Path
 
-path = Path('docs/04_lifecycle/error_log/0048_manual_transaction_reporting_sequential_qa_matrix.md')
+path = Path('docs/04_lifecycle/error_log/0051_manual_transaction_reporting_sequential_qa_matrix.md')
 for number, line in enumerate(path.read_text().splitlines(), start=1):
     if number > 260:
         break
     print(line)
 PY
-git diff -- docs/04_lifecycle/error_log/0048_manual_transaction_reporting_sequential_qa_matrix.md
+git diff -- docs/04_lifecycle/error_log/0051_manual_transaction_reporting_sequential_qa_matrix.md
 ```
 
 ## Next Step
@@ -230,3 +230,62 @@ After this log is committed, create or update the technical README with the actu
 - audit/versioning/history;
 - inventory/payment/refund/reporting precision;
 - operational failure cases such as power loss, refresh, and double click.
+
+## 2026-06-29 Baseline Automated Coverage Map
+
+### Status
+
+Baseline coverage mapped.
+
+This is not final closure.
+
+### Existing Automated Coverage Confirmed
+
+Existing test:
+
+```text
+tests/Feature/Reporting/TransactionReportingReconciliationFeatureTest.php
+```
+
+Coverage confirmed by the golden master scenario:
+
+```text
+transaction summary dataset
+transaction cash ledger reconciliation
+inventory stock value dataset
+operational profit summary
+store-stock sale inventory movement
+store-stock refund reversal movement
+external purchase cost
+cash and transfer payment
+overpaid allocation and surplus refund accounting
+cross-report invariant:
+transaction net cash equals cash ledger net movement
+cash ledger refund out equals transaction refunded plus surplus refund paid
+cash ledger refund out equals operational profit refunded amount
+refund due is derived consistently from cash-in and allocated payment
+```
+
+### Remaining Coverage Required Before Final Close
+
+This log cannot be final closed yet.
+
+Still required:
+
+- Ordered QA checklist split into automated and manual-only scenarios.
+- UI screen parity proof for affected report pages.
+- PDF export parity proof for affected report exports.
+- Excel export parity proof for affected report exports.
+- Create/edit/pay/refund lifecycle scenario coverage mapped against the transaction combination matrix.
+- Regression tests for every mismatch found during manual or automated QA.
+- Final targeted test run.
+- Full `make verify`.
+- Final docs/readme update only after the matrix is accurate.
+
+### Decision
+
+Keep `0051` open.
+
+Do not expand this slice into unrelated feature work.
+
+Next implementation slice should add the smallest missing automated parity test around an existing golden master report surface before attempting full final closure.
