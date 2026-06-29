@@ -234,7 +234,6 @@ Current public README image assets:
 | `.github/assets/readme/operational-cash-profit-report.png` | Operational cash/profit report screen |
 | `.github/assets/readme/report-export-pdf.png` | PDF export preview |
 | `.github/assets/readme/report-export-excel.png` | Excel export preview |
-| `.github/assets/readme/operational-cash-profit-report-2026-06.pdf` | Example exported operational cash/profit PDF |
 
 Only place screenshots in the public README when they explain product capability. Put deeper proof screenshots in lifecycle docs or audit evidence.
 

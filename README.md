@@ -170,9 +170,6 @@ That is why the repository contains ADRs, lifecycle logs, handoffs, error logs, 
 
 ![Excel export](.github/assets/readme/report-export-excel.png)
 
-Example PDF export:
-
-- [Operational cash/profit report PDF](.github/assets/readme/operational-cash-profit-report-2026-06.pdf)
 
 ## Production Context
 
