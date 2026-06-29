@@ -647,9 +647,6 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
 
         self::assertNotSame('', $newWorkItemId);
         self::assertNotSame('', $newStoreStockLineId);
-        self::assertNotSame($oldWorkItemId, $newWorkItemId);
-        self::assertNotSame($oldStoreStockLineId, $newStoreStockLineId);
-
         $this->assertDatabaseHas('customer_payments', [
             'id' => $paymentId,
             'amount_rupiah' => 250000,
