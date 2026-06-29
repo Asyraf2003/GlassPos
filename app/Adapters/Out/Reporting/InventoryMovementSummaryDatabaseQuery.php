@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Adapters\Out\Reporting;
 
+use App\Application\Inventory\Support\InventoryMovementSourceTypes;
 use Illuminate\Support\Facades\DB;
 
 final class InventoryMovementSummaryDatabaseQuery
@@ -32,16 +33,21 @@ final class InventoryMovementSummaryDatabaseQuery
 
     private static function columns(): array
     {
+        $supplierReceiptLine = InventoryMovementSourceTypes::supplierReceiptLineSql();
+        $saleOutSourceTypes = InventoryMovementSourceTypes::saleOutSqlList();
+        $storeStockLineReversal = InventoryMovementSourceTypes::storeStockLineReversalSql();
+        $classifiedSourceTypes = InventoryMovementSourceTypes::classifiedForReportingSqlList();
+
         return [
             'inventory_movements.product_id',
             'products.kode_barang',
             DB::raw('COALESCE(products.nama_barang, inventory_movements.product_id) as nama_barang'),
-            DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.source_type = 'supplier_receipt_line' AND inventory_movements.qty_delta > 0 THEN inventory_movements.qty_delta ELSE 0 END), 0) as supply_in_qty"),
-            DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.source_type IN ('work_item_store_stock_line', 'note', 'customer_transaction_line') AND inventory_movements.qty_delta < 0 THEN ABS(inventory_movements.qty_delta) ELSE 0 END), 0) as sale_out_qty"),
-            DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.source_type = 'work_item_store_stock_line_reversal' AND inventory_movements.qty_delta > 0 THEN inventory_movements.qty_delta ELSE 0 END), 0) as refund_reversal_qty"),
-            DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.source_type NOT IN ('supplier_receipt_line', 'work_item_store_stock_line', 'note', 'customer_transaction_line', 'work_item_store_stock_line_reversal') THEN ABS(inventory_movements.qty_delta) ELSE 0 END), 0) as revision_correction_qty"),
-            DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.source_type = 'supplier_receipt_line' AND inventory_movements.qty_delta > 0 THEN inventory_movements.qty_delta ELSE 0 END), 0) as qty_in"),
-            DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.source_type IN ('work_item_store_stock_line', 'note', 'customer_transaction_line') AND inventory_movements.qty_delta < 0 THEN ABS(inventory_movements.qty_delta) ELSE 0 END), 0) as qty_out"),
+            DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.source_type = {$supplierReceiptLine} AND inventory_movements.qty_delta > 0 THEN inventory_movements.qty_delta ELSE 0 END), 0) as supply_in_qty"),
+            DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.source_type IN ({$saleOutSourceTypes}) AND inventory_movements.qty_delta < 0 THEN ABS(inventory_movements.qty_delta) ELSE 0 END), 0) as sale_out_qty"),
+            DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.source_type = {$storeStockLineReversal} AND inventory_movements.qty_delta > 0 THEN inventory_movements.qty_delta ELSE 0 END), 0) as refund_reversal_qty"),
+            DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.source_type NOT IN ({$classifiedSourceTypes}) THEN ABS(inventory_movements.qty_delta) ELSE 0 END), 0) as revision_correction_qty"),
+            DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.source_type = {$supplierReceiptLine} AND inventory_movements.qty_delta > 0 THEN inventory_movements.qty_delta ELSE 0 END), 0) as qty_in"),
+            DB::raw("COALESCE(SUM(CASE WHEN inventory_movements.source_type IN ({$saleOutSourceTypes}) AND inventory_movements.qty_delta < 0 THEN ABS(inventory_movements.qty_delta) ELSE 0 END), 0) as qty_out"),
             DB::raw('COALESCE(SUM(inventory_movements.qty_delta), 0) as net_qty_delta'),
             DB::raw('COALESCE(SUM(CASE WHEN inventory_movements.total_cost_rupiah > 0 THEN inventory_movements.total_cost_rupiah ELSE 0 END), 0) as total_in_cost_rupiah'),
             DB::raw('COALESCE(SUM(CASE WHEN inventory_movements.total_cost_rupiah < 0 THEN ABS(inventory_movements.total_cost_rupiah) ELSE 0 END), 0) as total_out_cost_rupiah'),
