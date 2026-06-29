@@ -498,3 +498,38 @@ Still required:
 - ordered lifecycle checklist mapped to automated/manual-only evidence
 - final combined targeted run
 - full `make verify`
+
+## 2026-06-29 Lifecycle Regression Baseline Proof
+
+### Status
+
+PASS - lifecycle regression baseline proof completed.
+
+### Automated Proof
+
+Owner reported PASS for:
+
+```text
+php artisan test \
+  tests/Feature/Note/ManualFullRefundEditLifecycleMismatchFeatureTest.php \
+  tests/Feature/Reporting/PackageAutoSplitRevisionReportImpactFeatureTest.php \
+  tests/Feature/Note/TransactionCashLedgerAfterRevisionRefundFeatureTest.php
+```
+
+### Coverage Confirmed
+
+This proves baseline lifecycle regression coverage for:
+
+- full refund plus edit lifecycle mismatch guard
+- package auto-split revision report impact
+- transaction cash ledger behavior after revision/refund
+
+### Remaining Before Final Close
+
+This is not final closure.
+
+Still required:
+
+- final combined targeted run
+- full `make verify`
+- final status update to `FINAL CLOSED` only after both pass
