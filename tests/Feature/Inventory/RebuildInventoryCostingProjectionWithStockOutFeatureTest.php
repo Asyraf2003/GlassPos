@@ -167,4 +167,76 @@ final class RebuildInventoryCostingProjectionWithStockOutFeatureTest extends Tes
         ]);
     }
 
+    public function test_rebuild_costing_projection_removes_stale_projection_when_product_ledger_net_qty_is_zero(): void
+    {
+        $this->seedInventoryProduct('product-1', 'KB-001', 'Ban Luar', 'Federal', 100, 12000);
+        $this->seedInventoryProduct('product-2', 'KB-002', 'Ban Dalam', 'Federal', 90, 15000);
+
+        DB::table('inventory_movements')->insert([
+            [
+                'id' => 'm1-product-1-stock-in',
+                'product_id' => 'product-1',
+                'movement_type' => 'stock_in',
+                'source_type' => 'supplier_receipt_line',
+                'source_id' => 'receipt-line-1',
+                'tanggal_mutasi' => '2026-06-29',
+                'qty_delta' => 5,
+                'unit_cost_rupiah' => 10000,
+                'total_cost_rupiah' => 50000,
+            ],
+            [
+                'id' => 'm2-product-1-stock-out',
+                'product_id' => 'product-1',
+                'movement_type' => 'stock_out',
+                'source_type' => 'work_item_store_stock_line',
+                'source_id' => 'work-line-1',
+                'tanggal_mutasi' => '2026-06-29',
+                'qty_delta' => -5,
+                'unit_cost_rupiah' => 10000,
+                'total_cost_rupiah' => -50000,
+            ],
+            [
+                'id' => 'm3-product-2-stock-in',
+                'product_id' => 'product-2',
+                'movement_type' => 'stock_in',
+                'source_type' => 'supplier_receipt_line',
+                'source_id' => 'receipt-line-2',
+                'tanggal_mutasi' => '2026-06-29',
+                'qty_delta' => 3,
+                'unit_cost_rupiah' => 15000,
+                'total_cost_rupiah' => 45000,
+            ],
+        ]);
+
+        DB::table('product_inventory_costing')->insert([
+            [
+                'product_id' => 'product-1',
+                'avg_cost_rupiah' => 99999,
+                'inventory_value_rupiah' => 99999,
+            ],
+            [
+                'product_id' => 'product-2',
+                'avg_cost_rupiah' => 99999,
+                'inventory_value_rupiah' => 99999,
+            ],
+        ]);
+
+        $handler = app(RebuildInventoryCostingProjectionHandler::class);
+
+        $handler->handle();
+
+        $this->assertDatabaseMissing('product_inventory_costing', [
+            'product_id' => 'product-1',
+        ]);
+
+        $this->assertDatabaseHas('product_inventory_costing', [
+            'product_id' => 'product-2',
+            'avg_cost_rupiah' => 15000,
+            'inventory_value_rupiah' => 45000,
+        ]);
+
+        $this->assertDatabaseCount('product_inventory_costing', 1);
+    }
+
+
 }
