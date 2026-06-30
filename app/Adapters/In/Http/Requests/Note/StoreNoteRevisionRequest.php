@@ -37,6 +37,7 @@ final class StoreNoteRevisionRequest extends FormRequest
     {
         return UpdateTransactionWorkspaceRules::build() + [
             'reason' => ['nullable', 'string', 'min:3', 'max:255'],
+            'idempotency_key' => ['nullable', 'string', 'max:120'],
         ];
     }
 
