@@ -291,6 +291,7 @@ final class NoteEditRefundSettlementDecisionPolicyTest extends TestCase
                 'store_stock_lines' => [[
                     'id' => $storeStockLineId,
                     'product_id' => $productId,
+                    'product_name' => $productName,
                     'product_name_snapshot' => $productName,
                     'qty' => 1,
                     'line_total_rupiah' => $lineTotalRupiah,
