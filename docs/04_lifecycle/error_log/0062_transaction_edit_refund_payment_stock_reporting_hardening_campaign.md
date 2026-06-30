@@ -193,6 +193,19 @@ Coverage:
 - replacement stock-out is issued once;
 - idempotency record is persisted with operation `create_note_revision`.
 
+### 0062-G - Edit Workspace UI Sends Revision Idempotency Key
+
+Test:
+
+- `test_edit_workspace_page_renders_revision_idempotency_key_for_normal_submit`
+
+Coverage:
+
+- edit workspace page renders a hidden `idempotency_key`;
+- key is generated server-side for normal edit submit;
+- old input key is preserved on validation retry;
+- create workspace hidden idempotency key behavior remains unchanged.
+
 ## Failing Test Proof
 
 Initial 0062-A run failed before the report COGS production patch:
@@ -283,6 +296,23 @@ Meaning:
 - duplicate submit could duplicate stock correction, settlement, refund_due, and refund_paid side effects;
 - create workspace already had idempotency, but edit/revision submit did not.
 
+0062-G edit UI RED:
+
+```bash
+php artisan test tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php --filter=renders_revision_idempotency_key
+```
+
+Initial RED result:
+
+```text
+Expected response to contain: name="idempotency_key"
+```
+
+Meaning:
+
+- backend revision idempotency was available only if a key was sent;
+- normal edit UI did not send a key, so double-click protection was not active from the real form.
+
 ## Patch Summary
 
 Production code changed:
@@ -295,6 +325,8 @@ Production code changed:
 - `app/Application/Note/UseCases/CreateNoteRevisionHandler.php`
 - `app/Providers/InfrastructureServiceProvider.php`
 - `app/Adapters/In/Http/Requests/Note/StoreNoteRevisionRequest.php`
+- `app/Adapters/In/Http/Controllers/Cashier/Note/EditTransactionWorkspacePageController.php`
+- `resources/views/cashier/notes/workspace/create.blade.php`
 - `app/Adapters/Out/Reporting/Queries/DashboardOperationalPerformance/RefundPerDayQuery.php`
 
 Patch behavior:
@@ -308,6 +340,7 @@ Patch behavior:
 - cash ledger and dashboard refund aggregation both include `note_revision_surplus_refund_payments`;
 - revision submit supports optional `idempotency_key` with operation `create_note_revision`;
 - repeated same-key same-payload revision requests return the stored success result without mutating note, stock, settlement, refund_due, or refund_paid again;
+- edit workspace page now emits a hidden idempotency key so normal UI submits activate the backend guard;
 - no inventory movement source type was renamed or re-bucketed.
 
 ## Test Added
@@ -324,6 +357,7 @@ Tests:
 - `test_refunded_store_stock_note_revision_preserves_refund_history_and_reconciles_reports_without_double_reversal`
 - `test_store_stock_transaction_keeps_historical_line_price_after_master_product_price_change`
 - `test_paid_store_stock_revision_downward_duplicate_submit_replays_without_duplicate_revision_refund_or_stock`
+- `test_edit_workspace_page_renders_revision_idempotency_key_for_normal_submit`
 
 ## Regression Proof
 
@@ -364,6 +398,35 @@ Result:
 ```text
 PASS
 Tests: 1 passed (16 assertions)
+```
+
+Focused 0062-G proof:
+
+```bash
+php artisan test tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php --filter=renders_revision_idempotency_key
+```
+
+Result:
+
+```text
+PASS
+Tests: 1 passed (6 assertions)
+```
+
+Edit/create UI idempotency regression proof:
+
+```bash
+php artisan test \
+  tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php \
+  tests/Feature/Note/CreateTransactionWorkspaceDuplicateSubmitFeatureTest.php \
+  tests/Feature/Note/AdminNoteWorkspaceReplacementFeatureTest.php
+```
+
+Result:
+
+```text
+PASS
+Tests: 15 passed (352 assertions)
 ```
 
 Revision idempotency baseline proof:
@@ -423,6 +486,7 @@ Tests: 34 passed (457 assertions)
 - Paid edit upward creates outstanding delta; it does not erase old payment.
 - Paid edit downward preserves old payment, creates refund-due, records default surplus refund paid, and does not treat surplus as profit.
 - Duplicate paid downward edit submit does not create duplicate revision, stock correction, settlement, refund_due, or refund_paid rows.
+- Normal edit form submits carry `idempotency_key`, so the backend duplicate-submit guard is active for real UI use.
 - Unpaid note refund attempt is rejected.
 - Refunded store-stock admin correction preserves payment/refund history.
 - Master product price change does not rewrite historical transaction line value.
