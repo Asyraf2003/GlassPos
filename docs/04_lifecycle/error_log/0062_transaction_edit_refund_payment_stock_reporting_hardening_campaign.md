@@ -375,13 +375,19 @@ php artisan test \
   tests/Feature/Note/CashierNoteRevisionSubmitFeatureTest.php \
   tests/Feature/Note/NoteReplacementOverpaidAllocationReplayFeatureTest.php \
   tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php
+  tests/Feature/Note/CreateNoteRevisionSurplusRefundDueHandlerTest.php \
+  tests/Feature/Note/RecordNoteRevisionSurplusRefundPaymentHandlerTest.php \
+  tests/Feature/Reporting/GetDashboardOperationalPerformanceDatasetFeatureTest.php \
+  tests/Feature/Reporting/TransactionReportingReconciliationFeatureTest.php \
+  tests/Feature/Reporting/GetOperationalProfitSummaryFeatureTest.php \
+  tests/Feature/Reporting/TransactionCashLedgerReportingQueryFeatureTest.php
 ```
 
 Result:
 
 ```text
 PASS
-Tests: 17 passed (363 assertions)
+Tests: 43 passed (515 assertions)
 ```
 
 Targeted domain baseline proof:
