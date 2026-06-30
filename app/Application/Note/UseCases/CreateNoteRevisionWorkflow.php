@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Note\UseCases;
 
 use App\Application\Note\Services\ApplyNoteRevisionAsActiveReplacement;
+use App\Application\Note\Services\AutoSettleNoteRevisionSurplusRefund;
 use App\Application\Note\Services\BuildCreateNoteRevisionSettlement;
 use App\Application\Note\Services\CreateTransactionWorkspaceInlinePaymentRecorder;
 use App\Application\Note\Services\EditableWorkspaceNoteGuard;
@@ -13,6 +14,7 @@ use App\Application\Note\Services\NoteHistoryProjectionService;
 use App\Application\Note\Services\NoteRevisionBootstrapFactory;
 use App\Ports\Out\ClockPort;
 use App\Ports\Out\Note\NoteReaderPort;
+use DateTimeImmutable;
 
 final class CreateNoteRevisionWorkflow
 {
@@ -24,6 +26,7 @@ final class CreateNoteRevisionWorkflow
         private readonly CreateNoteRevisionCommitter $committer,
         private readonly ApplyNoteRevisionAsActiveReplacement $applier,
         private readonly BuildCreateNoteRevisionSettlement $settlements,
+        private readonly AutoSettleNoteRevisionSurplusRefund $autoSurplusRefund,
         private readonly CreateTransactionWorkspaceInlinePaymentRecorder $payments,
         private readonly CreateNoteRevisionPaymentResultFactory $paymentResults,
         private readonly EditableWorkspaceNoteGuard $guard,
@@ -92,8 +95,29 @@ final class CreateNoteRevisionWorkflow
             $settlement,
         );
 
+        if ($settlement !== null) {
+            $this->autoSurplusRefund->settle(
+                $settlement,
+                $actorId,
+                $reason,
+                $this->effectiveAt($payload, $createdAt),
+            );
+        }
+
         $this->projection->syncNote($root->id());
 
         return $this->paymentResults->withPaymentSummary($result, $paymentSummary);
+    }
+
+    /** @param array<string, mixed> $payload */
+    private function effectiveAt(array $payload, DateTimeImmutable $fallback): DateTimeImmutable
+    {
+        $date = trim((string) ($payload['note']['transaction_date'] ?? ''));
+
+        if ($date === '') {
+            return $fallback;
+        }
+
+        return new DateTimeImmutable($date);
     }
 }
