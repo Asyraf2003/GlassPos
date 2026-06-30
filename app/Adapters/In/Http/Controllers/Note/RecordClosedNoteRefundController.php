@@ -9,6 +9,7 @@ use App\Adapters\In\Http\Requests\Note\RecordClosedNoteRefundRequest;
 use App\Application\Note\Services\NoteOperationalStatusResolver;
 use App\Application\Note\Services\SelectedNoteRowsRefundPlanResolver;
 use App\Application\Payment\DTO\SelectedRowsRefundPlan;
+use App\Application\Payment\Services\RecordSelectedRowsRefundIdempotencyService;
 use App\Ports\Out\Note\NoteReaderPort;
 use App\Application\Payment\Services\RecordSelectedRowsRefundPlanTransaction;
 use Illuminate\Http\RedirectResponse;
@@ -24,10 +25,29 @@ final class RecordClosedNoteRefundController extends Controller
         NoteRouteAreaResolver $routes,
         NoteReaderPort $notes,
         NoteOperationalStatusResolver $statuses,
+        RecordSelectedRowsRefundIdempotencyService $idempotency,
     ): RedirectResponse {
         $data = $request->validated();
         $actorId = (string) $request->user()->getAuthIdentifier();
         $actorRole = $request->routeIs('admin.notes.*') ? 'admin' : 'kasir';
+        $idempotencyPayload = $data + [
+            '_actor_id' => $actorId,
+            '_note_id' => trim($noteId),
+        ];
+        $replayed = $idempotency->replay($idempotencyPayload);
+
+        if ($replayed !== null) {
+            if ($replayed->isFailure()) {
+                return back()
+                    ->withErrors(['refund' => $replayed->message() ?? 'Refund gagal dicatat.'])
+                    ->withInput();
+            }
+
+            return redirect()
+                ->route($routes->indexRoute($request))
+                ->with('success', $replayed->message() ?? 'Refund berhasil dicatat.');
+        }
+
         $selectedRowIds = is_array($data['selected_row_ids'] ?? null)
             ? array_values($data['selected_row_ids'])
             : [];
@@ -68,6 +88,7 @@ final class RecordClosedNoteRefundController extends Controller
             (string) $data['reason'],
             $actorId,
             $actorRole,
+            $idempotencyPayload,
         );
 
         if ($result->isFailure()) {
