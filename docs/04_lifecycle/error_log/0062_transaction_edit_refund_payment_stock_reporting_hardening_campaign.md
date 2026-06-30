@@ -436,6 +436,7 @@ php artisan test \
   tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php \
   tests/Feature/Note/CreateTransactionWorkspaceDuplicateSubmitFeatureTest.php \
   tests/Feature/Note/CashierNoteRevisionSubmitFeatureTest.php \
+  tests/Feature/Note/AdminNoteWorkspaceReplacementFeatureTest.php \
   tests/Feature/Note/NoteReplacementOverpaidAllocationReplayFeatureTest.php \
   tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php \
   tests/Feature/Note/CreateNoteRevisionSurplusRefundDueHandlerTest.php \
@@ -450,7 +451,7 @@ Result:
 
 ```text
 PASS
-Tests: 43 passed (515 assertions)
+Tests: 47 passed (548 assertions)
 ```
 
 Targeted domain baseline proof:
