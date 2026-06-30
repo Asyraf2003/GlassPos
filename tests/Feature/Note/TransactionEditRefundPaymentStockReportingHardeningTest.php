@@ -812,44 +812,31 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
             false,
         );
 
-        self::assertTrue($revision->isSuccess(), $revision->message());
-
-        $newStoreStockLineId = (string) DB::table('inventory_movements')
-            ->where('product_id', 'product-0062-a')
-            ->where('movement_type', 'stock_out')
-            ->where('source_type', 'work_item_store_stock_line')
-            ->where('tanggal_mutasi', '2026-05-23')
-            ->where('qty_delta', -1)
-            ->where('total_cost_rupiah', -40000)
-            ->where('source_id', '<>', $oldStoreStockLineId)
-            ->value('source_id');
-
-        self::assertNotSame('', $newStoreStockLineId);
+        self::assertFalse($revision->isSuccess());
+        self::assertSame(
+            'Harga jual pada store stock line tidak boleh di bawah harga jual minimum.',
+            $revision->message(),
+        );
 
         $this->assertDatabaseHas('notes', [
             'id' => $noteId,
-            'total_rupiah' => 150000,
+            'total_rupiah' => 250000,
         ]);
         $this->assertDatabaseHas('work_item_store_stock_lines', [
-            'id' => $newStoreStockLineId,
+            'id' => $oldStoreStockLineId,
             'product_id' => 'product-0062-a',
-            'qty' => 1,
-            'line_total_rupiah' => 100000,
+            'qty' => 2,
+            'line_total_rupiah' => 200000,
         ]);
-        $this->assertDatabaseMissing('work_item_store_stock_lines', [
-            'id' => $newStoreStockLineId,
-            'line_total_rupiah' => 999999,
-        ]);
-        $this->assertDatabaseHas('note_revision_settlements', [
-            'note_revision_id' => $noteId . '-r002',
-            'note_root_id' => $noteId,
-            'gross_total_rupiah' => 150000,
-            'carry_forward_paid_rupiah' => 250000,
-            'net_paid_rupiah' => 250000,
-            'outstanding_rupiah' => 0,
-            'surplus_rupiah' => 100000,
-            'settlement_status' => 'overpaid_pending',
-        ]);
+        self::assertSame(1, DB::table('note_revisions')->where('note_root_id', $noteId)->count());
+        self::assertSame(1, DB::table('inventory_movements')
+            ->where('product_id', 'product-0062-a')
+            ->where('movement_type', 'stock_out')
+            ->where('source_type', 'work_item_store_stock_line')
+            ->count());
+        self::assertSame(0, DB::table('inventory_movements')
+            ->where('source_type', 'transaction_workspace_updated')
+            ->count());
 
         $transaction = app(GetTransactionReportDatasetHandler::class)
             ->handle('2026-05-01', '2026-05-31');
@@ -861,13 +848,13 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         self::assertTrue($transaction->isSuccess());
         self::assertTrue($profit->isSuccess());
 
-        self::assertSame(150000, $transaction->data()['summary']['gross_transaction_rupiah']);
-        self::assertSame(150000, $transaction->data()['summary']['allocated_payment_rupiah']);
+        self::assertSame(250000, $transaction->data()['summary']['gross_transaction_rupiah']);
+        self::assertSame(250000, $transaction->data()['summary']['allocated_payment_rupiah']);
         self::assertSame(0, $transaction->data()['summary']['outstanding_rupiah']);
-        self::assertSame(150000, $cashLedger['total_in_rupiah']);
+        self::assertSame(250000, $cashLedger['total_in_rupiah']);
         self::assertSame(250000, $profit->data()['row']['cash_in_rupiah']);
-        self::assertSame(40000, $profit->data()['row']['store_stock_cogs_rupiah']);
-        self::assertSame(210000, $profit->data()['row']['cash_operational_profit_rupiah']);
+        self::assertSame(80000, $profit->data()['row']['store_stock_cogs_rupiah']);
+        self::assertSame(170000, $profit->data()['row']['cash_operational_profit_rupiah']);
     }
 
     private function seedStoreStockProduct(): void
