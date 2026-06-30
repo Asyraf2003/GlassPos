@@ -73,6 +73,45 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
         $this->assertDatabaseHas('notes', ['id' => 'note-1', 'total_rupiah' => 0]);
     }
 
+    public function test_duplicate_refund_submit_with_same_idempotency_key_replays_without_duplicate_cash_or_inventory(): void
+    {
+        $user = $this->seedKasir();
+        $this->seedClosedPaidProductOnlyNote();
+
+        $payload = [
+            'selected_row_ids' => ['wi-1'],
+            'refunded_at' => date('Y-m-d'),
+            'reason' => 'Koreksi line produk double submit',
+            'idempotency_key' => 'refund-main-idem-001',
+        ];
+
+        $this->actingAs($user)
+            ->from(route('cashier.notes.index'))
+            ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-1']), $payload)
+            ->assertRedirect(route('cashier.notes.index'))
+            ->assertSessionHas('success');
+
+        $this->actingAs($user)
+            ->from(route('cashier.notes.index'))
+            ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-1']), $payload)
+            ->assertRedirect(route('cashier.notes.index'))
+            ->assertSessionHas('success')
+            ->assertSessionHasNoErrors();
+
+        self::assertSame(1, DB::table('customer_refunds')->count());
+        self::assertSame(1, DB::table('refund_component_allocations')->count());
+        self::assertSame(1, DB::table('inventory_movements')
+            ->where('source_type', 'work_item_store_stock_line_reversal')
+            ->count());
+        $this->assertDatabaseHas('idempotency_records', [
+            'actor_id' => (string) $user->getAuthIdentifier(),
+            'operation' => 'record_selected_rows_refund',
+            'idempotency_key' => 'refund-main-idem-001',
+            'status' => 'succeeded',
+            'result_note_id' => 'note-1',
+        ]);
+    }
+
 
     public function test_cashier_cannot_record_refund_for_historical_note_outside_cashier_access_window(): void
     {
