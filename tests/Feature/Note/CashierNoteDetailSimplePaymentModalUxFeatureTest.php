@@ -38,6 +38,12 @@ final class CashierNoteDetailSimplePaymentModalUxFeatureTest extends TestCase
         $response->assertSee('Kalkulator Tunai');
         $response->assertSee('Uang Pelanggan');
         $response->assertSee('Kembalian');
+        $response->assertSee('id="note-payment-form"', false);
+        $response->assertSee('name="idempotency_key"', false);
+        self::assertMatchesRegularExpression(
+            '/<input[^>]+type="hidden"[^>]+name="idempotency_key"[^>]+value="[^"]{8,}"/',
+            (string) $response->getContent(),
+        );
         $response->assertDontSee('Billing Row yang Bisa Dipilih');
         $response->assertDontSee('Mode Bayar');
         $response->assertDontSee('Preset DP');
