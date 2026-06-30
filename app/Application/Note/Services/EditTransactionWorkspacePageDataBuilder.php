@@ -35,9 +35,7 @@ final class EditTransactionWorkspacePageDataBuilder
     public function build(string $noteId, string $routeArea = 'cashier'): array
     {
         $normalized = trim($noteId);
-
         $this->guard->assertWorkspaceEditPageAccessible($normalized);
-
         $note = $this->notes->getById($normalized);
 
         if ($note === null) {
@@ -46,7 +44,6 @@ final class EditTransactionWorkspacePageDataBuilder
 
         $currentRevision = $this->revisionResolver->resolveOrFail($normalized);
         $workspacePanel = $this->workspacePanel->build($normalized);
-
         if ($workspacePanel === null) {
             throw new DomainException('Panel workspace nota tidak ditemukan.');
         }
