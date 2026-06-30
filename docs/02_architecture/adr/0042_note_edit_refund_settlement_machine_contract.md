@@ -149,6 +149,14 @@ Business meaning:
 - only 70 counts toward the current active note;
 - because the revised note is 80, the customer still owes 10 after the refund obligation is respected.
 
+This can feel unintuitive in a paper workflow because people often think in one combined correction.
+
+Machine order matters.
+
+If the refund/kembalian 30 was already committed first, then the later edit to 80 does not erase that refund decision. The note has 70 valid settlement money and needs 10 more from the customer.
+
+If the business wants to preview a combined edit before committing the refund, the UI may display the net difference differently, but once the refund decision is committed the system must replay the events in order.
+
 If the 30 is later physically returned:
 
 ```text
