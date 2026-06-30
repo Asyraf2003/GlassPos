@@ -4,7 +4,7 @@
 
 In progress for the broader edit/refund/payment/stock/reporting campaign.
 
-Sub-slices A-K are closed with automated proof.
+Sub-slices A-L are closed with automated proof.
 
 ## Context
 
@@ -46,6 +46,7 @@ Existing tests covered important pieces separately:
 - revision duplicate-submit idempotency;
 - refund duplicate-submit idempotency;
 - payment duplicate-submit idempotency.
+- package component refund/edit/pay-again/report proof.
 
 The initial missing proof was a combined regression where a paid or unpaid store-stock transaction crosses edit, payment, refund guard, stock movement, and reports in one scenario. The later hardening added duplicate-submit protection for both revision and primary selected-row refund paths, including real UI hidden-key coverage.
 
@@ -270,6 +271,27 @@ Coverage:
 - key is generated server-side for normal payment submit;
 - old input key is preserved on validation retry;
 - normal UI payment submits activate the backend duplicate-submit guard.
+
+### 0062-L - Package Component Refund/Edit/Pay-again/Report Proof
+
+Tests:
+
+- `ManualFullRefundEditLifecycleMismatchFeatureTest`
+- `ServicePackageComponentRefundPayAgainMatrixTest`
+- `ServicePackageProfitBreakdownQueryTest`
+- `ServicePackageProfitBreakdownHttpWorkflowFeatureTest`
+- `PackageAutoSplitRevisionReportImpactFeatureTest`
+
+Coverage:
+
+- historical refunded package components do not appear as current collectible billing rows after edit/replacement;
+- note history projection does not turn refunded package components into new debt;
+- refund action remains available for the current closed revision after historical package refund;
+- refunded and inventory-reversed store-stock package components are not offered as payable rows;
+- 48 service package refund/pay-again matrix scenarios reject silent pay-again without deliberate new stock-out;
+- package profit breakdown uses historical package, stock, COGS, and component refund sources;
+- package report UI/Excel remains stable after late payment, product price change, and admin revision;
+- transaction report and exports read the current package revision total after downward revision.
 
 ## Failing Test Proof
 
@@ -669,6 +691,24 @@ PASS
 Tests: 33 passed (479 assertions)
 ```
 
+Package component refund/edit/pay-again/report proof:
+
+```bash
+php artisan test \
+  tests/Feature/Note/ManualFullRefundEditLifecycleMismatchFeatureTest.php \
+  tests/Feature/Payment/ServicePackageComponentRefundPayAgainMatrixTest.php \
+  tests/Feature/Reporting/ServicePackageProfitBreakdownQueryTest.php \
+  tests/Feature/Reporting/ServicePackageProfitBreakdownHttpWorkflowFeatureTest.php \
+  tests/Feature/Reporting/PackageAutoSplitRevisionReportImpactFeatureTest.php
+```
+
+Result:
+
+```text
+PASS
+Tests: 59 passed (457 assertions)
+```
+
 Edit/create UI idempotency regression proof:
 
 ```bash
@@ -748,6 +788,9 @@ Tests: 34 passed (457 assertions)
 - Normal refund form submits carry `idempotency_key`, so the backend duplicate-submit guard is active for real UI use.
 - Duplicate selected-row payment submit does not create duplicate cash-in, cash detail, or component allocation.
 - Normal payment form submits carry `idempotency_key`, so the backend duplicate-submit guard is active for real UI use.
+- Refunded package components remain historical/shadow and do not become current collectible debt after edit/replacement.
+- Service package component refunds cannot be silently paid again without deliberate new stock-out.
+- Service package profit breakdown remains tied to historical package/stock/refund sources after payment, price change, and revision.
 - Unpaid note refund attempt is rejected.
 - Refunded store-stock admin correction preserves payment/refund history.
 - Master product price change does not rewrite historical transaction line value.
@@ -764,10 +807,9 @@ Tests: 34 passed (457 assertions)
 
 Not closed by this campaign yet:
 
-- package component edit/refund/pay-again matrix beyond the existing package refund/pay-again proof;
 - external purchase/pass-through refund and edit reporting matrix;
 - one-click reason/default UX hardening for edit/refund actions.
 
 ## Final Status
 
-Sub-slices A-K are closed with automated proof. The broader edit/refund/payment/stock/reporting campaign continues through the remaining backlog above.
+Sub-slices A-L are closed with automated proof. The broader edit/refund/payment/stock/reporting campaign continues through the remaining backlog above.
