@@ -4,7 +4,7 @@
 
 In progress for the broader edit/refund/payment/stock/reporting campaign.
 
-Sub-slices A-L are closed with automated proof.
+Sub-slices A-M are closed with automated proof.
 
 ## Context
 
@@ -47,6 +47,7 @@ Existing tests covered important pieces separately:
 - refund duplicate-submit idempotency;
 - payment duplicate-submit idempotency.
 - package component refund/edit/pay-again/report proof.
+- external purchase/pass-through refund/edit/report proof.
 
 The initial missing proof was a combined regression where a paid or unpaid store-stock transaction crosses edit, payment, refund guard, stock movement, and reports in one scenario. The later hardening added duplicate-submit protection for both revision and primary selected-row refund paths, including real UI hidden-key coverage.
 
@@ -292,6 +293,31 @@ Coverage:
 - package profit breakdown uses historical package, stock, COGS, and component refund sources;
 - package report UI/Excel remains stable after late payment, product price change, and admin revision;
 - transaction report and exports read the current package revision total after downward revision.
+
+### 0062-M - External Purchase Pass-through Refund/Edit/Report Proof
+
+Tests:
+
+- `CreateTransactionWorkspaceServiceExternalPurchaseFeatureTest`
+- `ClosedNoteFullRefundExternalPurchaseLifecycleFeatureTest`
+- `CorrectPaidServiceWithExternalPurchaseServiceFeeOnlyFeatureTest`
+- `UpdateServiceWithExternalPurchaseServiceFeeOnlyWriterFeatureTest`
+- `RecordCustomerRefundFeatureTest`
+- `RecordSelectedRowsCustomerRefundFeatureTest`
+- `GetOperationalProfitSummaryFeatureTest`
+- `TransactionReportingReconciliationFeatureTest`
+- `OperationalProfitSummaryHardeningFeatureTest`
+
+Coverage:
+
+- service with external purchase can be created without inventory movement;
+- external purchase `package_auto_split` remains blocked until an explicit contract exists;
+- selected-row refund for closed external purchase is default blocked;
+- blocked external refund does not create customer refund, refund component allocation, or inventory movement;
+- generic/selected-row refund policy does not refund `service_external_purchase_part` by default;
+- service-fee-only correction keeps external purchase line intact;
+- external purchase cost remains a case/pass-through cost in operational profit reporting;
+- transaction cash, refund, external purchase cost, inventory, and profit reconciliation remain aligned in the golden master.
 
 ## Failing Test Proof
 
@@ -709,6 +735,28 @@ PASS
 Tests: 59 passed (457 assertions)
 ```
 
+External purchase pass-through refund/edit/report proof:
+
+```bash
+php artisan test \
+  tests/Feature/Note/CreateTransactionWorkspaceServiceExternalPurchaseFeatureTest.php \
+  tests/Feature/Note/ClosedNoteFullRefundExternalPurchaseLifecycleFeatureTest.php \
+  tests/Feature/Note/CorrectPaidServiceWithExternalPurchaseServiceFeeOnlyFeatureTest.php \
+  tests/Feature/Note/UpdateServiceWithExternalPurchaseServiceFeeOnlyWriterFeatureTest.php \
+  tests/Feature/Payment/RecordCustomerRefundFeatureTest.php \
+  tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php \
+  tests/Feature/Reporting/GetOperationalProfitSummaryFeatureTest.php \
+  tests/Feature/Reporting/TransactionReportingReconciliationFeatureTest.php \
+  tests/Feature/Reporting/OperationalProfitSummaryHardeningFeatureTest.php
+```
+
+Result:
+
+```text
+PASS
+Tests: 23 passed (145 assertions)
+```
+
 Edit/create UI idempotency regression proof:
 
 ```bash
@@ -791,6 +839,9 @@ Tests: 34 passed (457 assertions)
 - Refunded package components remain historical/shadow and do not become current collectible debt after edit/replacement.
 - Service package component refunds cannot be silently paid again without deliberate new stock-out.
 - Service package profit breakdown remains tied to historical package/stock/refund sources after payment, price change, and revision.
+- External purchase refunds remain default-blocked without a manual exception path.
+- Blocked external purchase refunds do not mutate customer refund, refund allocation, or inventory movement tables.
+- External purchase cost remains pass-through/case cost in reporting and does not become store-stock inventory movement.
 - Unpaid note refund attempt is rejected.
 - Refunded store-stock admin correction preserves payment/refund history.
 - Master product price change does not rewrite historical transaction line value.
@@ -807,9 +858,8 @@ Tests: 34 passed (457 assertions)
 
 Not closed by this campaign yet:
 
-- external purchase/pass-through refund and edit reporting matrix;
 - one-click reason/default UX hardening for edit/refund actions.
 
 ## Final Status
 
-Sub-slices A-L are closed with automated proof. The broader edit/refund/payment/stock/reporting campaign continues through the remaining backlog above.
+Sub-slices A-M are closed with automated proof. The broader edit/refund/payment/stock/reporting campaign continues through the remaining backlog above.
