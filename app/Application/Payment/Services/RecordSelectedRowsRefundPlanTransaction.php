@@ -25,6 +25,7 @@ final class RecordSelectedRowsRefundPlanTransaction
         private readonly RecordSelectedRowsRefundPlanAuditRecorder $audit,
         private readonly NoteHistoryProjectionService $projection,
         private readonly NoteReaderPort $notes,
+        private readonly RecordSelectedRowsRefundIdempotencyService $idempotency,
     ) {}
 
     public function run(
@@ -42,7 +43,7 @@ final class RecordSelectedRowsRefundPlanTransaction
             $started = true;
 
             if ($idempotencyPayload !== null) {
-                app(RecordSelectedRowsRefundIdempotencyService::class)->start($idempotencyPayload);
+                $this->idempotency->start($idempotencyPayload);
             }
 
             $processed = $this->buckets->process($plan, $refundedAt, $reason);
@@ -87,8 +88,7 @@ final class RecordSelectedRowsRefundPlanTransaction
             );
 
             if ($idempotencyPayload !== null) {
-                app(RecordSelectedRowsRefundIdempotencyService::class)
-                    ->succeed($idempotencyPayload, $plan->noteId(), $result);
+                $this->idempotency->succeed($idempotencyPayload, $plan->noteId(), $result);
             }
 
             $this->transactions->commit();
