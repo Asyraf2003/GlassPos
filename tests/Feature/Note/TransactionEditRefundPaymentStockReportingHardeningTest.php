@@ -883,6 +883,64 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         self::assertSame(170000, $profit->data()['row']['cash_operational_profit_rupiah']);
     }
 
+    public function test_paid_store_stock_revision_downward_duplicate_submit_replays_without_duplicate_revision_refund_or_stock(): void
+    {
+        $admin = $this->loginAsAuthorizedAdmin();
+        $this->seedStoreStockProduct();
+
+        $create = app(CreateTransactionWorkspaceHandler::class)->handle($this->createOverpaidStoreStockPayload());
+
+        self::assertTrue($create->isSuccess(), $create->message());
+
+        $noteId = (string) ($create->data()['note']['id'] ?? '');
+        self::assertNotSame('', $noteId);
+
+        $oldWorkItemId = (string) DB::table('work_items')->where('note_id', $noteId)->value('id');
+        $oldStoreStockLineId = (string) DB::table('work_item_store_stock_lines')
+            ->where('work_item_id', $oldWorkItemId)
+            ->value('id');
+        $payload = $this->downwardStoreStockRevisionPayload() + [
+            'idempotency_key' => '0062-f-edit-downward-idempotency',
+        ];
+
+        $this->actingAs($admin)
+            ->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), $payload)
+            ->assertRedirect(route('admin.notes.show', ['noteId' => $noteId]))
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs($admin)
+            ->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), $payload)
+            ->assertRedirect(route('admin.notes.show', ['noteId' => $noteId]))
+            ->assertSessionHasNoErrors();
+
+        self::assertSame(2, DB::table('note_revisions')->where('note_root_id', $noteId)->count());
+        $this->assertDatabaseHas('notes', [
+            'id' => $noteId,
+            'current_revision_id' => $noteId . '-r002',
+            'latest_revision_number' => 2,
+            'total_rupiah' => 250000,
+        ]);
+        self::assertSame(1, DB::table('note_revision_settlements')->where('note_root_id', $noteId)->count());
+        self::assertSame(1, DB::table('note_revision_surplus_dispositions')->where('note_root_id', $noteId)->count());
+        self::assertSame(1, DB::table('note_revision_surplus_refund_payments')->where('note_root_id', $noteId)->count());
+        self::assertSame(1, DB::table('inventory_movements')
+            ->where('source_type', 'transaction_workspace_updated')
+            ->where('source_id', $oldStoreStockLineId)
+            ->count());
+        self::assertSame(2, DB::table('inventory_movements')
+            ->where('product_id', 'product-0062-a')
+            ->where('movement_type', 'stock_out')
+            ->where('source_type', 'work_item_store_stock_line')
+            ->count());
+        $this->assertDatabaseHas('idempotency_records', [
+            'actor_id' => (string) $admin->getAuthIdentifier(),
+            'operation' => 'create_note_revision',
+            'idempotency_key' => '0062-f-edit-downward-idempotency',
+            'status' => 'succeeded',
+            'result_note_id' => $noteId,
+        ]);
+    }
+
     private function seedStoreStockProduct(): void
     {
         DB::table('products')->insert([
