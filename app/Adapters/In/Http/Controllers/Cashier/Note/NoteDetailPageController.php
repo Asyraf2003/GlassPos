@@ -47,6 +47,10 @@ final class NoteDetailPageController extends Controller
 
         $paymentAction = route('cashier.notes.payments.store', ['noteId' => $noteId]);
         $refundAction = route('cashier.notes.refunds.store', ['noteId' => $noteId]);
+        $oldPaymentIdempotencyKey = $request->old('idempotency_key');
+        $paymentIdempotencyKey = is_string($oldPaymentIdempotencyKey) && trim($oldPaymentIdempotencyKey) !== ''
+            ? trim($oldPaymentIdempotencyKey)
+            : $uuid->generate();
         $oldRefundIdempotencyKey = $request->old('idempotency_key');
         $refundIdempotencyKey = is_string($oldRefundIdempotencyKey) && trim($oldRefundIdempotencyKey) !== ''
             ? trim($oldRefundIdempotencyKey)
@@ -64,6 +68,7 @@ final class NoteDetailPageController extends Controller
             'paymentModalConfig' => [
                 'action' => $paymentAction,
                 'date_default' => date('Y-m-d'),
+                'idempotency_key' => $paymentIdempotencyKey,
             ],
             'refundAction' => $refundAction,
             'refundDateDefault' => date('Y-m-d'),

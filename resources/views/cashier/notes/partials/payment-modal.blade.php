@@ -27,6 +27,11 @@
         <input type="hidden" name="paid_at" id="detail_payment_paid_at" value="{{ $paymentModalConfig['date_default'] ?? $paymentDateDefault }}">
         <input type="hidden" name="amount_paid" id="detail_payment_amount_paid" value="">
         <input type="hidden" name="amount_received" id="detail_payment_amount_received" value="">
+        <input
+          type="hidden"
+          name="idempotency_key"
+          value="{{ old('idempotency_key', $paymentModalConfig['idempotency_key'] ?? '') }}"
+        >
 
         <div id="payment-selected-row-ids"></div>
 
