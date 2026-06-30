@@ -21,6 +21,29 @@ Related:
 - Error log 0051 - Manual Transaction Reporting Sequential QA Matrix
 - Error log 0062 - Transaction Edit Refund Payment Stock Reporting Hardening Campaign
 
+## Implementation Contract Note
+
+ADR-0041 records the policy direction.
+
+For implementation-level behavior, use:
+
+- `docs/02_architecture/adr/0042_note_edit_refund_settlement_machine_contract.md`
+
+ADR-0042 refines this ADR with the final machine contract for:
+
+- state transitions;
+- money formulas;
+- refund shadow lines and editable draft lines;
+- fully refunded note edit behavior;
+- refund due versus refund paid;
+- audit outbox atomicity;
+- event/source-type mapping;
+- reporting invariants;
+- UI automation boundaries;
+- idempotency.
+
+If ADR-0041 conflicts with ADR-0042, ADR-0042 wins for note edit/refund settlement implementation.
+
 ## Context
 
 HyperPOS must support real workshop behavior, not a simplified CRUD transaction model.

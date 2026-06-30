@@ -4,6 +4,14 @@
 
 Execution blueprint.
 
+## Final Note Edit/Refund Contract Reference
+
+For paid/refunded note edit, refund shadow line behavior, settlement formulas, audit outbox atomicity, idempotency, reporting invariants, and event/source-type mapping, use:
+
+- `docs/02_architecture/adr/0042_note_edit_refund_settlement_machine_contract.md`
+
+This blueprint remains useful for create/edit route and table mapping, but ADR-0042 closes the later owner decisions for note edit/refund settlement. If this file contains older open questions that ADR-0042 answers, ADR-0042 wins.
+
 This document maps create/edit transaction workspace behavior before implementation hardening.
 
 This document is not implementation proof.

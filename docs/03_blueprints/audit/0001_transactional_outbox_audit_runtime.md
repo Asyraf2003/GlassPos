@@ -4,6 +4,21 @@
 
 Blueprint plus implementation progress tracker for the current audit outbox runtime slice.
 
+## Note Edit/Refund Contract Override
+
+For note edit/refund/payment/stock settlement implementation, use the newer final contract:
+
+- `docs/02_architecture/adr/0042_note_edit_refund_settlement_machine_contract.md`
+
+This blueprint remains valid as audit runtime background. Its early-slice exclusion of transaction-heavy flows was a safety boundary for the first audit runtime migration, not a permanent rejection of transactional audit outbox for note money/stock flows.
+
+When note money or stock is touched, ADR-0042 requires:
+
+- business validation and writes stay transactional;
+- a durable audit outbox row is written before commit;
+- heavy audit materialization may run asynchronously;
+- if durable audit capture fails, the money/stock mutation rolls back.
+
 This document records the intended design and the latest operator-proven progress.
 
 Local command output remains the proof; this document is not a substitute for running verification.
@@ -672,4 +687,3 @@ Do not claim performance improvement without measurement.
 Do not claim PostgreSQL readiness without migration/source proof.
 
 Do not switch production binding before processor and retry behavior are proven.
-

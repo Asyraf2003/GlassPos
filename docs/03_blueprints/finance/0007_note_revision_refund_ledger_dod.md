@@ -3,6 +3,14 @@
 ## Status
 Draft locked for design review.
 
+## Final Contract Reference
+
+For the final note edit/refund settlement machine contract, use:
+
+- `docs/02_architecture/adr/0042_note_edit_refund_settlement_machine_contract.md`
+
+This DoD remains valid as a checklist. ADR-0042 is the source of truth for concrete state transitions, settlement formulas, refund shadow lines, audit outbox atomicity, event/source-type mapping, reporting invariants, and minimum test matrix.
+
 ## Metadata
 - Date: 2026-05-12
 - Scope: DoD for note edit, revision, refund, settlement carry forward, customer balance, inventory, reporting version mode, UI, and future API
@@ -282,4 +290,3 @@ Remaining gaps
 Next safest step
 
 Progress must not increase without proof.
-
