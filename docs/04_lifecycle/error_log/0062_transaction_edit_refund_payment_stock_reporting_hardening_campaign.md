@@ -2,9 +2,9 @@
 
 ## Status
 
-Resolved for sub-slices A-C.
+Resolved for sub-slices A-D.
 
-Sub-slices D-E remain backlog.
+Sub-slice E remains backlog.
 
 ## Context
 
@@ -141,6 +141,23 @@ Coverage:
 - revision stock reversal/reissue occurs through edit path only;
 - transaction summary, cash ledger, inventory movement, and operational profit stay consistent.
 
+### 0062-D - Refunded Store-stock Revision History And Reporting
+
+Test:
+
+- `test_refunded_store_stock_note_revision_preserves_refund_history_and_reconciles_reports_without_double_reversal`
+
+Coverage:
+
+- paid store-stock note is refunded for the store-stock component;
+- original customer payment remains preserved;
+- customer refund and refund component allocation remain preserved after admin correction revision;
+- refund inventory reversal remains single;
+- edit after refund does not create duplicate `transaction_workspace_updated` reversal for a line already reversed by refund;
+- replacement stock-out is issued for the revised current line;
+- note projection keeps current outstanding state while preserving refund totals;
+- transaction summary, cash ledger, inventory movement, and operational profit reconcile the payment/refund/edit timeline.
+
 ## Failing Test Proof
 
 Initial 0062-A run failed before production patch:
@@ -203,6 +220,7 @@ Tests:
 - `test_paid_store_stock_revision_upward_preserves_payment_creates_outstanding_delta_and_reconciles_reports`
 - `test_paid_store_stock_revision_downward_preserves_payment_creates_surplus_policy_and_reconciles_reports`
 - `test_unpaid_store_stock_note_rejects_refund_but_allows_revision_without_cash_or_inventory_refund_side_effect`
+- `test_refunded_store_stock_note_revision_preserves_refund_history_and_reconciles_reports_without_double_reversal`
 
 ## Regression Proof
 
@@ -216,7 +234,7 @@ Result:
 
 ```text
 PASS
-Tests: 3 passed (163 assertions)
+Tests: 4 passed (213 assertions)
 ```
 
 Targeted domain baseline proof:
@@ -249,6 +267,7 @@ Tests: 27 passed (321 assertions)
 - Paid edit upward creates outstanding delta; it does not erase old payment.
 - Paid edit downward preserves old payment and creates surplus policy state.
 - Unpaid note refund attempt is rejected.
+- Refunded store-stock admin correction preserves payment/refund history.
 - Store-stock edit uses revision reversal/reissue, not refund reversal.
 - Refund reversal remains `work_item_store_stock_line_reversal`.
 - Edit reversal remains `transaction_workspace_updated`.
@@ -257,15 +276,6 @@ Tests: 27 passed (321 assertions)
 - Gross customer payment history remains preserved in `customer_payments`.
 
 ## Backlog
-
-### 0062-D
-
-Refunded store-stock transaction edited later:
-
-- refund history preserved;
-- original payment preserved;
-- no double inventory reversal;
-- transaction/cash/profit reports explain payment/refund/edit timeline.
 
 ### 0062-E
 
@@ -277,6 +287,6 @@ Store-stock master product price changed after transaction:
 
 ## Final Status
 
-Sub-slices A-C are closed with automated proof.
+Sub-slices A-D are closed with automated proof.
 
-Sub-slices D-E are intentionally deferred to keep this campaign controlled and readable.
+Sub-slice E is intentionally deferred to keep this campaign controlled and readable.
