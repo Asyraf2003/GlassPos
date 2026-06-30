@@ -130,6 +130,109 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
         ]);
     }
 
+    public function test_duplicate_payment_submit_with_same_idempotency_key_replays_without_duplicate_cash_in_or_allocation(): void
+    {
+        $this->loginAsKasir();
+        $user = User::query()->create([
+            'name' => 'Kasir Payment Idempotent',
+            'email' => 'cashier-payment-idempotent@example.test',
+            'password' => 'password',
+        ]);
+
+        DB::table('actor_accesses')->insert([
+            'actor_id' => (string) $user->getAuthIdentifier(),
+            'role' => 'kasir',
+        ]);
+
+        $today = date('Y-m-d');
+
+        DB::table('notes')->insert([
+            'id' => 'note-payment-idempotent-1',
+            'current_revision_id' => 'note-payment-idempotent-1-r001',
+            'latest_revision_number' => 1,
+            'customer_name' => 'Budi Payment Idempotent',
+            'transaction_date' => $today,
+            'note_state' => 'open',
+            'total_rupiah' => 50000,
+        ]);
+
+        DB::table('work_items')->insert([
+            'id' => 'wi-payment-idempotent-1',
+            'note_id' => 'note-payment-idempotent-1',
+            'line_no' => 1,
+            'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+            'status' => WorkItem::STATUS_OPEN,
+            'subtotal_rupiah' => 50000,
+        ]);
+
+        DB::table('work_item_service_details')->insert([
+            'work_item_id' => 'wi-payment-idempotent-1',
+            'service_name' => 'Servis Payment Idempotent',
+            'service_price_rupiah' => 50000,
+            'part_source' => ServiceDetail::PART_SOURCE_NONE,
+        ]);
+
+        DB::table('note_revisions')->insert([
+            'id' => 'note-payment-idempotent-1-r001',
+            'note_root_id' => 'note-payment-idempotent-1',
+            'revision_number' => 1,
+            'parent_revision_id' => null,
+            'created_by_actor_id' => null,
+            'reason' => 'selected row payment idempotency fixture',
+            'customer_name' => 'Budi Payment Idempotent',
+            'customer_phone' => null,
+            'transaction_date' => $today,
+            'grand_total_rupiah' => 50000,
+            'line_count' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('note_revision_lines')->insert([
+            'id' => 'note-payment-idempotent-1-r001-l001',
+            'note_revision_id' => 'note-payment-idempotent-1-r001',
+            'work_item_root_id' => 'wi-payment-idempotent-1',
+            'line_no' => 1,
+            'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+            'status' => WorkItem::STATUS_OPEN,
+            'service_label' => 'Servis Payment Idempotent',
+            'service_price_rupiah' => 50000,
+            'subtotal_rupiah' => 50000,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $payload = [
+            'selected_row_ids' => ['wi-payment-idempotent-1::service_fee::wi-payment-idempotent-1'],
+            'payment_method' => 'cash',
+            'paid_at' => $today,
+            'amount_received' => 70000,
+            'idempotency_key' => 'payment-main-idem-001',
+        ];
+
+        $this->actingAs($user)
+            ->post('/cashier/notes/note-payment-idempotent-1/payments', $payload)
+            ->assertRedirect(route('cashier.notes.show', ['noteId' => 'note-payment-idempotent-1']))
+            ->assertSessionHas('success');
+
+        $this->actingAs($user)
+            ->post('/cashier/notes/note-payment-idempotent-1/payments', $payload)
+            ->assertRedirect(route('cashier.notes.show', ['noteId' => 'note-payment-idempotent-1']))
+            ->assertSessionHas('success')
+            ->assertSessionHasNoErrors();
+
+        self::assertSame(1, DB::table('customer_payments')->count());
+        self::assertSame(1, DB::table('customer_payment_cash_details')->count());
+        self::assertSame(1, DB::table('payment_component_allocations')->count());
+        $this->assertDatabaseHas('idempotency_records', [
+            'actor_id' => (string) $user->getAuthIdentifier(),
+            'operation' => 'record_note_payment',
+            'idempotency_key' => 'payment-main-idem-001',
+            'status' => 'succeeded',
+            'result_note_id' => 'note-payment-idempotent-1',
+        ]);
+    }
+
     public function test_rejects_selected_row_payment_when_note_already_paid_via_legacy_allocation(): void
     {
         $this->loginAsKasir();
