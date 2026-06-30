@@ -8,6 +8,7 @@ use App\Application\Note\Services\EnsureInitialNoteRevisionExists;
 use App\Application\Note\Services\NoteCorrectionUiOptionsBuilder;
 use App\Application\Note\Services\NoteDetailPageDataBuilder;
 use App\Core\Shared\Exceptions\DomainException;
+use App\Ports\Out\UuidPort;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -20,6 +21,7 @@ final class NoteDetailPageController extends Controller
         NoteDetailPageDataBuilder $builder,
         NoteCorrectionUiOptionsBuilder $options,
         EnsureInitialNoteRevisionExists $ensureInitialRevision,
+        UuidPort $uuid,
     ): View {
         $user = $request->user();
         $actorId = $user !== null ? (string) $user->getAuthIdentifier() : null;
@@ -35,6 +37,10 @@ final class NoteDetailPageController extends Controller
 
         $paymentAction = route('admin.notes.payments.store', ['noteId' => $noteId]);
         $refundAction = route('admin.notes.refunds.store', ['noteId' => $noteId]);
+        $oldRefundIdempotencyKey = $request->old('idempotency_key');
+        $refundIdempotencyKey = is_string($oldRefundIdempotencyKey) && trim($oldRefundIdempotencyKey) !== ''
+            ? trim($oldRefundIdempotencyKey)
+            : $uuid->generate();
 
         return view('shared.notes.show', $data + [
             'backUrl' => route('admin.notes.index'),
@@ -55,6 +61,7 @@ final class NoteDetailPageController extends Controller
             'refundModalConfig' => [
                 'action' => $refundAction,
                 'date_default' => date('Y-m-d'),
+                'idempotency_key' => $refundIdempotencyKey,
             ],
         ] + $options->build());
     }
