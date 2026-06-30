@@ -14,6 +14,8 @@ use App\Adapters\Out\Clock\SystemClockAdapter;
 use App\Adapters\Out\Persistence\DatabaseTransactionManagerAdapter;
 use App\Adapters\Out\Routing\LaravelRouteUrlGeneratorAdapter;
 use App\Application\Note\Services\AutoSettleNoteRevisionSurplusRefund;
+use App\Application\Note\Services\AutoSettleNoteRevisionSurplusRefundDueRecorder;
+use App\Application\Note\Services\AutoSettleNoteRevisionSurplusRefundPaymentRecorder;
 use App\Application\Note\UseCases\CreateNoteRevisionSurplusRefundDueHandler;
 use App\Application\Note\UseCases\RecordNoteRevisionSurplusRefundPaymentHandler;
 use App\Application\System\Health\HealthCheckHandler;
@@ -46,6 +48,8 @@ class InfrastructureServiceProvider extends ServiceProvider
         $this->app
             ->when([
                 AutoSettleNoteRevisionSurplusRefund::class,
+                AutoSettleNoteRevisionSurplusRefundDueRecorder::class,
+                AutoSettleNoteRevisionSurplusRefundPaymentRecorder::class,
                 CreateNoteRevisionSurplusRefundDueHandler::class,
                 RecordNoteRevisionSurplusRefundPaymentHandler::class,
             ])

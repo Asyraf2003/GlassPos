@@ -19,19 +19,32 @@ final class CashierNoteRevisionInlinePaymentContractTest extends TestCase
     public function test_revision_workflow_records_inline_payment_after_replacement_before_settlement(): void
     {
         $workflow = (string) file_get_contents(base_path('app/Application/Note/UseCases/CreateNoteRevisionWorkflow.php'));
+        $settlementCommitter = (string) file_get_contents(
+            base_path('app/Application/Note/UseCases/CreateNoteRevisionSettlementCommitter.php'),
+        );
 
         $applyPosition = strpos($workflow, '$this->applier->apply(');
         $paymentPosition = strpos($workflow, '$this->payments->record(');
-        $settlementPosition = strpos($workflow, '$this->settlements->build(');
+        $settlementCommitPosition = strpos($workflow, '$this->settlementCommits->commit(');
 
         self::assertIsInt($applyPosition);
         self::assertIsInt($paymentPosition);
-        self::assertIsInt($settlementPosition);
+        self::assertIsInt($settlementCommitPosition);
         self::assertLessThan($paymentPosition, $applyPosition);
-        self::assertLessThan($settlementPosition, $paymentPosition);
+        self::assertLessThan($settlementCommitPosition, $paymentPosition);
         self::assertStringContainsString(
             '$this->paymentResults->withPaymentSummary($result, $paymentSummary)',
             $workflow,
         );
+
+        $settlementBuildPosition = strpos($settlementCommitter, '$this->settlements->build(');
+        $revisionCommitPosition = strpos($settlementCommitter, '$this->committer->commit(');
+        $autoSurplusRefundPosition = strpos($settlementCommitter, '$this->autoSurplusRefund->settle(');
+
+        self::assertIsInt($settlementBuildPosition);
+        self::assertIsInt($revisionCommitPosition);
+        self::assertIsInt($autoSurplusRefundPosition);
+        self::assertLessThan($revisionCommitPosition, $settlementBuildPosition);
+        self::assertLessThan($autoSurplusRefundPosition, $revisionCommitPosition);
     }
 }
