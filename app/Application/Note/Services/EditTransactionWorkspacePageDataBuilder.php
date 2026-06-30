@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Note\Services;
 
+use App\Application\Note\Services\CurrentRevision\CurrentRevisionRowSettlementProjector;
+use App\Core\Note\Revision\NoteRevisionLineSnapshot;
+use App\Core\Note\WorkItem\WorkItem;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Ports\Out\ClockPort;
 use App\Ports\Out\Note\NoteReaderPort;
@@ -16,6 +19,8 @@ final class EditTransactionWorkspacePageDataBuilder
         private readonly NoteReaderPort $notes,
         private readonly NoteCurrentRevisionResolver $revisionResolver,
         private readonly NoteRevisionWorkspaceExistingItemMapper $revisionItems,
+        private readonly CurrentRevisionRowSettlementProjector $revisionSettlements,
+        private readonly WorkItemOperationalStatusResolver $lineStatuses,
         private readonly CreateTransactionWorkspacePageDataBuilder $options,
         private readonly NoteWorkspacePanelDataBuilder $workspacePanel,
         private readonly NoteRefundPaymentOptionsBuilder $refundPaymentOptions,
@@ -62,7 +67,11 @@ final class EditTransactionWorkspacePageDataBuilder
             'transaction_date' => $today,
         ];
 
-        $oldItems = $this->revisionItems->mapMany($currentRevision);
+        $currentLines = $currentRevision->lines();
+        $lineSettlements = $this->revisionSettlements->build($note->id(), $currentLines);
+        $oldItems = $this->revisionItems->mapLines(
+            $this->editableRevisionLines($currentLines, $lineSettlements),
+        );
 
         return [
             'pageTitle' => 'Edit Nota',
@@ -93,5 +102,35 @@ final class EditTransactionWorkspacePageDataBuilder
                 'serviceStoreEndpoint' => $serviceStoreEndpoint,
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}',
         ] + $this->options->build();
+    }
+
+    /**
+     * @param list<NoteRevisionLineSnapshot> $lines
+     * @param array<string, array<string, int|string>> $settlements
+     * @return list<NoteRevisionLineSnapshot>
+     */
+    private function editableRevisionLines(array $lines, array $settlements): array
+    {
+        return array_values(array_filter(
+            $lines,
+            fn (NoteRevisionLineSnapshot $line): bool => $this->isEditableRevisionLine($line, $settlements),
+        ));
+    }
+
+    /**
+     * @param array<string, array<string, int|string>> $settlements
+     */
+    private function isEditableRevisionLine(NoteRevisionLineSnapshot $line, array $settlements): bool
+    {
+        if ($line->status() === WorkItem::STATUS_CANCELED) {
+            return false;
+        }
+
+        $key = $line->workItemRootId() ?? $line->id();
+        $settlement = $settlements[$key] ?? [];
+        $refunded = (int) ($settlement['refunded_rupiah'] ?? 0);
+        $outstanding = (int) ($settlement['outstanding_rupiah'] ?? $line->subtotalRupiah());
+
+        return $this->lineStatuses->resolve($outstanding, $refunded) !== WorkItemOperationalStatusResolver::STATUS_REFUND;
     }
 }
