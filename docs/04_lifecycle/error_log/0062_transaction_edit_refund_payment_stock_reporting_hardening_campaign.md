@@ -374,7 +374,7 @@ php artisan test \
   tests/Feature/Note/CreateTransactionWorkspaceDuplicateSubmitFeatureTest.php \
   tests/Feature/Note/CashierNoteRevisionSubmitFeatureTest.php \
   tests/Feature/Note/NoteReplacementOverpaidAllocationReplayFeatureTest.php \
-  tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php
+  tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php \
   tests/Feature/Note/CreateNoteRevisionSurplusRefundDueHandlerTest.php \
   tests/Feature/Note/RecordNoteRevisionSurplusRefundPaymentHandlerTest.php \
   tests/Feature/Reporting/GetDashboardOperationalPerformanceDatasetFeatureTest.php \
