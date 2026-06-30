@@ -263,6 +263,26 @@ Meaning:
 - dashboard refund aggregation still read only legacy `customer_refunds`;
 - dashboard profit could still include returned surplus as profit.
 
+0062-F duplicate-submit RED:
+
+```bash
+php artisan test tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php --filter=duplicate_submit
+```
+
+Initial RED result:
+
+```text
+Failed asserting that 3 is identical to 2.
+
+tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php:916
+```
+
+Meaning:
+
+- repeating the same edit request created revision `r003`;
+- duplicate submit could duplicate stock correction, settlement, refund_due, and refund_paid side effects;
+- create workspace already had idempotency, but edit/revision submit did not.
+
 ## Patch Summary
 
 Production code changed:
@@ -270,8 +290,11 @@ Production code changed:
 - `app/Adapters/Out/Reporting/Queries/OperationalProfit/ProductCostMetricQuery.php`
 - `app/Adapters/Out/Reporting/Queries/DashboardOperationalPerformance/StoreStockCogsPerDayQuery.php`
 - `app/Application/Note/Services/AutoSettleNoteRevisionSurplusRefund.php`
+- `app/Application/Note/Services/CreateNoteRevisionIdempotencyService.php`
 - `app/Application/Note/UseCases/CreateNoteRevisionWorkflow.php`
+- `app/Application/Note/UseCases/CreateNoteRevisionHandler.php`
 - `app/Providers/InfrastructureServiceProvider.php`
+- `app/Adapters/In/Http/Requests/Note/StoreNoteRevisionRequest.php`
 - `app/Adapters/Out/Reporting/Queries/DashboardOperationalPerformance/RefundPerDayQuery.php`
 
 Patch behavior:
@@ -283,6 +306,8 @@ Patch behavior:
 - paid downward revision surplus now creates refund-due and immediate surplus-refund-paid records inside the revision transaction;
 - surplus auto-settlement writes canonical `audit_events` and keeps FK-backed audit links;
 - cash ledger and dashboard refund aggregation both include `note_revision_surplus_refund_payments`;
+- revision submit supports optional `idempotency_key` with operation `create_note_revision`;
+- repeated same-key same-payload revision requests return the stored success result without mutating note, stock, settlement, refund_due, or refund_paid again;
 - no inventory movement source type was renamed or re-bucketed.
 
 ## Test Added
@@ -298,6 +323,7 @@ Tests:
 - `test_unpaid_store_stock_note_rejects_refund_but_allows_revision_without_cash_or_inventory_refund_side_effect`
 - `test_refunded_store_stock_note_revision_preserves_refund_history_and_reconciles_reports_without_double_reversal`
 - `test_store_stock_transaction_keeps_historical_line_price_after_master_product_price_change`
+- `test_paid_store_stock_revision_downward_duplicate_submit_replays_without_duplicate_revision_refund_or_stock`
 
 ## Regression Proof
 
@@ -311,7 +337,7 @@ Result:
 
 ```text
 PASS
-Tests: 5 passed (245 assertions)
+Tests: 6 passed
 ```
 
 Focused 0062-B proof after owner policy clarification:
@@ -325,6 +351,37 @@ Result:
 ```text
 PASS
 Tests: 1 passed (62 assertions)
+```
+
+Focused 0062-F proof:
+
+```bash
+php artisan test tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php --filter=duplicate_submit
+```
+
+Result:
+
+```text
+PASS
+Tests: 1 passed (16 assertions)
+```
+
+Revision idempotency baseline proof:
+
+```bash
+php artisan test \
+  tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php \
+  tests/Feature/Note/CreateTransactionWorkspaceDuplicateSubmitFeatureTest.php \
+  tests/Feature/Note/CashierNoteRevisionSubmitFeatureTest.php \
+  tests/Feature/Note/NoteReplacementOverpaidAllocationReplayFeatureTest.php \
+  tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php
+```
+
+Result:
+
+```text
+PASS
+Tests: 17 passed (363 assertions)
 ```
 
 Targeted domain baseline proof:
@@ -359,6 +416,7 @@ Tests: 34 passed (457 assertions)
 - Edit is not refund.
 - Paid edit upward creates outstanding delta; it does not erase old payment.
 - Paid edit downward preserves old payment, creates refund-due, records default surplus refund paid, and does not treat surplus as profit.
+- Duplicate paid downward edit submit does not create duplicate revision, stock correction, settlement, refund_due, or refund_paid rows.
 - Unpaid note refund attempt is rejected.
 - Refunded store-stock admin correction preserves payment/refund history.
 - Master product price change does not rewrite historical transaction line value.
