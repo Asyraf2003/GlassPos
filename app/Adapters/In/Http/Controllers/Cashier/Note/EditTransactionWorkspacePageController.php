@@ -8,6 +8,7 @@ use App\Application\Note\Services\EditTransactionWorkspacePageDataBuilder;
 use App\Application\Note\Services\EnsureInitialNoteRevisionExists;
 use App\Application\Note\Services\TransactionWorkspaceDraftData;
 use App\Core\Shared\Exceptions\DomainException;
+use App\Ports\Out\UuidPort;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -20,6 +21,7 @@ final class EditTransactionWorkspacePageController extends Controller
         EditTransactionWorkspacePageDataBuilder $builder,
         TransactionWorkspaceDraftData $draftData,
         EnsureInitialNoteRevisionExists $ensureInitialRevision,
+        UuidPort $uuid,
     ): View {
         $actorId = $request->user()?->getAuthIdentifier();
         $bootstrapRevisionId = trim($noteId) . '-r001';
@@ -59,12 +61,17 @@ final class EditTransactionWorkspacePageController extends Controller
         $resolvedInlinePayment = is_array($oldInlinePayment)
             ? $oldInlinePayment
             : $inlinePaymentFromDraft;
+        $oldIdempotencyKey = $request->old('idempotency_key');
+        $idempotencyKey = is_string($oldIdempotencyKey) && trim($oldIdempotencyKey) !== ''
+            ? trim($oldIdempotencyKey)
+            : $uuid->generate();
 
         return view('cashier.notes.workspace.create', $page + [
             'noteId' => trim($noteId),
             'oldNote' => $resolvedNote,
             'oldItems' => $resolvedItems,
             'oldInlinePayment' => $resolvedInlinePayment,
+            'idempotencyKey' => $idempotencyKey,
             'hasOldInput' => $sessionHasOldInput || $draftPayload !== [],
         ]);
     }
