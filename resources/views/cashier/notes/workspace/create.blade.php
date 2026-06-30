@@ -362,9 +362,8 @@
             @csrf
             @if (($workspaceMode ?? 'create') === 'edit')
                 @method('PATCH')
-            @else
-                <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', $idempotencyKey ?? '') }}">
             @endif
+            <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', $idempotencyKey ?? '') }}">
 
             <div class="workspace-step-list">
                 @include('cashier.notes.workspace.partials.info-card')
