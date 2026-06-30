@@ -4,7 +4,7 @@
 
 In progress for the broader edit/refund/payment/stock/reporting campaign.
 
-Sub-slices A-M are closed with automated proof.
+Sub-slices A-N are closed with automated proof.
 
 ## Context
 
@@ -48,6 +48,7 @@ Existing tests covered important pieces separately:
 - payment duplicate-submit idempotency.
 - package component refund/edit/pay-again/report proof.
 - external purchase/pass-through refund/edit/report proof.
+- one-click edit/refund reason default UI proof.
 
 The initial missing proof was a combined regression where a paid or unpaid store-stock transaction crosses edit, payment, refund guard, stock movement, and reports in one scenario. The later hardening added duplicate-submit protection for both revision and primary selected-row refund paths, including real UI hidden-key coverage.
 
@@ -318,6 +319,21 @@ Coverage:
 - service-fee-only correction keeps external purchase line intact;
 - external purchase cost remains a case/pass-through cost in operational profit reporting;
 - transaction cash, refund, external purchase cost, inventory, and profit reconciliation remain aligned in the golden master.
+
+### 0062-N - One-click Edit/Refund Reason Default UI
+
+Tests:
+
+- `test_cashier_can_open_edit_workspace_page_for_unpaid_note_with_payment_modal_but_without_refund_action`
+- `test_refund_modal_renders_idempotency_key_for_normal_submit`
+
+Coverage:
+
+- edit workspace renders an editable default reason: `Revisi nota via workspace`;
+- edit workspace reason textarea is marked required in the UI;
+- refund modal renders an editable default reason: `Pengembalian dana / pembatalan rincian`;
+- refund modal still sends the existing idempotency key;
+- direct backend refund request still rejects blank reason, so the audit policy remains strict.
 
 ## Failing Test Proof
 
@@ -757,6 +773,40 @@ PASS
 Tests: 23 passed (145 assertions)
 ```
 
+Focused 0062-N proof:
+
+```bash
+php artisan test tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php --filter=refund_modal_renders_idempotency_key
+php artisan test tests/Feature/Note/EditTransactionWorkspacePageFeatureTest.php --filter=can_open_edit_workspace_page
+```
+
+Result:
+
+```text
+PASS
+Tests: 1 passed (5 assertions)
+PASS
+Tests: 1 passed (14 assertions)
+```
+
+Edit/refund/payment UI and backend reason regression proof:
+
+```bash
+php artisan test \
+  tests/Feature/Note/EditTransactionWorkspacePageFeatureTest.php \
+  tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php \
+  tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php \
+  tests/Feature/Note/RecordNotePaymentHttpFeatureTest.php \
+  tests/Feature/Note/CashierNoteDetailSimplePaymentModalUxFeatureTest.php
+```
+
+Result:
+
+```text
+PASS
+Tests: 27 passed (427 assertions)
+```
+
 Edit/create UI idempotency regression proof:
 
 ```bash
@@ -842,6 +892,7 @@ Tests: 34 passed (457 assertions)
 - External purchase refunds remain default-blocked without a manual exception path.
 - Blocked external purchase refunds do not mutate customer refund, refund allocation, or inventory movement tables.
 - External purchase cost remains pass-through/case cost in reporting and does not become store-stock inventory movement.
+- Edit/refund UI now provides editable default reasons while preserving strict backend reason validation.
 - Unpaid note refund attempt is rejected.
 - Refunded store-stock admin correction preserves payment/refund history.
 - Master product price change does not rewrite historical transaction line value.
@@ -856,10 +907,8 @@ Tests: 34 passed (457 assertions)
 
 ## Remaining Backlog
 
-Not closed by this campaign yet:
-
-- one-click reason/default UX hardening for edit/refund actions.
+No remaining backlog for this campaign.
 
 ## Final Status
 
-Sub-slices A-M are closed with automated proof. The broader edit/refund/payment/stock/reporting campaign continues through the remaining backlog above.
+Sub-slices A-N are closed with automated proof.
