@@ -941,6 +941,30 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         ]);
     }
 
+    public function test_edit_workspace_page_renders_revision_idempotency_key_for_normal_submit(): void
+    {
+        $admin = $this->loginAsAuthorizedAdmin();
+        $this->seedStoreStockProduct();
+
+        $create = app(CreateTransactionWorkspaceHandler::class)->handle($this->createOverpaidStoreStockPayload());
+
+        self::assertTrue($create->isSuccess(), $create->message());
+
+        $noteId = (string) ($create->data()['note']['id'] ?? '');
+        self::assertNotSame('', $noteId);
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.notes.workspace.edit', ['noteId' => $noteId]));
+
+        $response->assertOk();
+        $response->assertSee('name="idempotency_key"', false);
+        $response->assertSee('value="', false);
+        self::assertMatchesRegularExpression(
+            '/<input[^>]+type="hidden"[^>]+name="idempotency_key"[^>]+value="[^"]{8,}"/',
+            (string) $response->getContent(),
+        );
+    }
+
     private function seedStoreStockProduct(): void
     {
         DB::table('products')->insert([
