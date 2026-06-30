@@ -325,14 +325,17 @@ php artisan test \
   tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php \
   tests/Feature/Reporting/TransactionReportingReconciliationFeatureTest.php \
   tests/Feature/Reporting/GetOperationalProfitSummaryFeatureTest.php \
-  tests/Feature/Reporting/GetDashboardOperationalPerformanceDatasetFeatureTest.php
+  tests/Feature/Reporting/GetDashboardOperationalPerformanceDatasetFeatureTest.php \
+  tests/Feature/Note/AdminNoteSurplusRefundDueUiFeatureTest.php \
+  tests/Feature/Note/AdminNoteSurplusRefundPaidUiFeatureTest.php \
+  tests/Feature/Note/NoteDetailSurplusDispositionPayloadFeatureTest.php
 ```
 
 Result:
 
 ```text
 PASS
-Tests: 31 passed (397 assertions)
+Tests: 34 passed (457 assertions)
 ```
 
 ## Financial And Stock Invariants Locked
