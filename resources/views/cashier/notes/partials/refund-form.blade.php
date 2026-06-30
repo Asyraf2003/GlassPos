@@ -35,6 +35,11 @@
 
         <form method="POST" action="{{ $refundAction }}" id="note-refund-form">
             @csrf
+            <input
+                type="hidden"
+                name="idempotency_key"
+                value="{{ old('idempotency_key', $refundModalConfig['idempotency_key'] ?? '') }}"
+            >
 
             <div id="selected-refund-row-inputs"></div>
 
