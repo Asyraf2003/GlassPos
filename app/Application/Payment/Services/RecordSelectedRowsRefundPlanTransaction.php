@@ -33,12 +33,17 @@ final class RecordSelectedRowsRefundPlanTransaction
         string $reason,
         string $actorId,
         string $actorRole,
+        ?array $idempotencyPayload = null,
     ): Result {
         $started = false;
 
         try {
             $this->transactions->begin();
             $started = true;
+
+            if ($idempotencyPayload !== null) {
+                app(RecordSelectedRowsRefundIdempotencyService::class)->start($idempotencyPayload);
+            }
 
             $processed = $this->buckets->process($plan, $refundedAt, $reason);
             $activeTotalRupiah = $this->notes->getById($plan->noteId())?->totalRupiah()->amount() ?? 0;
@@ -67,9 +72,7 @@ final class RecordSelectedRowsRefundPlanTransaction
             $this->projection->syncNote($plan->noteId());
             $this->audit->record($plan, $actorId, $actorRole, $reason, $processed, $finalized->data());
 
-            $this->transactions->commit();
-
-            return Result::success(
+            $result = Result::success(
                 (new RecordedSelectedRowsRefundPlanResult(
                     $plan->noteId(),
                     $processed['refund_ids'],
@@ -82,6 +85,15 @@ final class RecordSelectedRowsRefundPlanTransaction
                 ))->toArray(),
                 'Refund selected rows berhasil dicatat.',
             );
+
+            if ($idempotencyPayload !== null) {
+                app(RecordSelectedRowsRefundIdempotencyService::class)
+                    ->succeed($idempotencyPayload, $plan->noteId(), $result);
+            }
+
+            $this->transactions->commit();
+
+            return $result;
         } catch (DomainException $e) {
             if ($started) {
                 $this->transactions->rollBack();
