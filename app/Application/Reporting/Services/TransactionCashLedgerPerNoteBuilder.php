@@ -16,6 +16,9 @@ final class TransactionCashLedgerPerNoteBuilder
      *   direction:string,
      *   event_amount_rupiah:int,
      *   payment_method?:?string,
+     *   cash_amount_paid_rupiah?:?int,
+     *   cash_amount_received_rupiah?:?int,
+     *   cash_change_rupiah?:?int,
      *   customer_payment_id:?string,
      *   refund_id:?string,
      *   source_table:string,
@@ -34,6 +37,9 @@ final class TransactionCashLedgerPerNoteBuilder
                 $row['direction'],
                 $row['event_amount_rupiah'],
                 isset($row['payment_method']) ? (string) $row['payment_method'] : null,
+                self::nullableInt($row['cash_amount_paid_rupiah'] ?? null),
+                self::nullableInt($row['cash_amount_received_rupiah'] ?? null),
+                self::nullableInt($row['cash_change_rupiah'] ?? null),
                 $row['customer_payment_id'],
                 $row['refund_id'],
                 $row['source_table'],
@@ -42,5 +48,10 @@ final class TransactionCashLedgerPerNoteBuilder
             ),
             $rows,
         );
+    }
+
+    private static function nullableInt(mixed $value): ?int
+    {
+        return $value === null ? null : (int) $value;
     }
 }

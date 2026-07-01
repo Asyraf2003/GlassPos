@@ -61,11 +61,19 @@ final class TransactionCashLedgerPdfViewDataBuilder
             'direction' => $this->labels->directionLabel($this->stringValue($row['direction'] ?? '')),
             'payment_method' => $this->labels->paymentMethodLabel($this->stringValue($row['payment_method'] ?? '')),
             'amount' => $this->rupiah($row['event_amount_rupiah'] ?? 0),
+            'cash_amount_paid' => $this->nullableRupiah($row['cash_amount_paid_rupiah'] ?? null),
+            'cash_amount_received' => $this->nullableRupiah($row['cash_amount_received_rupiah'] ?? null),
+            'cash_change' => $this->nullableRupiah($row['cash_change_rupiah'] ?? null),
             'payment_marker' => $paymentId !== '' ? 'Ada' : '-',
             'refund_marker' => $refundId !== '' ? 'Ada' : '-',
             'source_table' => $this->labels->sourceLabel($this->stringValue($row['source_table'] ?? '-')),
             'source_id' => $this->stringValue($row['source_id'] ?? '-') ?: '-',
             'source_disposition_id' => $this->stringValue($row['source_disposition_id'] ?? '-') ?: '-',
         ];
+    }
+
+    private function nullableRupiah(mixed $value): string
+    {
+        return $value === null ? '-' : $this->rupiah($value);
     }
 }

@@ -38,6 +38,9 @@ final class TransactionCashLedgerPdfDetailPaymentMethodTest extends TestCase
                     'direction' => 'in',
                     'payment_method' => 'cash',
                     'event_amount_rupiah' => 85000,
+                    'cash_amount_paid_rupiah' => 85000,
+                    'cash_amount_received_rupiah' => 100000,
+                    'cash_change_rupiah' => 15000,
                     'customer_payment_id' => 'payment-cash-001',
                     'refund_id' => '',
                     'source_table' => 'payment_component_allocations',
@@ -52,6 +55,9 @@ final class TransactionCashLedgerPdfDetailPaymentMethodTest extends TestCase
                     'direction' => 'in',
                     'payment_method' => 'transfer',
                     'event_amount_rupiah' => 30000,
+                    'cash_amount_paid_rupiah' => null,
+                    'cash_amount_received_rupiah' => null,
+                    'cash_change_rupiah' => null,
                     'customer_payment_id' => 'payment-transfer-001',
                     'refund_id' => '',
                     'source_table' => 'payment_component_allocations',
@@ -66,8 +72,14 @@ final class TransactionCashLedgerPdfDetailPaymentMethodTest extends TestCase
 
         $this->assertArrayHasKey('payment_method', $viewData['rows'][0]);
         $this->assertSame('Tunai', $viewData['rows'][0]['payment_method']);
+        $this->assertSame('Rp 85.000', $viewData['rows'][0]['cash_amount_paid']);
+        $this->assertSame('Rp 100.000', $viewData['rows'][0]['cash_amount_received']);
+        $this->assertSame('Rp 15.000', $viewData['rows'][0]['cash_change']);
 
         $this->assertArrayHasKey('payment_method', $viewData['rows'][1]);
         $this->assertSame('Transfer', $viewData['rows'][1]['payment_method']);
+        $this->assertSame('-', $viewData['rows'][1]['cash_amount_paid']);
+        $this->assertSame('-', $viewData['rows'][1]['cash_amount_received']);
+        $this->assertSame('-', $viewData['rows'][1]['cash_change']);
     }
 }

@@ -16,6 +16,9 @@ final class TransactionCashLedgerPerNoteRow
         private readonly string $direction,
         private readonly int $eventAmountRupiah,
         private readonly ?string $paymentMethod,
+        private readonly ?int $cashAmountPaidRupiah,
+        private readonly ?int $cashAmountReceivedRupiah,
+        private readonly ?int $cashChangeRupiah,
         private readonly ?string $customerPaymentId,
         private readonly ?string $refundId,
         private readonly string $sourceTable,
@@ -54,6 +57,21 @@ final class TransactionCashLedgerPerNoteRow
         return $this->paymentMethod;
     }
 
+    public function cashAmountPaidRupiah(): ?int
+    {
+        return $this->cashAmountPaidRupiah;
+    }
+
+    public function cashAmountReceivedRupiah(): ?int
+    {
+        return $this->cashAmountReceivedRupiah;
+    }
+
+    public function cashChangeRupiah(): ?int
+    {
+        return $this->cashChangeRupiah;
+    }
+
     public function customerPaymentId(): ?string
     {
         return $this->customerPaymentId;
@@ -72,6 +90,9 @@ final class TransactionCashLedgerPerNoteRow
      *   direction:string,
      *   event_amount_rupiah:int,
      *   payment_method:?string,
+     *   cash_amount_paid_rupiah:?int,
+     *   cash_amount_received_rupiah:?int,
+     *   cash_change_rupiah:?int,
      *   customer_payment_id:?string,
      *   refund_id:?string,
      *   source_table:string,
@@ -88,6 +109,9 @@ final class TransactionCashLedgerPerNoteRow
             'direction' => $this->direction(),
             'event_amount_rupiah' => $this->eventAmountRupiah(),
             'payment_method' => $this->paymentMethod(),
+            'cash_amount_paid_rupiah' => $this->cashAmountPaidRupiah(),
+            'cash_amount_received_rupiah' => $this->cashAmountReceivedRupiah(),
+            'cash_change_rupiah' => $this->cashChangeRupiah(),
             'customer_payment_id' => $this->customerPaymentId(),
             'refund_id' => $this->refundId(),
             'source_table' => $this->sourceTable(),

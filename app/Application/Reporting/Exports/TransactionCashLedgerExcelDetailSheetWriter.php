@@ -33,6 +33,9 @@ final class TransactionCashLedgerExcelDetailSheetWriter
                 $this->labels->directionLabel((string) ($row['direction'] ?? '')),
                 $this->labels->paymentMethodLabel((string) ($row['payment_method'] ?? '')),
                 (int) ($row['event_amount_rupiah'] ?? 0),
+                $row['cash_amount_paid_rupiah'] ?? null,
+                $row['cash_amount_received_rupiah'] ?? null,
+                $row['cash_change_rupiah'] ?? null,
                 (string) ($row['customer_payment_id'] ?? ''),
                 (string) ($row['refund_id'] ?? ''),
                 $this->labels->sourceLabel((string) ($row['source_table'] ?? '')),
@@ -50,6 +53,9 @@ final class TransactionCashLedgerExcelDetailSheetWriter
             'Arah',
             'Metode Pembayaran',
             'Nominal',
+            'Tunai Dibayar',
+            'Uang Pelanggan',
+            'Kembalian Tunai',
             'ID Pembayaran',
             'ID Pengembalian Dana',
             'Asal Catatan',
@@ -57,6 +63,6 @@ final class TransactionCashLedgerExcelDetailSheetWriter
             'ID Disposisi Asal',
         ], $values);
 
-        $this->tables->autosize($sheet, 13);
+        $this->tables->autosize($sheet, 16);
     }
 }
