@@ -1077,3 +1077,112 @@ Meaning:
 
 - Stop with automated-first residual documented, or start a separate
   browser/manual QA slice if owner opens that scope.
+
+
+### Session Update - 2026-07-02 00:26 WITA - Cash/Transfer Delta Ledger Proof
+
+#### Slice
+
+- Active slice: Slice 3 / Slice 6 - payment method variant and cash ledger report parity.
+- Status: transfer delta and cash-detail report fields locked with targeted automated proof.
+- Production runtime patch: none in this session.
+
+#### Files Read
+
+- `docs/01_standards/0001_index.md`
+- `docs/01_standards/0002_decision_policy.md`
+- `docs/01_standards/0003_gpt_bootstrap_prompt.md`
+- `docs/01_standards/0004_session_start_protocol.md`
+- `docs/01_standards/core/0010_scope_and_facts.md`
+- `docs/01_standards/core/0011_blueprint_first.md`
+- `docs/01_standards/core/0012_step_by_step_execution.md`
+- `docs/01_standards/core/0013_proof_and_progress.md`
+- `docs/01_standards/workflow/0020_response_structure.md`
+- `docs/01_standards/workflow/0021_active_step_policy.md`
+- `docs/01_standards/output/0033_terminal_command_delivery.md`
+- `docs/01_standards/domain/0052_payment_lifecycle.md`
+- `docs/01_standards/domain/0053_reporting_boundary.md`
+- `tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php`
+- `docs/04_lifecycle/error_log/0062_transaction_edit_refund_payment_stock_reporting_hardening_campaign.md`
+
+#### Files Changed
+
+- `tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php`
+- `docs/04_lifecycle/error_log/0062_transaction_edit_refund_payment_stock_reporting_hardening_campaign.md`
+- `docs/04_lifecycle/handoff/0016_0044_edit_after_paid_refund_shadow_ui_report_lifecycle_handoff.md`
+
+#### FACT
+
+- Cash payment has cash detail fields through `customer_payment_cash_details`.
+- Transfer payment is represented by `customer_payments.payment_method = transfer` and amount only.
+- Cash ledger summary already splits `cash_in_rupiah` and `transfer_in_rupiah`.
+- Cash ledger detail/export now exposes cash-only paid/received/change fields.
+- The new transfer-delta regression test proves paid upward revision settlement records only the outstanding delta as transfer.
+
+#### GAP
+
+- No transfer bank reference/proof field exists yet.
+- No browser/manual proof was run in this session.
+- No broader audit lifecycle redesign was opened.
+
+#### DECISION
+
+- Keep transfer settlement as amount-only until an explicit transfer reference/proof contract is designed.
+- Do not create cash detail rows for transfer.
+- Treat cash paid/received/change as cash-only report fields.
+- Record this proof under 0062-O without reopening HPP, refund policy, source-type registry, or browser QA scope.
+
+#### Tests / Commands Run
+
+```bash
+php artisan test tests/Feature/Reporting/GetTransactionCashLedgerPerNoteFeatureTest.php \
+  tests/Feature/ReportingExports/TransactionCashLedgerExcelExportFeatureTest.php
+
+php artisan test tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php
+
+php artisan test \
+  tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php \
+  tests/Feature/Reporting/GetTransactionCashLedgerPerNoteFeatureTest.php \
+  tests/Feature/ReportingExports/TransactionCashLedgerExcelExportFeatureTest.php \
+  tests/Feature/Reporting/TransactionCashLedgerReportingQueryFeatureTest.php \
+  tests/Feature/Reporting/GetOperationalProfitSummaryFeatureTest.php
+
+make audit-lines
+```
+
+Result:
+
+```text
+PASS
+Tests: 5 passed (69 assertions)
+
+PASS
+Tests: 2 passed (21 assertions)
+
+PASS
+Tests: 17 passed (159 assertions)
+
+SUCCESS: Semua file memenuhi standar limit baris (atau memiliki label bypass).
+```
+
+Meaning:
+
+- Transfer after paid upward revision settles only the outstanding delta and appears as `transfer_in_rupiah`.
+- Transfer does not create `customer_payment_cash_details`.
+- Cash detail fields are present for cash ledger detail/export and remain null for transfer/refund rows.
+- This is automated test hardening; no runtime bug was proven in the transfer-delta path.
+
+#### Checklist Changes
+
+- [x] Cash and transfer payment variants covered.
+- [x] Cash ledger affected fields asserted if touched.
+
+#### Residual Gaps
+
+- Real browser/manual QA remains open/deferred.
+- Transfer reference/proof field is not designed yet.
+- Broader audit lifecycle redesign remains open unless owner starts that scope.
+
+#### Next Allowed Step
+
+- Continue with a focused UI wording/render proof for cash vs transfer payment modals, or run the targeted edit/refund/payment/reporting bundle before `make verify`.
