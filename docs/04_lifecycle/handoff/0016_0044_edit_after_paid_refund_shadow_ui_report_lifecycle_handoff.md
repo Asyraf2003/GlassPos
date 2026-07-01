@@ -752,3 +752,97 @@ Meaning:
 #### Next Allowed Step
 
 - Owner decision: either defer the remaining browser/manual/audit gaps explicitly, or open a browser-runner/manual-QA slice for 0044 refresh and UI behavior proof.
+
+### Session Update - 2026-07-01 09:08 WITA - 2026-07-01 Refund Shadow Edit Workspace Test Contract Alignment
+
+#### Slice
+
+- Active slice: 0044 residual/test-contract alignment.
+- Status: automated proof PASS after test expectation was aligned with refund shadow policy.
+- Production runtime patch: none.
+
+#### Files Read
+
+- `docs/02_architecture/adr/0042_note_edit_refund_settlement_machine_contract.md`
+- `docs/04_lifecycle/error_log/0062_transaction_edit_refund_payment_stock_reporting_hardening_campaign.md`
+- `docs/04_lifecycle/workflow/0044_edit_after_paid_refund_shadow_ui_report_lifecycle_workflow.md`
+- `docs/04_lifecycle/handoff/0016_0044_edit_after_paid_refund_shadow_ui_report_lifecycle_handoff.md`
+- `tests/Feature/Note/CashierProductReplacementBackdatedPriceFinanceFeatureTest.php`
+
+#### Files Changed
+
+- `tests/Feature/Note/CashierProductReplacementBackdatedPriceFinanceFeatureTest.php`
+- `docs/04_lifecycle/handoff/0016_0044_edit_after_paid_refund_shadow_ui_report_lifecycle_handoff.md`
+
+#### FACT
+
+- Owner clarified the active edit workspace policy:
+  - any line with refund allocation becomes refund shadow in the edit workspace;
+  - refund shadow lines must not be shown as editable old draft rows;
+  - edit workspace old draft rows are built only from non-refunded editable current lines.
+- The failing test case inserted a refund allocation for `wi-old-1`, then still expected the edit page to contain `revision_snapshot`.
+- That old expectation was stale because `revision_snapshot` on the edit page means the refunded old line was preloaded as an editable old item.
+- The local edit page now correctly asserts:
+  - `"oldItems":[]`;
+  - `revision_snapshot` is not present for the refunded-shadow line.
+- The existing non-refunded price-snapshot test still keeps `revision_snapshot` coverage for normal editable old lines.
+
+#### GAP
+
+- No runtime gap was proven in this session.
+- The previous failure was a stale test-contract expectation, not a reason to reopen refunded lines in `EditTransactionWorkspaceEditableLineFilter`.
+- Do not change the filter to allow refunded lines back into old editable draft rows.
+- If a future implementation wants active remainder splitting, it must be introduced by a separate ADR/test contract and must not silently reopen refund shadow anchors.
+
+#### DECISION
+
+- Align `test_cashier_product_replacement_reuses_only_net_payment_after_refund` with ADR-0042 refund shadow behavior.
+- Keep refunded lines out of edit workspace `oldItems`.
+- Treat the changed assertion as policy alignment, not test weakening.
+- Do not reopen 0062 runtime campaign; 0062 remains closed by automated proof with no remaining backlog for that campaign.
+- 0044 residual browser/manual/audit gaps remain unchanged.
+
+#### Tests / Commands Run
+
+```bash
+php artisan test tests/Feature/Note/CashierProductReplacementBackdatedPriceFinanceFeatureTest.php \
+  --filter=test_cashier_product_replacement_reuses_only_net_payment_after_refund
+
+make verify
+```
+
+Result:
+
+```text
+PASS  Tests\Feature\Note\CashierProductReplacementBackdatedPriceFinanceFeatureTest
+Tests: 1 passed (10 assertions)
+
+Tests: 1476 passed (9191 assertions)
+Duration: 94.93s
+```
+
+Meaning:
+
+- The targeted refund-shadow edit workspace regression is green.
+- The full automated suite is green after the test-contract alignment.
+- No production runtime behavior was changed to satisfy the test.
+
+#### Checklist Changes
+
+- [x] Refund-shadow edit workspace test expectation aligned with owner policy and ADR-0042.
+- [x] Full automated verification recorded.
+- [x] Runtime filter was intentionally not loosened.
+
+#### Residual Gaps
+
+- Real browser/manual QA remains outside this patch.
+- Refresh/hard-refresh proof remains outside this patch.
+- Console/visual/focus/real double-click checks remain outside this patch.
+- Broader audit lifecycle redesign remains outside this patch unless owner opens a new scope.
+
+#### Next Allowed Step
+
+- If continuing 0044 closure, either:
+  - record owner deferral/acceptance for remaining browser/manual QA gaps; or
+  - introduce a real browser runner/manual QA proof for refresh, hard-refresh, modal focus, visual, console, and double-click behavior.
+- Future Codex/AI sessions must not re-add `revision_snapshot` visibility for refunded-shadow old lines as a shortcut.
