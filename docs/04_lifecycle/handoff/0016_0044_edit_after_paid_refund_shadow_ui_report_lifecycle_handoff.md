@@ -846,3 +846,97 @@ Meaning:
   - record owner deferral/acceptance for remaining browser/manual QA gaps; or
   - introduce a real browser runner/manual QA proof for refresh, hard-refresh, modal focus, visual, console, and double-click behavior.
 - Future Codex/AI sessions must not re-add `revision_snapshot` visibility for refunded-shadow old lines as a shortcut.
+
+### Session Update - 2026-07-01 12:09 WITA - Refund Shadow Identity Allocation Hardening
+
+#### Slice
+
+- Active slice: 0044 residual/test-contract hardening.
+- Status: automated proof PASS after adding identity/allocation assertions.
+- Production runtime patch: none.
+
+#### Files Read
+
+- `docs/02_architecture/adr/0042_note_edit_refund_settlement_machine_contract.md`
+- `docs/04_lifecycle/workflow/0044_edit_after_paid_refund_shadow_ui_report_lifecycle_workflow.md`
+- `docs/04_lifecycle/handoff/0016_0044_edit_after_paid_refund_shadow_ui_report_lifecycle_handoff.md`
+- `docs/04_lifecycle/error_log/0062_transaction_edit_refund_payment_stock_reporting_hardening_campaign.md`
+- `tests/Feature/Note/CashierProductReplacementBackdatedPriceFinanceFeatureTest.php`
+- `app/Application/Note/Services/EditTransactionWorkspaceEditableLineFilter.php`
+- `app/Application/Note/Services/ApplyNoteRevisionAsActiveReplacement.php`
+- `app/Application/Note/Services/NoteReplacementPaymentAllocationReconciler.php`
+- `app/Adapters/Out/Note/WorkItemDeletesTrait.php`
+
+#### Files Changed
+
+- `tests/Feature/Note/CashierProductReplacementBackdatedPriceFinanceFeatureTest.php`
+- `docs/04_lifecycle/handoff/0016_0044_edit_after_paid_refund_shadow_ui_report_lifecycle_handoff.md`
+
+#### FACT
+
+- ADR-0042 says refunded lines are refund shadow, not editable draft lines.
+- The edit workspace must keep refunded-shadow old lines out of `oldItems`.
+- `revision_snapshot` visibility remains valid only for old editable/non-refunded lines.
+- `EditTransactionWorkspaceEditableLineFilter` must not be loosened to re-show refunded lines.
+- The stale-payload test now also locks that:
+  - refund history remains anchored to `wi-old-1`;
+  - the revision creates one new current work item;
+  - old refunded-shadow work item receives zero active payment allocation after replacement;
+  - the new current replacement line receives only the net available payment after refund.
+
+#### GAP
+
+- No runtime bug was proven by the added assertions.
+- Real browser/manual QA remains outside this automated proof.
+- Browser refresh/hard-refresh, console, visual, focus, and real double-click checks remain residual.
+- Broader audit lifecycle redesign remains outside this patch.
+
+#### DECISION
+
+- Treat the stale `revision_snapshot` payload as a current replacement payload when accepted by backend rules.
+- Do not revive old refunded-shadow identity.
+- Do not allocate active current payment back to the old refunded-shadow work item.
+- Keep this as test-only hardening; no runtime patch was needed.
+
+#### Tests / Commands Run
+
+```bash
+php artisan test tests/Feature/Note/CashierProductReplacementBackdatedPriceFinanceFeatureTest.php \
+  --filter=test_cashier_product_replacement_reuses_only_net_payment_after_refund
+
+make verify
+```
+
+Result:
+
+```text
+PASS  Tests\Feature\Note\CashierProductReplacementBackdatedPriceFinanceFeatureTest
+Tests: 1 passed (17 assertions)
+
+Tests: 1476 passed (9198 assertions)
+Duration: 99.57s
+```
+
+Meaning:
+
+- Refund-shadow edit workspace behavior is still green.
+- The stale payload cannot silently reallocate active current payment to the old refunded-shadow identity.
+- Full automated verification remains green after the hardening assertions.
+
+#### Checklist Changes
+
+- [x] Refunded-shadow old line stays out of editable `oldItems`.
+- [x] `revision_snapshot` is absent for refunded-shadow old line and still covered for normal editable old lines.
+- [x] Stale payload identity/allocation behavior has explicit regression assertions.
+- [x] Full automated verification recorded.
+
+#### Residual Gaps
+
+- Real browser/manual QA remains open.
+- Refresh/hard-refresh proof remains open.
+- Browser-only console/visual/focus/double-click checks remain open.
+- Broader audit lifecycle redesign remains open unless owner starts that scope.
+
+#### Next Allowed Step
+
+- Continue only with a browser-runner/manual QA slice or explicit owner deferral for the remaining 0044 residual gaps.
