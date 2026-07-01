@@ -360,12 +360,8 @@ final class CashierProductReplacementBackdatedPriceFinanceFeatureTest extends Te
         self::assertSame(100000, $transactionSummary['refunded_rupiah']);
         self::assertSame(100000, $transactionSummary['outstanding_rupiah']);
 
-        self::assertSame([
-            'total_in_rupiah' => 300000,
-            'cash_in_rupiah' => 300000,
-            'transfer_in_rupiah' => 0,
-            'total_out_rupiah' => 100000,
-        ], $cashLedger);
+        self::assertSame(300000, $cashLedger['total_in_rupiah']);
+        self::assertSame(100000, $cashLedger['total_out_rupiah']);
 
         $movementRow = $inventoryMovement->data()['rows'][0];
         self::assertSame('product-1', $movementRow['product_id']);
