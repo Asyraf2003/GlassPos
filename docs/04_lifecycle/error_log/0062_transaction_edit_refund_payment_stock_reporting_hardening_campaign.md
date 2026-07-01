@@ -4,7 +4,7 @@
 
 In progress for the broader edit/refund/payment/stock/reporting campaign.
 
-Sub-slices A-N are closed with automated proof.
+Sub-slices A-O are closed with automated proof.
 
 ## Context
 
@@ -334,6 +334,25 @@ Coverage:
 - refund modal renders an editable default reason: `Pengembalian dana / pembatalan rincian`;
 - refund modal still sends the existing idempotency key;
 - direct backend refund request still rejects blank reason, so the audit policy remains strict.
+
+### 0062-O - Cash/Transfer Delta Ledger Detail Hardening
+
+Tests:
+
+- `test_admin_transfer_payment_after_upward_revision_records_only_delta_without_cash_detail`
+- `GetTransactionCashLedgerPerNoteFeatureTest`
+- `TransactionCashLedgerExcelExportFeatureTest`
+
+Coverage:
+
+- paid note revised upward keeps the old payment preserved;
+- transfer settlement after revision records only the outstanding delta;
+- transfer settlement does not create `customer_payment_cash_details`;
+- transaction cash ledger splits transfer delta into `transfer_in_rupiah`;
+- cash ledger detail rows expose cash-only fields for cash payments;
+- transfer and refund rows keep cash-only fields null;
+- Excel detail export includes `Tunai Dibayar`, `Uang Pelanggan`, and `Kembalian Tunai`;
+- no production patch was needed for transfer delta behavior after the regression test.
 
 ## Failing Test Proof
 
