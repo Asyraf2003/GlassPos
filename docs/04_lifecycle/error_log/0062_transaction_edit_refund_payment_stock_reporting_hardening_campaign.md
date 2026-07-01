@@ -4,7 +4,7 @@
 
 In progress for the broader edit/refund/payment/stock/reporting campaign.
 
-Sub-slices A-O are closed with automated proof.
+Sub-slices A-P are closed with automated proof.
 
 ## Context
 
@@ -353,6 +353,21 @@ Coverage:
 - transfer and refund rows keep cash-only fields null;
 - Excel detail export includes `Tunai Dibayar`, `Uang Pelanggan`, and `Kembalian Tunai`;
 - no production patch was needed for transfer delta behavior after the regression test.
+
+### 0062-P - Workspace Payment Modal Backend Payable Wording
+
+Test:
+
+- `test_cashier_edit_workspace_exposes_backend_payable_amount_to_payment_calculator`
+
+Coverage:
+
+- edit workspace exposes backend payable amount through `data-backend-payable-rupiah`;
+- edit workspace keeps backend settlement basis visible in the DOM;
+- UI explains that `Bayar Penuh` uses the system outstanding amount, not a raw note total guess;
+- UI explains transfer records that payable amount directly;
+- UI explains cash opens the change calculator;
+- this is a render/copy hardening only, with no financial runtime formula change.
 
 ## Failing Test Proof
 
