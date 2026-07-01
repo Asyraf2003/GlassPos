@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Tests\Feature\Note;
 
 use App\Application\Payment\Services\RecordAndAllocateNotePaymentOperation;
+use App\Adapters\Out\Reporting\Queries\TransactionCashLedgerReportingQuery;
+use App\Application\Reporting\UseCases\GetInventoryMovementSummaryHandler;
+use App\Application\Reporting\UseCases\GetOperationalProfitSummaryHandler;
+use App\Application\Reporting\UseCases\GetTransactionReportDatasetHandler;
 use App\Core\Note\WorkItem\WorkItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -313,6 +317,73 @@ final class CashierProductReplacementBackdatedPriceFinanceFeatureTest extends Te
                 ->sum('allocated_amount_rupiah'),
             'Replacement current line must receive only net available payment after refund.'
         );
+
+        $newStoreStockLineId = (string) DB::table('work_item_store_stock_lines')
+            ->where('work_item_id', $newWorkItemId)
+            ->value('id');
+
+        self::assertNotSame('', $newStoreStockLineId);
+
+        self::assertSame(1, DB::table('inventory_movements')
+            ->where('source_type', 'transaction_workspace_updated')
+            ->where('source_id', 'ssl-old-1')
+            ->where('movement_type', 'stock_in')
+            ->count(), 'Revision must reverse the old issued stock exactly once.');
+
+        self::assertSame(0, DB::table('inventory_movements')
+            ->where('source_type', 'work_item_store_stock_line_reversal')
+            ->where('source_id', 'ssl-old-1')
+            ->count(), 'Editing a refund-shadow line must not create an extra refund reversal.');
+
+        self::assertSame(1, DB::table('inventory_movements')
+            ->where('source_type', 'work_item_store_stock_line')
+            ->where('source_id', $newStoreStockLineId)
+            ->where('movement_type', 'stock_out')
+            ->count(), 'Replacement current line must issue stock exactly once.');
+
+        $transaction = app(GetTransactionReportDatasetHandler::class)
+            ->handle($oldDate, $today);
+        $cashLedger = app(TransactionCashLedgerReportingQuery::class)
+            ->reconciliation($oldDate, $today);
+        $inventoryMovement = app(GetInventoryMovementSummaryHandler::class)
+            ->handle($oldDate, $today);
+        $profit = app(GetOperationalProfitSummaryHandler::class)
+            ->handle($oldDate, $today);
+
+        self::assertTrue($transaction->isSuccess(), $transaction->message() ?? '');
+        self::assertTrue($inventoryMovement->isSuccess(), $inventoryMovement->message() ?? '');
+        self::assertTrue($profit->isSuccess(), $profit->message() ?? '');
+
+        $transactionSummary = $transaction->data()['summary'];
+        self::assertSame(1, $transactionSummary['total_rows']);
+        self::assertSame(300000, $transactionSummary['gross_transaction_rupiah']);
+        self::assertSame(100000, $transactionSummary['refunded_rupiah']);
+        self::assertSame(100000, $transactionSummary['outstanding_rupiah']);
+
+        self::assertSame([
+            'total_in_rupiah' => 300000,
+            'cash_in_rupiah' => 300000,
+            'transfer_in_rupiah' => 0,
+            'total_out_rupiah' => 100000,
+        ], $cashLedger);
+
+        $movementRow = $inventoryMovement->data()['rows'][0];
+        self::assertSame('product-1', $movementRow['product_id']);
+        self::assertSame(6, $movementRow['sale_out_qty']);
+        self::assertSame(0, $movementRow['refund_reversal_qty']);
+        self::assertSame(3, $movementRow['revision_correction_qty']);
+        self::assertSame(-3, $movementRow['net_qty_delta']);
+        self::assertSame(180000, $movementRow['total_in_cost_rupiah']);
+        self::assertSame(360000, $movementRow['total_out_cost_rupiah']);
+        self::assertSame(-180000, $movementRow['net_cost_delta_rupiah']);
+        self::assertSame(7, $movementRow['current_qty_on_hand']);
+        self::assertSame(420000, $movementRow['current_inventory_value_rupiah']);
+
+        $profitRow = $profit->data()['row'];
+        self::assertSame(300000, $profitRow['cash_in_rupiah']);
+        self::assertSame(100000, $profitRow['refunded_rupiah']);
+        self::assertSame(180000, $profitRow['store_stock_cogs_rupiah']);
+        self::assertSame(20000, $profitRow['cash_operational_profit_rupiah']);
     }
 
     public function test_product_replacement_price_floor_rejection_rolls_back_without_issuing_inventory(): void
