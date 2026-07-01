@@ -258,6 +258,61 @@ final class CashierProductReplacementBackdatedPriceFinanceFeatureTest extends Te
                 ->where('id', 'payment-1')
                 ->value('amount_rupiah')
         );
+
+        $this->assertDatabaseHas('note_revisions', [
+            'note_root_id' => 'note-1',
+            'revision_number' => 2,
+        ]);
+
+        $this->assertDatabaseHas('work_items', [
+            'id' => 'wi-old-1',
+            'note_id' => 'note-1',
+            'subtotal_rupiah' => 300000,
+        ]);
+
+        $this->assertSame(
+            1,
+            DB::table('refund_component_allocations')
+                ->where('note_id', 'note-1')
+                ->where('work_item_id', 'wi-old-1')
+                ->count(),
+            'Refund shadow history must stay anchored to the old work item.'
+        );
+
+        $newWorkItemIds = DB::table('work_items')
+            ->where('note_id', 'note-1')
+            ->where('id', '!=', 'wi-old-1')
+            ->pluck('id')
+            ->map(static fn ($id): string => (string) $id)
+            ->all();
+
+        self::assertCount(1, $newWorkItemIds, 'Revision must create one new current work item.');
+        $newWorkItemId = $newWorkItemIds[0];
+
+        $this->assertDatabaseHas('work_item_store_stock_lines', [
+            'work_item_id' => $newWorkItemId,
+            'product_id' => 'product-1',
+            'qty' => 3,
+            'line_total_rupiah' => 300000,
+        ]);
+
+        $this->assertSame(
+            0,
+            (int) DB::table('payment_component_allocations')
+                ->where('note_id', 'note-1')
+                ->where('work_item_id', 'wi-old-1')
+                ->sum('allocated_amount_rupiah'),
+            'Refund shadow old line must not keep active payment allocation after replacement.'
+        );
+
+        $this->assertSame(
+            200000,
+            (int) DB::table('payment_component_allocations')
+                ->where('note_id', 'note-1')
+                ->where('work_item_id', $newWorkItemId)
+                ->sum('allocated_amount_rupiah'),
+            'Replacement current line must receive only net available payment after refund.'
+        );
     }
 
     public function test_product_replacement_price_floor_rejection_rolls_back_without_issuing_inventory(): void
