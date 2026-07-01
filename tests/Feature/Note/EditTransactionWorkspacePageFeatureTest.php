@@ -342,6 +342,8 @@ final class EditTransactionWorkspacePageFeatureTest extends TestCase
         $response->assertSee('id="workspace-payment-modal"', false);
         $response->assertSee('data-backend-payable-rupiah="60000"', false);
         $response->assertSee('data-backend-payment-basis="backend_outstanding_settlement"', false);
+        $response->assertSee('Bayar Penuh memakai sisa tagihan dari sistem.');
+        $response->assertSee('Transfer mencatat nominal itu; tunai membuka kalkulator kembalian.');
     }
 
 }
