@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Reporting\Exports;
 
-use App\Support\ViewDateFormatter;
+use App\Support\ReportPeriodDateLabelFormatter;
+
 use Carbon\CarbonImmutable;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
