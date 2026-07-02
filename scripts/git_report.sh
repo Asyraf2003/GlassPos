@@ -109,10 +109,16 @@ else
 fi
 
 header "12. FINAL CLASS USAGE"
-total=$(find app -type f -name '*.php' 2>/dev/null | xargs grep -l "^class\|^final class\|^abstract class" 2>/dev/null | wc -l || echo 0)
-final=$(find app -type f -name '*.php' 2>/dev/null | xargs grep -l "^final class" 2>/dev/null | wc -l || echo 0)
-abstract=$(find app -type f -name '*.php' 2>/dev/null | xargs grep -l "^abstract class" 2>/dev/null | wc -l || echo 0)
-iface=$(find app -type f -name '*.php' 2>/dev/null | xargs grep -l "^interface" 2>/dev/null | wc -l || echo 0)
+count_app_php_matching() {
+    local pattern="$1"
+
+    (find app -type f -name '*.php' -exec grep -lE "$pattern" {} + 2>/dev/null || true) | wc -l | tr -d '[:space:]'
+}
+
+total=$(count_app_php_matching '^(final[[:space:]]+|abstract[[:space:]]+)?class[[:space:]]')
+final=$(count_app_php_matching '^final[[:space:]]+class[[:space:]]')
+abstract=$(count_app_php_matching '^abstract[[:space:]]+class[[:space:]]')
+iface=$(count_app_php_matching '^interface[[:space:]]')
 echo "  final class    : $final"
 echo "  abstract class : $abstract"
 echo "  interface      : $iface"
