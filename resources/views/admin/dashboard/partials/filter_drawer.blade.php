@@ -99,5 +99,5 @@
 </div>
 
 @push('scripts')
-    <script src="{{ asset('assets/static/js/shared/admin-report-period-filter.js') }}?v={{ config('app.asset_version') }}" defer></script>
+    <script src="{{ asset('assets/static/js/shared/admin-report-period-filter.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

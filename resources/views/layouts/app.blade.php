@@ -77,10 +77,10 @@
         </main>
     </div>
 
-    <script src="{{ asset('assets/static/js/components/dark.js') }}?v={{ config('app.asset_version') }}" defer></script>
-    <script src="{{ asset('assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js') }}?v={{ config('app.asset_version') }}" defer></script>
-    <script src="{{ asset('assets/compiled/js/app.js') }}?v={{ config('app.asset_version') }}" defer></script>
-    <script src="{{ asset('assets/static/js/shared/page-freshness.js') }}?v={{ config('app.asset_version') }}" defer></script>
+    <script src="{{ asset('assets/static/js/components/dark.js') }}?v={{ config('app.asset_version') }}"></script>
+    <script src="{{ asset('assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js') }}?v={{ config('app.asset_version') }}"></script>
+    <script src="{{ asset('assets/compiled/js/app.js') }}?v={{ config('app.asset_version') }}"></script>
+    <script src="{{ asset('assets/static/js/shared/page-freshness.js') }}?v={{ config('app.asset_version') }}"></script>
     <script
         id="push-notification-config"
         type="application/json"
@@ -92,8 +92,8 @@
         data-default-icon="{{ asset('assets/compiled/svg/favicon.svg') }}"
         data-default-url="{{ route('admin.notes.index') }}"
     ></script>
-    <script src="{{ asset('assets/static/js/shared/push-notifications.js') }}?v={{ config('app.asset_version') }}" defer></script>
+    <script src="{{ asset('assets/static/js/shared/push-notifications.js') }}?v={{ config('app.asset_version') }}"></script>
     @stack('scripts')
-    <script src="{{ asset('assets/static/js/layout-smart-back.js') }}?v={{ config('app.asset_version') }}" defer></script>
+    <script src="{{ asset('assets/static/js/layout-smart-back.js') }}?v={{ config('app.asset_version') }}"></script>
 </body>
 </html>
