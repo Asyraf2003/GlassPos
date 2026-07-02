@@ -80,7 +80,7 @@ final class OperationalProfitReportExcelExportFeatureTest extends TestCase
 
         $this->assertNotNull($summary);
         $this->assertSame('Ringkasan Kas Operasional', $summary->getCell('A1')->getValue());
-        $this->assertSame('01 Januari 2030 s/d 31 Januari 2030', $summary->getCell('B2')->getValue());
+        $this->assertSame('Januari 2030', $summary->getCell('B2')->getValue());
         $this->assertSame('Tanggal kejadian komponen kas dan biaya', $summary->getCell('B3')->getValue());
         $this->assertSame(200000, $summary->getCell('B6')->getValue());
         $this->assertSame(10000, $summary->getCell('B7')->getValue());

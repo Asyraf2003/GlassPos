@@ -153,8 +153,8 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
                 && $detail->getCell('E' . $row)->getValue() === $eventType
                 && $detail->getCell('F' . $row)->getValue() === $direction
                 && $detail->getCell('H' . $row)->getValue() === $amountRupiah
-                && $detail->getCell('K' . $row)->getValue() === $sourceTable
-                && $detail->getCell('L' . $row)->getValue() === $sourceId
+                && $detail->getCell('N' . $row)->getValue() === $sourceTable
+                && $detail->getCell('O' . $row)->getValue() === $sourceId
             ) {
                 $this->addToAssertionCount(1);
 

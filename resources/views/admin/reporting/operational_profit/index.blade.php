@@ -10,6 +10,7 @@
     'action' => route('admin.reports.operational_profit.index'),
     'resetUrl' => route('admin.reports.operational_profit.index'),
     'basisDateLabel' => 'Tanggal kejadian komponen kas dan biaya',
+    'useReportPeriodContext' => true,
     'exportActions' => [
         [
             'label' => 'Unduh Excel',

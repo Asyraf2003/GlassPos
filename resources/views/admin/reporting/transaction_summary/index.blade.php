@@ -10,6 +10,7 @@
     'action' => route('admin.reports.transaction_summary.index'),
     'resetUrl' => route('admin.reports.transaction_summary.index'),
     'basisDateLabel' => 'Tanggal transaksi nota',
+    'useReportPeriodContext' => true,
     'exportActions' => [
         [
             'label' => 'Unduh Excel',

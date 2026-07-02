@@ -101,7 +101,7 @@ final class InventoryStockValueReportPageFeatureTest extends TestCase
         $response->assertSee('Rincian Ringkas');
         $response->assertSee('Total Stok Tersedia');
         $response->assertSee('Nilai Modal Stok');
-        $response->assertSee('Selisih Qty');
+        $response->assertSee('Perubahan Stok Bersih');
         $response->assertSee('Rp 211.000');
         $response->assertDontSee('Supra');
         $response->assertDontSee('Vario');

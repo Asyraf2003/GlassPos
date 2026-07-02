@@ -113,10 +113,10 @@ final class InventoryStockValueReportPageSummaryVisibilityFeatureTest extends Te
                 && ($summary['period_net_cost_delta_rupiah'] ?? null) === 18000;
         });
 
-        $response->assertSeeText('Produk Snapshot');
-        $response->assertSeeText('Produk Bermutasi');
-        $response->assertSeeText('Qty Masuk Pembelian');
-        $response->assertSeeText('Selisih Nilai Pokok Periode');
+        $response->assertSeeText('Produk Tercatat di Stok');
+        $response->assertSeeText('Produk Bergerak');
+        $response->assertSeeText('Barang Masuk dari Supplier');
+        $response->assertSeeText('Perubahan Modal Stok Bersih');
         $response->assertSeeText('Rp 5.000');
         $response->assertSeeText('Rp 18.000');
     }

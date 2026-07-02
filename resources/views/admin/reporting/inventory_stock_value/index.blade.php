@@ -10,6 +10,7 @@
     'action' => route('admin.reports.inventory_stock_value.index'),
     'resetUrl' => route('admin.reports.inventory_stock_value.index'),
     'basisDateLabel' => 'Tanggal mutasi movement',
+    'useReportPeriodContext' => true,
     'supportsCustomRange' => true,
     'exportActions' => [
         [

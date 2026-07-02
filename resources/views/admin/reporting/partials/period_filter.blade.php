@@ -26,8 +26,20 @@
                             </div>
 
                             <div>
-                                <div class="text-muted small">{{ \App\Support\ReportPeriodDateLabelFormatter::label($filters['date_from'] ?? null, $filters['date_to'] ?? null) }}</div>
-                                <div class="fw-semibold">{{ \App\Support\ReportPeriodDateLabelFormatter::value($filters['date_from'] ?? null, $filters['date_to'] ?? null) }}</div>
+                                <div class="text-muted small">
+                                    @if ($useReportPeriodContext ?? false)
+                                        {{ \App\Support\ReportPeriodDateLabelFormatter::label($filters['date_from'] ?? null, $filters['date_to'] ?? null) }}
+                                    @else
+                                        {{ $rangeLabelText ?? 'Rentang Aktif' }}
+                                    @endif
+                                </div>
+                                <div class="fw-semibold">
+                                    @if ($useReportPeriodContext ?? false)
+                                        {{ \App\Support\ReportPeriodDateLabelFormatter::value($filters['date_from'] ?? null, $filters['date_to'] ?? null) }}
+                                    @else
+                                        {{ \App\Support\ViewDateFormatter::range($filters['date_from'] ?? null, $filters['date_to'] ?? null) }}
+                                    @endif
+                                </div>
                             </div>
                         </div>
 
