@@ -25,6 +25,7 @@ final class StoreSupplierInvoiceController extends Controller
             $this->resolveAutoReceive($data),
             $this->resolveTanggalTerima($data),
             taxInput: $this->resolveTaxInput($data),
+            taxRoundingResidueConfirmed: $this->resolveTaxRoundingResidueConfirmed($data),
         );
 
         if ($result->isFailure()) {
@@ -39,6 +40,14 @@ final class StoreSupplierInvoiceController extends Controller
             ->route('admin.procurement.supplier-invoices.index')
             ->with('success', $result->message() ?? 'Nota supplier berhasil dibuat.')
             ->with('clear_procurement_create_draft', true);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function resolveTaxRoundingResidueConfirmed(array $data): bool
+    {
+        return (bool) ($data['tax_rounding_residue_confirmed'] ?? false);
     }
 
     /**
