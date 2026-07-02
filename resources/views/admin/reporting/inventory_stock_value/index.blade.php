@@ -9,7 +9,6 @@
     'formId' => 'inventory-stock-value-report-filter-form',
     'action' => route('admin.reports.inventory_stock_value.index'),
     'resetUrl' => route('admin.reports.inventory_stock_value.index'),
-    'rangeLabelText' => 'Rentang movement aktif',
     'basisDateLabel' => 'Tanggal mutasi movement',
     'supportsCustomRange' => true,
     'exportActions' => [

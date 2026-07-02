@@ -6,8 +6,6 @@ namespace App\Application\Reporting\Exports;
 
 use App\Support\ViewDateFormatter;
 use App\Ports\Out\ClockPort;
-use Carbon\CarbonImmutable;
-use Throwable;
 
 final class OperationalProfitReportPdfViewDataBuilder
 {
@@ -49,23 +47,7 @@ final class OperationalProfitReportPdfViewDataBuilder
         ];
     }
 
-    private function formatRange(string $from, string $to): string
-    {
-        return $this->formatDate($from).' s/d '.$this->formatDate($to);
-    }
 
-    private function formatDate(string $value): string
-    {
-        if ($value === '') {
-            return '-';
-        }
-
-        try {
-            return CarbonImmutable::parse($value)->format('d/m/Y');
-        } catch (Throwable) {
-            return $value;
-        }
-    }
 
     private function rupiah(mixed $value): string
     {
@@ -77,8 +59,5 @@ final class OperationalProfitReportPdfViewDataBuilder
         return is_numeric($value) ? (int) $value : 0;
     }
 
-    private function stringValue(mixed $value): string
-    {
-        return is_string($value) ? $value : '';
-    }
+
 }

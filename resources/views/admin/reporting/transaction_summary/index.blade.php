@@ -9,7 +9,6 @@
     'formId' => 'transaction-report-filter-form',
     'action' => route('admin.reports.transaction_summary.index'),
     'resetUrl' => route('admin.reports.transaction_summary.index'),
-    'rangeLabelText' => 'Rentang transaksi aktif',
     'basisDateLabel' => 'Tanggal transaksi nota',
     'exportActions' => [
         [

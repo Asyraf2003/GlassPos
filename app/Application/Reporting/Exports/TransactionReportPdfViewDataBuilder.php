@@ -69,10 +69,6 @@ final class TransactionReportPdfViewDataBuilder
         ];
     }
 
-    private function formatRange(string $from, string $to): string
-    {
-        return $this->formatDate($from).' s/d '.$this->formatDate($to);
-    }
 
     private function formatDate(string $value): string
     {

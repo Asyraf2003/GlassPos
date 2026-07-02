@@ -64,10 +64,6 @@ final class InventoryStockValueReportExcelSummarySheetWriter
         return is_numeric($value) ? (int) $value : 0;
     }
 
-    private function formatRange(mixed $from, mixed $to): string
-    {
-        return $this->formatDate($from).' s/d '.$this->formatDate($to);
-    }
 
     private function formatDate(mixed $value): string
     {
