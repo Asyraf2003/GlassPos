@@ -52,7 +52,7 @@ final class CreateTransactionMonthPeak500MPayloadFactory
     {
         return [
             '_actor_id' => $this->actorId,
-            'idempotency_key' => sprintf('seed-create-transaction-month-peak-500m-%04d', $seq),
+            'idempotency_key' => CreateOnlyTransactionSeedIdentity::key('month-peak-500m', $seq),
             'note' => [
                 'customer_name' => sprintf('Seed Customer Peak 500M %03d', $seq),
                 'customer_phone' => '080000000000',
