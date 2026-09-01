@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Core\Note\Note;
+namespace Tests\Unit\Core\Note;
 
 use App\Core\Note\Note\Note;
 use App\Core\Note\WorkItem\ExternalPurchaseLine;
