@@ -51,7 +51,7 @@ final class CreateTransactionMonthNormal100MPayloadFactory
     {
         return [
             '_actor_id' => $this->actorId,
-            'idempotency_key' => sprintf('seed-create-transaction-month-normal-100m-%04d', $seq),
+            'idempotency_key' => CreateOnlyTransactionSeedIdentity::key('month-normal-100m', $seq),
             'note' => [
                 'customer_name' => sprintf('Seed Customer 100M Bulanan %03d', $seq),
                 'customer_phone' => '080000000000',
