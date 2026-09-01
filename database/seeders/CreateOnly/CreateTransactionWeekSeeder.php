@@ -22,7 +22,12 @@ final class CreateTransactionWeekSeeder extends CreateOnlySeeder
         $context = new CreateOnlyTransactionSeedContext();
         $payloads = (new CreateTransactionWeekPayloadFactory(
             $context->cashierActorId(),
-            $context->products(limit: 6, minimumProducts: 4),
+            $context->products(
+                profile: 'week',
+                limit: 6,
+                minimumProducts: 4,
+                minimumAvailableQuantity: 20,
+            ),
         ))->payloads();
 
         $created = 0;
