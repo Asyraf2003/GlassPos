@@ -22,7 +22,11 @@ final class CreateTransactionMonthPeak500MSeeder extends CreateOnlySeeder
         $context = new CreateOnlyTransactionSeedContext();
         $payloads = (new CreateTransactionMonthPeak500MPayloadFactory(
             $context->cashierActorId(),
-            $context->products(limit: 80, minimumProducts: 24),
+            $context->products(
+                profile: 'month-peak-500m',
+                limit: 80,
+                minimumProducts: 24,
+            ),
         ))->payloads();
 
         $created = 0;
