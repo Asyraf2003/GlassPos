@@ -61,7 +61,7 @@ final class CreateTransactionMonthStress10BPayloadFactory
     {
         return [
             '_actor_id' => $this->actorId,
-            'idempotency_key' => sprintf('seed-create-transaction-month-stress-10b-%04d', $seq),
+            'idempotency_key' => CreateOnlyTransactionSeedIdentity::key('month-stress-10b', $seq),
             'note' => [
                 'customer_name' => sprintf('Seed Customer Stress 10B %04d', $seq),
                 'customer_phone' => '080000000000',
