@@ -22,7 +22,6 @@ Minimum local requirements:
 
 - PHP 8.2 or newer
 - Composer
-- Node.js and npm
 - MySQL or compatible local database
 - Git
 - `make`
@@ -51,8 +50,9 @@ cd hyperpos
 
 ```bash
 composer install
-npm install
 ```
+
+The current frontend runtime uses committed assets under `public/assets/compiled` and `public/assets/static`. No Node.js, npm, or Vite build step is required to run the application.
 
 ## Environment
 
@@ -134,23 +134,13 @@ These credentials are for local/testing only. Do not use them in production.
 
 ## Run the Application
 
-For backend only:
+Start the Laravel application:
 
 ```bash
 php artisan serve
 ```
 
-For frontend assets:
-
-```bash
-npm run dev
-```
-
-Or build production-like assets:
-
-```bash
-npm run build
-```
+Frontend CSS and JavaScript are served directly from the committed files under `public/assets/compiled` and `public/assets/static`; there is no separate frontend development server or production asset build step in the current architecture.
 
 Then open:
 
