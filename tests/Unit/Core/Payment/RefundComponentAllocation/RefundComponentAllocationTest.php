@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Tests\Unit\Core\Payment\RefundComponentAllocation;
+
 use App\Core\Payment\PaymentComponentAllocation\PaymentComponentType;
 use App\Core\Payment\RefundComponentAllocation\RefundComponentAllocation;
 use App\Core\Shared\Exceptions\DomainException;
