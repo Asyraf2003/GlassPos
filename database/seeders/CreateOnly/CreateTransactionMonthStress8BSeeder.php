@@ -23,10 +23,11 @@ final class CreateTransactionMonthStress8BSeeder extends CreateOnlySeeder
         $payloads = (new CreateTransactionMonthStress8BPayloadFactory(
             $context->cashierActorId(),
             $context->products(
+                profile: 'month-stress-8b',
                 limit: 200,
                 minimumProducts: 40,
-                minimumOpeningCapacity: 3000,
-                openingQuantityDesc: true,
+                minimumCapacity: 3000,
+                quantityDesc: true,
             ),
         ))->payloads();
 
