@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Tests\Unit\Core\Note\Mutation;
+
 use App\Core\Note\Mutation\NoteMutationSnapshot;
 use App\Core\Shared\Exceptions\DomainException;
 use PHPUnit\Framework\TestCase;
