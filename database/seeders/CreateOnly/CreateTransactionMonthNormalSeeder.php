@@ -22,7 +22,12 @@ final class CreateTransactionMonthNormalSeeder extends CreateOnlySeeder
         $context = new CreateOnlyTransactionSeedContext();
         $payloads = (new CreateTransactionMonthNormalPayloadFactory(
             $context->cashierActorId(),
-            $context->products(limit: 8, minimumProducts: 4),
+            $context->products(
+                profile: 'month-normal',
+                limit: 8,
+                minimumProducts: 4,
+                minimumAvailableQuantity: 20,
+            ),
         ))->payloads();
 
         $created = 0;
