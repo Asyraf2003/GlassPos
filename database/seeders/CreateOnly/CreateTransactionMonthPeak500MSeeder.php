@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Database\Seeders\CreateOnly;
 
 use App\Application\Note\UseCases\CreateTransactionWorkspaceHandler;
-use App\Core\IdentityAccess\Role\Role;
 use Database\Seeders\CreateOnly\Support\CreateOnlySeeder;
+use Database\Seeders\CreateOnly\Support\CreateOnlyTransactionSeedContext;
 use Database\Seeders\CreateOnly\Support\CreateTransactionMonthPeak500MPayloadFactory;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -19,9 +19,10 @@ final class CreateTransactionMonthPeak500MSeeder extends CreateOnlySeeder
 
         /** @var CreateTransactionWorkspaceHandler $handler */
         $handler = app(CreateTransactionWorkspaceHandler::class);
+        $context = new CreateOnlyTransactionSeedContext();
         $payloads = (new CreateTransactionMonthPeak500MPayloadFactory(
-            $this->resolveActorId(),
-            $this->storeStockProducts(),
+            $context->cashierActorId(),
+            $context->products(limit: 80, minimumProducts: 24),
         ))->payloads();
 
         $created = 0;
@@ -48,41 +49,5 @@ final class CreateTransactionMonthPeak500MSeeder extends CreateOnlySeeder
             $created,
             $replayed,
         ));
-    }
-
-    private function resolveActorId(): string
-    {
-        $actorId = DB::table('actor_accesses')
-            ->whereIn('role', [Role::KASIR, Role::ADMIN])
-            ->orderByRaw("CASE WHEN role = ? THEN 0 ELSE 1 END", [Role::KASIR])
-            ->orderBy('actor_id')
-            ->value('actor_id');
-
-        if (! is_string($actorId) || trim($actorId) === '') {
-            throw new RuntimeException('CreateTransactionMonthPeak500MSeeder requires cashier/admin actor access.');
-        }
-
-        return trim($actorId);
-    }
-
-    /** @return list<object{id:string,harga_jual:int}> */
-    private function storeStockProducts(): array
-    {
-        $rows = DB::table('products')
-            ->join('product_inventory', 'product_inventory.product_id', '=', 'products.id')
-            ->join('product_inventory_costing', 'product_inventory_costing.product_id', '=', 'products.id')
-            ->where('products.harga_jual', '>', 0)
-            ->orderBy('products.id')
-            ->limit(80)
-            ->get(['products.id', 'products.harga_jual'])
-            ->map(static fn (object $row): object => (object) ['id' => (string) $row->id, 'harga_jual' => (int) $row->harga_jual])
-            ->values()
-            ->all();
-
-        if (count($rows) < 24) {
-            throw new RuntimeException('CreateTransactionMonthPeak500MSeeder requires at least 24 products with inventory and costing rows.');
-        }
-
-        return $rows;
     }
 }
