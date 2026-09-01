@@ -47,16 +47,21 @@ final class TransactionSeederIdempotencyFeatureTest extends TestCase
         $this->assertSame($firstHashes, $this->idempotencyHashes('seed-create-transaction-week-v2-2026-09-%'));
     }
 
-    public function test_month_normal_transaction_seed_replays_without_product_pool_drift(): void
+    public function test_month_normal_transaction_seed_replays_after_weekly_prerequisite_without_product_pool_drift(): void
     {
         CarbonImmutable::setTestNow('2026-09-01 08:00:00');
         $this->seedTransactionDependencies();
+
+        $this->seed(CreateTransactionWeekSeeder::class);
+        $stockAfterWeekly = $this->stockSnapshot();
+        $this->assertSame(19, $stockAfterWeekly['prod-basic-001'] ?? null);
 
         $this->seed(CreateTransactionMonthNormalSeeder::class);
 
         $firstStock = $this->stockSnapshot();
         $firstHashes = $this->idempotencyHashes('seed-create-transaction-month-normal-v2-2026-09-%');
 
+        $this->assertSame(6, $this->weeklyNoteCount());
         $this->assertSame(28, $this->monthlyNormalNoteCount());
         $this->assertCount(28, $firstHashes);
 
