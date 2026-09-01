@@ -36,33 +36,53 @@ final class CreateOnlyTransactionSeedContext
     }
 
     /**
-     * Return a stable product pool based on deterministic opening-stock seed rows.
-     * The exposed qty_on_hand is the opening quantity, not mutable current stock,
-     * so replay payload identity cannot drift after stock-out mutations.
+     * Reconstruct the product snapshot that existed immediately before a seed
+     * profile started. Current stock is adjusted only by the net stock movement
+     * already produced by that same profile, so reruns rebuild the exact same
+     * payload pool while still respecting prerequisite-profile consumption.
      *
      * @return list<object{id:string,harga_jual:int,qty_on_hand:int}>
      */
     public function products(
+        string $profile,
         int $limit,
         int $minimumProducts,
-        int $minimumOpeningCapacity = 0,
-        bool $openingQuantityDesc = false,
+        int $minimumAvailableQuantity = 1,
+        int $minimumCapacity = 0,
+        bool $quantityDesc = false,
     ): array {
-        $query = DB::table('products')
-            ->join('inventory_movements as opening', static function (JoinClause $join): void {
-                $join->on('opening.product_id', '=', 'products.id')
-                    ->where('opening.source_type', '=', 'opening_stock_seed')
-                    ->where('opening.movement_type', '=', 'stock_in');
+        $ownNetMovements = DB::table('idempotency_records as idem')
+            ->join('work_items as work_item', 'work_item.note_id', '=', 'idem.result_note_id')
+            ->join('work_item_store_stock_lines as stock_line', 'stock_line.work_item_id', '=', 'work_item.id')
+            ->join('inventory_movements as movement', static function (JoinClause $join): void {
+                $join->on('movement.source_id', '=', 'stock_line.id')
+                    ->whereIn('movement.source_type', [
+                        'work_item_store_stock_line',
+                        'work_item_store_stock_line_reversal',
+                    ]);
             })
+            ->where('idem.operation', 'create_transaction_workspace')
+            ->where('idem.status', 'succeeded')
+            ->where('idem.idempotency_key', 'like', CreateOnlyTransactionSeedIdentity::prefix($profile).'-%')
+            ->groupBy('stock_line.product_id')
+            ->select('stock_line.product_id')
+            ->selectRaw('COALESCE(SUM(movement.qty_delta), 0) as own_net_qty_delta');
+
+        $availableSql = '(product_inventory.qty_on_hand - COALESCE(own_seed_movement.own_net_qty_delta, 0))';
+
+        $query = DB::table('products')
             ->join('product_inventory', 'product_inventory.product_id', '=', 'products.id')
             ->join('product_inventory_costing', 'product_inventory_costing.product_id', '=', 'products.id')
+            ->leftJoinSub($ownNetMovements, 'own_seed_movement', static function (JoinClause $join): void {
+                $join->on('own_seed_movement.product_id', '=', 'products.id');
+            })
             ->whereNull('products.deleted_at')
             ->where('products.harga_jual', '>', 0)
-            ->where('opening.qty_delta', '>', 0)
-            ->where('product_inventory_costing.avg_cost_rupiah', '>', 0);
+            ->where('product_inventory_costing.avg_cost_rupiah', '>', 0)
+            ->whereRaw($availableSql.' >= ?', [$minimumAvailableQuantity]);
 
-        if ($openingQuantityDesc) {
-            $query->orderByDesc('opening.qty_delta');
+        if ($quantityDesc) {
+            $query->orderByRaw($availableSql.' DESC');
         }
 
         $rows = $query
@@ -71,33 +91,36 @@ final class CreateOnlyTransactionSeedContext
             ->get([
                 'products.id',
                 'products.harga_jual',
-                'opening.qty_delta as opening_qty',
+                DB::raw($availableSql.' as seed_available_qty'),
             ])
             ->map(static fn (object $row): object => (object) [
                 'id' => (string) $row->id,
                 'harga_jual' => (int) $row->harga_jual,
-                'qty_on_hand' => (int) $row->opening_qty,
+                'qty_on_hand' => (int) $row->seed_available_qty,
             ])
             ->values()
             ->all();
 
         if (count($rows) < $minimumProducts) {
             throw new RuntimeException(sprintf(
-                'Transaction seed requires at least %d deterministic opening-stock products.',
+                'Transaction seed profile %s requires at least %d stable products; found %d.',
+                $profile,
                 $minimumProducts,
+                count($rows),
             ));
         }
 
-        $openingCapacity = array_sum(array_map(
+        $capacity = array_sum(array_map(
             static fn (object $row): int => $row->qty_on_hand,
             $rows,
         ));
 
-        if ($openingCapacity < $minimumOpeningCapacity) {
+        if ($capacity < $minimumCapacity) {
             throw new RuntimeException(sprintf(
-                'Transaction seed requires at least %d opening store-stock units; found %d.',
-                $minimumOpeningCapacity,
-                $openingCapacity,
+                'Transaction seed profile %s requires at least %d store-stock units; found %d.',
+                $profile,
+                $minimumCapacity,
+                $capacity,
             ));
         }
 
