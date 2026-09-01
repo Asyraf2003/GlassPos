@@ -8,6 +8,11 @@ use Carbon\CarbonImmutable;
 
 final class CreateOnlySeedCalendar
 {
+    public static function currentMonthPeriod(): string
+    {
+        return CarbonImmutable::now()->format('Y-m');
+    }
+
     public static function currentMonthDate(int $day): string
     {
         return self::dateInMonth(CarbonImmutable::now()->startOfMonth(), $day);
