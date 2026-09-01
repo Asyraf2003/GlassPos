@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Tests\Unit\Core\Payment\PaymentComponentAllocation;
+
 use App\Core\Payment\PaymentComponentAllocation\PaymentComponentType;
 use App\Core\Shared\Exceptions\DomainException;
 use PHPUnit\Framework\TestCase;
