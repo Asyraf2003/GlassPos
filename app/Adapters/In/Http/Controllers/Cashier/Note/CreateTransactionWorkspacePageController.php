@@ -41,11 +41,11 @@ final class CreateTransactionWorkspacePageController extends Controller
         $itemsFromDraft = is_array($draftPayload['items'] ?? null) ? array_values($draftPayload['items']) : [];
         $inlinePaymentFromDraft = is_array($draftPayload['inline_payment'] ?? null) ? $draftPayload['inline_payment'] : [];
 
-        $resolvedNote = is_array($oldNote) ? $oldNote : array_filter([
+        $resolvedNote = is_array($oldNote) ? $oldNote : [
             'customer_name' => $noteFromDraft['customer_name'] ?? $defaultCustomerName,
             'customer_phone' => $noteFromDraft['customer_phone'] ?? '',
             'transaction_date' => $noteFromDraft['transaction_date'] ?? date('Y-m-d'),
-        ], static fn ($value) => $value !== null);
+        ];
 
         $resolvedItems = is_array($oldItems) ? array_values($oldItems) : $itemsFromDraft;
 

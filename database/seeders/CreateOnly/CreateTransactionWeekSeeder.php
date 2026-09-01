@@ -305,24 +305,21 @@ final class CreateTransactionWeekSeeder extends CreateOnlySeeder
 
         return [
             '_actor_id' => $actorId,
-            'idempotency_key' => 'seed-create-transaction-week-0006',
+            'idempotency_key' => 'seed-create-transaction-week-0006-v2',
             'note' => $this->note('Seed Customer Mingguan 006', $day, 'Seed nota service external full cash.'),
             'items' => [[
                 'entry_mode' => 'service',
                 'part_source' => 'none',
-                'pricing_mode' => 'package_auto_split',
-                'package_total_rupiah' => $total,
                 'service' => [
-                    'name' => 'Servis external paket seed',
-                    'price_rupiah' => 0,
+                    'name' => 'Servis external seed',
+                    'price_rupiah' => 175000,
                     'notes' => '',
                 ],
                 'product_lines' => [$this->blankProductLine()],
                 'external_purchase_lines' => [[
                     'label' => 'Pembelian luar seed',
-                    'qty' => '',
-                    'unit_cost_rupiah' => '',
-                    'total_rupiah' => 100000,
+                    'qty' => 1,
+                    'unit_cost_rupiah' => 100000,
                 ]],
             ]],
             'inline_payment' => [

@@ -112,12 +112,12 @@ final class PaymentRefundConcurrencyCharacterizationFeatureTest extends TestCase
 
         self::assertTrue(
             (bool) ($results['payment']['success'] ?? false),
-            'Concurrent payment worker should succeed. Worker payload: ' . json_encode($results['payment'] ?? null, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)
+            'Concurrent payment worker should succeed. Worker payload: ' . json_encode($results['payment'], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)
         );
 
         self::assertTrue(
             (bool) ($results['refund']['success'] ?? false),
-            'Concurrent refund worker should succeed. Worker payload: ' . json_encode($results['refund'] ?? null, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)
+            'Concurrent refund worker should succeed. Worker payload: ' . json_encode($results['refund'], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)
         );
 
         $allocatedTotal = (int) DB::table('payment_component_allocations')
