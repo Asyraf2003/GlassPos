@@ -50,7 +50,7 @@ final class CreateTransactionMonthNormalPayloadFactory
     {
         return [
             '_actor_id' => $this->actorId,
-            'idempotency_key' => sprintf('seed-create-transaction-month-normal-%04d', $seq),
+            'idempotency_key' => CreateOnlyTransactionSeedIdentity::key('month-normal', $seq),
             'note' => ['customer_name' => sprintf('Seed Customer Bulanan %03d', $seq), 'customer_phone' => '080000000000', 'transaction_date' => CreateOnlySeedCalendar::currentMonthDate($seq), 'operational_note' => $note],
             'items' => [$item],
             'inline_payment' => $paidAmount === null ? $this->skip($seq) : $this->paid($seq, $paidAmount),
