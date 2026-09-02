@@ -21,6 +21,7 @@ Homestead.yaml
 Thumbs.db
 
 /tmp
+/deploy-package
 
 # Local/private DB schema parity proof artifacts
 /docs/04_lifecycle/db_schema_parity/
