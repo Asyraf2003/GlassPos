@@ -2,6 +2,23 @@ include mk/push.mk
 include mk/hexagonal.mk
 include mk/audit.mk
 
+APP_NAME ?= glasspos-cpanel
+APP_DIR_NAME ?= glasspos
+PUBLIC_DIR_NAME ?= public_html
+DEPLOY_DIR ?= deploy-package
+SITE_URL ?= https://arbiconbengkel.my.id
+ENV_FILE ?= .env.production
+
+.PHONY: deploy
+deploy:
+	@APP_NAME="$(APP_NAME)" \
+	APP_DIR_NAME="$(APP_DIR_NAME)" \
+	PUBLIC_DIR_NAME="$(PUBLIC_DIR_NAME)" \
+	DEPLOY_DIR="$(DEPLOY_DIR)" \
+	SITE_URL="$(SITE_URL)" \
+	ENV_FILE="$(ENV_FILE)" \
+	bash scripts/build-cpanel-package.sh
+
 push:
 	@$(MAKE) git-push
 
@@ -13,6 +30,9 @@ pushc: push
 
 help:
 	@echo "HyperPOS available commands:"
+	@echo ""
+	@echo "  Deployment:"
+	@echo "    make deploy                         Build transferable cPanel package using local .env.production"
 	@echo ""
 	@echo "  Core verification:"
 	@echo "    make verify                         Run lint, contract audits, and full test suite"
