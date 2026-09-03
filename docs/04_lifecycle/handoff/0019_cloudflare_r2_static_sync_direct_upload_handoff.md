@@ -3,7 +3,7 @@
 ## Metadata
 - Date: 2026-09-03
 - Slice / topic: Cloudflare R2 public static offload + private supplier-payment-proof migration
-- Workflow step: private CORS preflight proven; real presigned PUT is next after header normalization regression check
+- Workflow step: private CORS preflight and normalized presign-header regression are proven; real presigned PUT is next
 - Status: active / in progress
 
 ## Goal
@@ -83,7 +83,7 @@ App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort
 App\Adapters\Out\Procurement\LaravelSupplierPaymentProofDirectUploadAdapter
 ```
 
-Operator proof before real-R2 preflight:
+Initial operator proof:
 
 ```text
 Tests: 8 passed (35 assertions)
@@ -137,9 +137,9 @@ Access-Control-Allow-Methods: PUT
 
 Meaning: the private browser CORS gate for the intended production origin, PUT method, and Content-Type request header is proven.
 
-## Presigned Header Warning Found During Real Proof
+## Presigned Header Normalization - PASS
 
-The same real presign run emitted:
+The first real presign run exposed a warning:
 
 ```text
 WARNING Array to string conversion
@@ -148,7 +148,7 @@ app/Adapters/Out/Procurement/LaravelSupplierPaymentProofDirectUploadAdapter.php 
 
 Root cause: Laravel's S3 adapter returns PSR request headers where each header value may be an array. The first implementation assumed scalar values and cast them directly to strings.
 
-Patch pushed:
+Patch:
 
 ```text
 app/Adapters/Out/Procurement/SupplierPaymentProofUploadHeaderNormalizer.php
@@ -156,25 +156,33 @@ app/Adapters/Out/Procurement/LaravelSupplierPaymentProofDirectUploadAdapter.php
 tests/Feature/Procurement/SupplierPaymentProofDirectUploadAdapterFeatureTest.php
 ```
 
-New behavior:
+Behavior:
 
 - array-valued PSR headers are normalized to browser-friendly strings;
 - browser-managed `Host` and `Content-Length` are not returned to JavaScript;
-- strict adapter regression now models real PSR header arrays.
+- strict adapter regression models real PSR header arrays.
 
-This patch is not counted as verified until the operator pulls it and reruns the strict adapter suite.
+Post-patch operator proof:
+
+```text
+Tests: 8 passed (35 assertions)
+Duration: 0.18s
+```
+
+No array-to-string warning was shown. The header-normalization regression gate is therefore closed.
 
 ## Current Migration State
 
 ```text
 public static bytes        -> R2 public          DONE
 Laravel static URLs        -> public CDN         DONE locally
-public font CORS            -> proven             DONE
-public/private privacy gate -> proven             DONE
+public font CORS           -> proven             DONE
+public/private privacy gate-> proven             DONE
 supplier proof durable I/O -> R2 private         DONE
-private direct adapter      -> strict tests       PASS before header patch
-private CORS preflight      -> real presign       PASS
-real presigned PUT bytes    -> pending
+private direct adapter     -> strict tests       PASS
+private CORS preflight     -> real presign       PASS
+presign header normalization                    PASS
+real presigned PUT bytes   -> pending            NEXT
 ```
 
 Current production upload byte path is still:
@@ -208,21 +216,25 @@ Legacy supplier-proof rows/files have not yet been inventoried/migrated. Product
 
 ## Remaining Work in Order
 
-1. Pull the presigned-header normalization patch and rerun the strict direct-upload adapter suite.
-2. Prove a real short-lived PUT of bytes to `glasspos-private`, then verify object exists/content and delete the proof object.
-3. Run browser UI/PWA/font/icon smoke for the public CDN cutover while local `public/assets` remains rollback.
-4. Add prepare/finalize use cases with actor/business-scope-bound upload intent and real-object verification.
-5. Cut both supplier-proof web flows from PHP multipart to direct browser -> R2.
-6. Inventory/migrate legacy supplier-proof DB rows/local files and prove DB/object parity.
-7. Continue audit for any other durable runtime-media families.
-8. Verify Composer manifest/lock coherence for `league/flysystem-aws-s3-v3`.
-9. Deploy to production and prove cPanel no longer owns durable media or private upload bytes.
-10. Remove obsolete local media/static copies only after rollback/parity/production proof.
+1. Prove a real short-lived PUT of bytes to `glasspos-private`, verify object exists/content, then delete the proof object.
+2. Run browser UI/PWA/font/icon smoke for the public CDN cutover while local `public/assets` remains rollback.
+3. Add prepare/finalize use cases with actor/business-scope-bound upload intent and real-object verification.
+4. Cut both supplier-proof web flows from PHP multipart to direct browser -> R2.
+5. Inventory/migrate legacy supplier-proof DB rows/local files and prove DB/object parity.
+6. Continue audit for any other durable runtime-media families.
+7. Verify Composer manifest/lock coherence for `league/flysystem-aws-s3-v3`.
+8. Deploy to production and prove cPanel no longer owns durable media or private upload bytes.
+9. Remove obsolete local media/static copies only after rollback/parity/production proof.
 
 ## Exact Next Operator Step
 
-```bash
-sai pull && php artisan test --compact tests/Feature/Procurement/SupplierPaymentProofDirectUploadAdapterFeatureTest.php
-```
+Generate a fresh presigned URL, upload dummy bytes with an external HTTP client, verify the object through `r2_private`, and delete it. Required proof:
 
-Required result: 8 tests PASS with no array-to-string warning. After that, generate a fresh presigned URL and perform the real PUT/verify/delete proof.
+```text
+PUT response: success
+Access-Control-Allow-Origin: https://arbiconbengkel.my.id
+r2_private exists: true
+content exact match: true
+delete succeeds
+r2_private exists after delete: false
+```
