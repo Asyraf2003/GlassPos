@@ -69,6 +69,10 @@ return [
             'url' => env('R2_PUBLIC_URL', 'https://media.arbiconbengkel.my.id'),
             'endpoint' => env('R2_ENDPOINT'),
             'use_path_style_endpoint' => env('R2_USE_PATH_STYLE_ENDPOINT', false),
+            'http' => [
+                'connect_timeout' => (float) env('R2_HTTP_CONNECT_TIMEOUT', 10),
+                'timeout' => (float) env('R2_HTTP_TIMEOUT', 30),
+            ],
             'throw' => false,
             'report' => false,
         ],
@@ -81,6 +85,10 @@ return [
             'bucket' => env('R2_PRIVATE_BUCKET', 'glasspos-private'),
             'endpoint' => env('R2_ENDPOINT'),
             'use_path_style_endpoint' => env('R2_USE_PATH_STYLE_ENDPOINT', false),
+            'http' => [
+                'connect_timeout' => (float) env('R2_HTTP_CONNECT_TIMEOUT', 10),
+                'timeout' => (float) env('R2_HTTP_TIMEOUT', 30),
+            ],
             'throw' => false,
             'report' => false,
         ],
@@ -92,8 +100,8 @@ return [
     | Symbolic Links
     |--------------------------------------------------------------------------
     |
-    | Here you may configure the symbolic links that will be created when the
-    | `storage:link` Artisan command is executed. The array keys should be
+    | Here you may configure the symbolic links that will be created when
+    | the `storage:link` Artisan command is executed. The array keys should be
     | the locations of the links and the values should be their targets.
     |
     */
