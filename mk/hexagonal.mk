@@ -1,4 +1,4 @@
-.PHONY: dev lint fmt test test-unit test-domain test-feature test-report test-audit test-integration test-money test-stock test-arch audit-hex migrate rollback reset-db coverage ci check verify audit-lines audit-blade audit-contract
+.PHONY: dev lint fmt test test-compact test-unit test-domain test-feature test-report test-audit test-integration test-money test-stock test-arch audit-hex migrate rollback reset-db coverage ci check verify audit-lines audit-blade audit-contract
 
 dev:
 	php artisan serve
@@ -11,6 +11,9 @@ fmt:
 
 test:
 	php -d memory_limit=-1 vendor/bin/pest
+
+test-compact:
+	php -d memory_limit=-1 artisan test --compact
 
 test-unit:
 	php artisan test tests/Unit
@@ -66,7 +69,7 @@ audit-contract: audit-lines audit-blade
 check: audit-hex test
 
 # Gerbang Verifikasi Utama (Test + Lint + Contract Audit)
-verify: lint audit-contract test
+verify: lint audit-contract test-compact
 
 # Alias untuk CI sesuai DoD 3.3
 ci: verify
