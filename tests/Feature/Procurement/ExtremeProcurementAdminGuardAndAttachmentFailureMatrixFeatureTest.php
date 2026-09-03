@@ -41,8 +41,8 @@ final class ExtremeProcurementAdminGuardAndAttachmentFailureMatrixFeatureTest ex
 
     public function test_guest_is_redirected_to_login_when_opening_supplier_payment_proof_attachment(): void
     {
-        Storage::fake('local');
-        Storage::disk('local')->put('supplier-payment-proofs/payment-1/proof.pdf', 'dummy-pdf');
+        Storage::fake('r2_private');
+        Storage::disk('r2_private')->put('supplier-payment-proofs/payment-1/proof.pdf', 'dummy-pdf');
         $this->seedPaymentFixture('payment-1', 'invoice-1', 'uploaded');
         $this->seedAttachment('attachment-1', 'payment-1', 'supplier-payment-proofs/payment-1/proof.pdf', 'proof.pdf', 'application/pdf');
 
@@ -59,7 +59,7 @@ final class ExtremeProcurementAdminGuardAndAttachmentFailureMatrixFeatureTest ex
 
     public function test_admin_gets_404_when_supplier_payment_proof_file_is_missing_from_storage(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2_private');
         $this->seedPaymentFixture('payment-1', 'invoice-1', 'uploaded');
         $this->seedAttachment('attachment-1', 'payment-1', 'supplier-payment-proofs/payment-1/missing.pdf', 'missing.pdf', 'application/pdf');
 
