@@ -53,8 +53,10 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
             ->andReturn([
                 'url' => 'https://private-r2.example.test/presigned-put',
                 'headers' => [
-                    'Content-Type' => 'application/pdf',
-                    'x-example-number' => 123,
+                    'Host' => ['private-r2.example.test'],
+                    'Content-Length' => ['2048'],
+                    'Content-Type' => ['application/pdf'],
+                    'x-example-number' => [123],
                 ],
             ]);
 
