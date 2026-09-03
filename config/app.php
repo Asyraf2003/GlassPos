@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Public Asset URL
+    |--------------------------------------------------------------------------
+    |
+    | Laravel's asset() helper uses this base for the heavy public assets tree.
+    | Root origin-sensitive files such as the manifest and service worker must
+    | use url() instead so they stay on the application origin.
+    |
+    */
+
+    'asset_url' => env('ASSET_URL', env('R2_PUBLIC_URL')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
@@ -103,8 +116,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | This key is utilized by Laravel's encryption services and should be set
-    | to a random, 32 character string to ensure that all encrypted values
-    | are secure. You should do this prior to deploying the application.
+    | to a random, 32 character string in order to properly secure data.
     |
     */
 
