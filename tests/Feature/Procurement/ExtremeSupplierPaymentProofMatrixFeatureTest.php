@@ -104,7 +104,7 @@ final class ExtremeSupplierPaymentProofMatrixFeatureTest extends TestCase
 
     public function test_admin_can_preview_inline_and_download_existing_attachment(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2_private');
         $this->storePdfFixture('supplier-payment-proofs/payment-1/proof.pdf');
         $this->storeJpegFixture('supplier-payment-proofs/payment-1/proof.jpg');
 
@@ -134,7 +134,7 @@ final class ExtremeSupplierPaymentProofMatrixFeatureTest extends TestCase
 
     private function storePdfFixture(string $path): void
     {
-        Storage::disk('local')->put(
+        Storage::disk('r2_private')->put(
             $path,
             "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF\n",
         );
@@ -147,7 +147,7 @@ final class ExtremeSupplierPaymentProofMatrixFeatureTest extends TestCase
             true,
         );
 
-        Storage::disk('local')->put($path, is_string($jpeg) ? $jpeg : '');
+        Storage::disk('r2_private')->put($path, is_string($jpeg) ? $jpeg : '');
     }
 
 }
