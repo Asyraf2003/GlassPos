@@ -109,6 +109,6 @@ trait SeedsSupplierPaymentProofMatrixFixture
 
     private function fakeStorage(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2_private');
     }
 }
