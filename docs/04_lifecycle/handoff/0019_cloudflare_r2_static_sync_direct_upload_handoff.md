@@ -49,6 +49,7 @@ The private-media file bytes must not transit cPanel/PHP in the final architectu
 - Representative CSS, JS, SVG, vendor-extension, and Bootstrap Icons font objects return HTTP 200 through `media.arbiconbengkel.my.id` with expected MIME/content length.
 - A request for the Bootstrap Icons WOFF2 object with `Origin: https://arbiconbengkel.my.id` returned HTTP 200 but no `Access-Control-Allow-Origin` header. Public static font CORS is therefore not yet ready for application cutover.
 - A tracked Wrangler CORS policy now exists at `deploy/cloudflare/glasspos-media-cors.json`; it intentionally allows public read-only GET/HEAD from any origin because the bucket is already public.
+- The first Wrangler CORS apply attempt used Cloudflare account `09449fd2f7378ddd4d4ded7831827c30` and failed with API code `10006` (`The specified bucket does not exist`). This proves Wrangler is currently targeting an account that does not contain `glasspos-media`; no bucket CORS mutation occurred.
 - Local `public/assets` must not be deleted yet.
 - Direct-to-R2 port/adapter foundation exists but production multipart controllers have intentionally not been cut over yet.
 - Strict direct-upload adapter tests are committed, but no local PASS output has yet been provided by the operator.
@@ -75,6 +76,7 @@ The private-media file bytes must not transit cPanel/PHP in the final architectu
 ## GAP
 
 - `glasspos-media` CORS policy has not yet been applied/proven against Cloudflare; current font probe lacks `Access-Control-Allow-Origin`.
+- Wrangler authentication/account selection must be aligned with the Cloudflare account that owns `glasspos-media` before retrying the CORS mutation.
 - Laravel application references still generally use local `asset('assets/...')` paths.
 - `service-worker.js` and `manifest.webmanifest` require deliberate same-origin handling before any global `ASSET_URL`-style cutover.
 - Strict direct-upload test suite has no operator PASS proof yet.
@@ -183,10 +185,20 @@ The private-media file bytes must not transit cPanel/PHP in the final architectu
     No `Access-Control-Allow-Origin` header was returned.
   - meaning: object delivery is healthy, but cross-origin font CORS is not yet enabled/proven
 
+- command:
+  ```bash
+  npx --yes wrangler@latest r2 bucket cors set glasspos-media \
+    --file deploy/cloudflare/glasspos-media-cors.json \
+    --force
+  ```
+  - result: Wrangler 4.128.0 targeted account `09449fd2f7378ddd4d4ded7831827c30` and Cloudflare returned code `10006`, `The specified bucket does not exist.`
+  - meaning: the CORS policy was not changed; Wrangler is authenticated/selected against the wrong Cloudflare account for this R2 bucket
+
 ## Risks / Follow-up Notes
 
 - `cf-cache-status: DYNAMIC` was observed. This is not a delivery failure; cache optimization should happen only after the application cutover is stable.
 - Cloudflare documents that custom-domain responses reflect R2 CORS policy for requests containing a valid `Origin`; after changing CORS, already-cached assets may need cache purge before new CORS headers appear.
+- Wrangler supports explicit `CLOUDFLARE_ACCOUNT_ID`; use the account owning the R2 endpoint/bucket rather than relying on the currently selected account.
 - A global Laravel `ASSET_URL` can accidentally move `service-worker.js` and `manifest.webmanifest` to the CDN unless those references are made explicitly same-origin first.
 - CSS uses relative `url(...)` references, including fonts. Preserving the directory tree was therefore intentional.
 - Do not run cleanup/deletion of local assets or legacy media until all application references and production behavior are proven.
@@ -194,4 +206,4 @@ The private-media file bytes must not transit cPanel/PHP in the final architectu
 
 ## Next Step
 
-Apply the tracked public CORS policy to `glasspos-media` through Wrangler, list the resulting policy, then repeat a GET request with `Origin: https://arbiconbengkel.my.id` and require `Access-Control-Allow-Origin` before Laravel asset cutover.
+Resolve the Wrangler account mismatch by comparing the account encoded in Laravel's configured R2 endpoint with Wrangler's selected account, then retry the public CORS apply only against the account that owns `glasspos-media`.
