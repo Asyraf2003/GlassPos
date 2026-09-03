@@ -13,11 +13,11 @@ final class LaravelSupplierPaymentProofDirectUploadAdapter implements SupplierPa
 {
     private const DISK = 'r2_private';
 
-    public function prepareMany(string $supplierPaymentId, array $files, int $expiresInSeconds = 900): array
+    public function prepareMany(string $uploadIntentId, array $files, int $expiresInSeconds = 900): array
     {
-        $paymentId = trim($supplierPaymentId);
+        $intentId = trim($uploadIntentId);
 
-        if ($paymentId === '' || $files === []) {
+        if ($intentId === '' || $files === []) {
             return [];
         }
 
@@ -29,18 +29,12 @@ final class LaravelSupplierPaymentProofDirectUploadAdapter implements SupplierPa
 
         try {
             foreach ($files as $file) {
+                $storagePath = trim((string) ($file['storage_path'] ?? ''));
                 $originalFilename = trim((string) ($file['original_filename'] ?? ''));
                 $mimeType = trim((string) ($file['mime_type'] ?? ''));
                 $fileSizeBytes = (int) ($file['file_size_bytes'] ?? 0);
 
-                if ($originalFilename === '' || $mimeType === '' || $fileSizeBytes < 1) {
-                    return [];
-                }
-
-                $storagePath = SupplierPaymentProofStoragePathGuard::directory($paymentId)
-                    .'/'.SupplierPaymentProofStoredFilenameFactory::make($originalFilename);
-
-                if (! SupplierPaymentProofStoragePathGuard::isValid($storagePath)) {
+                if (! $this->isValidFile($intentId, $storagePath, $originalFilename, $mimeType, $fileSizeBytes)) {
                     return [];
                 }
 
@@ -49,9 +43,7 @@ final class LaravelSupplierPaymentProofDirectUploadAdapter implements SupplierPa
                     now()->addSeconds($expiresInSeconds),
                     ['ContentType' => $mimeType],
                 );
-
                 $url = trim((string) ($upload['url'] ?? ''));
-                $headers = is_array($upload['headers'] ?? null) ? $upload['headers'] : [];
 
                 if ($url === '') {
                     return [];
@@ -63,7 +55,9 @@ final class LaravelSupplierPaymentProofDirectUploadAdapter implements SupplierPa
                     'mime_type' => $mimeType,
                     'file_size_bytes' => $fileSizeBytes,
                     'upload_url' => $url,
-                    'headers' => SupplierPaymentProofUploadHeaderNormalizer::forBrowser($headers),
+                    'headers' => SupplierPaymentProofUploadHeaderNormalizer::forBrowser(
+                        is_array($upload['headers'] ?? null) ? $upload['headers'] : [],
+                    ),
                 ];
             }
         } catch (Throwable) {
@@ -71,5 +65,18 @@ final class LaravelSupplierPaymentProofDirectUploadAdapter implements SupplierPa
         }
 
         return $prepared;
+    }
+
+    private function isValidFile(
+        string $intentId,
+        string $storagePath,
+        string $originalFilename,
+        string $mimeType,
+        int $fileSizeBytes,
+    ): bool {
+        return $originalFilename !== ''
+            && $mimeType !== ''
+            && $fileSizeBytes > 0
+            && SupplierPaymentProofUploadStagingPathGuard::belongsToIntent($intentId, $storagePath);
     }
 }
