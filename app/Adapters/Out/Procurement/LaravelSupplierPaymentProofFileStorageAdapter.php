@@ -13,7 +13,7 @@ final class LaravelSupplierPaymentProofFileStorageAdapter implements SupplierPay
 {
     public const DIRECTORY_PREFIX = SupplierPaymentProofStoragePathGuard::DIRECTORY_PREFIX;
 
-    private const DISK = 's3';
+    private const DISK = 'r2_private';
 
     public function storeMany(string $supplierPaymentId, array $files): array
     {
