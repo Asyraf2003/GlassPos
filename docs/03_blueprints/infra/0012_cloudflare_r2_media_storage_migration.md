@@ -2,13 +2,13 @@
 
 Status: In progress
 Date: 2026-09-03
-Current phase: application CDN cutover verification
+Current phase: private direct-upload verification
 
 ## Goal
 
 Move durable runtime media and the heavy public UI asset tree away from cPanel while keeping Laravel as the authorization and business control plane.
 
-The final architecture must also remove private media bytes from the cPanel/PHP multipart request path. Laravel authorizes and finalizes private uploads, while the browser sends the file bytes directly to Cloudflare R2.
+The final architecture must also remove private media bytes from the cPanel/PHP multipart request path. Laravel authorizes and finalizes private uploads, while the browser sends file bytes directly to Cloudflare R2.
 
 ## Locked target boundary
 
@@ -85,11 +85,9 @@ R2_PRIVATE_SECRET_ACCESS_KEY=...
 
 Credentials remain environment-only and must not be committed or pasted into chat.
 
-## Public static asset migration
+## Public static asset migration - PROVEN LOCALLY
 
-### Inventory
-
-`public/assets` contains:
+### Inventory and R2 parity
 
 ```text
 files:   6224
@@ -97,38 +95,9 @@ bytes:   56737036
 payload: 54.11 MB
 ```
 
-The larger `du` allocation previously observed is expected because thousands of small files consume filesystem blocks beyond their payload size.
-
-The tree contains application assets under:
-
-```text
-assets/extensions/**
-assets/compiled/**
-assets/static/**
-```
-
 The R2 copy preserves the exact `assets/**` relative tree so CSS-relative fonts/images continue to resolve naturally.
 
-### Resumable uploader - PROVEN
-
-The migration command is:
-
-```text
-php artisan r2:upload-public-assets --dry-run
-php artisan r2:upload-public-assets
-```
-
-The hardened uploader:
-
-- lists existing `assets/**` objects once
-- skips already-present object keys by default
-- supports `--force` for deliberate overwrite
-- retries failed uploads using a fresh stream
-- uses bounded connect/request timeouts
-- prints frequent progress
-- exits non-zero when failures remain
-
-Operator resume proof:
+Resumable completion proof:
 
 ```text
 existing objects: 6028
@@ -141,11 +110,11 @@ failed: 0
 elapsed: 1m 09s
 ```
 
-Therefore static object parity is considered proven at `6224/6224` for this migration run.
+Therefore static object path parity is proven at `6224/6224` for this migration run.
 
 ### Representative CDN delivery - PROVEN
 
-The custom domain returned HTTP 200 with expected MIME and content length for representative objects:
+HTTP 200 with expected MIME/content length was proven for representative objects under:
 
 ```text
 assets/compiled/css/app.css
@@ -161,13 +130,11 @@ Objects currently carry:
 cache-control: public, max-age=86400
 ```
 
-`cf-cache-status: DYNAMIC` was observed during proof. That is not a delivery failure; cache optimization is deferred until cutover behavior is stable.
+`cf-cache-status: DYNAMIC` is a later optimization concern, not a delivery failure.
 
 ## Public font CORS - PROVEN
 
-Cross-origin fonts initially returned HTTP 200 without `Access-Control-Allow-Origin`, so application CDN cutover was correctly blocked.
-
-The public bucket now has a dashboard-applied read-only CORS policy equivalent to:
+The public bucket uses a dashboard-applied read-only CORS policy equivalent to:
 
 ```json
 [
@@ -187,7 +154,7 @@ deploy/cloudflare/glasspos-media-cors.json
 deploy/cloudflare/glasspos-media-cors-dashboard.json
 ```
 
-Final operator font proof:
+Final operator proof:
 
 ```text
 HTTP/2 200
@@ -198,39 +165,66 @@ access-control-allow-origin: *
 cache-control: public, max-age=86400
 ```
 
-The public static CORS gate is therefore closed.
+The wildcard policy is allowed only for intentionally-public `glasspos-media`. It must never be copied to `glasspos-private`.
 
-This wildcard policy is allowed only for `glasspos-media`, which is intentionally public. It must not be copied to the private bucket.
+## Application CDN cutover - LOCAL PASS
 
-## Application CDN cutover contract
-
-Most application static references already use Laravel's `asset('assets/...')` helper. The selected cutover therefore uses Laravel's asset root rather than rewriting every Blade file.
-
-Current contract:
+Static application references use Laravel `asset('assets/...')`, with:
 
 ```php
 // config/app.php
 'asset_url' => env('ASSET_URL', env('R2_PUBLIC_URL')),
 ```
 
-This routes `asset('assets/...')` to the public CDN when `ASSET_URL` or `R2_PUBLIC_URL` is configured.
-
-Origin-sensitive root resources must not follow the CDN asset root. The main layout therefore uses same-origin `url()` for:
+Origin-sensitive root resources remain same-origin through `url()`:
 
 ```text
 /manifest.webmanifest
 /service-worker.js
 ```
 
-while CSS, JS, icons, fonts, images, and Mazer/vendor files continue using `asset('assets/...')`.
+PWA icon references and service-worker fallback notification icons now use the public CDN. Error pages no longer suppress CDN CSS/icons based on `file_exists(public_path('assets/...'))` checks. Push application payloads may keep neutral `/assets/**` values; the outbound WebPush adapter resolves them to the configured CDN base before sending.
 
-A focused contract test exists at:
+Operator generated-URL proof:
 
 ```text
-tests/Feature/Infrastructure/PublicAssetCdnContractFeatureTest.php
+config("app.asset_url")
+= https://media.arbiconbengkel.my.id
+
+asset("assets/compiled/css/app.css")
+= https://media.arbiconbengkel.my.id/assets/compiled/css/app.css
+
+url("/manifest.webmanifest")
+= http://localhost/manifest.webmanifest
+
+url("/service-worker.js")
+= http://localhost/service-worker.js
 ```
 
-The code is pushed, but local runtime proof from the operator is still required before this cutover is counted as verified.
+Focused regression after cleanup:
+
+```text
+PASS Tests\Feature\Infrastructure\PublicAssetCdnContractFeatureTest
+6 passed / 25 assertions
+```
+
+The operator also ran the compact full Laravel test command, which returned to the shell with no failure output shown. No exact suite count is inferred from compact output.
+
+## Public private-data boundary - PROVEN
+
+Mandatory real-bucket audit:
+
+```php
+Storage::disk('r2_public')->allFiles('supplier-payment-proofs')
+```
+
+Operator result:
+
+```text
+0
+```
+
+No object was found under the known private supplier-proof prefix in `glasspos-media` at this checkpoint. This gate is complete for the current migration state.
 
 ## Root/public files kept local during first cut
 
@@ -244,25 +238,11 @@ public/manifest.webmanifest
 public/favicon.ico
 ```
 
-The manifest and service worker may later reference CDN-hosted icons, but their own URLs remain application-origin.
-
-## Known hard-coded `/assets/**` references
-
-A smaller set does not use Laravel's asset helper and therefore remains same-origin for now, including:
-
-- `public/service-worker.js` default icon/badge
-- `public/manifest.webmanifest` PWA icons
-- push-notification payload factories
-
-The local `public/assets` fallback remains present while these references are deliberately migrated and browser/PWA regression is performed.
-
-The error layout also contains `file_exists(public_path('assets/...'))` guards. Those guards must be changed before local `public/assets` is physically removed, otherwise CDN-backed error styling could be incorrectly suppressed.
+Local `public/assets` also remains available until browser regression, rollback, production proof, and final cleanup are complete.
 
 ## Private supplier-payment-proof storage
 
 Classification: PRIVATE runtime media.
-
-Database metadata includes object path, original filename, MIME type, size, and audit/upload metadata.
 
 Object key contract:
 
@@ -277,7 +257,7 @@ App\Ports\Out\Procurement\SupplierPaymentProofFileStoragePort
 App\Adapters\Out\Procurement\LaravelSupplierPaymentProofFileStorageAdapter
 ```
 
-The durable adapter now targets `r2_private` for store/delete/exists/get. Private reads remain authorization-controlled through Laravel.
+The durable adapter targets `r2_private` for store/delete/exists/get. Private reads remain authorization-controlled through Laravel.
 
 ## Current private-upload bottleneck
 
@@ -291,14 +271,14 @@ Browser
 -> glasspos-private
 ```
 
-Affected controllers include:
+Affected flows include:
 
 ```text
 UploadSupplierInvoicePaymentProofController
 AttachSupplierPaymentProofController
 ```
 
-Therefore R2 is already the durable destination, but cPanel upload limits still constrain incoming file bytes.
+R2 is already the durable destination, but cPanel upload limits still constrain incoming file bytes.
 
 ## Direct-to-private-R2 target
 
@@ -330,16 +310,26 @@ Dependency direction remains:
 Controller -> Use Case -> Storage Port -> R2 Adapter
 ```
 
-Existing direct-upload foundation:
+Existing foundation:
 
 ```text
 App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort
 App\Adapters\Out\Procurement\LaravelSupplierPaymentProofDirectUploadAdapter
 ```
 
-It targets `r2_private`, generates opaque final keys, clamps signed URL TTL, and fails closed. A strict feature-test suite is committed, but operator PASS output is still pending.
+The adapter targets `r2_private`, generates opaque final keys, clamps signed URL TTL, propagates required content type, and fails closed.
 
-No production controller has been cut over to this foundation yet.
+### Verification blocker discovered
+
+Repository `make verify` found one PHPStan error:
+
+```text
+Call to an undefined method Illuminate\Contracts\Filesystem\Filesystem::temporaryUploadUrl().
+```
+
+This is a static type mismatch between the broad `Storage::disk()` contract and the concrete Laravel `FilesystemAdapter` capability used by the R2 disk. The adapter now has an explicit `Illuminate\Filesystem\FilesystemAdapter` variable annotation. Runtime behavior was not changed.
+
+This patch is not counted as verified until the operator reruns `make verify` successfully.
 
 ## Private direct-upload security requirements
 
@@ -347,7 +337,7 @@ The final direct-upload implementation must preserve all of the following:
 
 - Laravel owns the object key; client cannot submit an arbitrary storage path
 - short-lived signed upload authorization
-- current max-file-count and file-size rules unless product requirements change explicitly
+- current max-file-count and file-size rules unless requirements change explicitly
 - allowed media types remain constrained
 - client MIME and size are not final proof
 - finalize verifies the real R2 object before DB mutation
@@ -359,9 +349,7 @@ The final direct-upload implementation must preserve all of the following:
 
 ## Local Laravel storage
 
-The framework-local disks and `public/storage` mapping are not removed yet. Current scans have not proven an active durable runtime-media flow using `Storage::disk('public')`, `asset('storage/...')`, or `storage/app/public`, but legacy-data checks remain mandatory.
-
-Framework logs, cache, sessions and temporary files are outside this migration.
+The framework-local disks and `public/storage` mapping are not removed yet. Legacy-data checks remain mandatory. Framework logs, cache, sessions, and temporary files are outside this migration.
 
 ## Migration rules
 
@@ -379,6 +367,7 @@ Framework logs, cache, sessions and temporary files are outside this migration.
 12. Finalize must verify the real object; client metadata is insufficient.
 13. The public wildcard CORS policy must never be copied to `glasspos-private`.
 14. Do not broaden application object credentials merely for bucket management operations.
+15. A code/static-analysis patch is not proof until the relevant local verification passes.
 
 ## Completed
 
@@ -392,22 +381,23 @@ Framework logs, cache, sessions and temporary files are outside this migration.
 - Completed public R2 static parity at 6,224/6,224 with zero resume failures.
 - Proved representative CSS/JS/SVG/vendor/font delivery through the CDN.
 - Applied and proved public read-only font CORS.
-- Added the application-wide CDN asset-root contract while protecting manifest/service-worker origin.
-- Added a focused application CDN contract test; local PASS proof remains pending.
+- Added and locally proved application-wide CDN asset-root behavior while protecting manifest/service-worker origin.
+- Converted PWA/error/push static dependencies away from local-only asset assumptions.
+- Proved focused CDN contract test at 6 tests / 25 assertions.
+- Proved public bucket contains zero objects under `supplier-payment-proofs/**`.
 - Added private direct-upload port/adapter foundation and strict tests; local PASS proof remains pending.
+- Patched the PHPStan concrete-filesystem type issue; post-patch `make verify` proof remains pending.
 
 ## Remaining work in order
 
-1. Pull the application CDN cutover, clear config, run the focused contract test, and prove generated URLs: `assets/**` must resolve to `media.arbiconbengkel.my.id`, while manifest/service-worker remain application-origin.
-2. Convert remaining hard-coded `/assets/**` references and error-layout local-file guards deliberately.
-3. Run browser UI/PWA/font/icon regression while local `public/assets` remains as rollback.
-4. Prove that `glasspos-media` contains zero `supplier-payment-proofs/**` private objects before final public/static cleanup.
-5. Run the committed strict private direct-upload tests locally and record PASS.
-6. Configure strict private-bucket CORS and prove a real short-lived presigned PUT against `glasspos-private`.
-7. Add prepare/finalize application use cases plus integrity-bound upload intent and real-object verification.
-8. Cut both supplier-proof web flows from PHP multipart to direct browser -> R2.
-9. Inventory legacy supplier-proof DB rows/local files, migrate to `glasspos-private`, and prove DB/object parity.
-10. Continue the audit for any other durable runtime-media families.
-11. Verify `league/flysystem-aws-s3-v3` is committed coherently in Composer manifest/lock before fresh production install.
-12. Deploy the completed static/runtime changes to production and prove cPanel no longer owns durable media or private upload bytes.
-13. Remove obsolete local media/static copies only after rollback/parity/production proof.
+1. Rerun `make verify` and close the PHPStan blocker.
+2. Run the committed strict private direct-upload adapter tests locally and record PASS.
+3. Run browser UI/PWA/font/icon regression while local `public/assets` remains rollback.
+4. Configure strict private-bucket CORS and prove a real short-lived presigned PUT against `glasspos-private`.
+5. Add prepare/finalize application use cases plus integrity-bound upload intent and real-object verification.
+6. Cut both supplier-proof web flows from PHP multipart to direct browser -> R2.
+7. Inventory legacy supplier-proof DB rows/local files, migrate them to `glasspos-private`, and prove DB/object parity.
+8. Continue audit for any other durable runtime-media families.
+9. Verify `league/flysystem-aws-s3-v3` is committed coherently in Composer manifest/lock before fresh production install.
+10. Deploy the completed static/runtime changes to production and prove cPanel no longer owns durable media or private upload bytes.
+11. Remove obsolete local media/static copies only after rollback/parity/production proof.
