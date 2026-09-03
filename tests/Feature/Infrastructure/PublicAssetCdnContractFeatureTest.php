@@ -87,9 +87,9 @@ final class PublicAssetCdnContractFeatureTest extends TestCase
     {
         $adapter = (string) file_get_contents(app_path('Adapters/Out/PushNotification/WebPushNotificationSenderAdapter.php'));
 
-        self::assertStringContainsString("str_starts_with($value, '/assets/')", $adapter);
+        self::assertStringContainsString('str_starts_with($value, \'/assets/\')', $adapter);
         self::assertStringContainsString("config('app.asset_url', '')", $adapter);
-        self::assertStringContainsString("$payloadData['icon'] = $this->resolvePublicAssetUrl", $adapter);
-        self::assertStringContainsString("$payloadData['badge'] = $this->resolvePublicAssetUrl", $adapter);
+        self::assertStringContainsString('$payloadData[\'icon\'] = $this->resolvePublicAssetUrl', $adapter);
+        self::assertStringContainsString('$payloadData[\'badge\'] = $this->resolvePublicAssetUrl', $adapter);
     }
 }
