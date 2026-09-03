@@ -3,9 +3,9 @@
 ## Metadata
 - Date: 2026-09-03
 - Slice / topic: Cloudflare R2 public static offload + private supplier-payment-proof migration
-- Workflow step: public static CDN cutover contract proven locally; public-bucket privacy gate is next
+- Workflow step: public CDN cutover and privacy boundary are locally proven; `make verify` PHPStan blocker patched and awaiting operator rerun
 - Status: active / in progress
-- Progress: public R2 infrastructure, static sync, CDN delivery, font CORS, Laravel asset-root boundary, hard-coded PWA fallback cleanup, and focused regression tests are proven; private direct upload, legacy migration, production proof, and final cleanup remain
+- Progress: public R2 infrastructure, static sync, CDN delivery, font CORS, Laravel asset-root boundary, hard-coded PWA/error/push cleanup, focused regression, and public-bucket privacy gate are proven; private direct upload, legacy migration, production proof, and final cleanup remain
 
 ## Target Work Page
 
@@ -53,9 +53,13 @@ Operator output is highest truth. Relevant repo contracts:
 - PWA icons and service-worker fallback icons now point to the public CDN.
 - Error layout no longer suppresses CDN assets based on local `public/assets` file existence.
 - Push payload factories may retain neutral `/assets/**` values; the outbound WebPush adapter resolves those through `config('app.asset_url')` before sending.
-- Local `public/assets` must remain present until browser/PWA regression, privacy gate, rollback, production proof, and final cleanup are complete.
+- Public privacy gate is proven: `Storage::disk('r2_public')->allFiles('supplier-payment-proofs')` returned count `0`.
+- Therefore no private supplier-proof object was found under the public R2 bucket prefix at this proof point.
+- Local `public/assets` still remains until browser/PWA regression, rollback, production proof, and final cleanup are complete.
 - Direct-to-private-R2 port/adapter foundation exists but is not wired to production controllers/UI yet.
 - Strict direct-upload adapter tests are committed but still lack operator PASS output.
+- Operator `make verify` found one PHPStan error in `LaravelSupplierPaymentProofDirectUploadAdapter`: facade `Storage::disk()` was inferred as `Illuminate\Contracts\Filesystem\Filesystem`, which does not declare `temporaryUploadUrl()`.
+- The direct-upload adapter was patched with an explicit `Illuminate\Filesystem\FilesystemAdapter` static type annotation. This is a static-analysis correction only; runtime behavior is unchanged. Operator rerun is still required before counting `make verify` PASS.
 
 ## Public Static Proof
 
@@ -89,6 +93,22 @@ cache-control: public, max-age=86400
 ```
 
 The public read-only wildcard CORS policy is acceptable only for `glasspos-media`, which is intentionally public. It must never be copied to `glasspos-private`.
+
+### Public private-data gate - PASS
+
+Operator proof:
+
+```bash
+php artisan tinker --execute='$files=Storage::disk("r2_public")->allFiles("supplier-payment-proofs"); dump(count($files));'
+```
+
+Result:
+
+```text
+0
+```
+
+Meaning: the known private supplier-proof prefix is absent from the public bucket at this checkpoint. If a future migration adds public runtime media, this boundary remains mandatory.
 
 ## Public CORS Management History
 
@@ -127,7 +147,7 @@ R2_PUBLIC_URL=https://media.arbiconbengkel.my.id
 Main layout boundary:
 
 ```text
-asset('assets/...')       -> public CDN
+asset('assets/...')          -> public CDN
 url('/manifest.webmanifest') -> APP_URL origin
 url('/service-worker.js')    -> APP_URL origin
 ```
@@ -150,21 +170,14 @@ url("/service-worker.js")
 
 `http://localhost` is correct for the operator's local `APP_URL`; the important proof is that the two origin-sensitive root resources did not inherit the CDN asset base.
 
-Focused contract test first passed as:
-
-```text
-PASS Tests\Feature\Infrastructure\PublicAssetCdnContractFeatureTest
-3 passed / 10 assertions
-```
-
-After the hard-coded PWA/error/push cleanup, operator proof passed again:
+Focused contract test after hard-coded PWA/error/push cleanup:
 
 ```text
 PASS Tests\Feature\Infrastructure\PublicAssetCdnContractFeatureTest
 6 passed / 25 assertions
 ```
 
-Covered contracts now include:
+Covered contracts include:
 
 - application CDN asset root
 - same-origin manifest/service-worker registration
@@ -179,7 +192,7 @@ The operator also ran:
 php -d memory_limit=512M artisan test --compact
 ```
 
-The command printed the full compact progress stream and returned to the shell prompt with no failure output shown. Do not invent an exact suite count because compact output did not print one in the captured transcript.
+The command printed the compact progress stream and returned to the shell prompt with no failure output shown. Do not invent an exact suite count because compact output did not print one in the captured transcript.
 
 ## Current Public Runtime Files
 
@@ -235,12 +248,38 @@ App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort
 App\Adapters\Out\Procurement\LaravelSupplierPaymentProofDirectUploadAdapter
 ```
 
-The adapter targets `r2_private`, generates safe opaque keys, clamps TTL, propagates required content type, and fails closed. The strict local test suite still needs operator proof before this lane advances.
+The adapter targets `r2_private`, generates safe opaque keys, clamps TTL, propagates required content type, and fails closed.
+
+### Static analysis blocker discovered
+
+Operator command:
+
+```bash
+make verify
+```
+
+PHPStan result before patch:
+
+```text
+Call to an undefined method Illuminate\Contracts\Filesystem\Filesystem::temporaryUploadUrl().
+```
+
+Root cause: Laravel facade return typing is broader than the concrete adapter capability used here. Runtime R2/Flysystem adapter is an `Illuminate\Filesystem\FilesystemAdapter`, which exposes the temporary upload URL method used by this foundation.
+
+Patch pushed:
+
+```text
+app/Adapters/Out/Procurement/LaravelSupplierPaymentProofDirectUploadAdapter.php
+```
+
+The patch imports `Illuminate\Filesystem\FilesystemAdapter` and annotates the disk variable explicitly for PHPStan. No runtime branch, cast, or behavior change was introduced.
+
+Operator must rerun `make verify`; do not claim PASS until that output is provided.
 
 ## GAP
 
-- Mandatory public privacy gate is not yet proven: `glasspos-media/supplier-payment-proofs/**` must contain exactly zero objects.
 - Browser UI/PWA/icon regression has not yet been performed against the CDN cutover.
+- `make verify` post-patch PASS is not yet proven.
 - Strict private direct-upload feature tests have no operator PASS proof yet.
 - Private-bucket CORS is not configured/proven.
 - A real short-lived browser-style presigned PUT to `glasspos-private` is not proven.
@@ -263,12 +302,13 @@ The adapter targets `r2_private`, generates safe opaque keys, clamps TTL, propag
 - Client MIME/size is not trusted as final upload verification.
 - Final private uploads send bytes browser -> R2, not browser -> PHP -> R2.
 - Local asset/media copies are deleted only after parity, browser regression, privacy, rollback, and production proof.
+- Static-analysis type fixes must not be counted as runtime or verification proof until the operator reruns the relevant checks.
 
 ## Remaining Work in Order
 
-1. Prove public privacy gate: `glasspos-media` must contain zero `supplier-payment-proofs/**` objects.
-2. Run browser UI/PWA/font/icon smoke while local `public/assets` remains rollback.
-3. Run strict private direct-upload adapter tests and record PASS.
+1. Rerun `make verify` after the PHPStan type patch.
+2. Run the strict private direct-upload adapter test and record PASS.
+3. Run browser UI/PWA/font/icon smoke while local `public/assets` remains rollback.
 4. Configure strict `glasspos-private` CORS for the real application origin and required PUT headers/methods.
 5. Prove a real short-lived presigned PUT against `glasspos-private`.
 6. Add prepare/finalize use cases plus actor/business-scope-bound upload intent and real-object verification.
@@ -281,17 +321,10 @@ The adapter targets `r2_private`, generates safe opaque keys, clamps TTL, propag
 
 ## Exact Next Operator Proof
 
-Run only the public privacy gate against the real public bucket:
+Pull the PHPStan type patch and rerun repository verification:
 
 ```bash
-php artisan config:clear && \
-php artisan tinker --execute='$files=Storage::disk("r2_public")->allFiles("supplier-payment-proofs"); dump(count($files));'
+sai pull && make verify
 ```
 
-Required output:
-
-```text
-0
-```
-
-If the result is greater than zero, stop public cleanup/cutover work and migrate those private objects safely to `glasspos-private` before any deletion.
+Required result: PHPStan must no longer report `temporaryUploadUrl()` as undefined. If another verification error appears, treat that exact output as the next active blocker before advancing to private CORS or controller cutover.
