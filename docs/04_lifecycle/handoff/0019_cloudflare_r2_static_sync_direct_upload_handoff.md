@@ -3,9 +3,9 @@
 ## Metadata
 - Date: 2026-09-03
 - Slice / topic: Cloudflare R2 public static offload + private supplier-payment-proof migration
-- Workflow step: static tree uploaded/proven; public CDN CORS gate is the active blocker before Laravel asset cutover
+- Workflow step: public static R2 + CORS proven; Laravel application CDN cutover code pushed and awaiting local runtime proof
 - Status: active / in progress
-- Progress: R2 infrastructure and static object delivery proven; public font CORS is not yet enabled; application cutover, direct browser upload, legacy migration, production proof, and local cleanup remain
+- Progress: static infrastructure/delivery/CORS proven; application asset-root verification is next; private direct upload, legacy migration, production proof, and cleanup remain
 
 ## Target Work Page
 
@@ -23,162 +23,258 @@ Browser -> glasspos-private directly
 Browser -> Laravel finalize/verify/business mutation
 ```
 
-The private-media file bytes must not transit cPanel/PHP in the final architecture.
+Private media bytes must not transit cPanel/PHP in the final architecture.
 
 ## References Used
 - Blueprint: `docs/03_blueprints/infra/0012_cloudflare_r2_media_storage_migration.md`
-- Workflow: incremental proof-driven migration; do not delete local fallback before parity/regression proof
-- DoD: final production state has public static assets on R2/CDN, private supplier proof objects in private R2, direct browser upload, legacy DB/object parity, and no durable media dependency on cPanel
-- ADR: existing repo architecture/hexagonal rules; no new permanent ADR created in this slice yet
-- Previous handoff: no R2-specific active handoff existed
-- Repo snapshot / command output: operator outputs from 2026-09-03 are summarized below
+- Canonical handoff template: `docs/01_standards/0005_handoff_template.md`
+- AI workflow: `docs/01_standards/0007_ai_usage_guide.md`
+- Operator output from 2026-09-03 is the highest source of truth
 
 ## Locked Facts
 
 - Cloudflare is authoritative for `arbiconbengkel.my.id`.
-- Public R2 bucket is `glasspos-media`.
-- Public custom domain is `https://media.arbiconbengkel.my.id` and is active.
-- Private R2 bucket is `glasspos-private`; it has no public custom domain/development URL.
+- Public bucket: `glasspos-media`.
+- Public custom domain: `https://media.arbiconbengkel.my.id`.
+- Private bucket: `glasspos-private`; no public domain/development URL.
 - Laravel has explicit `r2_public` and `r2_private` disks.
-- Real `r2_private` write/read/delete proof passed.
-- Real `r2_public` write and custom-domain HTTP 200 proof passed.
-- Supplier payment proof durable adapter now targets `r2_private`.
-- Current supplier-proof web controllers still receive multipart `UploadedFile` bytes through PHP/cPanel before R2 storage.
-- `public/assets` contains 6,224 files with 56,737,036 bytes actual payload (54.11 MB).
-- Public asset tree is now fully present in R2 at `assets/**`.
-- Representative CSS, JS, SVG, vendor-extension, and Bootstrap Icons font objects return HTTP 200 through `media.arbiconbengkel.my.id` with expected MIME/content length.
-- A request for the Bootstrap Icons WOFF2 object with `Origin: https://arbiconbengkel.my.id` returned HTTP 200 but no `Access-Control-Allow-Origin` header. Public static font CORS is therefore not yet ready for application cutover.
-- A tracked Wrangler CORS policy exists at `deploy/cloudflare/glasspos-media-cors.json`; it intentionally allows public read-only GET/HEAD from any origin because the bucket is already public.
-- The R2 endpoint currently configured in local `.env` identifies Cloudflare account `69316314aef2f38d89ba5e364b034e5d`.
-- Wrangler OAuth is authenticated as `almustaqbal010@gmail.com` and only sees account `09449fd2f7378ddd4d4ded7831827c30`.
-- Forcing `CLOUDFLARE_ACCOUNT_ID=69316314aef2f38d89ba5e364b034e5d` caused Cloudflare API authentication error `10000`; current Wrangler OAuth therefore does not have management access to the R2 account used by Laravel.
-- `wrangler login --profile glasspos` is invalid on Wrangler 4.128.0; named profiles use the newer auth commands.
-- A subsequent OAuth profile creation attempt failed in the browser with `request_forbidden` due to CSRF state mismatch, so CLI management authentication remains unresolved.
-- Attempting `PutBucketCors` through the existing Laravel S3-compatible R2 credentials reached the correct bucket endpoint but returned `AccessDenied`.
-- Therefore the existing Laravel public R2 token is sufficient for object I/O but does not have bucket-configuration permission. It must not be assumed capable of changing CORS.
-- The post-failure font request still returns HTTP 200 and no CORS header, confirming the failed `PutBucketCors` did not alter the bucket policy.
-- The earlier Wrangler `bucket does not exist` error against account `09449...` was an account-selection/auth mismatch, not proof that `glasspos-media` is missing.
-- Local `public/assets` must not be deleted yet.
-- Direct-to-R2 port/adapter foundation exists but production multipart controllers have intentionally not been cut over yet.
-- Strict direct-upload adapter tests are committed, but no local PASS output has yet been provided by the operator.
+- Real `r2_private` write/read/delete passed.
+- Real `r2_public` write/custom-domain HTTP delivery passed.
+- Supplier payment proof durable adapter targets `r2_private`.
+- Current supplier-proof web controllers still receive PHP multipart `UploadedFile` bytes before R2 storage.
+- `public/assets` inventory is 6,224 files / 56,737,036 bytes / 54.11 MB payload.
+- All 6,224 static object paths were synchronized to `glasspos-media/assets/**` with zero final failures.
+- Representative CSS, JS, SVG, vendor JS and Bootstrap Icons WOFF2 return HTTP 200 from the custom domain.
+- Public font CORS is now configured and proven.
+- Laravel application CDN cutover code is pushed to `main`, but local operator test/runtime URL proof has not yet been provided.
+- Local `public/assets` must remain present until hard-coded paths, browser/PWA regression, rollback, and production proof are complete.
+- Direct-to-private-R2 port/adapter foundation exists but is not wired to production controllers/UI yet.
+- Strict direct-upload adapter tests are committed but still lack operator PASS output.
 
 ## Scope Used
 
 ### SCOPE-IN
-- Cloudflare R2 public/private bucket split.
-- Laravel R2 filesystem integration.
-- Supplier payment proof durable storage boundary.
-- Public Mazer/static asset upload and delivery.
-- Resumable static upload tooling.
-- Public static bucket CORS required by cross-origin fonts.
-- Direct-to-private-R2 presigned upload foundation.
-- Documentation/progress/handoff continuity.
+- public/private R2 boundary
+- static Mazer/application asset offload
+- resumable public asset migration
+- public read-only CORS for cross-origin static fonts
+- Laravel application asset-root cutover
+- private supplier-proof durable-storage boundary
+- direct browser -> private R2 foundation
+- docs/handoff continuity
 
 ### SCOPE-OUT
-- Deleting `public/assets` before application cutover/regression proof.
-- Exposing private supplier proof objects through a public URL.
-- Rewriting unrelated cPanel/DNS/email records.
-- Migrating framework-local logs/cache/session/temp storage to R2.
-- Production cutover before local and real-R2 proof gates pass.
+- deleting `public/assets` now
+- exposing private supplier proof objects publicly
+- copying public wildcard CORS to private R2
+- migrating framework logs/cache/session/temp to R2
+- production cutover without local/browser proof
 
 ## GAP
 
-- `glasspos-media` CORS policy has not yet been applied/proven; current font probe lacks `Access-Control-Allow-Origin`.
-- Wrangler is authenticated to a different Cloudflare account than the one encoded in Laravel's working R2 endpoint; correct-account management access is still unresolved.
-- Existing S3-compatible application credentials cannot change bucket CORS (`PutBucketCors` -> `AccessDenied`).
-- Laravel application references still generally use local `asset('assets/...')` paths.
-- `service-worker.js` and `manifest.webmanifest` require deliberate same-origin handling before any global `ASSET_URL`-style cutover.
-- Strict direct-upload test suite has no operator PASS proof yet.
-- Private R2 CORS and a real presigned browser-style PUT have not been proven.
-- Direct-upload prepare/finalize use cases and upload-intent integrity verification are not yet implemented.
-- Both supplier payment proof multipart controllers still send file bytes through PHP.
-- Legacy supplier proof DB rows/files have not been inventoried/migrated/repaired.
+- Operator has not yet pulled and proven the new Laravel CDN asset-root contract.
+- Remaining hard-coded `/assets/**` references in service worker/manifest/push payloads still resolve same-origin.
+- Error layout still uses local `file_exists(public_path('assets/...'))` guards and must be changed before local asset deletion.
+- Public bucket privacy audit for `supplier-payment-proofs/**` is still unproven and must return exactly zero before final cleanup.
+- Strict direct-upload feature tests have no operator PASS proof yet.
+- Private-bucket CORS and a real presigned PUT have not been proven.
+- Prepare/finalize direct-upload use cases and integrity-bound upload intent are not yet complete.
+- Existing supplier-proof multipart controllers still send bytes through PHP.
+- Legacy supplier-proof DB rows/local files have not been inventoried/migrated/repaired.
 - Production deployment and rollback/parity proof remain pending.
+- Composer manifest/lock must still be checked before production to ensure the R2 Flysystem dependency is committed coherently.
 
 ## Locked Decisions
 
-- Public and private R2 data use separate buckets, not only separate prefixes.
-- `glasspos-media` is public; `glasspos-private` remains private.
-- Database stores object keys, not hard-coded public R2 URLs.
-- Laravel/controller/application layers remain storage-provider agnostic; Cloudflare/S3 details stay in outbound adapters/config.
-- Final private upload is direct browser -> R2; Laravel only prepares/authorizes/finalizes/verifies.
-- Client-supplied MIME/size metadata is not trusted as final verification.
-- Static R2 keeps the existing `assets/**` relative tree so CSS-relative dependencies continue to resolve naturally.
-- Public static CORS may use wildcard origin for GET/HEAD because `glasspos-media` is intentionally public and contains no private supplier proof objects.
-- Private R2 CORS must not copy the public wildcard policy; direct private PUT will use a separate stricter policy.
-- `public/service-worker.js` and `public/manifest.webmanifest` stay application-origin during the first CDN cut.
-- Local static/media copies are deleted only after parity, regression, production, and rollback proof.
-- Do not repurpose Laravel's S3-compatible R2 Access Key ID / Secret Access Key as Wrangler REST API credentials. Wrangler account-management calls use Cloudflare account authentication, while Laravel object I/O uses the S3-compatible endpoint/credentials.
-- Do not broaden the current application R2 token merely to solve management-plane CORS. Prefer using the Cloudflare dashboard or a separate least-privilege management credential.
+- Public and private R2 objects use separate buckets.
+- `glasspos-media` is intentionally public; `glasspos-private` remains private.
+- Database stores object keys, not hard-coded R2 public URLs.
+- Laravel/controller/application code stays storage-provider agnostic where business/runtime media is concerned.
+- Static R2 preserves the existing `assets/**` tree.
+- Public bucket read-only CORS may use wildcard origin because the bucket is already public.
+- Public wildcard CORS must never be copied to `glasspos-private`.
+- Existing application object credentials remain least-privilege; do not broaden them merely to manage bucket CORS.
+- `manifest.webmanifest` and `service-worker.js` remain same-origin during the first CDN cut.
+- Laravel `asset('assets/...')` is the application-wide static cutover seam rather than rewriting every Blade reference.
+- Local asset/media copies are deleted only after parity, browser regression, rollback, and production proof.
+- Final private upload is browser -> R2 direct; Laravel prepares/authorizes/finalizes/verifies.
+- Client MIME/size is not sufficient final verification.
+
+## Public CORS Management History
+
+The object data plane worked before the bucket management plane did. Important failed attempts are retained here so a later session does not repeat them:
+
+- Default Wrangler OAuth saw Cloudflare account `09449fd2f7378ddd4d4ded7831827c30`.
+- Working Laravel R2 endpoint belongs to account `69316314aef2f38d89ba5e364b034e5d`.
+- Forcing Wrangler to `693...` returned authentication error `10000`.
+- `wrangler login --profile` is invalid on Wrangler 4.128.0.
+- Named-profile OAuth creation then failed with browser CSRF `request_forbidden`.
+- S3-compatible `PutBucketCors` using Laravel object credentials reached the correct bucket but returned `AccessDenied`.
+- Decision: do not broaden application object credentials; configure bucket CORS through the Cloudflare dashboard/management plane.
+- Wrangler-format CORS and Dashboard-format CORS are different JSON shapes; both are tracked separately.
+
+Tracked files:
+
+```text
+deploy/cloudflare/glasspos-media-cors.json
+deploy/cloudflare/glasspos-media-cors-dashboard.json
+```
 
 ## Files Created / Changed
 
-### New files
+### R2/static foundation
 - `app/Console/Commands/UploadPublicAssetsToR2.php`
-- `app/Ports/Out/Procurement/SupplierPaymentProofDirectUploadPort.php`
-- `app/Adapters/Out/Procurement/LaravelSupplierPaymentProofDirectUploadAdapter.php`
-- `tests/Feature/Procurement/SupplierPaymentProofDirectUploadAdapterFeatureTest.php`
-- static uploader hardening test file under `tests/Feature/Infrastructure/`
-- `deploy/cloudflare/glasspos-media-cors.json`
-- `docs/04_lifecycle/handoff/0019_cloudflare_r2_static_sync_direct_upload_handoff.md`
-
-### Changed files
 - `config/filesystems.php`
 - `.env.example`
+- `tests/Feature/Infrastructure/UploadPublicAssetsToR2CommandFeatureTest.php`
+
+### Private supplier proof foundation
+- `app/Ports/Out/Procurement/SupplierPaymentProofDirectUploadPort.php`
+- `app/Adapters/Out/Procurement/LaravelSupplierPaymentProofDirectUploadAdapter.php`
 - `app/Adapters/Out/Procurement/LaravelSupplierPaymentProofFileStorageAdapter.php`
 - `app/Providers/ProcurementPaymentServiceProvider.php`
 - `tests/Feature/Procurement/SupplierPaymentProofFileStorageAdapterFeatureTest.php`
+- `tests/Feature/Procurement/SupplierPaymentProofDirectUploadAdapterFeatureTest.php`
+
+### Public CORS
+- `deploy/cloudflare/glasspos-media-cors.json`
+- `deploy/cloudflare/glasspos-media-cors-dashboard.json`
+
+### Application CDN cutover pushed this slice
+- `config/app.php`
+- `.env.example`
+- `resources/views/layouts/app.blade.php`
+- `tests/Feature/Infrastructure/PublicAssetCdnContractFeatureTest.php`
+
+### Docs
 - `docs/03_blueprints/infra/0012_cloudflare_r2_media_storage_migration.md`
+- `docs/04_lifecycle/handoff/0019_cloudflare_r2_static_sync_direct_upload_handoff.md`
+- `docs/04_lifecycle/handoff/README.md`
 
 ## Verification Proof
 
-- Real private R2 proof:
-  - write -> exists -> read -> delete -> missing passed against `r2_private`.
-- Real public R2 proof:
-  - write/exists passed and custom-domain HTTP 200 returned expected payload.
-- Static inventory:
-  - `6224` files / `56,737,036` bytes / `54.11 MB`.
-- Static resume proof:
-  ```text
-  existing objects: 6028
-  processed: 6224/6224
-  uploaded: 196
-  skipped existing: 6028
-  failed: 0
-  elapsed: 1m 09s
-  ```
-- Representative public delivery:
-  - CSS, JS, SVG, vendor JS, and Bootstrap Icons WOFF2 return HTTP/2 200 with expected MIME/content length.
-- Font CORS probe:
-  ```text
-  HTTP/2 200
-  content-type: font/woff2
-  cache-control: public, max-age=86400
-  ```
-  No `Access-Control-Allow-Origin` header.
-- Wrangler account proof:
-  ```text
-  R2 account: 69316314aef2f38d89ba5e364b034e5d
-  Wrangler OAuth account: 09449fd2f7378ddd4d4ded7831827c30
-  forcing R2 account -> Authentication error [code: 10000]
-  ```
-- S3 management-plane proof:
-  ```text
-  PutBucketCors -> AccessDenied
-  target endpoint: glasspos-media.69316314aef2f38d89ba5e364b034e5d.r2.cloudflarestorage.com
-  ```
-  Meaning: correct bucket/account endpoint was reached, but the object token lacks bucket-CORS configuration permission.
+### Real private R2
+
+```text
+put -> true
+exists -> true
+get -> exact payload
+delete
+exists -> false
+```
+
+Meaning: actual private bucket object I/O works through Laravel/Flysystem.
+
+### Static inventory
+
+```text
+files: 6224
+bytes: 56737036 (54.11 MB)
+```
+
+### Static resume completion
+
+```text
+existing objects: 6028
+processed: 6224/6224
+uploaded: 196
+uploaded bytes: 5246381 (5.00 MB)
+skipped existing: 6028
+skipped bytes: 51490655 (49.11 MB)
+failed: 0
+elapsed: 1m 09s
+```
+
+Meaning: public static object parity for the migration run is proven and interruption-safe resume worked.
+
+### Representative custom-domain delivery
+
+```text
+CSS     HTTP/2 200  text/css
+JS      HTTP/2 200  text/javascript
+SVG     HTTP/2 200  image/svg+xml
+vendor  HTTP/2 200  text/javascript
+font    HTTP/2 200  font/woff2
+```
+
+### Final public font CORS proof - PASS
+
+Operator output:
+
+```text
+HTTP/2 200
+content-type: font/woff2
+vary: Origin
+access-control-expose-headers: ETag
+access-control-allow-origin: *
+cache-control: public, max-age=86400
+```
+
+Meaning: browser cross-origin font gate from the application origin to the public CDN is closed.
+
+### Application CDN cutover code state
+
+Pushed commits in this cutover sequence:
+
+```text
+0089331cb8b03655fd5de3a2962a40d8db9102a2  config app asset root
+c55ebb9f12a91e93bf6f44af2738c7395a665b6c  env example asset URL
+21664072b95f60063a33a3d4b95117d49d1b15fe  same-origin manifest/service worker
+0272563063a01411c1287482dcaa1ccd3ff46eff  focused CDN contract test
+69aa014586673562be15493d964aac22a6576510  active blueprint refresh
+```
+
+Code contract now intends:
+
+```text
+asset('assets/...')
+-> https://media.arbiconbengkel.my.id/assets/...
+
+url('/manifest.webmanifest')
+-> APP_URL origin
+
+url('/service-worker.js')
+-> APP_URL origin
+```
+
+This intention is not counted as runtime PASS until the operator provides local output.
 
 ## Risks / Follow-up Notes
 
-- `cf-cache-status: DYNAMIC` was observed. This is not a delivery failure; cache optimization should happen only after the application cutover is stable.
-- Cloudflare documents that custom-domain responses reflect R2 CORS policy for requests containing a valid `Origin`; after changing CORS, cached assets may need refresh/purge before new headers appear.
-- A global Laravel `ASSET_URL` can accidentally move `service-worker.js` and `manifest.webmanifest` to the CDN unless those references are made explicitly same-origin first.
-- CSS uses relative `url(...)` references, including fonts. Preserving the directory tree was intentional.
-- Do not run cleanup/deletion of local assets or legacy media until all application references and production behavior are proven.
-- Do not ask the operator to paste credentials. R2 secrets remain environment-only.
-- The current blocker is management-plane permission/access, not object storage connectivity.
+- `cf-cache-status: DYNAMIC` is a later optimization concern, not current delivery failure.
+- Hard-coded root-relative asset URLs deliberately remain for the next slice while local fallback still exists.
+- Do not delete `public/assets` yet.
+- Do not ask the operator to paste credentials.
+- Do not use Laravel's S3-compatible Access Key/Secret as Cloudflare REST/Wrangler management credentials.
+- A global asset root is safe only because origin-sensitive manifest/service-worker URLs were moved to `url()` first.
+- Before production, verify the R2 Flysystem dependency is represented in both Composer manifest and lock so a fresh install cannot lose S3 support.
 
 ## Next Step
 
-Use the Cloudflare dashboard while signed into the account that contains `glasspos-media` and add the tracked policy from `deploy/cloudflare/glasspos-media-cors.json` under R2 -> `glasspos-media` -> Settings -> CORS Policy. Then repeat the font request with `Origin: https://arbiconbengkel.my.id` and require `Access-Control-Allow-Origin` before Laravel asset cutover.
+Pull the latest `main`, clear Laravel config, run the focused CDN contract test, then prove generated URL boundaries in the real local environment.
+
+Command:
+
+```bash
+sai pull && \
+php artisan config:clear && \
+php artisan test tests/Feature/Infrastructure/PublicAssetCdnContractFeatureTest.php && \
+php artisan tinker --execute='dump(
+    config("app.asset_url"),
+    asset("assets/compiled/css/app.css"),
+    url("/manifest.webmanifest"),
+    url("/service-worker.js")
+);'
+```
+
+Required meaning of the output:
+
+```text
+config app.asset_url     -> https://media.arbiconbengkel.my.id
+asset assets/...         -> https://media.arbiconbengkel.my.id/assets/...
+manifest                 -> APP_URL origin, not media.arbiconbengkel.my.id
+service worker           -> APP_URL origin, not media.arbiconbengkel.my.id
+focused test             -> PASS
+```
+
+Do not move to hard-coded-path cleanup until this proof passes.
