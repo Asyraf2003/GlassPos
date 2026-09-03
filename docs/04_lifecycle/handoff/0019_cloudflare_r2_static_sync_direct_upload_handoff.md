@@ -3,7 +3,7 @@
 ## Metadata
 - Date: 2026-09-03
 - Slice / topic: Cloudflare R2 public static offload + private supplier-payment-proof migration
-- Workflow step: private CORS preflight and normalized presign-header regression are proven; real presigned PUT is next
+- Workflow step: real browser-style presigned PUT to private R2 is proven; browser/PWA public-CDN smoke is next
 - Status: active / in progress
 
 ## Goal
@@ -35,8 +35,11 @@ Private media bytes must not transit cPanel/PHP in the final architecture.
 - Laravel asset-root CDN cutover is locally proven.
 - Public privacy gate passed: `glasspos-media/supplier-payment-proofs/**` count is `0`.
 - Supplier-payment-proof durable storage adapter uses `r2_private`.
-- Existing web upload controllers still receive PHP multipart bytes before forwarding to private R2.
-- Direct-upload port/adapter foundation exists but is not wired to production controllers/UI yet.
+- Strict direct-upload adapter suite passed after PSR header normalization: 8 tests / 35 assertions.
+- Private R2 CORS preflight against a real presigned URL passed.
+- Real browser-style PUT of bytes to `glasspos-private` passed, Laravel read-back matched exactly, and cleanup deletion passed.
+- Existing production web upload controllers still receive PHP multipart bytes before forwarding to private R2.
+- Direct-upload port/adapter foundation exists but is not yet wired to production controllers/UI.
 - Local `public/assets` remains until browser/PWA regression, rollback, production proof, and cleanup.
 
 ## Public Lane Proof
@@ -61,8 +64,6 @@ cache-control: public, max-age=86400
 
 ## Repository Quality Gate - PASS
 
-Final operator proof:
-
 ```text
 PHPStan: PASS
 line-count audit: PASS
@@ -72,22 +73,20 @@ Tests: 1505 passed (9415 assertions)
 Duration: 58.89s
 ```
 
-Uploader command was split into small support classes to satisfy the repository 100-line application-file rule. Supplier-proof feature fixtures now fake `r2_private`, matching the real durable-storage contract.
+Migration follow-ups fixed during verification:
 
-## Private Direct Upload Foundation - STRICT TEST PASS
+- PHPStan concrete-filesystem typing for `temporaryUploadUrl()`;
+- oversized `UploadPublicAssetsToR2` split into small support classes under `app/Console/Support/PublicAssets/`;
+- `make verify` now uses Pest `--compact` while preserving the Pest runner;
+- supplier-proof feature fixtures use fake `r2_private`, matching the real durable-storage contract.
+
+## Private Direct Upload Foundation - PASS
 
 Foundation:
 
 ```text
 App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort
 App\Adapters\Out\Procurement\LaravelSupplierPaymentProofDirectUploadAdapter
-```
-
-Initial operator proof:
-
-```text
-Tests: 8 passed (35 assertions)
-Duration: 0.20s
 ```
 
 Adapter contract:
@@ -98,9 +97,18 @@ Adapter contract:
 - TTL clamped to 60..3600 seconds, default 900;
 - `Content-Type` participates in signing;
 - invalid metadata/path input fails closed;
-- signing exceptions fail closed.
+- signing exceptions fail closed;
+- PSR array-valued headers are normalized for browser use;
+- browser-managed `Host` and `Content-Length` are not exposed to JavaScript.
 
-## Private CORS - APPLIED AND PREFLIGHT PROVEN
+Post-normalization operator proof:
+
+```text
+Tests: 8 passed (35 assertions)
+Duration: 0.18s
+```
+
+## Private CORS - PASS
 
 Tracked policies:
 
@@ -123,9 +131,7 @@ Dashboard policy:
 ]
 ```
 
-Operator applied the policy to `glasspos-private` and generated a real short-lived presigned upload URL through the Laravel direct-upload adapter.
-
-Preflight proof against that real presigned URL:
+Real preflight against a generated presigned URL:
 
 ```text
 HTTP/1.1 204 No Content
@@ -135,41 +141,46 @@ Access-Control-Allow-Headers: content-type
 Access-Control-Allow-Methods: PUT
 ```
 
-Meaning: the private browser CORS gate for the intended production origin, PUT method, and Content-Type request header is proven.
+## Real Presigned PUT - PASS
 
-## Presigned Header Normalization - PASS
+Operator generated a fresh short-lived presigned URL through the Laravel direct-upload port, then sent bytes directly to R2 using an external HTTP client with the production browser origin.
 
-The first real presign run exposed a warning:
-
-```text
-WARNING Array to string conversion
-app/Adapters/Out/Procurement/LaravelSupplierPaymentProofDirectUploadAdapter.php line 67
-```
-
-Root cause: Laravel's S3 adapter returns PSR request headers where each header value may be an array. The first implementation assumed scalar values and cast them directly to strings.
-
-Patch:
+PUT response:
 
 ```text
-app/Adapters/Out/Procurement/SupplierPaymentProofUploadHeaderNormalizer.php
-app/Adapters/Out/Procurement/LaravelSupplierPaymentProofDirectUploadAdapter.php
-tests/Feature/Procurement/SupplierPaymentProofDirectUploadAdapterFeatureTest.php
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: https://arbiconbengkel.my.id
+ETag: "879442678317eb3d7ba745bfb20d8ef1"
+Vary: Origin
 ```
 
-Behavior:
-
-- array-valued PSR headers are normalized to browser-friendly strings;
-- browser-managed `Host` and `Content-Length` are not returned to JavaScript;
-- strict adapter regression models real PSR header arrays.
-
-Post-patch operator proof:
+Laravel verification against `r2_private`:
 
 ```text
-Tests: 8 passed (35 assertions)
-Duration: 0.18s
+storage_path = supplier-payment-proofs/direct-proof/15f79d37002e001a57db8ebb099c40c5.txt
+exists = true
+content_match = true
+bytes = 22
+exists_after_delete = false
 ```
 
-No array-to-string warning was shown. The header-normalization regression gate is therefore closed.
+Meaning:
+
+```text
+Laravel generates authorization/presign       PASS
+cross-origin browser-style PUT reaches R2     PASS
+object exists in private bucket               PASS
+read-back content matches exact bytes         PASS
+cleanup delete removes proof object           PASS
+```
+
+This proves the infrastructure byte path required by the final architecture:
+
+```text
+Browser -> glasspos-private
+```
+
+without PHP/cPanel carrying the file body. It does **not** yet mean the production controllers/forms use this path.
 
 ## Current Migration State
 
@@ -177,21 +188,25 @@ No array-to-string warning was shown. The header-normalization regression gate i
 public static bytes        -> R2 public          DONE
 Laravel static URLs        -> public CDN         DONE locally
 public font CORS           -> proven             DONE
-public/private privacy gate-> proven             DONE
+public/private privacy     -> proven             DONE
 supplier proof durable I/O -> R2 private         DONE
 private direct adapter     -> strict tests       PASS
 private CORS preflight     -> real presign       PASS
-presign header normalization                    PASS
-real presigned PUT bytes   -> pending            NEXT
+real direct PUT bytes      -> R2 private         PASS
+browser/PWA public smoke   -> pending
+prepare/finalize use cases -> pending
+controller/UI cutover      -> pending
+legacy migration           -> pending
+production cleanup         -> pending
 ```
 
-Current production upload byte path is still:
+Current production upload byte path remains:
 
 ```text
 Browser -> PHP multipart -> Laravel -> R2 private
 ```
 
-Target remains:
+Target production path:
 
 ```text
 Browser -> Laravel prepare
@@ -199,8 +214,6 @@ Browser -> R2 private direct PUT
 Browser -> Laravel finalize
 Laravel -> verify object -> DB/audit
 ```
-
-Legacy supplier-proof rows/files have not yet been inventoried/migrated. Production cutover and deletion of local fallback assets/media have not happened.
 
 ## Locked Decisions
 
@@ -212,29 +225,33 @@ Legacy supplier-proof rows/files have not yet been inventoried/migrated. Product
 - Upload intent must be actor/business-scope bound and replay/idempotency aware.
 - Private CORS is origin/method/header constrained, never public wildcard.
 - Browser-managed request headers such as `Host` and `Content-Length` are not exposed as JS upload headers.
+- No DB transaction may remain open while the browser performs the R2 PUT.
 - Do not delete local rollback copies before browser, parity, rollback, and production proof.
 
 ## Remaining Work in Order
 
-1. Prove a real short-lived PUT of bytes to `glasspos-private`, verify object exists/content, then delete the proof object.
-2. Run browser UI/PWA/font/icon smoke for the public CDN cutover while local `public/assets` remains rollback.
-3. Add prepare/finalize use cases with actor/business-scope-bound upload intent and real-object verification.
-4. Cut both supplier-proof web flows from PHP multipart to direct browser -> R2.
-5. Inventory/migrate legacy supplier-proof DB rows/local files and prove DB/object parity.
-6. Continue audit for any other durable runtime-media families.
-7. Verify Composer manifest/lock coherence for `league/flysystem-aws-s3-v3`.
-8. Deploy to production and prove cPanel no longer owns durable media or private upload bytes.
-9. Remove obsolete local media/static copies only after rollback/parity/production proof.
+1. Run browser UI/PWA/font/icon smoke for the public CDN cutover while local `public/assets` remains rollback.
+2. Add prepare/finalize use cases with actor/business-scope-bound upload intent and real-object verification.
+3. Cut both supplier-proof web flows from PHP multipart to direct browser -> R2.
+4. Inventory/migrate legacy supplier-proof DB rows/local files and prove DB/object parity.
+5. Continue audit for any other durable runtime-media families.
+6. Verify Composer manifest/lock coherence for `league/flysystem-aws-s3-v3`.
+7. Deploy to production and prove cPanel no longer owns durable media or private upload bytes.
+8. Remove obsolete local media/static copies only after rollback/parity/production proof.
 
 ## Exact Next Operator Step
 
-Generate a fresh presigned URL, upload dummy bytes with an external HTTP client, verify the object through `r2_private`, and delete it. Required proof:
+Run a browser smoke against the local application while `ASSET_URL=https://media.arbiconbengkel.my.id` remains configured and `public/assets` is still present as rollback.
+
+Required checks:
 
 ```text
-PUT response: success
-Access-Control-Allow-Origin: https://arbiconbengkel.my.id
-r2_private exists: true
-content exact match: true
-delete succeeds
-r2_private exists after delete: false
+1. Open login/auth page: layout CSS/icons render.
+2. Open admin dashboard: CSS/JS/vendor icons render; no obvious broken asset.
+3. DevTools Network: representative `assets/**` requests resolve to `media.arbiconbengkel.my.id`.
+4. Console: no CORS/font loading errors.
+5. Open/install PWA path if available: manifest loads from application origin and icons render from CDN.
+6. Confirm service worker registration still points to application-origin `/service-worker.js`.
 ```
+
+Report only anomalies or `semua aman` if the smoke is clean.
