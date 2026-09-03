@@ -2,7 +2,7 @@
 
 Status: In progress
 Date: 2026-09-03
-Current phase: browser/PWA regression before production direct-upload wiring
+Current phase: prepare/finalize direct-upload application contract
 
 ## Goal
 
@@ -29,7 +29,8 @@ Cloudflare R2: glasspos-media             PUBLIC
 
 Cloudflare R2: glasspos-private           PRIVATE
 └── no custom domain / no public development URL
-    └── supplier-payment-proofs/**
+    ├── supplier-payment-proof-uploads/** staging direct uploads
+    └── supplier-payment-proofs/**        finalized durable proofs
 ```
 
 Public and private objects are split by bucket. A public custom domain must never expose private supplier evidence.
@@ -208,7 +209,7 @@ PASS Tests\Feature\Infrastructure\PublicAssetCdnContractFeatureTest
 6 passed / 25 assertions
 ```
 
-Browser/PWA smoke remains required before local fallback assets can be considered removable.
+Operator browser/PWA/CDN smoke is also reported PASS for the current migration checkpoint. Local `public/assets` still remains as rollback until production parity and cleanup proof.
 
 ## Public private-data boundary - PROVEN
 
@@ -258,13 +259,13 @@ public/manifest.webmanifest
 public/favicon.ico
 ```
 
-Local `public/assets` also remains available until browser regression, rollback, production proof, and final cleanup are complete.
+Local `public/assets` also remains available until rollback, production proof, and final cleanup are complete.
 
 ## Private supplier-payment-proof storage
 
 Classification: PRIVATE runtime media.
 
-Object key contract:
+Final object key contract:
 
 ```text
 supplier-payment-proofs/{supplier-payment-id}/{generated-filename}
@@ -302,7 +303,7 @@ R2 is already the durable destination, but cPanel upload limits still constrain 
 
 ## Direct-to-private-R2 target
 
-Locked flow:
+Locked high-level flow:
 
 ```text
 1. Browser -> Laravel
@@ -310,18 +311,22 @@ Locked flow:
 
 2. Laravel
    authenticate + authorize + business validation
-   allocate safe opaque object key
-   issue short-lived signed PUT URL and required headers
+   create/reuse actor/scope-bound upload intent
+   allocate safe opaque staging object keys
+   issue short-lived signed PUT URLs and required headers
 
 3. Browser -> glasspos-private directly
    media bytes bypass cPanel/PHP
 
 4. Browser -> Laravel
-   finalize object key / upload intent
+   finalize upload intent
 
 5. Laravel
-   verify object exists, key, size and server-trusted type
-   then commit payment/attachment metadata and audit state
+   claim intent safely
+   verify real staging objects, size and server-trusted type
+   promote verified objects to opaque final keys
+   revalidate business state
+   commit payment/attachment metadata + audit + replay result
 ```
 
 Dependency direction remains:
@@ -337,7 +342,7 @@ App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort
 App\Adapters\Out\Procurement\LaravelSupplierPaymentProofDirectUploadAdapter
 ```
 
-The adapter targets `r2_private`, generates opaque final keys, clamps signed URL TTL, propagates required Content-Type, normalizes real PSR header arrays for browser use, and fails closed.
+The existing adapter targets `r2_private`, generates opaque keys, clamps signed URL TTL, propagates required Content-Type, normalizes real PSR header arrays for browser use, and fails closed.
 
 Strict adapter proof after normalization:
 
@@ -345,6 +350,8 @@ Strict adapter proof after normalization:
 Tests: 8 passed (35 assertions)
 Duration: 0.18s
 ```
+
+The adapter foundation predates the staging/final split locked below and may require a narrow contract adaptation during implementation.
 
 ## Private bucket CORS - PROVEN
 
@@ -404,7 +411,7 @@ bytes = 22
 exists_after_delete = false
 ```
 
-Therefore the infrastructure path is proven end-to-end:
+Therefore the infrastructure byte path is proven end-to-end:
 
 ```text
 Laravel creates presigned authorization
@@ -413,13 +420,13 @@ Laravel read-back verifies exact bytes
 cleanup removes proof object
 ```
 
-The proof object was deleted. This does not yet imply the production forms/controllers use the direct path.
+The proof object was deleted. This does not yet imply the production forms/controllers use the direct path or that the final staging/promote lifecycle is proven.
 
 ## Private direct-upload security requirements
 
 The final direct-upload implementation must preserve all of the following:
 
-- Laravel owns the object key; client cannot submit an arbitrary storage path
+- Laravel owns every staging and final object key; client cannot submit an arbitrary storage path
 - short-lived signed upload authorization
 - current max-file-count and file-size rules unless requirements change explicitly
 - allowed media types remain constrained
@@ -428,9 +435,413 @@ The final direct-upload implementation must preserve all of the following:
 - upload intent is bound to actor and business scope
 - replay/idempotency is handled deliberately
 - orphan/staging cleanup exists
-- no long DB transaction remains open while the browser uploads
+- no long DB transaction remains open while the browser uploads or while R2 verification/promotion runs
 - private bucket CORS is origin/method/header constrained and is not the public wildcard policy
 - browser-managed Host/Content-Length headers are not emitted as JavaScript-managed upload headers
+- a browser upload URL must not remain capable of overwriting finalized durable evidence
+
+## Direct-upload prepare/finalize application contract - LOCKED DESIGN
+
+### Purpose
+
+Replace both supplier-proof PHP multipart paths with an application-level prepare/finalize protocol while preserving procurement domain and audit contracts.
+
+The browser uploads only to private R2 staging objects. Final durable object keys are never writable through the browser presigned URL.
+
+### Scope model
+
+Every upload intent is bound to exactly one authenticated actor and one business scope.
+
+Allowed scope types:
+
+```text
+supplier_payment
+supplier_invoice
+```
+
+Scope meaning:
+
+```text
+supplier_payment
+  scope_id = existing supplier_payment_id
+
+supplier_invoice
+  scope_id = existing supplier_invoice_id
+  reserved_supplier_payment_id = server-generated UUID allocated during prepare
+```
+
+For `supplier_invoice`, reserving the supplier payment ID during prepare does not itself create a payment or financial mutation. The reserved ID becomes the real supplier payment ID only after finalize revalidates the invoice and commits the payment transaction.
+
+### Authorization boundary
+
+Prepare and finalize remain behind the authenticated admin procurement boundary. The application use case receives the authenticated actor ID explicitly.
+
+An intent must never be usable by another actor or another business scope. Possession of an intent ID alone is not authorization.
+
+### File contract
+
+One intent contains:
+
+```text
+minimum files: 1
+maximum files: 3
+maximum size per file: 10 MiB / 10,485,760 bytes
+```
+
+Allowed final MIME types:
+
+```text
+image/jpeg
+image/png
+image/webp
+image/heic
+image/heif
+application/pdf
+```
+
+Client filename, client MIME, and client size are declaration metadata only. They are validated during prepare to fail early, but they are not sufficient proof for finalize.
+
+### Upload intent persistence
+
+Use dedicated persistence rather than overloading the generic transaction `idempotency_records` table.
+
+Working parent table:
+
+```text
+supplier_payment_proof_upload_intents
+```
+
+Required logical fields:
+
+```text
+id
+actor_id
+scope_type
+scope_id
+reserved_supplier_payment_id nullable
+idempotency_key
+request_hash
+status
+locked_at nullable
+finalized_at nullable
+expires_at
+result_payload_json nullable
+created_at
+updated_at
+```
+
+Allowed lifecycle statuses:
+
+```text
+prepared
+finalizing
+finalized
+expired
+```
+
+Required uniqueness:
+
+```text
+actor_id + scope_type + scope_id + idempotency_key
+```
+
+Working child table:
+
+```text
+supplier_payment_proof_upload_intent_files
+```
+
+Required logical fields:
+
+```text
+id
+upload_intent_id
+ordinal
+staging_path
+final_storage_path nullable until verified/promoted
+original_filename
+declared_mime_type
+declared_size_bytes
+verified_mime_type nullable
+verified_size_bytes nullable
+created_at
+updated_at
+```
+
+Required uniqueness includes:
+
+```text
+upload_intent_id + ordinal
+staging_path
+final_storage_path when populated
+```
+
+Do not store presigned URLs in the database.
+
+### Idempotency and replay contract
+
+Prepare requires an explicit idempotency key.
+
+Canonical request hash includes at minimum:
+
+```text
+scope_type
+scope_id
+ordered file declarations:
+  original_filename
+  normalized declared MIME
+  declared size
+```
+
+Behavior:
+
+```text
+same actor + scope + key + same hash + prepared
+  -> reuse the same intent and persisted staging paths
+  -> presign those same staging paths again when still eligible
+
+same actor + scope + key + different hash
+  -> reject as idempotency payload conflict
+
+same actor + scope + key + finalized
+  -> return the stored successful result
+  -> never create another payment or attachment set
+
+different actor or different scope
+  -> must not resolve/use the intent
+```
+
+Finalize replay after a successful finalize returns the stored result and does not repeat payment, attachment, projection, or audit mutations.
+
+### Staging object contract
+
+Browser PUT URLs target staging objects only.
+
+Working prefix:
+
+```text
+supplier-payment-proof-uploads/{upload-intent-id}/{opaque-file-id}
+```
+
+Laravel owns every staging path. The client never submits an arbitrary storage path.
+
+The final durable filename extension must not be trusted from the original client filename.
+
+### Prepare flow
+
+Prepare performs:
+
+```text
+1. authenticate actor at HTTP boundary
+2. validate scope type/id
+3. validate 1..3 file declarations
+4. validate declared size <= 10 MiB/file
+5. validate declared MIME against the allowed set
+6. perform read-only business preflight
+7. find/create actor+scope-bound upload intent idempotently
+8. reserve supplier_payment_id when scope is supplier_invoice
+9. allocate opaque staging paths
+10. persist intent + file declaration metadata
+11. leave the DB transaction
+12. issue short-lived presigned PUT URLs for the persisted staging paths
+```
+
+No database transaction remains open while the browser uploads.
+
+A presign failure does not create a financial mutation. An existing prepared intent may be retried/re-presigned according to its expiry policy.
+
+### Invoice prepare rule
+
+`SupplierInvoicePaymentProofPreflight::prepare()` currently uses a `getByIdForUpdate()` reader and therefore belongs to the final mutation boundary, not to the browser upload interval.
+
+Prepare needs a non-locking eligibility check. Finalize must re-run authoritative invoice validation while holding the appropriate short transaction/lock before recording the payment.
+
+Prepare success never guarantees finalize success because business state may change during the browser upload interval.
+
+### Finalize claim
+
+Finalize must claim the intent using an atomic status transition:
+
+```text
+prepared -> finalizing
+```
+
+Only one caller may acquire that transition.
+
+Behavior:
+
+```text
+finalized
+  -> replay stored successful result
+
+finalizing
+  -> do not execute a second finalize concurrently
+
+expired
+  -> reject
+
+prepared
+  -> one caller atomically acquires finalizing
+```
+
+The application must not keep a database transaction open while it performs R2 verification or object promotion.
+
+Crash/stale-finalizing recovery and expired-intent cleanup must be explicit before production cleanup is considered complete.
+
+### Real-object verification
+
+For every staging object finalize must verify the actual private R2 object.
+
+Required checks:
+
+```text
+object exists
+storage path exactly matches persisted intent metadata
+actual byte size > 0
+actual byte size <= 10 MiB
+actual byte size equals the prepared declaration
+actual content MIME is detected server-side
+detected MIME belongs to the allowed final set
+all files belonging to the intent are present
+file count remains 1..3
+```
+
+`Content-Type` supplied during presigned PUT is client-controlled metadata and is not final MIME proof.
+
+Server-side MIME verification must inspect the actual object content through a bounded temporary verification path or stream. Temporary verification bytes are not durable media and must not be written under application public/media storage.
+
+HEIC/HEIF MIME detection behavior must be characterized with real fixtures before that verifier is considered proven.
+
+### Final object promotion
+
+A verified staging object is promoted to a new opaque durable key.
+
+Final prefix remains:
+
+```text
+supplier-payment-proofs/{supplier-payment-id}/{opaque-final-filename}
+```
+
+The final filename extension is derived from the server-verified MIME mapping, not from the client-provided original filename.
+
+Browser presigned URLs never target final durable paths.
+
+Promotion must occur inside private R2 without routing the upload body through PHP. The selected R2/Flysystem promotion implementation requires proof that the operation uses server-side object copy/move semantics rather than an application download-and-reupload byte path.
+
+After promotion, Laravel verifies the final object exists and matches the verified byte size before DB mutation.
+
+### Finalize business transaction
+
+Only after all files are verified and promoted may Laravel enter the short business transaction.
+
+Inside that transaction:
+
+```text
+1. lock/re-read the upload intent
+2. confirm actor, scope, idempotency state and finalizing ownership
+3. revalidate the real procurement business state
+4. for supplier_invoice:
+     create SupplierPayment using reserved_supplier_payment_id
+5. build SupplierPaymentProofAttachment records from verified FINAL metadata
+6. persist attachments
+7. update proof status
+8. write existing audit event
+9. synchronize invoice projection
+10. mark upload intent finalized
+11. persist replay result
+12. commit
+```
+
+No browser upload occurs inside this transaction. No client-declared MIME or size is written as final attachment truth when it disagrees with server verification.
+
+### Finalize failure behavior
+
+Before DB commit:
+
+```text
+verification failure
+  -> no payment/attachment/audit mutation
+
+promotion failure
+  -> no payment/attachment/audit mutation
+
+business revalidation failure
+  -> no payment/attachment/audit mutation
+```
+
+Any promoted final objects created by a finalize attempt that cannot commit must be cleaned safely or recorded for deterministic cleanup.
+
+A retryable infrastructure failure must not silently become a successful idempotency replay.
+
+### Finalization output
+
+Successful finalize returns/stores enough result data to replay the existing user-facing outcome without executing the mutation again.
+
+For invoice scope this includes at minimum:
+
+```text
+supplier_invoice_id
+supplier_payment_id
+proof_status
+attachment_count
+```
+
+For existing payment scope this includes at minimum:
+
+```text
+supplier_payment_id
+supplier_invoice_id
+proof_status
+attachment_count
+```
+
+Presigned URLs, R2 credentials, internal exception messages, and sensitive storage implementation details must not be stored in the replay payload.
+
+### Controller target
+
+The two existing multipart controllers remain the compatibility baseline until their direct-upload UI cutover:
+
+```text
+UploadSupplierInvoicePaymentProofController
+AttachSupplierPaymentProofController
+```
+
+The prepare/finalize application layer is implemented and proven first.
+
+Only after that proof may these forms/controllers be cut from:
+
+```text
+Browser -> PHP multipart -> Laravel -> R2
+```
+
+to:
+
+```text
+Browser -> Laravel prepare
+Browser -> private R2 staging PUT
+Browser -> Laravel finalize
+```
+
+### Implementation order
+
+```text
+1. lock this detailed blueprint
+2. RED tests for prepare/finalize application contract
+3. upload-intent persistence migration + ports/adapters
+4. staging presign adaptation
+5. real-object verifier
+6. server-side final-object promotion
+7. prepare use case
+8. finalize use case
+9. focused application/infrastructure GREEN proof
+10. HTTP routes/controllers contract
+11. browser JavaScript direct upload
+12. cut both old PHP multipart paths
+13. browser/real-R2 end-to-end proof
+14. orphan/expired staging cleanup proof
+```
+
+Do not combine persistence, UI cutover, and production cleanup into one unverified patch.
 
 ## Local Laravel storage
 
@@ -453,6 +864,7 @@ The framework-local disks and `public/storage` mapping are not removed yet. Lega
 13. The public wildcard CORS policy must never be copied to `glasspos-private`.
 14. Do not broaden application object credentials merely for bucket management operations.
 15. No application DB transaction may stay open across the browser-to-R2 upload interval.
+16. Browser upload URLs target staging objects, not finalized durable evidence.
 
 ## Completed
 
@@ -463,25 +875,31 @@ The framework-local disks and `public/storage` mapping are not removed yet. Lega
 - Routed supplier payment proof durable storage to `r2_private`.
 - Added and hardened repeatable/resumable static uploader.
 - Inventoried 6,224 static files / 54.11 MB payload.
-- Completed public R2 static parity at 6,224/6,224 with zero resume failures.
+- Completed public R2 static parity at 6,224/6,224 with zero final failures.
 - Proved representative CSS/JS/SVG/vendor/font delivery through the CDN.
 - Applied and proved public read-only font CORS.
 - Added and locally proved application-wide CDN asset-root behavior while protecting manifest/service-worker origin.
 - Converted PWA/error/push static dependencies away from local-only asset assumptions.
 - Proved focused CDN contract test at 6 tests / 25 assertions.
+- Proved browser/PWA/CDN smoke for the public CDN cutover.
 - Proved public bucket contains zero objects under `supplier-payment-proofs/**`.
 - Closed repository quality gate at 1,505 tests / 9,415 assertions plus PHPStan and contract audits.
 - Added private direct-upload port/adapter foundation and proved 8 strict tests / 35 assertions.
 - Applied strict private bucket CORS and proved a real presigned OPTIONS preflight.
 - Proved a real browser-style presigned PUT to `glasspos-private`, exact Laravel read-back, and deletion cleanup.
+- Locked the detailed actor/scope-bound prepare/finalize design with staging/final object separation and replay-safe finalize semantics.
 
 ## Remaining work in order
 
-1. Run browser UI/PWA/font/icon regression while local `public/assets` remains rollback.
-2. Add prepare/finalize application use cases plus actor/business-scope-bound upload intent and real-object verification.
-3. Cut both supplier-proof web flows from PHP multipart to direct browser -> R2.
-4. Inventory legacy supplier-proof DB rows/local files, migrate them to `glasspos-private`, and prove DB/object parity.
-5. Continue the audit for any other durable runtime-media families.
-6. Verify `league/flysystem-aws-s3-v3` is committed coherently in Composer manifest/lock before fresh production install.
-7. Deploy the completed static/runtime changes to production and prove cPanel no longer owns durable media or private upload bytes.
-8. Remove obsolete local media/static copies only after rollback/parity/production proof.
+1. Add RED tests for the prepare/finalize application contract.
+2. Add upload-intent persistence migration plus ports/adapters.
+3. Adapt presigning to persisted staging objects.
+4. Add real-object verifier, including real HEIC/HEIF characterization.
+5. Prove private-R2 server-side object promotion to opaque final paths.
+6. Implement prepare and finalize use cases and focused GREEN proof.
+7. Add HTTP prepare/finalize routes/controllers and browser JavaScript direct upload.
+8. Cut both supplier-proof web flows from PHP multipart to direct browser -> R2.
+9. Inventory legacy supplier-proof DB rows/local files, migrate them to `glasspos-private`, and prove DB/object parity.
+10. Continue the audit for any other durable runtime-media families.
+11. Deploy the completed static/runtime changes to production and prove cPanel no longer owns durable media or private upload bytes.
+12. Remove obsolete local media/static copies only after rollback/parity/production proof.
