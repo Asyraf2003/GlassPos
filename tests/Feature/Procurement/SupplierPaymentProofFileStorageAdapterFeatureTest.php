@@ -12,7 +12,7 @@ final class SupplierPaymentProofFileStorageAdapterFeatureTest extends TestCase
 {
     public function test_store_many_uses_server_detected_mime_instead_of_client_controlled_mime(): void
     {
-        Storage::fake('local');
+        Storage::fake('s3');
 
         $sourcePath = tempnam(sys_get_temp_dir(), 'hyperpos-proof-');
         self::assertIsString($sourcePath);
@@ -38,12 +38,12 @@ final class SupplierPaymentProofFileStorageAdapterFeatureTest extends TestCase
         self::assertCount(1, $storedFiles);
         self::assertSame('application/pdf', $storedFiles[0]['mime_type']);
         self::assertStringStartsWith('supplier-payment-proofs/payment-1/', $storedFiles[0]['storage_path']);
-        self::assertTrue(Storage::disk('local')->exists((string) $storedFiles[0]['storage_path']));
+        self::assertTrue(Storage::disk('s3')->exists((string) $storedFiles[0]['storage_path']));
     }
 
     public function test_store_many_keeps_server_detected_webp_mime_as_safe(): void
     {
-        Storage::fake('local');
+        Storage::fake('s3');
 
         $sourcePath = tempnam(sys_get_temp_dir(), 'hyperpos-proof-webp-');
         self::assertIsString($sourcePath);
@@ -72,6 +72,6 @@ final class SupplierPaymentProofFileStorageAdapterFeatureTest extends TestCase
         self::assertCount(1, $storedFiles);
         self::assertSame('image/webp', $storedFiles[0]['mime_type']);
         self::assertStringStartsWith('supplier-payment-proofs/payment-1/', $storedFiles[0]['storage_path']);
-        self::assertTrue(Storage::disk('local')->exists((string) $storedFiles[0]['storage_path']));
+        self::assertTrue(Storage::disk('s3')->exists((string) $storedFiles[0]['storage_path']));
     }
 }
