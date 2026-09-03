@@ -1,8 +1,10 @@
+const PUBLIC_ASSET_BASE = 'https://media.arbiconbengkel.my.id';
+
 const DEFAULT_NOTIFICATION = {
   title: 'Reminder Jatuh Tempo',
   body: 'Ada nota pelanggan yang perlu dicek.',
-  icon: '/assets/compiled/svg/favicon.svg',
-  badge: '/assets/compiled/svg/favicon.svg',
+  icon: `${PUBLIC_ASSET_BASE}/assets/compiled/svg/favicon.svg`,
+  badge: `${PUBLIC_ASSET_BASE}/assets/compiled/svg/favicon.svg`,
   url: '/admin/due-note-reminders',
   tag: 'due-note-reminder',
 };
