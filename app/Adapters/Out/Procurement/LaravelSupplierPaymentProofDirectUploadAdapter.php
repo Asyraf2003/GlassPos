@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Adapters\Out\Procurement;
 
 use App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
@@ -21,6 +22,8 @@ final class LaravelSupplierPaymentProofDirectUploadAdapter implements SupplierPa
         }
 
         $expiresInSeconds = max(60, min($expiresInSeconds, 3600));
+
+        /** @var FilesystemAdapter $disk */
         $disk = Storage::disk(self::DISK);
         $prepared = [];
 
