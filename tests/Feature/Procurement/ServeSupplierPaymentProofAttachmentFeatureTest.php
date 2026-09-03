@@ -18,7 +18,7 @@ final class ServeSupplierPaymentProofAttachmentFeatureTest extends TestCase
 
     public function test_admin_can_preview_supplier_payment_proof_attachment_inline(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2_private');
         $this->storePdfFixture('supplier-payment-proofs/payment-1/proof.pdf');
 
         $this->seedPaymentFixture('payment-1');
@@ -42,7 +42,7 @@ final class ServeSupplierPaymentProofAttachmentFeatureTest extends TestCase
 
     public function test_admin_can_download_supplier_payment_proof_attachment(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2_private');
         $this->storeJpegFixture('supplier-payment-proofs/payment-1/proof.jpg');
 
         $this->seedPaymentFixture('payment-1');
@@ -67,7 +67,7 @@ final class ServeSupplierPaymentProofAttachmentFeatureTest extends TestCase
 
     public function test_admin_can_preview_webp_supplier_payment_proof_attachment_inline(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2_private');
         $this->storeWebpFixture('supplier-payment-proofs/payment-1/proof.webp');
 
         $this->seedPaymentFixture('payment-1');
@@ -90,11 +90,10 @@ final class ServeSupplierPaymentProofAttachmentFeatureTest extends TestCase
         self::assertSame('nosniff', strtolower((string) $response->headers->get('x-content-type-options')));
     }
 
-
     public function test_supplier_payment_proof_attachment_does_not_serve_client_controlled_html_mime_inline(): void
     {
-        Storage::fake('local');
-        Storage::disk('local')->put('supplier-payment-proofs/payment-1/client-controlled.pdf', 'not-a-real-pdf');
+        Storage::fake('r2_private');
+        Storage::disk('r2_private')->put('supplier-payment-proofs/payment-1/client-controlled.pdf', 'not-a-real-pdf');
 
         $this->seedPaymentFixture('payment-1');
         $this->seedAttachment(
@@ -123,7 +122,7 @@ final class ServeSupplierPaymentProofAttachmentFeatureTest extends TestCase
 
     public function test_admin_gets_404_when_supplier_payment_proof_attachment_storage_path_is_tampered(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2_private');
         $this->seedPaymentFixture('payment-1');
         $admin = $this->user('admin');
 
@@ -159,11 +158,9 @@ final class ServeSupplierPaymentProofAttachmentFeatureTest extends TestCase
         }
     }
 
-
-
     public function test_admin_can_open_supplier_payment_proof_attachment_preview_page_with_back_button(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2_private');
         $this->storePdfFixture('supplier-payment-proofs/payment-1/proof.pdf');
 
         $this->seedPaymentFixture('payment-1');
@@ -199,7 +196,7 @@ final class ServeSupplierPaymentProofAttachmentFeatureTest extends TestCase
 
     private function storePdfFixture(string $path): void
     {
-        Storage::disk('local')->put(
+        Storage::disk('r2_private')->put(
             $path,
             "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF\n",
         );
@@ -212,7 +209,7 @@ final class ServeSupplierPaymentProofAttachmentFeatureTest extends TestCase
             true,
         );
 
-        Storage::disk('local')->put($path, is_string($jpeg) ? $jpeg : '');
+        Storage::disk('r2_private')->put($path, is_string($jpeg) ? $jpeg : '');
     }
 
     private function storeWebpFixture(string $path): void
@@ -222,7 +219,7 @@ final class ServeSupplierPaymentProofAttachmentFeatureTest extends TestCase
             true,
         );
 
-        Storage::disk('local')->put($path, is_string($webp) ? $webp : '');
+        Storage::disk('r2_private')->put($path, is_string($webp) ? $webp : '');
     }
 
     private function user(string $role): User
