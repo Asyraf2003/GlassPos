@@ -63,10 +63,7 @@ final class LaravelSupplierPaymentProofDirectUploadAdapter implements SupplierPa
                     'mime_type' => $mimeType,
                     'file_size_bytes' => $fileSizeBytes,
                     'upload_url' => $url,
-                    'headers' => array_map(
-                        static fn (mixed $value): string => (string) $value,
-                        $headers,
-                    ),
+                    'headers' => SupplierPaymentProofUploadHeaderNormalizer::forBrowser($headers),
                 ];
             }
         } catch (Throwable) {
