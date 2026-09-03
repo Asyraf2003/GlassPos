@@ -60,6 +60,31 @@ return [
             'report' => false,
         ],
 
+        'r2_public' => [
+            'driver' => 's3',
+            'key' => env('R2_PUBLIC_ACCESS_KEY_ID'),
+            'secret' => env('R2_PUBLIC_SECRET_ACCESS_KEY'),
+            'region' => env('R2_REGION', 'auto'),
+            'bucket' => env('R2_PUBLIC_BUCKET', 'glasspos-media'),
+            'url' => env('R2_PUBLIC_URL', 'https://media.arbiconbengkel.my.id'),
+            'endpoint' => env('R2_ENDPOINT'),
+            'use_path_style_endpoint' => env('R2_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'r2_private' => [
+            'driver' => 's3',
+            'key' => env('R2_PRIVATE_ACCESS_KEY_ID'),
+            'secret' => env('R2_PRIVATE_SECRET_ACCESS_KEY'),
+            'region' => env('R2_REGION', 'auto'),
+            'bucket' => env('R2_PRIVATE_BUCKET', 'glasspos-private'),
+            'endpoint' => env('R2_ENDPOINT'),
+            'use_path_style_endpoint' => env('R2_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*
