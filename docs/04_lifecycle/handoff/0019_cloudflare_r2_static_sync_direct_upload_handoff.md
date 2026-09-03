@@ -3,12 +3,10 @@
 ## Metadata
 - Date: 2026-09-03
 - Slice / topic: Cloudflare R2 public static offload + private supplier-payment-proof migration
-- Workflow step: public CDN lane verified; repository verification green; strict private direct-upload adapter suite passed; private R2 CORS is next
+- Workflow step: private CORS preflight proven; real presigned PUT is next after header normalization regression check
 - Status: active / in progress
 
 ## Goal
-
-Final target:
 
 ```text
 public static
@@ -35,30 +33,22 @@ Private media bytes must not transit cPanel/PHP in the final architecture.
 - Static R2 parity: 6,224/6,224 paths with zero final failures.
 - Public font CORS is configured and proven.
 - Laravel asset-root CDN cutover is locally proven.
-- `manifest.webmanifest` and `service-worker.js` remain application-origin.
-- PWA icons, service-worker fallback icons, error-page assets, and outbound push asset paths no longer depend on local-only public assets.
 - Public privacy gate passed: `glasspos-media/supplier-payment-proofs/**` count is `0`.
 - Supplier-payment-proof durable storage adapter uses `r2_private`.
 - Existing web upload controllers still receive PHP multipart bytes before forwarding to private R2.
 - Direct-upload port/adapter foundation exists but is not wired to production controllers/UI yet.
 - Local `public/assets` remains until browser/PWA regression, rollback, production proof, and cleanup.
 
-## Public Static Proof
+## Public Lane Proof
 
 ```text
-files: 6224
-bytes: 56737036 (54.11 MB)
-existing objects: 6028
-processed: 6224/6224
-uploaded: 196
-skipped existing: 6028
-failed: 0
-elapsed: 1m 09s
+static files: 6224 / 54.11 MB
+R2 parity: 6224/6224
+public privacy prefix count: 0
+focused CDN contract: 6 passed / 25 assertions
 ```
 
-Representative CSS/JS/SVG/vendor/font assets returned HTTP 200 from the custom domain.
-
-Public font CORS final proof:
+Public font CORS proof:
 
 ```text
 HTTP/2 200
@@ -69,53 +59,9 @@ access-control-allow-origin: *
 cache-control: public, max-age=86400
 ```
 
-Public private-data gate:
-
-```text
-Storage::disk('r2_public')->allFiles('supplier-payment-proofs')
-count = 0
-```
-
-## Application CDN Cutover - PASS
-
-Runtime proof:
-
-```text
-config("app.asset_url")
-= https://media.arbiconbengkel.my.id
-
-asset("assets/compiled/css/app.css")
-= https://media.arbiconbengkel.my.id/assets/compiled/css/app.css
-
-url("/manifest.webmanifest")
-= http://localhost/manifest.webmanifest
-
-url("/service-worker.js")
-= http://localhost/service-worker.js
-```
-
-Focused CDN contract:
-
-```text
-6 passed / 25 assertions
-```
-
 ## Repository Quality Gate - PASS
 
-Migration follow-ups found by verification were fixed:
-
-- PHPStan concrete-filesystem typing for `temporaryUploadUrl()`;
-- oversized `UploadPublicAssetsToR2` split into small support classes under `app/Console/Support/PublicAssets/`;
-- `make verify` now uses Pest `--compact` while preserving the Pest runner;
-- supplier-proof feature fixtures changed from fake `local` storage to fake `r2_private` so tests match the real durable-storage contract.
-
-Targeted supplier-proof regression:
-
-```text
-24 passed / 149 assertions
-```
-
-Final operator `make verify` proof:
+Final operator proof:
 
 ```text
 PHPStan: PASS
@@ -126,6 +72,8 @@ Tests: 1505 passed (9415 assertions)
 Duration: 58.89s
 ```
 
+Uploader command was split into small support classes to satisfy the repository 100-line application-file rule. Supplier-proof feature fixtures now fake `r2_private`, matching the real durable-storage contract.
+
 ## Private Direct Upload Foundation - STRICT TEST PASS
 
 Foundation:
@@ -135,35 +83,33 @@ App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort
 App\Adapters\Out\Procurement\LaravelSupplierPaymentProofDirectUploadAdapter
 ```
 
-Current adapter behavior:
-
-- targets `r2_private`;
-- Laravel owns generated object keys;
-- opaque stored filenames;
-- TTL clamped to 60..3600 seconds, default 900;
-- required `Content-Type` propagated into signing options;
-- invalid metadata/path input fails closed;
-- signing exceptions fail closed.
-
-Operator proof:
+Operator proof before real-R2 preflight:
 
 ```text
 Tests: 8 passed (35 assertions)
 Duration: 0.20s
 ```
 
-This closes the adapter/unit-contract gate. It does **not** prove browser CORS, a real presigned PUT, finalize verification, or production controller cutover.
+Adapter contract:
 
-## Private CORS Policy Prepared
+- targets `r2_private`;
+- Laravel owns generated object keys;
+- opaque stored filenames;
+- TTL clamped to 60..3600 seconds, default 900;
+- `Content-Type` participates in signing;
+- invalid metadata/path input fails closed;
+- signing exceptions fail closed.
 
-Tracked strict policies now exist for `glasspos-private`:
+## Private CORS - APPLIED AND PREFLIGHT PROVEN
+
+Tracked policies:
 
 ```text
 deploy/cloudflare/glasspos-private-cors.json
 deploy/cloudflare/glasspos-private-cors-dashboard.json
 ```
 
-Dashboard policy intent:
+Dashboard policy:
 
 ```json
 [
@@ -177,47 +123,93 @@ Dashboard policy intent:
 ]
 ```
 
-This policy is intentionally narrower than the public bucket policy. Do not use `*` for the private bucket.
+Operator applied the policy to `glasspos-private` and generated a real short-lived presigned upload URL through the Laravel direct-upload adapter.
+
+Preflight proof against that real presigned URL:
+
+```text
+HTTP/1.1 204 No Content
+Access-Control-Allow-Origin: https://arbiconbengkel.my.id
+Vary: Origin
+Access-Control-Allow-Headers: content-type
+Access-Control-Allow-Methods: PUT
+```
+
+Meaning: the private browser CORS gate for the intended production origin, PUT method, and Content-Type request header is proven.
+
+## Presigned Header Warning Found During Real Proof
+
+The same real presign run emitted:
+
+```text
+WARNING Array to string conversion
+app/Adapters/Out/Procurement/LaravelSupplierPaymentProofDirectUploadAdapter.php line 67
+```
+
+Root cause: Laravel's S3 adapter returns PSR request headers where each header value may be an array. The first implementation assumed scalar values and cast them directly to strings.
+
+Patch pushed:
+
+```text
+app/Adapters/Out/Procurement/SupplierPaymentProofUploadHeaderNormalizer.php
+app/Adapters/Out/Procurement/LaravelSupplierPaymentProofDirectUploadAdapter.php
+tests/Feature/Procurement/SupplierPaymentProofDirectUploadAdapterFeatureTest.php
+```
+
+New behavior:
+
+- array-valued PSR headers are normalized to browser-friendly strings;
+- browser-managed `Host` and `Content-Length` are not returned to JavaScript;
+- strict adapter regression now models real PSR header arrays.
+
+This patch is not counted as verified until the operator pulls it and reruns the strict adapter suite.
 
 ## Current Migration State
-
-Already changed in the real migration:
 
 ```text
 public static bytes        -> R2 public          DONE
 Laravel static URLs        -> public CDN         DONE locally
-supplier proof durable I/O -> R2 private         DONE in application adapter
-public/private bucket gate -> separated          PROVEN
+public font CORS            -> proven             DONE
+public/private privacy gate -> proven             DONE
+supplier proof durable I/O -> R2 private         DONE
+private direct adapter      -> strict tests       PASS before header patch
+private CORS preflight      -> real presign       PASS
+real presigned PUT bytes    -> pending
 ```
 
-Still unchanged / pending:
+Current production upload byte path is still:
 
 ```text
-browser upload path
 Browser -> PHP multipart -> Laravel -> R2 private
 ```
 
-Therefore the most important remaining architectural change is removing PHP/cPanel from the private upload byte path.
+Target remains:
+
+```text
+Browser -> Laravel prepare
+Browser -> R2 private direct PUT
+Browser -> Laravel finalize
+Laravel -> verify object -> DB/audit
+```
 
 Legacy supplier-proof rows/files have not yet been inventoried/migrated. Production cutover and deletion of local fallback assets/media have not happened.
 
 ## Locked Decisions
 
 - Public/private data use separate buckets.
-- Database stores object keys, not hard-coded R2 URLs.
-- Business/application code remains provider-agnostic where possible.
-- `manifest.webmanifest` and `service-worker.js` stay same-origin.
+- Database stores object keys, not hard-coded R2 public URLs.
 - Final private uploads send bytes browser -> R2 directly.
 - Client MIME/size is not final verification.
 - Finalize must verify the actual R2 object before DB/audit mutation.
 - Upload intent must be actor/business-scope bound and replay/idempotency aware.
-- Private CORS must be origin/method/header constrained, never public wildcard.
+- Private CORS is origin/method/header constrained, never public wildcard.
+- Browser-managed request headers such as `Host` and `Content-Length` are not exposed as JS upload headers.
 - Do not delete local rollback copies before browser, parity, rollback, and production proof.
 
 ## Remaining Work in Order
 
-1. Apply strict CORS to `glasspos-private` through the Cloudflare dashboard.
-2. Prove private CORS/preflight behavior and a real short-lived presigned PUT against `glasspos-private`.
+1. Pull the presigned-header normalization patch and rerun the strict direct-upload adapter suite.
+2. Prove a real short-lived PUT of bytes to `glasspos-private`, then verify object exists/content and delete the proof object.
 3. Run browser UI/PWA/font/icon smoke for the public CDN cutover while local `public/assets` remains rollback.
 4. Add prepare/finalize use cases with actor/business-scope-bound upload intent and real-object verification.
 5. Cut both supplier-proof web flows from PHP multipart to direct browser -> R2.
@@ -229,16 +221,8 @@ Legacy supplier-proof rows/files have not yet been inventoried/migrated. Product
 
 ## Exact Next Operator Step
 
-Cloudflare Dashboard:
-
-```text
-R2 -> glasspos-private -> Settings -> CORS Policy -> Add/Edit
+```bash
+sai pull && php artisan test --compact tests/Feature/Procurement/SupplierPaymentProofDirectUploadAdapterFeatureTest.php
 ```
 
-Paste the contents of:
-
-```text
-deploy/cloudflare/glasspos-private-cors-dashboard.json
-```
-
-Do not modify `glasspos-media` during this step.
+Required result: 8 tests PASS with no array-to-string warning. After that, generate a fresh presigned URL and perform the real PUT/verify/delete proof.
