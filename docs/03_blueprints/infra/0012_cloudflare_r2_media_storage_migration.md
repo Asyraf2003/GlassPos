@@ -9,6 +9,8 @@ Move durable runtime media out of Laravel local/public storage and move the heav
 
 Laravel remains the control plane for authorization, metadata, upload orchestration, object naming, delete/read decisions, and private delivery. Cloudflare R2 becomes the durable object store and public static delivery layer.
 
+A second goal is to remove large media upload bytes from the cPanel/PHP request path. The final private-media flow is direct-to-R2: Laravel authorizes and prepares the upload, the browser uploads directly to R2, then Laravel verifies and finalizes metadata/business state.
+
 ## Locked target boundary
 
 ```text
@@ -16,6 +18,8 @@ Laravel / application server
 ├── PHP application code
 ├── controllers / policies / use cases
 ├── metadata and storage object keys
+├── signed upload orchestration
+├── private read/download authorization
 ├── small boot-critical public files when needed
 └── no durable runtime media storage
 
@@ -29,7 +33,7 @@ Cloudflare R2: glasspos-private           PRIVATE
     └── supplier-payment-proofs/**
 ```
 
-Public and private objects are split by bucket, not merely by path prefix. A custom domain exposes the whole bound public bucket, so private evidence must never share that bucket.
+Public and private objects are split by bucket, not merely by path prefix. A custom domain exposes the bound public bucket, so private evidence must never share that bucket.
 
 ## R2 setup proof
 
@@ -41,6 +45,8 @@ Public and private objects are split by bucket, not merely by path prefix. A cus
 - Custom domain: `https://media.arbiconbengkel.my.id`
 - Custom-domain status: Active
 - Purpose: public static assets and future explicitly-public runtime media
+- Real proof: Laravel wrote `healthcheck/public-r2-test.txt`, R2 reported it exists, and `curl` through the custom domain returned HTTP 200 with body `GlassPos public R2 OK`.
+- The healthcheck object was deleted after proof.
 
 ### Private bucket
 
@@ -50,13 +56,13 @@ Public and private objects are split by bucket, not merely by path prefix. A cus
 - No custom domain
 - No public development URL
 - Purpose: authorization-controlled runtime media
+- Real proof: `r2_private` completed write -> exists -> read -> delete -> missing against the actual bucket.
 
 ### Laravel integration
 
 - S3-compatible adapter: `league/flysystem-aws-s3-v3`
-- R2 S3 connectivity was proven locally against the original public bucket with write + exists returning `true`.
 - Credentials are environment-only and must never be committed.
-- Public and private disks now use separate credential variables so each token can be scoped to only the bucket it needs.
+- Public and private disks use separate credential variables so each token can be scoped to only the bucket it needs.
 
 Expected environment contract:
 
@@ -75,11 +81,9 @@ R2_PRIVATE_ACCESS_KEY_ID=...
 R2_PRIVATE_SECRET_ACCESS_KEY=...
 ```
 
-The existing credential originally scoped only to `glasspos-media` is suitable only for the public disk. A separate Object Read & Write credential scoped to `glasspos-private` is required before the private runtime proof.
-
 ## Laravel filesystem disks
 
-`config/filesystems.php` now defines explicit Cloudflare disks:
+`config/filesystems.php` defines explicit Cloudflare disks:
 
 ```text
 r2_public  -> glasspos-media   -> public custom-domain bucket
@@ -122,29 +126,90 @@ Adapter:
 App\Adapters\Out\Procurement\LaravelSupplierPaymentProofFileStorageAdapter
 ```
 
-The adapter now targets `r2_private` for:
+The durable storage adapter targets `r2_private` for:
 
 - `putFileAs`
 - delete
 - exists
 - get
 
-The targeted feature test uses `Storage::fake('r2_private')`, preserving the storage boundary without contacting Cloudflare during the test suite.
-
 Private delivery remains application-controlled. Existing attachment preview/serve flows resolve metadata, read through the storage port, and return the file through Laravel rather than exposing an R2 public URL.
+
+## Current multipart bottleneck
+
+The current web controllers still receive `UploadedFile` objects and obtain PHP temporary paths before the application sends them to R2:
+
+```text
+Browser -> cPanel/PHP multipart upload -> temp file -> Laravel -> r2_private
+```
+
+This still depends on hosting limits such as `upload_max_filesize`, `post_max_size`, request/body limits, timeout, and upload temp storage. R2 as the destination alone does not remove those limits.
+
+Affected web flows include:
+
+```text
+UploadSupplierInvoicePaymentProofController
+AttachSupplierPaymentProofController
+```
+
+Therefore the final runtime architecture must not make PHP carry the media bytes.
+
+## Direct-to-R2 target
+
+Locked flow:
+
+```text
+1. Browser -> Laravel
+   request upload authorization with filename/type/size metadata
+
+2. Laravel
+   authenticate + authorize + validate business scope
+   allocate final object key
+   return short-lived signed PUT URL + required headers
+
+3. Browser -> glasspos-private directly
+   file bytes do not transit cPanel/PHP
+
+4. Browser -> Laravel
+   finalize uploaded object key
+
+5. Laravel
+   verify key/object/size/type
+   commit payment + attachment metadata + audit transaction
+```
+
+Controllers must remain storage-provider agnostic. The expected dependency direction is:
+
+```text
+Controller -> Use Case -> Storage Port -> R2 Adapter
+```
+
+### Direct-upload foundation already added
+
+A dedicated outbound capability now exists:
+
+```text
+App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort
+App\Adapters\Out\Procurement\LaravelSupplierPaymentProofDirectUploadAdapter
+```
+
+The adapter uses `r2_private` and Laravel's temporary upload URL capability to prepare short-lived PUT URLs while preserving the existing final object-key prefix. It is bound through `ProcurementPaymentServiceProvider`.
+
+This foundation is intentionally not wired into the working multipart controllers yet. The next proof is to confirm a presigned PUT against R2, including the required R2 CORS policy, before cutting production forms over to direct upload.
 
 ## Static asset inventory
 
-Local measurement on 2026-09-03:
+Earlier `du` measurement reported about 74 MB of allocated filesystem space under `public/assets`. The uploader dry-run counts actual file payload instead:
 
 ```text
-public/assets      74M
-├── extensions    68M
-├── compiled     3.3M
-└── static       2.5M
+files: 6224
+bytes: 56737036
+payload: 54.11 MB
 ```
 
-The dominant cost is the Mazer/vendor extension tree. The public scan also showed widespread application references to:
+The difference is expected because `du` counts filesystem blocks while the uploader sums actual file sizes; thousands of small extension/vendor files amplify block overhead.
+
+The dominant local area is the Mazer/vendor extension tree. The public scan also showed widespread application references to:
 
 ```text
 assets/extensions/**
@@ -156,7 +221,7 @@ Most Blade references use Laravel `asset('assets/...')`. A smaller set is hard-c
 
 ## Static CDN decision
 
-Static application assets are not runtime media, but they are intentionally included in the broader Cloudflare offload because keeping the 74 MB tree on every Laravel deployment is wasteful.
+Static application assets are not runtime media, but they are intentionally included in the broader Cloudflare offload because keeping the large tree on every Laravel deployment is wasteful.
 
 Locked direction:
 
@@ -169,7 +234,16 @@ R2 glasspos-media/assets/**
 
 Preserving `assets/**` rather than adding an extra `public/` prefix keeps CSS-relative URLs and existing application paths simpler.
 
-Do not switch application asset URLs to the CDN until the entire asset tree has been uploaded and sampled successfully through the custom domain.
+The repeatable uploader is:
+
+```text
+php artisan r2:upload-public-assets --dry-run
+php artisan r2:upload-public-assets
+```
+
+It preserves the relative asset tree, sets explicit content types, and currently applies `Cache-Control: public, max-age=86400`.
+
+Do not switch application asset URLs to the CDN until the real upload finishes with zero failures and representative CSS/JS/font/image URLs are sampled successfully through the custom domain.
 
 ## Files that remain local initially
 
@@ -203,34 +277,42 @@ Do not remove these definitions until the runtime-media audit and legacy-data ch
 2. Public and private data use different R2 buckets.
 3. Prefer bucket-scoped credentials, with separate public/private key variables.
 4. Store object keys in the database, not absolute R2 URLs.
-5. Keep domain/application ports storage-provider agnostic.
+5. Keep controllers/domain/application storage-provider agnostic.
 6. Cloudflare/S3 details belong in adapters/configuration.
 7. Preserve the existing `assets/**` relative tree during static sync.
 8. Do not point application asset URLs at R2 before upload + HTTP proof succeeds.
 9. Do not delete local legacy media until object/path parity and rollback are proven.
 10. Private object access remains authorization-controlled.
+11. Final private uploads must send file bytes directly to R2 rather than through cPanel/PHP.
+12. A direct-upload cutover must preserve server-side verification; client-provided MIME/type/size metadata is never sufficient proof by itself.
 
 ## Completed
 
 - Created `glasspos-media` public bucket.
 - Connected and activated `media.arbiconbengkel.my.id`.
 - Created `glasspos-private` private bucket.
-- Installed Laravel S3/Flysystem adapter.
-- Proved S3-compatible R2 connectivity.
 - Added explicit `r2_public` and `r2_private` Laravel disks.
-- Routed supplier payment proof storage adapter to `r2_private`.
-- Updated targeted feature test to fake `r2_private`.
+- Proved real private R2 write/read/delete.
+- Proved real public R2 write + HTTP 200 custom-domain delivery.
+- Routed supplier payment proof durable storage adapter to `r2_private`.
+- Updated targeted storage feature test to fake `r2_private`.
 - Measured and mapped the heavy `public/assets` tree.
+- Added repeatable `r2:upload-public-assets` command.
+- Dry-run inventoried 6,224 files / 54.11 MB payload.
+- Added a storage-provider-agnostic direct-upload port and R2 adapter foundation for short-lived private PUT URLs.
 
 ## Remaining work
 
-1. Create/confirm an R2 credential scoped to `glasspos-private`, then populate `R2_PRIVATE_*` locally.
-2. Clear config and prove `r2_private` write/read/delete against real R2.
-3. Build a repeatable CLI sync for `public/assets/**` -> `glasspos-media/assets/**`.
-4. Upload the static tree and sample CSS/JS/font/image URLs through `media.arbiconbengkel.my.id`.
-5. Introduce one global CDN asset-base mechanism for Laravel `asset('assets/...')` references.
-6. Convert the small set of hard-coded `/assets/...` paths in service worker/manifest/push payloads deliberately.
-7. Run UI/PWA regression checks before removing local copies from deployment.
-8. Inventory existing legacy supplier-payment-proof rows and local files and migrate them to `glasspos-private` with parity proof.
-9. Continue audit for any additional runtime media families.
-10. Remove unused local public-media storage semantics only after all proofs are complete.
+1. Finish the real static upload and require `uploaded: 6224/6224`, `failed: 0` proof.
+2. Sample representative CSS/JS/font/image objects through `media.arbiconbengkel.my.id`.
+3. Configure and prove R2 CORS + short-lived presigned PUT for `glasspos-private`.
+4. Add direct-upload prepare/finalize application use cases and an integrity-bound upload intent.
+5. Cut both supplier proof web flows from PHP multipart to direct browser -> R2 upload.
+6. Verify finalization against real R2 object size/type/key before DB mutation.
+7. Introduce one global CDN asset-base mechanism for Laravel `asset('assets/...')` references.
+8. Convert the small set of hard-coded `/assets/...` paths in service worker/manifest/push payloads deliberately.
+9. Run UI/PWA regression checks before removing local static copies from deployment.
+10. Inventory existing legacy supplier-payment-proof rows and local files and migrate them to `glasspos-private` with DB/object parity proof.
+11. Continue audit for any additional runtime media families.
+12. Deploy to production and prove media no longer depends on durable cPanel storage or PHP multipart limits.
+13. Remove obsolete local media/static copies and storage semantics only after rollback/parity proof.
