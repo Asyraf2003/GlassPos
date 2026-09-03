@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Adapters\In\Http\Controllers\Admin\ServiceProductTemplate;
 
 use App\Adapters\In\Http\Controllers\Admin\ServiceProductTemplate\Concerns\ValidatesServiceProductTemplateForm;
-use App\Application\ServiceProductTemplate\Services\ServiceProductTemplateAdminLineInput;
-use App\Application\ServiceProductTemplate\Services\ServiceProductTemplateLineWriter;
+use App\Adapters\Out\ServiceProductTemplate\DatabaseServiceProductTemplateAdminLineInput;
+use App\Adapters\Out\ServiceProductTemplate\DatabaseServiceProductTemplateLineWriter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -17,10 +17,9 @@ final class UpdateServiceProductTemplateController extends Controller
     use ValidatesServiceProductTemplateForm;
 
     public function __construct(
-        private readonly ServiceProductTemplateAdminLineInput $lineInput,
-        private readonly ServiceProductTemplateLineWriter $lineWriter,
-    ) {
-    }
+        private readonly DatabaseServiceProductTemplateAdminLineInput $lineInput,
+        private readonly DatabaseServiceProductTemplateLineWriter $lineWriter,
+    ) {}
 
     public function __invoke(Request $request, string $templateId): RedirectResponse
     {

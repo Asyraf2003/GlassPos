@@ -39,12 +39,16 @@ final class ProcurementInvoiceIndexPageFeatureTest extends TestCase
         $response->assertSee('procurement-filter-form', false);
         $response->assertSee('procurement-invoice-table-body', false);
         $response->assertSee('Kirim Bukti Pembayaran');
-        $response->assertSee('proof_files[]', false);
+        $response->assertSee('data-supplier-proof-direct-upload', false);
+        $response->assertSee('data-scope-type="supplier_invoice"', false);
+        $response->assertSee(route('admin.procurement.supplier-payment-proofs.direct-upload.prepare'), false);
+        $response->assertSee('supplier-payment-proof-uploads/__INTENT__/finalize', false);
+        $response->assertDontSee('multipart/form-data', false);
         $response->assertSee('image/webp', false);
         $response->assertSee('image/heic', false);
         $response->assertSee('image/heif', false);
         $response->assertSee('.jpg,.jpeg,.png,.webp,.heic,.heif,.pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf', false);
-        $response->assertSee('Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP. Maksimal 10 MB per file.');
+        $response->assertSee('Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP, HEIC, HEIF, atau PDF. Maksimal 10 MB per file.');
         $response->assertSee('Kirim Bukti & Tandai Lunas', false);
         $response->assertSee('procurement-payment-submit', false);
         $response->assertSee('data-submitting-label="Mengirim..."', false);

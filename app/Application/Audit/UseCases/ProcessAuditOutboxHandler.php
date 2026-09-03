@@ -4,35 +4,37 @@ declare(strict_types=1);
 
 namespace App\Application\Audit\UseCases;
 
-use App\Adapters\Out\Audit\DatabaseAuditEventWriterAdapter;
 use App\Application\Audit\Services\AuditOutboxEventHydrator;
-use App\Application\Audit\Services\AuditOutboxFailureRecorder;
-use App\Application\Audit\Support\AuditOutboxStatus;
+use App\Ports\Out\Audit\AuditOutboxProcessorPort;
+use App\Ports\Out\AuditEventWriterPort;
 use App\Ports\Out\ClockPort;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use RuntimeException;
+use App\Ports\Out\TransactionManagerPort;
 use Throwable;
 
 final class ProcessAuditOutboxHandler
 {
     public function __construct(
-        private readonly DatabaseAuditEventWriterAdapter $materializer,
+        private readonly AuditEventWriterPort $materializer,
         private readonly AuditOutboxEventHydrator $hydrator,
-        private readonly AuditOutboxFailureRecorder $failures,
+        private readonly AuditOutboxProcessorPort $outbox,
         private readonly ClockPort $clock,
-    ) {
-    }
+        private readonly TransactionManagerPort $transactions,
+    ) {}
 
     public function handle(int $limit, bool $retryFailed, int $maxAttempts): array
     {
         $summary = ['processed' => 0, 'failed' => 0, 'skipped' => 0];
 
-        foreach ($this->eligibleRows($limit, $retryFailed, $maxAttempts) as $row) {
+        foreach ($this->outbox->eligible($limit, $retryFailed, $maxAttempts, $this->clock->now()) as $row) {
             try {
                 $result = $this->processRow($row);
             } catch (Throwable $e) {
-                $this->failures->record((string) $row->id, $e, max(1, $maxAttempts));
+                $this->outbox->recordFailure(
+                    (string) $row->id,
+                    $e->getMessage(),
+                    $maxAttempts,
+                    $this->clock->now(),
+                );
                 $summary['failed']++;
 
                 continue;
@@ -44,56 +46,36 @@ final class ProcessAuditOutboxHandler
         return $summary;
     }
 
-    private function eligibleRows(int $limit, bool $retryFailed, int $maxAttempts): Collection
-    {
-        $now = $this->clock->now();
-
-        return DB::table('audit_outbox')
-            ->where(static function ($query) use ($retryFailed): void {
-                $query->where('status', AuditOutboxStatus::PENDING);
-
-                if ($retryFailed) {
-                    $query->orWhere('status', AuditOutboxStatus::FAILED);
-                }
-            })
-            ->where('attempts', '<', max(1, $maxAttempts))
-            ->where(static function ($query) use ($now): void {
-                $query->whereNull('available_at')->orWhere('available_at', '<=', $now);
-            })
-            ->orderBy('created_at')
-            ->limit(max(1, $limit))
-            ->get();
-    }
-
     private function processRow(object $row): string
     {
-        return DB::transaction(function () use ($row): string {
-            $now = $this->clock->now();
-            $claimed = DB::table('audit_outbox')
-                ->where('id', (string) $row->id)
-                ->where('status', (string) $row->status)
-                ->update(['status' => AuditOutboxStatus::PROCESSING, 'locked_at' => $now, 'updated_at' => $now]);
+        $this->transactions->begin();
 
-            if ($claimed !== 1) {
+        try {
+            $now = $this->clock->now();
+            $fresh = $this->outbox->claim((string) $row->id, (string) $row->status, $now);
+
+            if ($fresh === null) {
+                $this->transactions->rollBack();
+
                 return 'skipped';
             }
 
-            $fresh = DB::table('audit_outbox')->where('id', (string) $row->id)->first();
-
-            if ($fresh === null) {
-                throw new RuntimeException('audit_outbox row disappeared during processing.');
-            }
-
             $this->materializer->write($this->hydrator->fromRow($fresh));
-
-            DB::table('audit_outbox')->where('id', (string) $fresh->id)->update([
-                'status' => AuditOutboxStatus::PROCESSED,
-                'locked_at' => null,
-                'processed_at' => $now,
-                'updated_at' => $now,
-            ]);
+            $this->outbox->markProcessed((string) $fresh->id, $now);
+            $this->transactions->commit();
 
             return 'processed';
-        });
+        } catch (Throwable $exception) {
+            $this->rollBackQuietly();
+            throw $exception;
+        }
+    }
+
+    private function rollBackQuietly(): void
+    {
+        try {
+            $this->transactions->rollBack();
+        } catch (Throwable) {
+        }
     }
 }

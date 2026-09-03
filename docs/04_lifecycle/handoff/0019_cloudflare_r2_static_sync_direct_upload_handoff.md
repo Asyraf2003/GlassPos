@@ -1,257 +1,125 @@
-# Cloudflare R2 Static Sync and Direct Upload Handoff
+# Cloudflare R2 Supplier Payment Proof Direct Upload Handoff
 
 ## Metadata
+
 - Date: 2026-09-03
-- Slice / topic: Cloudflare R2 public static offload + private supplier-payment-proof migration
-- Workflow step: real browser-style presigned PUT to private R2 is proven; browser/PWA public-CDN smoke is next
-- Status: active / in progress
+- Scope: local supplier-payment-proof direct upload application + UI
+- Status: local complete; stopped before legacy migration, production data, and deploy
+- Blueprint: `docs/03_blueprints/infra/0012_cloudflare_r2_media_storage_migration.md`
 
-## Goal
+## FACT
 
-```text
-public static
-Browser -> media.arbiconbengkel.my.id -> glasspos-media
-
-private supplier proof
-Browser -> Laravel prepare/authorize
-Browser -> glasspos-private direct PUT
-Browser -> Laravel finalize
-Laravel -> verify real object -> DB/audit mutation
-```
-
-Private media bytes must not transit cPanel/PHP in the final architecture.
-
-## Locked Facts
-
-- Cloudflare is authoritative for `arbiconbengkel.my.id`.
-- Public bucket: `glasspos-media` with custom domain `https://media.arbiconbengkel.my.id`.
-- Private bucket: `glasspos-private`; no public domain/development URL.
-- Laravel disks: `r2_public` and `r2_private`.
-- Real private R2 write/read/delete proof passed.
-- Real public R2 write/custom-domain delivery proof passed.
-- Public static inventory: 6,224 files / 56,737,036 bytes / 54.11 MB.
-- Static R2 parity: 6,224/6,224 paths with zero final failures.
-- Public font CORS is configured and proven.
-- Laravel asset-root CDN cutover is locally proven.
-- Public privacy gate passed: `glasspos-media/supplier-payment-proofs/**` count is `0`.
-- Supplier-payment-proof durable storage adapter uses `r2_private`.
-- Strict direct-upload adapter suite passed after PSR header normalization: 8 tests / 35 assertions.
-- Private R2 CORS preflight against a real presigned URL passed.
-- Real browser-style PUT of bytes to `glasspos-private` passed, Laravel read-back matched exactly, and cleanup deletion passed.
-- Existing production web upload controllers still receive PHP multipart bytes before forwarding to private R2.
-- Direct-upload port/adapter foundation exists but is not yet wired to production controllers/UI.
-- Local `public/assets` remains until browser/PWA regression, rollback, production proof, and cleanup.
-
-## Public Lane Proof
-
-```text
-static files: 6224 / 54.11 MB
-R2 parity: 6224/6224
-public privacy prefix count: 0
-focused CDN contract: 6 passed / 25 assertions
-```
-
-Public font CORS proof:
-
-```text
-HTTP/2 200
-content-type: font/woff2
-vary: Origin
-access-control-expose-headers: ETag
-access-control-allow-origin: *
-cache-control: public, max-age=86400
-```
-
-## Repository Quality Gate - PASS
-
-```text
-PHPStan: PASS
-line-count audit: PASS
-Blade audit: PASS
-Contract audit: PASS
-Tests: 1505 passed (9415 assertions)
-Duration: 58.89s
-```
-
-Migration follow-ups fixed during verification:
-
-- PHPStan concrete-filesystem typing for `temporaryUploadUrl()`;
-- oversized `UploadPublicAssetsToR2` split into small support classes under `app/Console/Support/PublicAssets/`;
-- `make verify` now uses Pest `--compact` while preserving the Pest runner;
-- supplier-proof feature fixtures use fake `r2_private`, matching the real durable-storage contract.
-
-## Private Direct Upload Foundation - PASS
-
-Foundation:
-
-```text
-App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort
-App\Adapters\Out\Procurement\LaravelSupplierPaymentProofDirectUploadAdapter
-```
-
-Adapter contract:
-
-- targets `r2_private`;
-- Laravel owns generated object keys;
-- opaque stored filenames;
-- TTL clamped to 60..3600 seconds, default 900;
-- `Content-Type` participates in signing;
-- invalid metadata/path input fails closed;
-- signing exceptions fail closed;
-- PSR array-valued headers are normalized for browser use;
-- browser-managed `Host` and `Content-Length` are not exposed to JavaScript.
-
-Post-normalization operator proof:
-
-```text
-Tests: 8 passed (35 assertions)
-Duration: 0.18s
-```
-
-## Private CORS - PASS
-
-Tracked policies:
-
-```text
-deploy/cloudflare/glasspos-private-cors.json
-deploy/cloudflare/glasspos-private-cors-dashboard.json
-```
-
-Dashboard policy:
-
-```json
-[
-  {
-    "AllowedOrigins": ["https://arbiconbengkel.my.id"],
-    "AllowedMethods": ["PUT"],
-    "AllowedHeaders": ["Content-Type"],
-    "ExposeHeaders": ["ETag"],
-    "MaxAgeSeconds": 900
-  }
-]
-```
-
-Real preflight against a generated presigned URL:
-
-```text
-HTTP/1.1 204 No Content
-Access-Control-Allow-Origin: https://arbiconbengkel.my.id
-Vary: Origin
-Access-Control-Allow-Headers: content-type
-Access-Control-Allow-Methods: PUT
-```
-
-## Real Presigned PUT - PASS
-
-Operator generated a fresh short-lived presigned URL through the Laravel direct-upload port, then sent bytes directly to R2 using an external HTTP client with the production browser origin.
-
-PUT response:
-
-```text
-HTTP/1.1 200 OK
-Access-Control-Allow-Origin: https://arbiconbengkel.my.id
-ETag: "879442678317eb3d7ba745bfb20d8ef1"
-Vary: Origin
-```
-
-Laravel verification against `r2_private`:
-
-```text
-storage_path = supplier-payment-proofs/direct-proof/15f79d37002e001a57db8ebb099c40c5.txt
-exists = true
-content_match = true
-bytes = 22
-exists_after_delete = false
-```
-
-Meaning:
-
-```text
-Laravel generates authorization/presign       PASS
-cross-origin browser-style PUT reaches R2     PASS
-object exists in private bucket               PASS
-read-back content matches exact bytes         PASS
-cleanup delete removes proof object           PASS
-```
-
-This proves the infrastructure byte path required by the final architecture:
-
-```text
-Browser -> glasspos-private
-```
-
-without PHP/cPanel carrying the file body. It does **not** yet mean the production controllers/forms use this path.
-
-## Current Migration State
-
-```text
-public static bytes        -> R2 public          DONE
-Laravel static URLs        -> public CDN         DONE locally
-public font CORS           -> proven             DONE
-public/private privacy     -> proven             DONE
-supplier proof durable I/O -> R2 private         DONE
-private direct adapter     -> strict tests       PASS
-private CORS preflight     -> real presign       PASS
-real direct PUT bytes      -> R2 private         PASS
-browser/PWA public smoke   -> pending
-prepare/finalize use cases -> pending
-controller/UI cutover      -> pending
-legacy migration           -> pending
-production cleanup         -> pending
-```
-
-Current production upload byte path remains:
-
-```text
-Browser -> PHP multipart -> Laravel -> R2 private
-```
-
-Target production path:
+The local private-proof flow is now:
 
 ```text
 Browser -> Laravel prepare
-Browser -> R2 private direct PUT
+Browser -> private R2 staging PUT
 Browser -> Laravel finalize
-Laravel -> verify object -> DB/audit
+Laravel -> verify -> promote -> short DB mutation/audit/projection transaction
 ```
 
-## Locked Decisions
-
-- Public/private data use separate buckets.
-- Database stores object keys, not hard-coded R2 public URLs.
-- Final private uploads send bytes browser -> R2 directly.
-- Client MIME/size is not final verification.
-- Finalize must verify the actual R2 object before DB/audit mutation.
-- Upload intent must be actor/business-scope bound and replay/idempotency aware.
-- Private CORS is origin/method/header constrained, never public wildcard.
-- Browser-managed request headers such as `Host` and `Content-Length` are not exposed as JS upload headers.
-- No DB transaction may remain open while the browser performs the R2 PUT.
-- Do not delete local rollback copies before browser, parity, rollback, and production proof.
-
-## Remaining Work in Order
-
-1. Run browser UI/PWA/font/icon smoke for the public CDN cutover while local `public/assets` remains rollback.
-2. Add prepare/finalize use cases with actor/business-scope-bound upload intent and real-object verification.
-3. Cut both supplier-proof web flows from PHP multipart to direct browser -> R2.
-4. Inventory/migrate legacy supplier-proof DB rows/local files and prove DB/object parity.
-5. Continue audit for any other durable runtime-media families.
-6. Verify Composer manifest/lock coherence for `league/flysystem-aws-s3-v3`.
-7. Deploy to production and prove cPanel no longer owns durable media or private upload bytes.
-8. Remove obsolete local media/static copies only after rollback/parity/production proof.
-
-## Exact Next Operator Step
-
-Run a browser smoke against the local application while `ASSET_URL=https://media.arbiconbengkel.my.id` remains configured and `public/assets` is still present as rollback.
-
-Required checks:
+Browser PUT authorization is limited to:
 
 ```text
-1. Open login/auth page: layout CSS/icons render.
-2. Open admin dashboard: CSS/JS/vendor icons render; no obvious broken asset.
-3. DevTools Network: representative `assets/**` requests resolve to `media.arbiconbengkel.my.id`.
-4. Console: no CORS/font loading errors.
-5. Open/install PWA path if available: manifest loads from application origin and icons render from CDN.
-6. Confirm service worker registration still points to application-origin `/service-worker.js`.
+supplier-payment-proof-uploads/{intent-id}/{opaque-file-id}.upload
 ```
 
-Report only anomalies or `semua aman` if the smoke is clean.
+Final durable objects are created only by the server under:
+
+```text
+supplier-payment-proofs/{supplier-payment-id}/{sha256(intent-file-id)}.{verified-extension}
+```
+
+The two previous web flows now use the same direct-upload browser script:
+
+- create payment from an outstanding supplier invoice;
+- attach proof to an existing supplier payment.
+
+The previous local multipart controllers/storage path remain in the repository as fallback code, but no supplier-proof web route or active form targets them.
+
+## IMPLEMENTED
+
+- declaration validation: 1..3 files, maximum 10 MiB each, strict MIME allowlist;
+- actor/scope/idempotency-bound upload-intent persistence;
+- non-locking prepare preflight and reserved payment ID for invoice scope;
+- staging-only presigned PUT generation;
+- actual object existence and byte-size verification;
+- bounded server-side content read with `finfo` MIME detection;
+- explicit HEIC/HEIF ISO base-media fallback and AVIF rejection;
+- server-side copy from staging to opaque final key, followed by final size verification and staging deletion;
+- atomic `prepared -> finalizing` claim and finalized replay payload;
+- invoice state revalidation inside the final business transaction;
+- attachment, audit, and projection mutation only after verification/promotion;
+- partial-promotion and failed-business-mutation object cleanup;
+- hourly expired/stale-finalizing cleanup with an atomic `locked_at` lease, retry, and stale-lease recovery;
+- generic HTTP error responses for infrastructure exceptions;
+- reusable browser flow: JSON prepare -> direct PUT(s) -> JSON finalize.
+
+## SECURITY PROOF
+
+Focused tests prove:
+
+- missing/wrong actor cannot resolve or finalize another actor's intent;
+- actor + scope + idempotency isolation and payload-conflict rejection;
+- maximum 3 files and maximum 10 MiB/file;
+- declared MIME allowlist at HTTP/application/adapter boundaries;
+- client filename, MIME, and size are declarations only;
+- missing, oversized, size-mismatched, or disallowed-content objects cause zero business mutation;
+- actual WebP content declared as JPEG is stored as verified `image/webp` with an opaque `.webp` final name;
+- browser prepare output contains only staging paths and staging PUT URLs;
+- verification and promotion finish before the application opens the business transaction;
+- a concurrent second finalize cannot acquire the atomic claim;
+- finalized replay creates no duplicate payment, attachment, or audit event;
+- invoice state is revalidated after the browser upload interval;
+- partial promotion failure removes prior promoted objects and verified metadata;
+- internal storage exception text is not returned by the HTTP endpoint;
+- expired/stale cleanup does not touch active or finalized objects and retries failed deletion safely;
+- UI code performs prepare -> PUT -> finalize and contains neither `FormData` nor a final-key prefix.
+
+## LOCAL PROOF
+
+Final focused supplier-proof backend/security/UI regression:
+
+```text
+53 passed (398 assertions)
+```
+
+Final full repository gate after implementation and formatting:
+
+```text
+PHPStan: PASS, 0 errors
+line-count audit: PASS
+Blade audit: PASS
+contract audit: PASS
+tests: 1543 passed (9716 assertions)
+make verify: exit 0
+```
+
+Additional explicit architecture gate:
+
+```text
+make audit-hex
+HEXAGONAL AUDIT: OK
+```
+
+The architecture gate required moving pre-existing framework-bound application queries behind adapter/port boundaries. Their focused Audit/Payment/Product/Service regression proof is `14 passed (134 assertions)`.
+
+## GAP — REAL R2 / BROWSER
+
+- Private R2 CORS and a real presigned browser-style PUT were proven in the earlier infrastructure phase.
+- The newly completed current UI has not yet been driven by a real browser through prepare -> staging PUT -> finalize against private R2.
+- Server-side CopyObject promotion through the configured real R2 credentials has not been re-proven from this final application flow.
+- No production DB, production credentials, legacy media, or deployment was touched in this local phase.
+
+## PRODUCTION NEXT
+
+Execute only in a separately authorized production phase:
+
+1. run real browser E2E with the staging-only UI and verify final object/read authorization;
+2. inventory legacy supplier-proof rows and local files;
+3. migrate legacy objects to `glasspos-private` with DB/object parity and rollback proof;
+4. deploy application/static changes and verify production routes, CORS, audit, projection, read, and delete behavior;
+5. prove cPanel/PHP no longer receives supplier-proof multipart bodies;
+6. remove obsolete local copies only after parity, rollback, and production evidence are complete.
+
+Do not broaden private credentials, expose a private bucket publicly, or issue browser-writable URLs for `supplier-payment-proofs/**`.

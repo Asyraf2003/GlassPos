@@ -23,6 +23,9 @@ interface SupplierPaymentProofUploadIntentPort
      */
     public function findByIdForActor(string $uploadIntentId, string $actorId): ?array;
 
+    /** @return array<string,mixed>|null */
+    public function findByIdForActorForUpdate(string $uploadIntentId, string $actorId): ?array;
+
     /**
      * @param list<array{
      *   id:string,
@@ -56,6 +59,8 @@ interface SupplierPaymentProofUploadIntentPort
         string $verifiedMimeType,
         int $verifiedSizeBytes,
     ): bool;
+
+    public function clearVerifiedFiles(string $uploadIntentId): void;
 
     /** @param array<string,mixed> $resultPayload */
     public function markFinalized(

@@ -217,8 +217,14 @@
                             <div class="alert alert-danger">{{ $message }}</div>
                         @enderror
 
-                        <form method="post" id="procurement-payment-form" enctype="multipart/form-data">
-                            @csrf
+                        <form
+                            id="procurement-payment-form"
+                            data-supplier-proof-direct-upload
+                            data-scope-type="supplier_invoice"
+                            data-scope-id="{{ old('payment_invoice_id') }}"
+                            data-prepare-url="{{ route('admin.procurement.supplier-payment-proofs.direct-upload.prepare') }}"
+                            data-finalize-url="{{ route('admin.procurement.supplier-payment-proofs.direct-upload.finalize', ['uploadIntentId' => '__INTENT__']) }}"
+                        >
 
                             <input type="hidden" name="payment_invoice_id" id="procurement-payment-invoice-id" value="{{ old('payment_invoice_id') }}">
 
@@ -227,7 +233,6 @@
                                 <input
                                     type="file"
                                     id="procurement-payment-proof-files"
-                                    name="proof_files[]"
                                     class="form-control @error('proof_files') is-invalid @enderror @error('proof_files.*') is-invalid @enderror"
                                     accept=".jpg,.jpeg,.png,.webp,.heic,.heif,.pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
                                     multiple
@@ -240,13 +245,15 @@
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                                 <p class="fs-5 text-muted d-block mt-2">
-                                    Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP. Maksimal 10 MB per file.
+                                    Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP, HEIC, HEIF, atau PDF. Maksimal 10 MB per file.
                                 </p>
                             </div>
 
+                            <div class="small text-muted mb-3" data-direct-upload-status aria-live="polite"></div>
+
                             <div class="d-flex justify-content-end gap-2">
                                 <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">Tutup</button>
-                                <button type="submit" class="btn btn-primary" id="procurement-payment-submit" data-submitting-label="Mengirim...">Kirim Bukti & Tandai Lunas</button>
+                                <button type="submit" class="btn btn-primary" id="procurement-payment-submit" data-direct-upload-submit data-submitting-label="Mengirim...">Kirim Bukti & Tandai Lunas</button>
                             </div>
                         </form>
                     </div>
@@ -329,7 +336,6 @@
         window.procurementInvoiceTableConfig = {
             endpoint: @json(route('admin.procurement.supplier-invoices.table')),
             detailBaseUrl: @json(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => '__ID__'])),
-            paymentProofStoreBaseUrl: @json(route('admin.procurement.supplier-invoices.payment-proof.store', ['supplierInvoiceId' => '__ID__'])),
             oldPaymentInvoiceId: @json(old('payment_invoice_id')),
             oldPaymentDate: @json(old('payment_date', now()->format('Y-m-d'))),
             oldPaymentAmount: @json(old('amount')),
@@ -338,4 +344,5 @@
         };
     </script>
     <script src="{{ asset('assets/static/js/pages/admin-procurement-invoices-table.js') }}?v={{ config('app.asset_version') }}"></script>
+    @include('admin.procurement.partials.supplier_payment_proof_direct_upload_script')
 @endpush

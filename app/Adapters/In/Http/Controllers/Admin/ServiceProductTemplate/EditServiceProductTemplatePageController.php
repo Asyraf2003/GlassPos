@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Adapters\In\Http\Controllers\Admin\ServiceProductTemplate;
 
-use App\Application\ServiceProductTemplate\Services\ServiceProductTemplateAdminPageData;
+use App\Adapters\Out\ServiceProductTemplate\DatabaseServiceProductTemplateAdminPageData;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controller;
 
 final class EditServiceProductTemplatePageController extends Controller
 {
-    public function __invoke(ServiceProductTemplateAdminPageData $pageData, string $templateId): View|RedirectResponse
+    public function __invoke(DatabaseServiceProductTemplateAdminPageData $pageData, string $templateId): View|RedirectResponse
     {
         $template = $pageData->template($templateId);
 

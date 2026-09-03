@@ -13,6 +13,8 @@ interface SupplierPaymentReaderPort
 
     public function getById(string $supplierPaymentId): ?SupplierPayment;
 
+    public function getByIdForUpdate(string $supplierPaymentId): ?SupplierPayment;
+
     /**
      * @return list<SupplierPayment>
      */

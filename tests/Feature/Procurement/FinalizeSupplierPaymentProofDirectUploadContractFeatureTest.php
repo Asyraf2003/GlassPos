@@ -285,6 +285,10 @@ final class FinalizeSupplierPaymentProofDirectUploadContractFeatureTest extends 
         self::assertSame(0, DB::table('supplier_payments')->where('id', 'payment-reserved-state-1')->count());
         self::assertSame(0, $this->attachmentCount('payment-reserved-state-1'));
         self::assertSame(0, $this->auditCount('supplier_invoice_payment_proof_uploaded'));
+        self::assertSame([], Storage::disk('r2_private')->allFiles('supplier-payment-proofs/payment-reserved-state-1'));
+        self::assertSame('prepared', $this->intentStatus('intent-finalize-state-1'));
+        self::assertNull($this->intentFile('intent-finalize-state-1')->final_storage_path);
+        self::assertNull($this->intentFile('intent-finalize-state-1')->verified_mime_type);
     }
 
     private function assertFinalizeHandlerExists(): void

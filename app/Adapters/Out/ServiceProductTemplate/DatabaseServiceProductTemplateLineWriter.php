@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Application\ServiceProductTemplate\Services;
+namespace App\Adapters\Out\ServiceProductTemplate;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-final class ServiceProductTemplateLineWriter
+final class DatabaseServiceProductTemplateLineWriter
 {
     /**
-     * @param list<array{product_id:string,qty:int,sort_order:int}> $lines
+     * @param  list<array{product_id:string,qty:int,sort_order:int}>  $lines
      */
     public function replace(string $templateId, array $lines): void
     {

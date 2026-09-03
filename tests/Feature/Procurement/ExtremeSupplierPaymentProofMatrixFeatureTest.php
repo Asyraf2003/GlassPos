@@ -5,29 +5,34 @@ declare(strict_types=1);
 namespace Tests\Feature\Procurement;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Tests\Support\InteractsWithSupplierPaymentProofDirectUploads;
 use Tests\Support\SeedsSupplierPaymentProofMatrixFixture;
 use Tests\TestCase;
 
 final class ExtremeSupplierPaymentProofMatrixFeatureTest extends TestCase
 {
-    use RefreshDatabase, SeedsSupplierPaymentProofMatrixFixture;
+    use InteractsWithSupplierPaymentProofDirectUploads, RefreshDatabase, SeedsSupplierPaymentProofMatrixFixture;
 
     public function test_admin_can_attach_exactly_three_valid_proof_files(): void
     {
-        $this->fakeStorage();
+        $this->fakeSupplierPaymentProofDirectUploads();
         $this->seedPaymentFixture();
 
-        $response = $this->actingAs($this->admin())
-            ->from(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']))
-            ->post(route('admin.procurement.supplier-payments.proof.store', ['supplierPaymentId' => 'payment-1']), [
-                'proof_files' => $this->threeValidFiles(),
-            ]);
+        $response = $this->uploadSupplierPaymentProofDirectly(
+            $this->admin(),
+            'supplier_payment',
+            'payment-1',
+            [
+                $this->directPdf('proof-a.pdf'),
+                $this->directPdf('proof-b.pdf'),
+                $this->directPdf('proof-c.pdf'),
+            ],
+            'matrix-three-files',
+        );
 
-        $response->assertRedirect(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']))
-            ->assertSessionHas('success', 'Bukti pembayaran supplier berhasil diunggah.');
+        $response->assertOk()->assertJsonPath('success', true);
 
         $this->assertDatabaseHas('supplier_payments', [
             'id' => 'payment-1',
@@ -39,67 +44,74 @@ final class ExtremeSupplierPaymentProofMatrixFeatureTest extends TestCase
 
     public function test_admin_cannot_attach_more_than_three_proof_files(): void
     {
-        $this->fakeStorage();
+        $this->fakeSupplierPaymentProofDirectUploads();
         $this->seedPaymentFixture();
 
-        $response = $this->actingAs($this->admin())
-            ->from(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']))
-            ->post(route('admin.procurement.supplier-payments.proof.store', ['supplierPaymentId' => 'payment-1']), [
-                'proof_files' => $this->fourValidFiles(),
-            ]);
+        $response = $this->actingAs($this->admin())->postJson(
+            route('admin.procurement.supplier-payment-proofs.direct-upload.prepare'),
+            $this->preparePayload(array_fill(0, 4, [
+                'original_filename' => 'proof.pdf',
+                'mime_type' => 'application/pdf',
+                'file_size_bytes' => 100,
+            ])),
+        );
 
-        $response->assertRedirect(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']))
-            ->assertSessionHasErrors(['proof_files']);
+        $response->assertUnprocessable()->assertJsonValidationErrors(['files']);
 
         $this->assertSame(0, DB::table('supplier_payment_proof_attachments')->where('supplier_payment_id', 'payment-1')->count());
     }
 
     public function test_admin_cannot_attach_invalid_mime_proof_file(): void
     {
-        $this->fakeStorage();
+        $this->fakeSupplierPaymentProofDirectUploads();
         $this->seedPaymentFixture();
 
-        $response = $this->actingAs($this->admin())
-            ->from(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']))
-            ->post(route('admin.procurement.supplier-payments.proof.store', ['supplierPaymentId' => 'payment-1']), [
-                'proof_files' => [
-                    UploadedFile::fake()->create('proof.txt', 10, 'text/plain'),
-                ],
-            ]);
+        $response = $this->actingAs($this->admin())->postJson(
+            route('admin.procurement.supplier-payment-proofs.direct-upload.prepare'),
+            $this->preparePayload([[
+                'original_filename' => 'proof.txt',
+                'mime_type' => 'text/plain',
+                'file_size_bytes' => 10,
+            ]]),
+        );
 
-        $response->assertRedirect(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']))
-            ->assertSessionHasErrors(['proof_files.0']);
+        $response->assertUnprocessable()->assertJsonValidationErrors(['files.0.mime_type']);
 
         $this->assertSame(0, DB::table('supplier_payment_proof_attachments')->where('supplier_payment_id', 'payment-1')->count());
     }
 
     public function test_admin_cannot_attach_oversized_proof_file(): void
     {
-        $this->fakeStorage();
+        $this->fakeSupplierPaymentProofDirectUploads();
         $this->seedPaymentFixture();
 
-        $response = $this->actingAs($this->admin())
-            ->from(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']))
-            ->post(route('admin.procurement.supplier-payments.proof.store', ['supplierPaymentId' => 'payment-1']), [
-                'proof_files' => [
-                    UploadedFile::fake()->create('huge.pdf', 10241, 'application/pdf'),
-                ],
-            ]);
+        $response = $this->actingAs($this->admin())->postJson(
+            route('admin.procurement.supplier-payment-proofs.direct-upload.prepare'),
+            $this->preparePayload([[
+                'original_filename' => 'huge.pdf',
+                'mime_type' => 'application/pdf',
+                'file_size_bytes' => 10485761,
+            ]]),
+        );
 
-        $response->assertRedirect(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']))
-            ->assertSessionHasErrors(['proof_files.0']);
+        $response->assertUnprocessable()->assertJsonValidationErrors(['files.0.file_size_bytes']);
 
         $this->assertSame(0, DB::table('supplier_payment_proof_attachments')->where('supplier_payment_id', 'payment-1')->count());
     }
 
     public function test_guest_is_redirected_to_login_when_attaching_supplier_payment_proof(): void
     {
-        $this->fakeStorage();
+        $this->fakeSupplierPaymentProofDirectUploads();
         $this->seedPaymentFixture();
 
-        $this->post(route('admin.procurement.supplier-payments.proof.store', ['supplierPaymentId' => 'payment-1']), [
-            'proof_files' => $this->threeValidFiles(),
-        ])->assertRedirect(route('login'));
+        $this->postJson(
+            route('admin.procurement.supplier-payment-proofs.direct-upload.prepare'),
+            $this->preparePayload([[
+                'original_filename' => 'proof.pdf',
+                'mime_type' => 'application/pdf',
+                'file_size_bytes' => 100,
+            ]]),
+        )->assertUnauthorized();
     }
 
     public function test_admin_can_preview_inline_and_download_existing_attachment(): void
@@ -150,4 +162,14 @@ final class ExtremeSupplierPaymentProofMatrixFeatureTest extends TestCase
         Storage::disk('r2_private')->put($path, is_string($jpeg) ? $jpeg : '');
     }
 
+    /** @param list<array<string,mixed>> $files @return array<string,mixed> */
+    private function preparePayload(array $files): array
+    {
+        return [
+            'scope_type' => 'supplier_payment',
+            'scope_id' => 'payment-1',
+            'idempotency_key' => 'matrix-'.uniqid(),
+            'files' => $files,
+        ];
+    }
 }

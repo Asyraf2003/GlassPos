@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Application\ServiceProductTemplate\Services;
+namespace App\Adapters\Out\ServiceProductTemplate;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-final class ServiceProductTemplateAdminLineInput
+final class DatabaseServiceProductTemplateAdminLineInput
 {
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return list<array{product_id:string,qty:int,sort_order:int}>
      */
     public function fromData(array $data): array

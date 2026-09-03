@@ -52,7 +52,6 @@
   const paymentModalElement = $("procurement-payment-modal");
   const paymentModalSubtitle = $("procurement-payment-modal-subtitle");
   const paymentForm = $("procurement-payment-form");
-  const paymentSubmitButton = $("procurement-payment-submit");
   const paymentInvoiceIdInput = $("procurement-payment-invoice-id");
   const paymentDateInput = $("procurement-payment-date");
   const paymentAmountRaw = $("procurement-payment-amount");
@@ -115,7 +114,6 @@
   const trimValue = (v) => String(v ?? "").trim();
   const rupiah = (v) => "Rp " + Number(v || 0).toLocaleString("id-ID");
   const detailUrl = (id) => c.detailBaseUrl.replace("__ID__", encodeURIComponent(id));
-  const paymentProofStoreUrl = (id) => c.paymentProofStoreBaseUrl.replace("__ID__", encodeURIComponent(id));
   const paymentSectionUrl = (id) => `${detailUrl(id)}#payment-form-section`;
   const paymentProofPageUrl = (row) => trimValue(row?.payment_action_url) || paymentSectionUrl(row?.supplier_invoice_id);
 
@@ -299,7 +297,8 @@
       || "-";
     const nomorFaktur = trimValue(row.nomor_faktur) || "-";
 
-    paymentForm.action = paymentProofStoreUrl(row.supplier_invoice_id);
+    paymentForm.dataset.scopeId = row.supplier_invoice_id;
+    paymentForm.dataset.successUrl = paymentProofPageUrl(row);
 
     if (paymentInvoiceIdInput) {
       paymentInvoiceIdInput.value = row.supplier_invoice_id;
@@ -585,17 +584,6 @@
   });
 
   voidReasonInput?.addEventListener("input", syncVoidSubmitState);
-
-  paymentForm?.addEventListener("submit", () => {
-    if (!paymentForm.checkValidity()) {
-      return;
-    }
-
-    if (paymentSubmitButton) {
-      paymentSubmitButton.disabled = true;
-      paymentSubmitButton.textContent = paymentSubmitButton.dataset.submittingLabel || "Mengirim...";
-    }
-  });
 
   voidForm?.addEventListener("submit", (event) => {
     const hasReason = trimValue(voidReasonInput?.value) !== "";

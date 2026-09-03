@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-use App\Adapters\In\Http\Controllers\Admin\Procurement\AttachSupplierPaymentProofController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\CreateSupplierInvoicePageController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\EditSupplierInvoicePageController;
-use App\Adapters\In\Http\Controllers\Admin\Procurement\ProcurementInvoicePaymentProofPageController;
-use App\Adapters\In\Http\Controllers\Admin\Procurement\ProductLookupController;
+use App\Adapters\In\Http\Controllers\Admin\Procurement\FinalizeSupplierPaymentProofDirectUploadController;
+use App\Adapters\In\Http\Controllers\Admin\Procurement\PrepareSupplierPaymentProofDirectUploadController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\PreviewSupplierPaymentProofAttachmentPageController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\ProcurementInvoiceDetailPageController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\ProcurementInvoiceIndexPageController;
+use App\Adapters\In\Http\Controllers\Admin\Procurement\ProcurementInvoicePaymentProofPageController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\ProcurementInvoiceTableDataController;
+use App\Adapters\In\Http\Controllers\Admin\Procurement\ProductLookupController;
+use App\Adapters\In\Http\Controllers\Admin\Procurement\ReceiveSupplierInvoiceController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\RecordSupplierPaymentController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\ReverseSupplierPaymentController;
-use App\Adapters\In\Http\Controllers\Admin\Procurement\ReceiveSupplierInvoiceController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\ReverseSupplierReceiptController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\ReviseSupplierInvoicePageController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\ServeSupplierPaymentProofAttachmentController;
@@ -21,7 +22,6 @@ use App\Adapters\In\Http\Controllers\Admin\Procurement\StoreSupplierInvoiceContr
 use App\Adapters\In\Http\Controllers\Admin\Procurement\SupplierLookupController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\UpdateSupplierInvoiceController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\VoidSupplierInvoiceController;
-use App\Adapters\In\Http\Controllers\Admin\Procurement\UploadSupplierInvoicePaymentProofController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth', 'admin.page'])->group(function (): void {
@@ -40,8 +40,11 @@ Route::middleware(['web', 'auth', 'admin.page'])->group(function (): void {
     Route::post('/admin/procurement/supplier-invoices/{supplierInvoiceId}/payments', RecordSupplierPaymentController::class)
         ->name('admin.procurement.supplier-invoices.payments.store');
 
-    Route::post('/admin/procurement/supplier-invoices/{supplierInvoiceId}/payment-proof', UploadSupplierInvoicePaymentProofController::class)
-        ->name('admin.procurement.supplier-invoices.payment-proof.store');
+    Route::post('/admin/procurement/supplier-payment-proof-uploads/prepare', PrepareSupplierPaymentProofDirectUploadController::class)
+        ->name('admin.procurement.supplier-payment-proofs.direct-upload.prepare');
+
+    Route::post('/admin/procurement/supplier-payment-proof-uploads/{uploadIntentId}/finalize', FinalizeSupplierPaymentProofDirectUploadController::class)
+        ->name('admin.procurement.supplier-payment-proofs.direct-upload.finalize');
 
     Route::post('/admin/procurement/supplier-receipts/{supplierReceiptId}/reverse', ReverseSupplierReceiptController::class)
         ->name('admin.procurement.supplier-receipts.reverse.store');
@@ -51,9 +54,6 @@ Route::middleware(['web', 'auth', 'admin.page'])->group(function (): void {
 
     Route::post('/admin/procurement/supplier-payments/{supplierPaymentId}/reverse', ReverseSupplierPaymentController::class)
         ->name('admin.procurement.supplier-payments.reverse.store');
-
-    Route::post('/admin/procurement/supplier-payments/{supplierPaymentId}/proof', AttachSupplierPaymentProofController::class)
-        ->name('admin.procurement.supplier-payments.proof.store');
 
     Route::get('/admin/procurement/supplier-payment-proof-attachments/{attachmentId}', ServeSupplierPaymentProofAttachmentController::class)
         ->name('admin.procurement.supplier-payment-proof-attachments.show');

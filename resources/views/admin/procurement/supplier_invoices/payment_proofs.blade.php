@@ -38,27 +38,28 @@
 
                             <form
                                 id="invoice-payment-proof-form"
-                                action="{{ route('admin.procurement.supplier-invoices.payment-proof.store', ['supplierInvoiceId' => $summaryView['supplier_invoice_id']]) }}"
-                                method="post"
-                                enctype="multipart/form-data"
+                                data-supplier-proof-direct-upload
+                                data-scope-type="supplier_invoice"
+                                data-scope-id="{{ $summaryView['supplier_invoice_id'] }}"
+                                data-prepare-url="{{ route('admin.procurement.supplier-payment-proofs.direct-upload.prepare') }}"
+                                data-finalize-url="{{ route('admin.procurement.supplier-payment-proofs.direct-upload.finalize', ['uploadIntentId' => '__INTENT__']) }}"
                             >
-                                @csrf
-
                                 <div class="form-group mb-4">
                                     <label for="invoice_proof_files" class="form-label">Bukti Pembayaran</label>
                                     <input
                                         type="file"
                                         id="invoice_proof_files"
-                                        name="proof_files[]"
                                         class="form-control @error('proof_files') is-invalid @enderror @error('proof_files.*') is-invalid @enderror"
                                         accept=".jpg,.jpeg,.png,.webp,.heic,.heif,.pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
                                         multiple
                                         required
                                     >
                                     <small class="text-muted d-block mt-1">
-                                        Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP. Maksimal 10 MB per file.
+                                        Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP, HEIC, HEIF, atau PDF. Maksimal 10 MB per file.
                                     </small>
                                 </div>
+
+                                <div class="small text-muted mb-3" data-direct-upload-status aria-live="polite"></div>
 
                                 <div class="alert alert-light border">
                                     <small class="text-muted d-block">Sisa tagihan yang akan otomatis dilunasi</small>
@@ -66,7 +67,7 @@
                                 </div>
 
                                 <div class="ui-form-actions">
-                                    <button type="submit" class="btn btn-primary" id="invoice-payment-proof-submit" data-submitting-label="Mengirim...">
+                                    <button type="submit" class="btn btn-primary" id="invoice-payment-proof-submit" data-direct-upload-submit data-submitting-label="Mengirim...">
                                         Kirim Bukti & Tandai Lunas
                                     </button>
                                 </div>
@@ -120,14 +121,14 @@
 
                                                 @if (! $policyView['is_voided'] && ($payment['can_attach_proof'] ?? false))
                                                     <form
-                                                        action="{{ route('admin.procurement.supplier-payments.proof.store', ['supplierPaymentId' => $payment['id']]) }}"
-                                                        method="post"
-                                                        enctype="multipart/form-data"
                                                         class="border rounded p-3 bg-light-subtle"
                                                         data-payment-proof-attachment-form
+                                                        data-supplier-proof-direct-upload
+                                                        data-scope-type="supplier_payment"
+                                                        data-scope-id="{{ $payment['id'] }}"
+                                                        data-prepare-url="{{ route('admin.procurement.supplier-payment-proofs.direct-upload.prepare') }}"
+                                                        data-finalize-url="{{ route('admin.procurement.supplier-payment-proofs.direct-upload.finalize', ['uploadIntentId' => '__INTENT__']) }}"
                                                     >
-                                                        @csrf
-
                                                         <div class="form-group mb-3">
                                                             <label for="payment_proof_files_{{ $loop->index }}" class="form-label">
                                                                 Unggah Bukti Pembayaran
@@ -135,21 +136,23 @@
                                                             <input
                                                                 type="file"
                                                                 id="payment_proof_files_{{ $loop->index }}"
-                                                                name="proof_files[]"
                                                                 class="form-control @error('proof_files') is-invalid @enderror @error('proof_files.*') is-invalid @enderror"
                                                                 accept=".jpg,.jpeg,.png,.webp,.heic,.heif,.pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
                                                                 multiple
                                                                 required
                                                             >
                                                             <small class="text-muted d-block mt-1">
-                                                                Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP. Maksimal 10 MB per file.
+                                                                Maksimal 3 file. Format: JPG, JPEG, PNG, WEBP, HEIC, HEIF, atau PDF. Maksimal 10 MB per file.
                                                             </small>
                                                         </div>
+
+                                                        <div class="small text-muted mb-3" data-direct-upload-status aria-live="polite"></div>
 
                                                         <button
                                                             type="submit"
                                                             class="btn btn-sm btn-primary"
                                                             data-payment-proof-attachment-submit
+                                                            data-direct-upload-submit
                                                             data-submitting-label="Mengirim..."
                                                         >
                                                             Upload Bukti Pembayaran
@@ -294,32 +297,5 @@
 @endsection
 
 @push('scripts')
-    <script>
-        (() => {
-            const bindSubmitGuard = (form, button) => {
-                form?.addEventListener('submit', () => {
-                    if (!form.checkValidity()) {
-                        return;
-                    }
-
-                    if (button) {
-                        button.disabled = true;
-                        button.textContent = button.dataset.submittingLabel || 'Mengirim...';
-                    }
-                });
-            };
-
-            bindSubmitGuard(
-                document.getElementById('invoice-payment-proof-form'),
-                document.getElementById('invoice-payment-proof-submit')
-            );
-
-            document.querySelectorAll('[data-payment-proof-attachment-form]').forEach((form) => {
-                bindSubmitGuard(
-                    form,
-                    form.querySelector('[data-payment-proof-attachment-submit]')
-                );
-            });
-        })();
-    </script>
+    @include('admin.procurement.partials.supplier_payment_proof_direct_upload_script')
 @endpush

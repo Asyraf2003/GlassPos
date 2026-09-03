@@ -30,16 +30,30 @@ final class DatabaseSupplierPaymentReaderAdapter implements SupplierPaymentReade
 
     public function getById(string $supplierPaymentId): ?SupplierPayment
     {
-        $row = DB::table('supplier_payments')
-            ->where('id', $supplierPaymentId)
-            ->first([
-                'id',
-                'supplier_invoice_id',
-                'amount_rupiah',
-                'paid_at',
-                'proof_status',
-                'proof_storage_path',
-            ]);
+        return $this->find($supplierPaymentId, false);
+    }
+
+    public function getByIdForUpdate(string $supplierPaymentId): ?SupplierPayment
+    {
+        return $this->find($supplierPaymentId, true);
+    }
+
+    private function find(string $supplierPaymentId, bool $lock): ?SupplierPayment
+    {
+        $query = DB::table('supplier_payments')->where('id', $supplierPaymentId);
+
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+
+        $row = $query->first([
+            'id',
+            'supplier_invoice_id',
+            'amount_rupiah',
+            'paid_at',
+            'proof_status',
+            'proof_storage_path',
+        ]);
 
         return $row !== null ? $this->mapRowToPayment($row) : null;
     }

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\ServiceProductTemplate\Services;
+namespace App\Adapters\Out\ServiceProductTemplate;
 
 use Illuminate\Support\Facades\DB;
 
-trait ServiceProductTemplateAdminProductOptions
+trait DatabaseServiceProductTemplateAdminProductOptions
 {
     /** @return list<array{id:string,label:string}> */
     public function productOptions(): array
@@ -28,7 +28,7 @@ trait ServiceProductTemplateAdminProductOptions
     {
         return trim(sprintf(
             '%s%s · Harga jual %s',
-            $row->kode_barang !== null && $row->kode_barang !== '' ? (string) $row->kode_barang . ' - ' : '',
+            $row->kode_barang !== null && $row->kode_barang !== '' ? (string) $row->kode_barang.' - ' : '',
             (string) $row->nama_barang,
             number_format((int) $row->harga_jual, 0, ',', '.'),
         ));

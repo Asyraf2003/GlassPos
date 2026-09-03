@@ -6,38 +6,32 @@ namespace Tests\Feature\Procurement;
 
 use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Tests\Support\InteractsWithSupplierPaymentProofDirectUploads;
 use Tests\Support\SeedsMinimalProcurementFixture;
 use Tests\TestCase;
 
 final class UploadSupplierInvoicePaymentProofFeatureTest extends TestCase
 {
+    use InteractsWithSupplierPaymentProofDirectUploads;
     use RefreshDatabase;
     use SeedsMinimalProcurementFixture;
 
     public function test_admin_can_upload_invoice_payment_proof_and_auto_lunas_full_outstanding(): void
     {
-        Storage::fake('r2_private');
+        $this->fakeSupplierPaymentProofDirectUploads();
         $this->seedInvoiceFixture('invoice-admin-proof-full-1', 100000);
 
-        $backUrl = route('admin.procurement.supplier-invoices.payment-proofs.show', [
-            'supplierInvoiceId' => 'invoice-admin-proof-full-1',
-        ]);
+        $response = $this->uploadSupplierPaymentProofDirectly(
+            $this->admin(),
+            'supplier_invoice',
+            'invoice-admin-proof-full-1',
+            [$this->directPdf('proof-admin-full.pdf')],
+            'invoice-full-1',
+        );
 
-        $response = $this->actingAs($this->admin())
-            ->from($backUrl)
-            ->post(route('admin.procurement.supplier-invoices.payment-proof.store', [
-                'supplierInvoiceId' => 'invoice-admin-proof-full-1',
-            ]), [
-                'proof_files' => [
-                    UploadedFile::fake()->create('proof-admin-full.pdf', 120, 'application/pdf'),
-                ],
-            ]);
-
-        $response->assertRedirect($backUrl);
-        $response->assertSessionHas('success', 'Bukti pembayaran supplier berhasil diunggah.');
+        $response->assertOk()->assertJsonPath('success', true);
 
         $payment = DB::table('supplier_payments')
             ->where('supplier_invoice_id', 'invoice-admin-proof-full-1')
@@ -63,24 +57,18 @@ final class UploadSupplierInvoicePaymentProofFeatureTest extends TestCase
 
     public function test_admin_can_upload_webp_phone_image_payment_proof_and_auto_lunas(): void
     {
-        Storage::fake('r2_private');
+        $this->fakeSupplierPaymentProofDirectUploads();
         $this->seedInvoiceFixture('invoice-admin-proof-webp-1', 100000);
 
-        $backUrl = route('admin.procurement.supplier-invoices.index');
+        $response = $this->uploadSupplierPaymentProofDirectly(
+            $this->admin(),
+            'supplier_invoice',
+            'invoice-admin-proof-webp-1',
+            [$this->directWebp('proof-admin-phone.webp')],
+            'invoice-webp-1',
+        );
 
-        $response = $this->actingAs($this->admin())
-            ->from($backUrl)
-            ->post(route('admin.procurement.supplier-invoices.payment-proof.store', [
-                'supplierInvoiceId' => 'invoice-admin-proof-webp-1',
-            ]), [
-                'payment_invoice_id' => 'invoice-admin-proof-webp-1',
-                'proof_files' => [
-                    UploadedFile::fake()->create('proof-admin-phone.webp', 5120, 'image/webp'),
-                ],
-            ]);
-
-        $response->assertRedirect($backUrl);
-        $response->assertSessionHas('success', 'Bukti pembayaran supplier berhasil diunggah.');
+        $response->assertOk()->assertJsonPath('success', true);
 
         $payment = DB::table('supplier_payments')
             ->where('supplier_invoice_id', 'invoice-admin-proof-webp-1')
@@ -102,38 +90,34 @@ final class UploadSupplierInvoicePaymentProofFeatureTest extends TestCase
 
     public function test_duplicate_invoice_payment_proof_submit_does_not_create_second_payment(): void
     {
-        Storage::fake('r2_private');
+        $this->fakeSupplierPaymentProofDirectUploads();
         $this->seedInvoiceFixture('invoice-admin-proof-duplicate-1', 100000);
         $admin = $this->admin();
 
-        $backUrl = route('admin.procurement.supplier-invoices.payment-proofs.show', [
-            'supplierInvoiceId' => 'invoice-admin-proof-duplicate-1',
-        ]);
-        $route = route('admin.procurement.supplier-invoices.payment-proof.store', [
-            'supplierInvoiceId' => 'invoice-admin-proof-duplicate-1',
-        ]);
+        $first = $this->uploadSupplierPaymentProofDirectly(
+            $admin,
+            'supplier_invoice',
+            'invoice-admin-proof-duplicate-1',
+            [$this->directPdf('proof-admin-duplicate-1.pdf')],
+            'invoice-duplicate-first',
+        );
+        $first->assertOk()->assertJsonPath('success', true);
 
-        $first = $this->actingAs($admin)
-            ->from($backUrl)
-            ->post($route, [
-                'proof_files' => [
-                    UploadedFile::fake()->create('proof-admin-duplicate-1.pdf', 120, 'application/pdf'),
-                ],
-            ]);
+        $second = $this->actingAs($admin)->postJson(
+            route('admin.procurement.supplier-payment-proofs.direct-upload.prepare'),
+            [
+                'scope_type' => 'supplier_invoice',
+                'scope_id' => 'invoice-admin-proof-duplicate-1',
+                'idempotency_key' => 'invoice-duplicate-second',
+                'files' => [[
+                    'original_filename' => 'proof-admin-duplicate-2.pdf',
+                    'mime_type' => 'application/pdf',
+                    'file_size_bytes' => strlen($this->directPdf()['contents']),
+                ]],
+            ],
+        );
 
-        $first->assertRedirect($backUrl);
-        $first->assertSessionHas('success', 'Bukti pembayaran supplier berhasil diunggah.');
-
-        $second = $this->actingAs($admin)
-            ->from($backUrl)
-            ->post($route, [
-                'proof_files' => [
-                    UploadedFile::fake()->create('proof-admin-duplicate-2.pdf', 120, 'application/pdf'),
-                ],
-            ]);
-
-        $second->assertRedirect($backUrl);
-        $second->assertSessionHasErrors(['supplier_payment_proof']);
+        $second->assertUnprocessable()->assertJsonPath('success', false);
 
         self::assertSame(
             1,
@@ -154,7 +138,7 @@ final class UploadSupplierInvoicePaymentProofFeatureTest extends TestCase
 
     public function test_admin_invoice_level_payment_proof_pays_only_remaining_outstanding_after_legacy_partial_payment(): void
     {
-        Storage::fake('r2_private');
+        $this->fakeSupplierPaymentProofDirectUploads();
         $this->seedInvoiceFixture('invoice-admin-proof-partial-1', 100000);
 
         $this->seedMinimalSupplierPayment(
@@ -165,22 +149,15 @@ final class UploadSupplierInvoicePaymentProofFeatureTest extends TestCase
             'uploaded'
         );
 
-        $backUrl = route('admin.procurement.supplier-invoices.payment-proofs.show', [
-            'supplierInvoiceId' => 'invoice-admin-proof-partial-1',
-        ]);
+        $response = $this->uploadSupplierPaymentProofDirectly(
+            $this->admin(),
+            'supplier_invoice',
+            'invoice-admin-proof-partial-1',
+            [$this->directPdf('proof-admin-partial.pdf')],
+            'invoice-partial-1',
+        );
 
-        $response = $this->actingAs($this->admin())
-            ->from($backUrl)
-            ->post(route('admin.procurement.supplier-invoices.payment-proof.store', [
-                'supplierInvoiceId' => 'invoice-admin-proof-partial-1',
-            ]), [
-                'proof_files' => [
-                    UploadedFile::fake()->create('proof-admin-partial.pdf', 120, 'application/pdf'),
-                ],
-            ]);
-
-        $response->assertRedirect($backUrl);
-        $response->assertSessionHas('success', 'Bukti pembayaran supplier berhasil diunggah.');
+        $response->assertOk()->assertJsonPath('success', true);
 
         $newPayment = DB::table('supplier_payments')
             ->where('supplier_invoice_id', 'invoice-admin-proof-partial-1')
@@ -196,7 +173,7 @@ final class UploadSupplierInvoicePaymentProofFeatureTest extends TestCase
 
     public function test_admin_cannot_upload_invoice_payment_proof_for_voided_invoice(): void
     {
-        Storage::fake('r2_private');
+        $this->fakeSupplierPaymentProofDirectUploads();
         $this->seedInvoiceFixture('invoice-admin-proof-voided-1', 100000);
 
         DB::table('supplier_invoices')
@@ -206,22 +183,22 @@ final class UploadSupplierInvoicePaymentProofFeatureTest extends TestCase
                 'void_reason' => 'Salah input.',
             ]);
 
-        $backUrl = route('admin.procurement.supplier-invoices.payment-proofs.show', [
-            'supplierInvoiceId' => 'invoice-admin-proof-voided-1',
-        ]);
+        $proof = $this->directPdf('proof-admin-voided.pdf');
+        $response = $this->actingAs($this->admin())->postJson(
+            route('admin.procurement.supplier-payment-proofs.direct-upload.prepare'),
+            [
+                'scope_type' => 'supplier_invoice',
+                'scope_id' => 'invoice-admin-proof-voided-1',
+                'idempotency_key' => 'invoice-voided-1',
+                'files' => [[
+                    'original_filename' => $proof['original_filename'],
+                    'mime_type' => $proof['mime_type'],
+                    'file_size_bytes' => strlen($proof['contents']),
+                ]],
+            ],
+        );
 
-        $response = $this->actingAs($this->admin())
-            ->from($backUrl)
-            ->post(route('admin.procurement.supplier-invoices.payment-proof.store', [
-                'supplierInvoiceId' => 'invoice-admin-proof-voided-1',
-            ]), [
-                'proof_files' => [
-                    UploadedFile::fake()->create('proof-admin-voided.pdf', 120, 'application/pdf'),
-                ],
-            ]);
-
-        $response->assertRedirect($backUrl);
-        $response->assertSessionHasErrors(['supplier_payment_proof']);
+        $response->assertUnprocessable()->assertJsonPath('success', false);
 
         self::assertSame(
             0,
@@ -252,13 +229,13 @@ final class UploadSupplierInvoicePaymentProofFeatureTest extends TestCase
         $suffix = str_replace('_', '-', $invoiceId);
 
         $this->seedMinimalSupplier(
-            'supplier-' . $suffix,
+            'supplier-'.$suffix,
             'PT Supplier Admin Proof',
             'pt supplier admin proof'
         );
 
         $this->seedMinimalProduct(
-            'product-' . $suffix,
+            'product-'.$suffix,
             'KB-ADMIN-PROOF',
             'Ban Admin Proof',
             'Federal',
@@ -268,7 +245,7 @@ final class UploadSupplierInvoicePaymentProofFeatureTest extends TestCase
 
         $this->seedMinimalSupplierInvoice(
             $invoiceId,
-            'supplier-' . $suffix,
+            'supplier-'.$suffix,
             '2026-05-11',
             '2026-05-21',
             $grandTotalRupiah,
@@ -276,9 +253,9 @@ final class UploadSupplierInvoicePaymentProofFeatureTest extends TestCase
         );
 
         $this->seedMinimalSupplierInvoiceLine(
-            'invoice-line-' . $suffix,
+            'invoice-line-'.$suffix,
             $invoiceId,
-            'product-' . $suffix,
+            'product-'.$suffix,
             2,
             $grandTotalRupiah,
             intdiv($grandTotalRupiah, 2),

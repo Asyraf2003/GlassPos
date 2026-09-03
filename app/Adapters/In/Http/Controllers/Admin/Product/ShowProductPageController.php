@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Adapters\In\Http\Controllers\Admin\Product;
 
 use App\Adapters\In\Http\Presenters\Admin\Product\ProductDetailPagePresenter;
-use App\Application\ProductCatalog\Services\LinkedServicePackagesForProduct;
+use App\Adapters\Out\ProductCatalog\DatabaseLinkedServicePackagesForProduct;
 use App\Application\ProductCatalog\UseCases\GetProductDetailHandler;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -16,7 +16,7 @@ final class ShowProductPageController extends Controller
     public function __invoke(
         GetProductDetailHandler $useCase,
         ProductDetailPagePresenter $presenter,
-        LinkedServicePackagesForProduct $linkedPackages,
+        DatabaseLinkedServicePackagesForProduct $linkedPackages,
         string $productId,
     ): View|RedirectResponse {
         $result = $useCase->handle($productId);

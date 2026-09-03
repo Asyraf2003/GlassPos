@@ -13,6 +13,7 @@ use App\Core\Payment\PaymentComponentAllocation\PaymentComponentType;
 use App\Core\Payment\RefundComponentAllocation\RefundComponentAllocation;
 use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\Note\NoteReaderPort;
+use App\Ports\Out\Payment\LegacyPaymentAllocationReaderPort;
 use App\Ports\Out\Payment\PaymentComponentAllocationReaderPort;
 use App\Ports\Out\Payment\RefundComponentAllocationReaderPort;
 use App\Ports\Out\UuidPort;
@@ -23,10 +24,23 @@ final class AllocateRefundAcrossComponentsTest extends TestCase
     public function test_it_refunds_default_refundable_components_only(): void
     {
         $service = new AllocateRefundAcrossComponents(
-            new class () implements PaymentComponentAllocationReaderPort {
-                public function getTotalAllocatedAmountByNoteId(string $noteId): Money { return Money::zero(); }
-                public function getTotalAllocatedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money { return Money::zero(); }
-                public function getTotalAllocatedAmountByWorkItemId(string $workItemId): Money { return Money::zero(); }
+            new class implements PaymentComponentAllocationReaderPort
+            {
+                public function getTotalAllocatedAmountByNoteId(string $noteId): Money
+                {
+                    return Money::zero();
+                }
+
+                public function getTotalAllocatedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money
+                {
+                    return Money::zero();
+                }
+
+                public function getTotalAllocatedAmountByWorkItemId(string $workItemId): Money
+                {
+                    return Money::zero();
+                }
+
                 public function listByNoteId(string $noteId): array
                 {
                     return [
@@ -35,23 +49,63 @@ final class AllocateRefundAcrossComponentsTest extends TestCase
                     ];
                 }
             },
-            new class () implements RefundComponentAllocationReaderPort {
-                public function getTotalRefundedAmountByNoteId(string $noteId): Money { return Money::zero(); }
-                public function getTotalRefundedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money { return Money::zero(); }
-                public function getTotalRefundedAmountByWorkItemId(string $workItemId): Money { return Money::zero(); }
-                public function listByNoteId(string $noteId): array { return []; }
+            new class implements RefundComponentAllocationReaderPort
+            {
+                public function getTotalRefundedAmountByNoteId(string $noteId): Money
+                {
+                    return Money::zero();
+                }
+
+                public function getTotalRefundedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money
+                {
+                    return Money::zero();
+                }
+
+                public function getTotalRefundedAmountByWorkItemId(string $workItemId): Money
+                {
+                    return Money::zero();
+                }
+
+                public function listByNoteId(string $noteId): array
+                {
+                    return [];
+                }
             },
             new LegacyPaymentComponentAllocationSynthesizer(
-                new class () implements NoteReaderPort {
-                    public function countAll(): int { return 0; }
-                    public function getById(string $id): ?Note { return null; }
-                    public function getByIdForUpdate(string $id): ?Note { return null; }
+                new class implements NoteReaderPort
+                {
+                    public function countAll(): int
+                    {
+                        return 0;
+                    }
+
+                    public function getById(string $id): ?Note
+                    {
+                        return null;
+                    }
+
+                    public function getByIdForUpdate(string $id): ?Note
+                    {
+                        return null;
+                    }
                 },
-                new LegacyPaymentComponentAllocationBuilder(),
+                new LegacyPaymentComponentAllocationBuilder,
+                new class implements LegacyPaymentAllocationReaderPort
+                {
+                    public function listWithoutComponentAllocations(string $noteId): array
+                    {
+                        return [];
+                    }
+                },
             ),
-            new class () implements UuidPort {
+            new class implements UuidPort
+            {
                 private int $i = 0;
-                public function generate(): string { return 'r-' . ++$this->i; }
+
+                public function generate(): string
+                {
+                    return 'r-'.++$this->i;
+                }
             },
         );
 

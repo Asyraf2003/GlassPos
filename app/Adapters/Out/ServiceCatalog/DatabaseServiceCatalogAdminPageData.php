@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\ServiceCatalog\Services;
+namespace App\Adapters\Out\ServiceCatalog;
 
 use Illuminate\Support\Facades\DB;
 
-final class ServiceCatalogAdminPageData
+final class DatabaseServiceCatalogAdminPageData
 {
     /**
      * @return list<array<string, mixed>>

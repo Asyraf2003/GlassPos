@@ -2,16 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Application\ProductCatalog\Services;
+namespace App\Adapters\Out\ProductCatalog;
 
 use App\Application\ServiceProductTemplate\Services\ServiceProductTemplatePackageSplitCalculator;
 use Illuminate\Support\Facades\DB;
 
-final class LinkedServicePackagesForProduct
+final class DatabaseLinkedServicePackagesForProduct
 {
-    public function __construct(private readonly ServiceProductTemplatePackageSplitCalculator $split)
-    {
-    }
+    public function __construct(private readonly ServiceProductTemplatePackageSplitCalculator $split) {}
 
     /** @return list<array<string, mixed>> */
     public function get(string $productId): array

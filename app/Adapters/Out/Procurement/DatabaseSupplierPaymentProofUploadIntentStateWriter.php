@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 final class DatabaseSupplierPaymentProofUploadIntentStateWriter
 {
     private const INTENTS = 'supplier_payment_proof_upload_intents';
+
     private const FILES = 'supplier_payment_proof_upload_intent_files';
 
     public function claimForFinalize(string $uploadIntentId, string $actorId): bool
@@ -55,6 +56,18 @@ final class DatabaseSupplierPaymentProofUploadIntentStateWriter
                 'verified_size_bytes' => $verifiedSizeBytes,
                 'updated_at' => now(),
             ]) === 1;
+    }
+
+    public function clearVerifiedFiles(string $uploadIntentId): void
+    {
+        DB::table(self::FILES)
+            ->where('upload_intent_id', $uploadIntentId)
+            ->update([
+                'final_storage_path' => null,
+                'verified_mime_type' => null,
+                'verified_size_bytes' => null,
+                'updated_at' => now(),
+            ]);
     }
 
     /** @param array<string,mixed> $resultPayload */

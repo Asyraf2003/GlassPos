@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\ServiceProductTemplate\Services;
+namespace App\Adapters\Out\ServiceProductTemplate;
 
 use Illuminate\Support\Facades\DB;
 
-trait ServiceProductTemplateAdminServiceOptions
+trait DatabaseServiceProductTemplateAdminServiceOptions
 {
     /** @return list<array{id:string,label:string}> */
     public function serviceOptions(?string $includeId = null): array

@@ -9,11 +9,16 @@ use App\Support\ViewDateFormatter;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Schema;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+Schedule::command('supplier-payment-proofs:cleanup-uploads')
+    ->hourly()
+    ->withoutOverlapping();
 
 Artisan::command(
     'projection:rebuild-indexes {scope=all} {--chunk=200}',
@@ -103,7 +108,6 @@ Artisan::command(
     }
 )->purpose('Rebuild read-model projection untuk procurement invoices, supplier list, dan admin note history');
 
-
 Artisan::command(
     'push-notifications:send-due-note-reminders {--today=} {--note-limit=100} {--subscription-limit=500}',
     function (SendDueNoteReminderPushHandler $handler): int {
@@ -129,7 +133,6 @@ Artisan::command(
     }
 )->purpose('Send push notification untuk nota pelanggan yang mendekati atau melewati jatuh tempo');
 
-
 Artisan::command(
     'push-notifications:send-supplier-payable-reminders {--today=} {--invoice-limit=100} {--subscription-limit=500}',
     function (SendSupplierPayableReminderPushHandler $handler): int {
@@ -154,9 +157,6 @@ Artisan::command(
         return $summary->failedCount > 0 ? 1 : 0;
     }
 )->purpose('Send push notification untuk hutang pemasok yang mendekati atau melewati jatuh tempo');
-
-
-
 
 Artisan::command(
     'diagnostics:timestamp-readonly {--limit=5 : Jumlah row terbaru per field} {--table=all : Batasi ke satu table kandidat, atau all}',
@@ -252,11 +252,13 @@ Artisan::command(
 
             if (! Schema::hasTable($table)) {
                 $this->warn("SKIP {$fieldName}: table tidak ada.");
+
                 continue;
             }
 
             if (! Schema::hasColumn($table, $column)) {
                 $this->warn("SKIP {$fieldName}: column tidak ada.");
+
                 continue;
             }
 
@@ -279,6 +281,7 @@ Artisan::command(
 
             if ($rows->isEmpty()) {
                 $this->line("EMPTY {$fieldName}: tidak ada row sample.");
+
                 continue;
             }
 
@@ -326,9 +329,8 @@ Artisan::command(
     }
 )->purpose('Read-only diagnostic timestamp audit/history untuk membandingkan raw DB dan tampilan timezone operasional');
 
-
 if (! app()->runningUnitTests()) {
-    require __DIR__ . '/console_audit.php';
+    require __DIR__.'/console_audit.php';
 }
 
-require __DIR__ . '/console_audit_outbox.php';
+require __DIR__.'/console_audit_outbox.php';

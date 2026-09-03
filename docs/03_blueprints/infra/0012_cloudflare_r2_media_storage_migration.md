@@ -2,7 +2,7 @@
 
 Status: In progress
 Date: 2026-09-03
-Current phase: prepare/finalize direct-upload application contract
+Current phase: local direct-upload application and UI complete; real browser/R2 and production rollout pending
 
 ## Goal
 
@@ -280,7 +280,7 @@ App\Adapters\Out\Procurement\LaravelSupplierPaymentProofFileStorageAdapter
 
 The durable adapter targets `r2_private` for store/delete/exists/get. Private reads remain authorization-controlled through Laravel.
 
-## Current private-upload bottleneck
+## Production deployment bottleneck
 
 The current production web flows still receive `UploadedFile` through PHP:
 
@@ -299,7 +299,7 @@ UploadSupplierInvoicePaymentProofController
 AttachSupplierPaymentProofController
 ```
 
-R2 is already the durable destination, but cPanel upload limits still constrain incoming file bytes until the UI/controller cutover is complete.
+R2 is already the durable destination. The local UI/controller cutover is complete, but the deployed production application still follows this multipart path until a separately authorized rollout.
 
 ## Direct-to-private-R2 target
 
@@ -797,18 +797,16 @@ attachment_count
 
 Presigned URLs, R2 credentials, internal exception messages, and sensitive storage implementation details must not be stored in the replay payload.
 
-### Controller target
+### Local controller/UI result
 
-The two existing multipart controllers remain the compatibility baseline until their direct-upload UI cutover:
+The two existing multipart controllers remain as local fallback code:
 
 ```text
 UploadSupplierInvoicePaymentProofController
 AttachSupplierPaymentProofController
 ```
 
-The prepare/finalize application layer is implemented and proven first.
-
-Only after that proof may these forms/controllers be cut from:
+Their old POST routes are no longer active, and both supplier-proof forms have been cut locally from:
 
 ```text
 Browser -> PHP multipart -> Laravel -> R2
@@ -822,7 +820,7 @@ Browser -> private R2 staging PUT
 Browser -> Laravel finalize
 ```
 
-### Implementation order
+### Implementation/proof order
 
 ```text
 1. lock this detailed blueprint
@@ -837,11 +835,11 @@ Browser -> Laravel finalize
 10. HTTP routes/controllers contract
 11. browser JavaScript direct upload
 12. cut both old PHP multipart paths
-13. browser/real-R2 end-to-end proof
-14. orphan/expired staging cleanup proof
+13. orphan/expired staging cleanup proof
+14. browser/real-R2 end-to-end proof
 ```
 
-Do not combine persistence, UI cutover, and production cleanup into one unverified patch.
+Steps 1-13 are complete locally. Step 14 remains the explicit real-environment gap. Do not combine production cleanup with this unverified real-browser step.
 
 ## Local Laravel storage
 
@@ -888,18 +886,20 @@ The framework-local disks and `public/storage` mapping are not removed yet. Lega
 - Applied strict private bucket CORS and proved a real presigned OPTIONS preflight.
 - Proved a real browser-style presigned PUT to `glasspos-private`, exact Laravel read-back, and deletion cleanup.
 - Locked the detailed actor/scope-bound prepare/finalize design with staging/final object separation and replay-safe finalize semantics.
+- Implemented the real-object verifier with bounded reads, actual-size checks, server-side MIME detection, and HEIC/HEIF characterization.
+- Implemented server-side staging-to-final promotion with opaque filenames and extensions derived only from verified MIME.
+- Implemented actor/scope/idempotency-bound prepare and atomic finalize handlers for both existing-payment and invoice scopes.
+- Revalidated invoice business state inside the short finalize transaction after all object I/O completed.
+- Cut both supplier-proof UI flows from PHP multipart to browser PUT against staging-only presigned URLs.
+- Added prepare/finalize HTTP endpoints with generic infrastructure-failure responses and no internal exception leakage.
+- Added deterministic promotion-failure cleanup plus leased/retryable cleanup for expired and stale-finalizing intents.
+- Proved the local flow through focused application, HTTP, UI, MIME, cleanup, replay, and regression tests.
+- Closed PHPStan, line-count, Blade contract, and hexagonal architecture gates without suppressions.
 
 ## Remaining work in order
 
-1. Add RED tests for the prepare/finalize application contract.
-2. Add upload-intent persistence migration plus ports/adapters.
-3. Adapt presigning to persisted staging objects.
-4. Add real-object verifier, including real HEIC/HEIF characterization.
-5. Prove private-R2 server-side object promotion to opaque final paths.
-6. Implement prepare and finalize use cases and focused GREEN proof.
-7. Add HTTP prepare/finalize routes/controllers and browser JavaScript direct upload.
-8. Cut both supplier-proof web flows from PHP multipart to direct browser -> R2.
-9. Inventory legacy supplier-proof DB rows/local files, migrate them to `glasspos-private`, and prove DB/object parity.
-10. Continue the audit for any other durable runtime-media families.
-11. Deploy the completed static/runtime changes to production and prove cPanel no longer owns durable media or private upload bytes.
-12. Remove obsolete local media/static copies only after rollback/parity/production proof.
+1. Run a real browser end-to-end proof against the current staging-only prepare/PUT/finalize UI and private R2.
+2. Inventory legacy supplier-proof DB rows/local files, migrate them to `glasspos-private`, and prove DB/object parity.
+3. Continue the audit for any other durable runtime-media families.
+4. Deploy the completed static/runtime changes to production and prove cPanel no longer owns durable media or private upload bytes.
+5. Remove obsolete local media/static copies only after rollback/parity/production proof.

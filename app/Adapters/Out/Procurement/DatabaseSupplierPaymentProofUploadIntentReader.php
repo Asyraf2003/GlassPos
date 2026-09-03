@@ -12,8 +12,7 @@ final class DatabaseSupplierPaymentProofUploadIntentReader
 
     public function __construct(
         private readonly DatabaseSupplierPaymentProofUploadIntentHydrator $hydrator,
-    ) {
-    }
+    ) {}
 
     /** @return array<string,mixed>|null */
     public function findForPrepare(
@@ -35,10 +34,27 @@ final class DatabaseSupplierPaymentProofUploadIntentReader
     /** @return array<string,mixed>|null */
     public function findByIdForActor(string $uploadIntentId, string $actorId): ?array
     {
-        $row = DB::table(self::INTENTS)
+        return $this->findById($uploadIntentId, $actorId, false);
+    }
+
+    /** @return array<string,mixed>|null */
+    public function findByIdForActorForUpdate(string $uploadIntentId, string $actorId): ?array
+    {
+        return $this->findById($uploadIntentId, $actorId, true);
+    }
+
+    /** @return array<string,mixed>|null */
+    private function findById(string $uploadIntentId, string $actorId, bool $lock): ?array
+    {
+        $query = DB::table(self::INTENTS)
             ->where('id', $uploadIntentId)
-            ->where('actor_id', $actorId)
-            ->first();
+            ->where('actor_id', $actorId);
+
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+
+        $row = $query->first();
 
         return $row === null ? null : $this->hydrator->hydrate($row);
     }

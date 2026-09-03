@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace App\Application\ServiceProductTemplate\Services;
+namespace App\Adapters\Out\ServiceProductTemplate;
 
+use App\Application\ServiceProductTemplate\Services\ServiceProductTemplatePackageSplitCalculator;
 use Illuminate\Support\Facades\DB;
 
-final class ServiceProductTemplateAdminPageData
+final class DatabaseServiceProductTemplateAdminPageData
 {
-    use ServiceProductTemplateAdminProductOptions;
-    use ServiceProductTemplateAdminServiceOptions;
+    use DatabaseServiceProductTemplateAdminProductOptions;
+    use DatabaseServiceProductTemplateAdminServiceOptions;
 
     public function __construct(
         private readonly ServiceProductTemplatePackageSplitCalculator $split,
-        private readonly ServiceProductTemplateAdminLineRows $lines,
-    ) {
-    }
+        private readonly DatabaseServiceProductTemplateAdminLineRows $lines,
+    ) {}
 
     /** @return list<array<string, mixed>> */
     public function templates(): array

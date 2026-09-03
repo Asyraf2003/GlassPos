@@ -55,7 +55,7 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
                 ],
             ]);
 
-        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter())->prepareMany(
+        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter)->prepareMany(
             'intent-1',
             [$this->file($path, 'sensitive supplier invoice.pdf', 'application/pdf', 2048)],
         );
@@ -81,11 +81,12 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
             ->once()
             ->withArgs(function (string $path, mixed $expiration): bool {
                 self::assertSame(now()->addSeconds(60)->getTimestamp(), $expiration->getTimestamp());
+
                 return true;
             })
             ->andReturn(['url' => 'https://example.test/min-ttl', 'headers' => []]);
 
-        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter())->prepareMany(
+        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter)->prepareMany(
             'intent-min',
             [$this->file('supplier-payment-proof-uploads/intent-min/file-1.upload', 'proof.webp', 'image/webp', 1)],
             1,
@@ -103,11 +104,12 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
             ->once()
             ->withArgs(function (string $path, mixed $expiration): bool {
                 self::assertSame(now()->addSeconds(3600)->getTimestamp(), $expiration->getTimestamp());
+
                 return true;
             })
             ->andReturn(['url' => 'https://example.test/max-ttl', 'headers' => []]);
 
-        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter())->prepareMany(
+        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter)->prepareMany(
             'intent-max',
             [$this->file('supplier-payment-proof-uploads/intent-max/file-1.upload', 'proof.png', 'image/png', 1)],
             99999,
@@ -120,7 +122,7 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
     {
         Storage::shouldReceive('disk')->never();
 
-        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter())->prepareMany(
+        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter)->prepareMany(
             '   ',
             [$this->file('supplier-payment-proof-uploads/intent-x/file-1.upload', 'proof.pdf', 'application/pdf', 100)],
         );
@@ -134,7 +136,7 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
         Storage::shouldReceive('disk')->once()->with('r2_private')->andReturn($disk);
         $disk->shouldNotReceive('temporaryUploadUrl');
 
-        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter())->prepareMany(
+        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter)->prepareMany(
             'intent-final-path',
             [$this->file('supplier-payment-proofs/payment-1/final.pdf', 'proof.pdf', 'application/pdf', 100)],
         );
@@ -147,7 +149,7 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
         $disk = Mockery::mock();
         Storage::shouldReceive('disk')->twice()->with('r2_private')->andReturn($disk);
         $disk->shouldNotReceive('temporaryUploadUrl');
-        $adapter = new LaravelSupplierPaymentProofDirectUploadAdapter();
+        $adapter = new LaravelSupplierPaymentProofDirectUploadAdapter;
 
         self::assertSame([], $adapter->prepareMany(
             'intent-owner',
@@ -165,7 +167,7 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
         Storage::shouldReceive('disk')->once()->with('r2_private')->andReturn($disk);
         $disk->shouldNotReceive('temporaryUploadUrl');
 
-        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter())->prepareMany('intent-invalid', [[
+        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter)->prepareMany('intent-invalid', [[
             'storage_path' => 'supplier-payment-proof-uploads/intent-invalid/file-1.upload',
             'original_filename' => 'proof.pdf',
             'mime_type' => '',
@@ -175,13 +177,30 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
         self::assertSame([], $prepared);
     }
 
+    public function test_prepare_many_rejects_non_allowlisted_mime_and_oversized_declaration(): void
+    {
+        $disk = Mockery::mock();
+        Storage::shouldReceive('disk')->twice()->with('r2_private')->andReturn($disk);
+        $disk->shouldNotReceive('temporaryUploadUrl');
+        $adapter = new LaravelSupplierPaymentProofDirectUploadAdapter;
+
+        self::assertSame([], $adapter->prepareMany(
+            'intent-mime',
+            [$this->file('supplier-payment-proof-uploads/intent-mime/file.upload', 'proof.txt', 'text/plain', 10)],
+        ));
+        self::assertSame([], $adapter->prepareMany(
+            'intent-size',
+            [$this->file('supplier-payment-proof-uploads/intent-size/file.upload', 'proof.pdf', 'application/pdf', 10485761)],
+        ));
+    }
+
     public function test_prepare_many_fails_closed_when_presigning_throws(): void
     {
         $disk = Mockery::mock();
         Storage::shouldReceive('disk')->once()->with('r2_private')->andReturn($disk);
         $disk->shouldReceive('temporaryUploadUrl')->once()->andThrow(new RuntimeException('presign failed'));
 
-        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter())->prepareMany(
+        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter)->prepareMany(
             'intent-error',
             [$this->file('supplier-payment-proof-uploads/intent-error/file-1.upload', 'proof.pdf', 'application/pdf', 100)],
         );

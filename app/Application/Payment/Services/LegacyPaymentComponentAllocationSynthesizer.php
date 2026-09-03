@@ -6,15 +6,15 @@ namespace App\Application\Payment\Services;
 
 use App\Core\Payment\PaymentComponentAllocation\PaymentComponentAllocation;
 use App\Ports\Out\Note\NoteReaderPort;
-use Illuminate\Support\Facades\DB;
+use App\Ports\Out\Payment\LegacyPaymentAllocationReaderPort;
 
 final class LegacyPaymentComponentAllocationSynthesizer
 {
     public function __construct(
         private readonly NoteReaderPort $notes,
         private readonly LegacyPaymentComponentAllocationBuilder $builder,
-    ) {
-    }
+        private readonly LegacyPaymentAllocationReaderPort $legacy,
+    ) {}
 
     /** @return list<PaymentComponentAllocation> */
     public function forNote(string $noteId): array
@@ -26,7 +26,7 @@ final class LegacyPaymentComponentAllocationSynthesizer
             return [];
         }
 
-        $legacyAllocations = $this->legacyAllocations($noteId);
+        $legacyAllocations = $this->legacy->listWithoutComponentAllocations($noteId);
         if ($legacyAllocations === []) {
             return [];
         }
@@ -35,7 +35,7 @@ final class LegacyPaymentComponentAllocationSynthesizer
     }
 
     /**
-     * @param list<string> $selectedRowIds
+     * @param  list<string>  $selectedRowIds
      * @return list<PaymentComponentAllocation>
      */
     public function forPayment(string $customerPaymentId, string $noteId, array $selectedRowIds = []): array
@@ -54,25 +54,9 @@ final class LegacyPaymentComponentAllocationSynthesizer
 
         usort(
             $allocations,
-            static fn (PaymentComponentAllocation $left, PaymentComponentAllocation $right): int =>
-                $right->allocationPriority() <=> $left->allocationPriority(),
+            static fn (PaymentComponentAllocation $left, PaymentComponentAllocation $right): int => $right->allocationPriority() <=> $left->allocationPriority(),
         );
 
         return $allocations;
-    }
-
-    /** @return list<object> */
-    private function legacyAllocations(string $noteId): array
-    {
-        $componentPaymentIds = DB::table('payment_component_allocations')
-            ->where('note_id', $noteId)
-            ->select('customer_payment_id');
-
-        return DB::table('payment_allocations')
-            ->where('note_id', $noteId)
-            ->whereNotIn('customer_payment_id', $componentPaymentIds)
-            ->orderBy('id')
-            ->get(['id', 'customer_payment_id', 'amount_rupiah'])
-            ->all();
     }
 }

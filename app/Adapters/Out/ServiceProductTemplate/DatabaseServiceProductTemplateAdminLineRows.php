@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\ServiceProductTemplate\Services;
+namespace App\Adapters\Out\ServiceProductTemplate;
 
 use Illuminate\Support\Facades\DB;
 
-final class ServiceProductTemplateAdminLineRows
+final class DatabaseServiceProductTemplateAdminLineRows
 {
     /** @return list<array{product_id:string,qty:int,sort_order:int}> */
     public function forTemplate(string $templateId, string $legacyProductId): array

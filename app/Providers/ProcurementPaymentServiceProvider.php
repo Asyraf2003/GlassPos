@@ -7,17 +7,21 @@ namespace App\Providers;
 use App\Adapters\Out\Procurement\DatabaseSupplierPayableReminderReaderAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierPaymentProofAttachmentReaderAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierPaymentProofAttachmentWriterAdapter;
+use App\Adapters\Out\Procurement\DatabaseSupplierPaymentProofUploadCleanupAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierPaymentProofUploadIntentAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierPaymentReaderAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierPaymentReversalWriterAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierPaymentWriterAdapter;
 use App\Adapters\Out\Procurement\LaravelSupplierPaymentProofDirectUploadAdapter;
 use App\Adapters\Out\Procurement\LaravelSupplierPaymentProofFileStorageAdapter;
+use App\Adapters\Out\Procurement\LaravelSupplierPaymentProofObjectStorageAdapter;
 use App\Ports\Out\Procurement\SupplierPayableReminderReaderPort;
 use App\Ports\Out\Procurement\SupplierPaymentProofAttachmentReaderPort;
 use App\Ports\Out\Procurement\SupplierPaymentProofAttachmentWriterPort;
 use App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort;
 use App\Ports\Out\Procurement\SupplierPaymentProofFileStoragePort;
+use App\Ports\Out\Procurement\SupplierPaymentProofObjectStoragePort;
+use App\Ports\Out\Procurement\SupplierPaymentProofUploadCleanupPort;
 use App\Ports\Out\Procurement\SupplierPaymentProofUploadIntentPort;
 use App\Ports\Out\Procurement\SupplierPaymentReaderPort;
 use App\Ports\Out\Procurement\SupplierPaymentReversalWriterPort;
@@ -36,6 +40,8 @@ class ProcurementPaymentServiceProvider extends ServiceProvider
         $this->app->singleton(SupplierPaymentProofAttachmentReaderPort::class, DatabaseSupplierPaymentProofAttachmentReaderAdapter::class);
         $this->app->singleton(SupplierPaymentProofFileStoragePort::class, LaravelSupplierPaymentProofFileStorageAdapter::class);
         $this->app->singleton(SupplierPaymentProofDirectUploadPort::class, LaravelSupplierPaymentProofDirectUploadAdapter::class);
+        $this->app->singleton(SupplierPaymentProofObjectStoragePort::class, LaravelSupplierPaymentProofObjectStorageAdapter::class);
         $this->app->singleton(SupplierPaymentProofUploadIntentPort::class, DatabaseSupplierPaymentProofUploadIntentAdapter::class);
+        $this->app->singleton(SupplierPaymentProofUploadCleanupPort::class, DatabaseSupplierPaymentProofUploadCleanupAdapter::class);
     }
 }

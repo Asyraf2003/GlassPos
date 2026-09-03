@@ -7,12 +7,14 @@ namespace App\Providers;
 use App\Adapters\Out\Audit\DatabaseAuditEventWriterAdapter;
 use App\Adapters\Out\Audit\DatabaseAuditLogAdapter;
 use App\Adapters\Out\Audit\DatabaseAuditLogReaderAdapter;
+use App\Adapters\Out\Audit\DatabaseAuditOutboxProcessorAdapter;
 use App\Adapters\Out\Audit\DatabaseAuditOutboxWriterAdapter;
-use App\Adapters\Out\Idempotency\DatabaseIdempotencyRecordAdapter;
 use App\Adapters\Out\Auth\LaravelUuidAdapter;
 use App\Adapters\Out\Clock\SystemClockAdapter;
+use App\Adapters\Out\Idempotency\DatabaseIdempotencyRecordAdapter;
 use App\Adapters\Out\Persistence\DatabaseTransactionManagerAdapter;
 use App\Adapters\Out\Routing\LaravelRouteUrlGeneratorAdapter;
+use App\Application\Audit\UseCases\ProcessAuditOutboxHandler;
 use App\Application\Note\Services\AutoSettleNoteRevisionSurplusRefund;
 use App\Application\Note\Services\AutoSettleNoteRevisionSurplusRefundDueRecorder;
 use App\Application\Note\Services\AutoSettleNoteRevisionSurplusRefundPaymentRecorder;
@@ -20,11 +22,12 @@ use App\Application\Note\UseCases\CreateNoteRevisionSurplusRefundDueHandler;
 use App\Application\Note\UseCases\RecordNoteRevisionSurplusRefundPaymentHandler;
 use App\Application\System\Health\HealthCheckHandler;
 use App\Ports\In\HealthCheckUseCase;
+use App\Ports\Out\Audit\AuditOutboxProcessorPort;
 use App\Ports\Out\AuditEventWriterPort;
 use App\Ports\Out\AuditLogPort;
 use App\Ports\Out\AuditLogReaderPort;
-use App\Ports\Out\IdempotencyRecordPort;
 use App\Ports\Out\ClockPort;
+use App\Ports\Out\IdempotencyRecordPort;
 use App\Ports\Out\RouteUrlGeneratorPort;
 use App\Ports\Out\TransactionManagerPort;
 use App\Ports\Out\UuidPort;
@@ -42,6 +45,7 @@ class InfrastructureServiceProvider extends ServiceProvider
         $this->app->singleton(AuditEventWriterPort::class, DatabaseAuditOutboxWriterAdapter::class);
         $this->app->singleton(AuditLogPort::class, DatabaseAuditLogAdapter::class);
         $this->app->singleton(AuditLogReaderPort::class, DatabaseAuditLogReaderAdapter::class);
+        $this->app->singleton(AuditOutboxProcessorPort::class, DatabaseAuditOutboxProcessorAdapter::class);
         $this->app->singleton(TransactionManagerPort::class, DatabaseTransactionManagerAdapter::class);
         $this->app->singleton(IdempotencyRecordPort::class, DatabaseIdempotencyRecordAdapter::class);
 
@@ -52,6 +56,7 @@ class InfrastructureServiceProvider extends ServiceProvider
                 AutoSettleNoteRevisionSurplusRefundPaymentRecorder::class,
                 CreateNoteRevisionSurplusRefundDueHandler::class,
                 RecordNoteRevisionSurplusRefundPaymentHandler::class,
+                ProcessAuditOutboxHandler::class,
             ])
             ->needs(AuditEventWriterPort::class)
             ->give(DatabaseAuditEventWriterAdapter::class);

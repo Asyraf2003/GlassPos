@@ -13,8 +13,7 @@ final class DatabaseSupplierPaymentProofUploadIntentAdapter implements SupplierP
         private readonly DatabaseSupplierPaymentProofUploadIntentReader $reader,
         private readonly DatabaseSupplierPaymentProofUploadIntentCreator $creator,
         private readonly DatabaseSupplierPaymentProofUploadIntentStateWriter $state,
-    ) {
-    }
+    ) {}
 
     public function findForPrepare(
         string $actorId,
@@ -28,6 +27,11 @@ final class DatabaseSupplierPaymentProofUploadIntentAdapter implements SupplierP
     public function findByIdForActor(string $uploadIntentId, string $actorId): ?array
     {
         return $this->reader->findByIdForActor($uploadIntentId, $actorId);
+    }
+
+    public function findByIdForActorForUpdate(string $uploadIntentId, string $actorId): ?array
+    {
+        return $this->reader->findByIdForActorForUpdate($uploadIntentId, $actorId);
     }
 
     public function createPrepared(
@@ -78,6 +82,11 @@ final class DatabaseSupplierPaymentProofUploadIntentAdapter implements SupplierP
             $verifiedMimeType,
             $verifiedSizeBytes,
         );
+    }
+
+    public function clearVerifiedFiles(string $uploadIntentId): void
+    {
+        $this->state->clearVerifiedFiles($uploadIntentId);
     }
 
     public function markFinalized(

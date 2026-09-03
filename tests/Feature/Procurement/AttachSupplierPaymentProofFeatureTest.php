@@ -6,35 +6,33 @@ namespace Tests\Feature\Procurement;
 
 use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Tests\Support\InteractsWithSupplierPaymentProofDirectUploads;
 use Tests\Support\SeedsMinimalProcurementFixture;
 use Tests\TestCase;
 
 final class AttachSupplierPaymentProofFeatureTest extends TestCase
 {
+    use InteractsWithSupplierPaymentProofDirectUploads;
     use RefreshDatabase;
     use SeedsMinimalProcurementFixture;
 
     public function test_admin_can_attach_multiple_proofs_to_pending_supplier_payment(): void
     {
-        Storage::fake('r2_private');
+        $this->fakeSupplierPaymentProofDirectUploads();
 
         $this->seedPaymentFixture('payment-1', 'invoice-1', 'pending', null);
 
-        $response = $this
-            ->from(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']))
-            ->actingAs($this->user())
-            ->post(route('admin.procurement.supplier-payments.proof.store', ['supplierPaymentId' => 'payment-1']), [
-                'proof_files' => [
-                    UploadedFile::fake()->create('proof-a.pdf', 120, 'application/pdf'),
-                    UploadedFile::fake()->image('proof-b.jpg'),
-                ],
-            ]);
+        $response = $this->uploadSupplierPaymentProofDirectly(
+            $this->user(),
+            'supplier_payment',
+            'payment-1',
+            [$this->directPdf('proof-a.pdf'), $this->directPdf('proof-b.pdf')],
+            'payment-1-first',
+        );
 
-        $response->assertRedirect(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']));
-        $response->assertSessionHas('success', 'Bukti pembayaran supplier berhasil diunggah.');
+        $response->assertOk()->assertJsonPath('success', true);
 
         $this->assertDatabaseHas('supplier_payments', [
             'id' => 'payment-1',
@@ -65,7 +63,7 @@ final class AttachSupplierPaymentProofFeatureTest extends TestCase
 
     public function test_admin_can_append_more_proofs_to_same_supplier_payment_after_first_upload(): void
     {
-        Storage::fake('r2_private');
+        $this->fakeSupplierPaymentProofDirectUploads();
 
         $this->seedPaymentFixture('payment-1', 'invoice-1', 'uploaded', null);
         $this->seedAttachment(
@@ -81,18 +79,15 @@ final class AttachSupplierPaymentProofFeatureTest extends TestCase
 
         Storage::disk('r2_private')->put('supplier-payment-proofs/payment-1/existing-proof.pdf', 'existing');
 
-        $response = $this
-            ->from(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']))
-            ->actingAs($this->user())
-            ->post(route('admin.procurement.supplier-payments.proof.store', ['supplierPaymentId' => 'payment-1']), [
-                'proof_files' => [
-                    UploadedFile::fake()->create('proof-c.pdf', 100, 'application/pdf'),
-                    UploadedFile::fake()->image('proof-d.png'),
-                ],
-            ]);
+        $response = $this->uploadSupplierPaymentProofDirectly(
+            $this->user(),
+            'supplier_payment',
+            'payment-1',
+            [$this->directPdf('proof-c.pdf'), $this->directPdf('proof-d.pdf')],
+            'payment-1-append',
+        );
 
-        $response->assertRedirect(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']));
-        $response->assertSessionHas('success', 'Bukti pembayaran supplier berhasil diunggah.');
+        $response->assertOk()->assertJsonPath('success', true);
 
         $this->assertDatabaseHas('supplier_payments', [
             'id' => 'payment-1',

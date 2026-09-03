@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Adapters\Out\Procurement;
 
+use App\Core\Procurement\SupplierPaymentProof\SupplierPaymentProofMimeTypes;
+use App\Core\Procurement\SupplierPaymentProof\SupplierPaymentProofUploadLimits;
 use App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
@@ -17,7 +19,7 @@ final class LaravelSupplierPaymentProofDirectUploadAdapter implements SupplierPa
     {
         $intentId = trim($uploadIntentId);
 
-        if ($intentId === '' || $files === []) {
+        if ($intentId === '' || $files === [] || count($files) > SupplierPaymentProofUploadLimits::MAX_FILES) {
             return [];
         }
 
@@ -74,9 +76,10 @@ final class LaravelSupplierPaymentProofDirectUploadAdapter implements SupplierPa
         string $mimeType,
         int $fileSizeBytes,
     ): bool {
-        return $originalFilename !== ''
-            && $mimeType !== ''
+        return $originalFilename !== '' && strlen($originalFilename) <= 255
+            && SupplierPaymentProofMimeTypes::normalizeAllowed($mimeType) === strtolower($mimeType)
             && $fileSizeBytes > 0
+            && $fileSizeBytes <= SupplierPaymentProofUploadLimits::MAX_BYTES_PER_FILE
             && SupplierPaymentProofUploadStagingPathGuard::belongsToIntent($intentId, $storagePath);
     }
 }
