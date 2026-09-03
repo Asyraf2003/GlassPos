@@ -19,7 +19,7 @@ final class AttachSupplierPaymentProofFeatureTest extends TestCase
 
     public function test_admin_can_attach_multiple_proofs_to_pending_supplier_payment(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2_private');
 
         $this->seedPaymentFixture('payment-1', 'invoice-1', 'pending', null);
 
@@ -52,7 +52,7 @@ final class AttachSupplierPaymentProofFeatureTest extends TestCase
 
         foreach ($attachments as $attachment) {
             $this->assertNotEmpty((string) $attachment->storage_path);
-            $this->assertTrue(Storage::disk('local')->exists((string) $attachment->storage_path));
+            $this->assertTrue(Storage::disk('r2_private')->exists((string) $attachment->storage_path));
         }
 
         $context = (string) DB::table('audit_logs')
@@ -65,7 +65,7 @@ final class AttachSupplierPaymentProofFeatureTest extends TestCase
 
     public function test_admin_can_append_more_proofs_to_same_supplier_payment_after_first_upload(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2_private');
 
         $this->seedPaymentFixture('payment-1', 'invoice-1', 'uploaded', null);
         $this->seedAttachment(
@@ -79,7 +79,7 @@ final class AttachSupplierPaymentProofFeatureTest extends TestCase
             'actor-1',
         );
 
-        Storage::disk('local')->put('supplier-payment-proofs/payment-1/existing-proof.pdf', 'existing');
+        Storage::disk('r2_private')->put('supplier-payment-proofs/payment-1/existing-proof.pdf', 'existing');
 
         $response = $this
             ->from(route('admin.procurement.supplier-invoices.show', ['supplierInvoiceId' => 'invoice-1']))
@@ -110,7 +110,7 @@ final class AttachSupplierPaymentProofFeatureTest extends TestCase
 
         foreach ($attachments as $attachment) {
             $this->assertNotEmpty((string) $attachment->storage_path);
-            $this->assertTrue(Storage::disk('local')->exists((string) $attachment->storage_path));
+            $this->assertTrue(Storage::disk('r2_private')->exists((string) $attachment->storage_path));
         }
     }
 
