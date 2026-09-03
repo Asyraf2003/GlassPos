@@ -3,9 +3,9 @@
 ## Metadata
 - Date: 2026-09-03
 - Slice / topic: Cloudflare R2 public static offload + private supplier-payment-proof migration
-- Workflow step: static tree uploaded/proven; application CDN cutover safety gate next
+- Workflow step: static tree uploaded/proven; public CDN CORS gate is the active blocker before Laravel asset cutover
 - Status: active / in progress
-- Progress: R2 infrastructure and static object delivery proven; application cutover, direct browser upload, legacy migration, production proof, and local cleanup remain
+- Progress: R2 infrastructure and static object delivery proven; public font CORS is not yet enabled; application cutover, direct browser upload, legacy migration, production proof, and local cleanup remain
 
 ## Target Work Page
 
@@ -46,7 +46,9 @@ The private-media file bytes must not transit cPanel/PHP in the final architectu
 - Current supplier-proof web controllers still receive multipart `UploadedFile` bytes through PHP/cPanel before R2 storage.
 - `public/assets` contains 6,224 files with 56,737,036 bytes actual payload (54.11 MB).
 - Public asset tree is now fully present in R2 at `assets/**`.
-- Representative CSS, JS, SVG, and vendor-extension objects return HTTP 200 through `media.arbiconbengkel.my.id` with expected MIME/content length.
+- Representative CSS, JS, SVG, vendor-extension, and Bootstrap Icons font objects return HTTP 200 through `media.arbiconbengkel.my.id` with expected MIME/content length.
+- A request for the Bootstrap Icons WOFF2 object with `Origin: https://arbiconbengkel.my.id` returned HTTP 200 but no `Access-Control-Allow-Origin` header. Public static font CORS is therefore not yet ready for application cutover.
+- A tracked Wrangler CORS policy now exists at `deploy/cloudflare/glasspos-media-cors.json`; it intentionally allows public read-only GET/HEAD from any origin because the bucket is already public.
 - Local `public/assets` must not be deleted yet.
 - Direct-to-R2 port/adapter foundation exists but production multipart controllers have intentionally not been cut over yet.
 - Strict direct-upload adapter tests are committed, but no local PASS output has yet been provided by the operator.
@@ -59,6 +61,7 @@ The private-media file bytes must not transit cPanel/PHP in the final architectu
 - Supplier payment proof durable storage boundary.
 - Public Mazer/static asset upload and delivery.
 - Resumable static upload tooling.
+- Public static bucket CORS required by cross-origin fonts.
 - Direct-to-private-R2 presigned upload foundation.
 - Documentation/progress/handoff continuity.
 
@@ -71,7 +74,7 @@ The private-media file bytes must not transit cPanel/PHP in the final architectu
 
 ## GAP
 
-- Cross-origin font/CORS behavior is not yet proven for application-origin pages loading fonts from `media.arbiconbengkel.my.id`.
+- `glasspos-media` CORS policy has not yet been applied/proven against Cloudflare; current font probe lacks `Access-Control-Allow-Origin`.
 - Laravel application references still generally use local `asset('assets/...')` paths.
 - `service-worker.js` and `manifest.webmanifest` require deliberate same-origin handling before any global `ASSET_URL`-style cutover.
 - Strict direct-upload test suite has no operator PASS proof yet.
@@ -90,6 +93,8 @@ The private-media file bytes must not transit cPanel/PHP in the final architectu
 - Final private upload is direct browser -> R2; Laravel only prepares/authorizes/finalizes/verifies.
 - Client-supplied MIME/size metadata is not trusted as final verification.
 - Static R2 keeps the existing `assets/**` relative tree so CSS-relative dependencies continue to resolve naturally.
+- Public static CORS may use wildcard origin for GET/HEAD because `glasspos-media` is intentionally public and contains no private supplier proof objects.
+- Private R2 CORS must not copy the public wildcard policy; direct private PUT will use a separate stricter policy.
 - `public/service-worker.js` and `public/manifest.webmanifest` stay application-origin during the first CDN cut.
 - Local static/media copies are deleted only after parity, regression, production, and rollback proof.
 
@@ -101,6 +106,7 @@ The private-media file bytes must not transit cPanel/PHP in the final architectu
 - `app/Adapters/Out/Procurement/LaravelSupplierPaymentProofDirectUploadAdapter.php`
 - `tests/Feature/Procurement/SupplierPaymentProofDirectUploadAdapterFeatureTest.php`
 - static uploader hardening test file under `tests/Feature/Infrastructure/`
+- `deploy/cloudflare/glasspos-media-cors.json`
 - `docs/04_lifecycle/handoff/0019_cloudflare_r2_static_sync_direct_upload_handoff.md`
 
 ### Changed files
@@ -158,34 +164,29 @@ The private-media file bytes must not transit cPanel/PHP in the final architectu
   ```bash
   curl -sSI https://media.arbiconbengkel.my.id/<representative-assets>
   ```
+  - result: CSS, JS, SVG, and vendor JS returned HTTP/2 200 with expected MIME/content length
+  - meaning: representative public asset delivery through the CDN domain is proven
+
+- command:
+  ```bash
+  curl -sSI \
+    -H 'Origin: https://arbiconbengkel.my.id' \
+    'https://media.arbiconbengkel.my.id/assets/extensions/bootstrap-icons/font/fonts/bootstrap-icons.woff2'
+  ```
   - result:
     ```text
-    assets/compiled/css/app.css
     HTTP/2 200
-    content-type: text/css; charset=utf-8
-    content-length: 337533
-
-    assets/compiled/js/app.js
-    HTTP/2 200
-    content-type: text/javascript; charset=utf-8
-    content-length: 173876
-
-    assets/compiled/svg/favicon.svg
-    HTTP/2 200
-    content-type: image/svg+xml
-    content-length: 387
-
-    assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js
-    HTTP/2 200
-    content-type: text/javascript; charset=utf-8
-    content-length: 19549
+    content-type: font/woff2
+    content-length: 130764
+    cache-control: public, max-age=86400
     ```
-  - meaning: representative public asset delivery through the CDN domain is proven
+    No `Access-Control-Allow-Origin` header was returned.
+  - meaning: object delivery is healthy, but cross-origin font CORS is not yet enabled/proven
 
 ## Risks / Follow-up Notes
 
 - `cf-cache-status: DYNAMIC` was observed. This is not a delivery failure; cache optimization should happen only after the application cutover is stable.
-- Plain HTTP 200 does not prove browser font CORS. Font/icon behavior must be tested with an application-origin `Origin` request and later in-browser.
+- Cloudflare documents that custom-domain responses reflect R2 CORS policy for requests containing a valid `Origin`; after changing CORS, already-cached assets may need cache purge before new CORS headers appear.
 - A global Laravel `ASSET_URL` can accidentally move `service-worker.js` and `manifest.webmanifest` to the CDN unless those references are made explicitly same-origin first.
 - CSS uses relative `url(...)` references, including fonts. Preserving the directory tree was therefore intentional.
 - Do not run cleanup/deletion of local assets or legacy media until all application references and production behavior are proven.
@@ -193,12 +194,4 @@ The private-media file bytes must not transit cPanel/PHP in the final architectu
 
 ## Next Step
 
-Prove the static-CDN cross-origin font/CORS gate before changing Laravel asset URLs.
-
-Use the known Bootstrap Icons font object:
-
-```text
-assets/extensions/bootstrap-icons/font/fonts/bootstrap-icons.woff2
-```
-
-Run a browser-origin-style header probe from the operator machine and inspect whether the response permits `https://arbiconbengkel.my.id` (or a safe wildcard for public static assets). Do not perform the global application CDN cutover until this gate is understood.
+Apply the tracked public CORS policy to `glasspos-media` through Wrangler, list the resulting policy, then repeat a GET request with `Origin: https://arbiconbengkel.my.id` and require `Access-Control-Allow-Origin` before Laravel asset cutover.
