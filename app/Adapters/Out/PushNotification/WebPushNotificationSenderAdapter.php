@@ -36,7 +36,11 @@ final class WebPushNotificationSenderAdapter implements PushNotificationSenderPo
             'contentEncoding' => $subscription->contentEncoding,
         ]);
 
-        $encodedPayload = json_encode($payload->toArray(), JSON_THROW_ON_ERROR);
+        $payloadData = $payload->toArray();
+        $payloadData['icon'] = $this->resolvePublicAssetUrl($payloadData['icon']);
+        $payloadData['badge'] = $this->resolvePublicAssetUrl($payloadData['badge']);
+
+        $encodedPayload = json_encode($payloadData, JSON_THROW_ON_ERROR);
 
         if (! is_string($encodedPayload)) {
             throw new RuntimeException('Payload push notification gagal diencode.');
@@ -57,6 +61,21 @@ final class WebPushNotificationSenderAdapter implements PushNotificationSenderPo
             responseReason: $responseReason,
             reason: $report->getReason(),
         );
+    }
+
+    private function resolvePublicAssetUrl(string $value): string
+    {
+        if (! str_starts_with($value, '/assets/')) {
+            return $value;
+        }
+
+        $assetBase = rtrim(trim((string) config('app.asset_url', '')), '/');
+
+        if ($assetBase === '') {
+            return $value;
+        }
+
+        return $assetBase.$value;
     }
 
     private function requiredConfig(string $key): string
