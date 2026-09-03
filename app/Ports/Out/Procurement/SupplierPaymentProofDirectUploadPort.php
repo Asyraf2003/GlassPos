@@ -8,6 +8,7 @@ interface SupplierPaymentProofDirectUploadPort
 {
     /**
      * @param list<array{
+     * storage_path:string,
      * original_filename:string,
      * mime_type:string,
      * file_size_bytes:int
@@ -21,5 +22,5 @@ interface SupplierPaymentProofDirectUploadPort
      * headers:array<string,string>
      * }>
      */
-    public function prepareMany(string $supplierPaymentId, array $files, int $expiresInSeconds = 900): array;
+    public function prepareMany(string $uploadIntentId, array $files, int $expiresInSeconds = 900): array;
 }
