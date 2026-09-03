@@ -195,7 +195,11 @@ App\Adapters\Out\Procurement\LaravelSupplierPaymentProofDirectUploadAdapter
 
 The adapter uses `r2_private` and Laravel's temporary upload URL capability to prepare short-lived PUT URLs while preserving the existing final object-key prefix. It is bound through `ProcurementPaymentServiceProvider`.
 
-This foundation is intentionally not wired into the working multipart controllers yet. The next proof is to confirm a presigned PUT against R2, including the required R2 CORS policy, before cutting production forms over to direct upload.
+A strict feature-test suite also exists for this foundation. It covers the service-provider binding, private-disk selection, opaque generated object names, MIME header propagation, 60-second minimum TTL, one-hour maximum TTL, path-traversal rejection, incomplete metadata rejection, and fail-closed behavior when presigning throws.
+
+The test code is committed, but local PASS output from the operator is still required before this lane is counted as verified.
+
+This foundation is intentionally not wired into the working multipart controllers yet. The next private-upload proof is to confirm a real presigned PUT against R2, including the required R2 CORS policy, before cutting production forms over to direct upload.
 
 ## Static asset inventory
 
@@ -241,9 +245,73 @@ php artisan r2:upload-public-assets --dry-run
 php artisan r2:upload-public-assets
 ```
 
+The uploader now supports interruption-safe resume semantics. It lists existing `assets/**` objects, skips already-present keys, retries failed uploads, prints frequent progress, and has bounded S3 connect/request timeouts. `--force` remains available for deliberate overwrite.
+
 It preserves the relative asset tree, sets explicit content types, and currently applies `Cache-Control: public, max-age=86400`.
 
-Do not switch application asset URLs to the CDN until the real upload finishes with zero failures and representative CSS/JS/font/image URLs are sampled successfully through the custom domain.
+## Static sync proof - PROVEN
+
+Operator proof on 2026-09-03:
+
+```text
+local files:       6224
+existing on R2:    6028
+resume uploaded:    196
+resume skipped:    6028
+failed:                0
+payload total:     54.11 MB
+resume elapsed:    1m 09s
+```
+
+The first long upload was interrupted manually after the process remained alive but slow. The hardened uploader then resumed instead of restarting the batch. This proves the already-uploaded objects survived interruption and the resume path completed the missing 196 objects with zero failures.
+
+Representative public custom-domain probes also passed:
+
+```text
+assets/compiled/css/app.css
+HTTP/2 200
+content-type: text/css; charset=utf-8
+content-length: 337533
+cache-control: public, max-age=86400
+
+assets/compiled/js/app.js
+HTTP/2 200
+content-type: text/javascript; charset=utf-8
+content-length: 173876
+cache-control: public, max-age=86400
+
+assets/compiled/svg/favicon.svg
+HTTP/2 200
+content-type: image/svg+xml
+content-length: 387
+cache-control: public, max-age=86400
+
+assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js
+HTTP/2 200
+content-type: text/javascript; charset=utf-8
+content-length: 19549
+cache-control: public, max-age=86400
+```
+
+All four probes were served through `media.arbiconbengkel.my.id`. `cf-cache-status: DYNAMIC` was observed; that does not invalidate object delivery and cache optimization is a later concern after the application cutover is stable.
+
+Static tree upload and representative CSS/JS/SVG/vendor delivery are therefore considered proven.
+
+## Application CDN cutover safety gate
+
+Do not delete `public/assets` yet.
+
+Before changing the application-wide asset base, prove cross-origin dependencies that browsers enforce more strictly than plain `curl` HTTP success. In particular, Bootstrap/icon/font CSS contains relative font URLs such as:
+
+```text
+assets/extensions/bootstrap-icons/font/bootstrap-icons.css
+  -> ./fonts/bootstrap-icons.woff2
+  -> ./fonts/bootstrap-icons.woff
+```
+
+Because the document origin and media origin differ, font delivery/CORS must be proven before the application is globally pointed at the CDN.
+
+The preferred cutover can use one global asset-base mechanism only after same-origin root assets are protected. `public/service-worker.js` and `public/manifest.webmanifest` must remain application-origin resources during the first cut, so any global Laravel asset-base solution must not accidentally move those two URLs to the CDN.
 
 ## Files that remain local initially
 
@@ -285,6 +353,8 @@ Do not remove these definitions until the runtime-media audit and legacy-data ch
 10. Private object access remains authorization-controlled.
 11. Final private uploads must send file bytes directly to R2 rather than through cPanel/PHP.
 12. A direct-upload cutover must preserve server-side verification; client-provided MIME/type/size metadata is never sufficient proof by itself.
+13. Keep `service-worker.js` and `manifest.webmanifest` same-origin during the first static-CDN cut.
+14. Prove font/CORS behavior before a global application asset-base cutover.
 
 ## Completed
 
@@ -297,22 +367,25 @@ Do not remove these definitions until the runtime-media audit and legacy-data ch
 - Routed supplier payment proof durable storage adapter to `r2_private`.
 - Updated targeted storage feature test to fake `r2_private`.
 - Measured and mapped the heavy `public/assets` tree.
-- Added repeatable `r2:upload-public-assets` command.
+- Added repeatable and resumable `r2:upload-public-assets` command.
 - Dry-run inventoried 6,224 files / 54.11 MB payload.
+- Completed R2 static-tree parity at 6,224/6,224 objects with zero resume failures.
+- Proved representative CSS/JS/SVG/vendor assets through the custom domain with correct content type and size.
 - Added a storage-provider-agnostic direct-upload port and R2 adapter foundation for short-lived private PUT URLs.
+- Added strict tests for the direct-upload adapter foundation; operator PASS proof remains pending.
 
 ## Remaining work
 
-1. Finish the real static upload and require `uploaded: 6224/6224`, `failed: 0` proof.
-2. Sample representative CSS/JS/font/image objects through `media.arbiconbengkel.my.id`.
-3. Configure and prove R2 CORS + short-lived presigned PUT for `glasspos-private`.
-4. Add direct-upload prepare/finalize application use cases and an integrity-bound upload intent.
-5. Cut both supplier proof web flows from PHP multipart to direct browser -> R2 upload.
-6. Verify finalization against real R2 object size/type/key before DB mutation.
-7. Introduce one global CDN asset-base mechanism for Laravel `asset('assets/...')` references.
-8. Convert the small set of hard-coded `/assets/...` paths in service worker/manifest/push payloads deliberately.
-9. Run UI/PWA regression checks before removing local static copies from deployment.
+1. Prove cross-origin font/CORS behavior from `arbiconbengkel.my.id` to `media.arbiconbengkel.my.id` before global static cutover.
+2. Protect same-origin root resources (`service-worker.js`, `manifest.webmanifest`) and introduce one application-wide CDN asset-base mechanism for `assets/**`.
+3. Convert the small set of hard-coded `/assets/...` references in service worker/manifest/push payloads deliberately.
+4. Run UI/PWA/font/icon regression checks while local `public/assets` remains available as rollback.
+5. Run the committed strict direct-upload test suite locally and record PASS proof.
+6. Configure and prove private-bucket CORS + a real short-lived presigned PUT against `glasspos-private`.
+7. Add direct-upload prepare/finalize application use cases and an integrity-bound upload intent.
+8. Cut both supplier proof web flows from PHP multipart to direct browser -> R2 upload.
+9. Verify finalization against real R2 object size/type/key before DB mutation.
 10. Inventory existing legacy supplier-payment-proof rows and local files and migrate them to `glasspos-private` with DB/object parity proof.
 11. Continue audit for any additional runtime media families.
-12. Deploy to production and prove media no longer depends on durable cPanel storage or PHP multipart limits.
+12. Deploy the completed static/runtime changes to production and prove media no longer depends on durable cPanel storage or PHP multipart limits.
 13. Remove obsolete local media/static copies and storage semantics only after rollback/parity proof.
