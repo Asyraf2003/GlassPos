@@ -1,0 +1,9 @@
+[
+  {
+    "AllowedOrigins": ["https://arbiconbengkel.my.id"],
+    "AllowedMethods": ["PUT"],
+    "AllowedHeaders": ["Content-Type"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 900
+  }
+]
