@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'AsyrafCloud')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <link rel="manifest" href="{{ url('/manifest.webmanifest') }}">
     <meta name="theme-color" content="#435ebe">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -84,7 +84,7 @@
     <script
         id="push-notification-config"
         type="application/json"
-        data-service-worker-url="{{ asset('service-worker.js') }}"
+        data-service-worker-url="{{ url('/service-worker.js') }}"
         data-service-worker-scope="/"
         data-subscribe-url="{{ route('push-notifications.subscriptions.store') }}"
         data-unsubscribe-url="{{ route('push-notifications.subscriptions.destroy') }}"
