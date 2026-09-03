@@ -2,7 +2,7 @@
 
 Status: In progress
 Date: 2026-09-03
-Current phase: private direct-upload verification
+Current phase: browser/PWA regression before production direct-upload wiring
 
 ## Goal
 
@@ -183,7 +183,7 @@ Origin-sensitive root resources remain same-origin through `url()`:
 /service-worker.js
 ```
 
-PWA icon references and service-worker fallback notification icons now use the public CDN. Error pages no longer suppress CDN CSS/icons based on `file_exists(public_path('assets/...'))` checks. Push application payloads may keep neutral `/assets/**` values; the outbound WebPush adapter resolves them to the configured CDN base before sending.
+PWA icon references and service-worker fallback notification icons use the public CDN. Error pages no longer suppress CDN CSS/icons based on `file_exists(public_path('assets/...'))` checks. Push application payloads may keep neutral `/assets/**` values; the outbound WebPush adapter resolves them to the configured CDN base before sending.
 
 Operator generated-URL proof:
 
@@ -201,14 +201,14 @@ url("/service-worker.js")
 = http://localhost/service-worker.js
 ```
 
-Focused regression after cleanup:
+Focused regression:
 
 ```text
 PASS Tests\Feature\Infrastructure\PublicAssetCdnContractFeatureTest
 6 passed / 25 assertions
 ```
 
-The operator also ran the compact full Laravel test command, which returned to the shell with no failure output shown. No exact suite count is inferred from compact output.
+Browser/PWA smoke remains required before local fallback assets can be considered removable.
 
 ## Public private-data boundary - PROVEN
 
@@ -224,7 +224,27 @@ Operator result:
 0
 ```
 
-No object was found under the known private supplier-proof prefix in `glasspos-media` at this checkpoint. This gate is complete for the current migration state.
+No object was found under the known private supplier-proof prefix in `glasspos-media` at this checkpoint.
+
+## Repository quality gate - PROVEN
+
+Migration verification surfaced and closed several follow-ups:
+
+- PHPStan concrete-filesystem typing for `temporaryUploadUrl()`;
+- oversized static uploader split into small support classes;
+- `make verify` uses Pest `--compact` while preserving the same runner;
+- supplier-proof feature fixtures use fake `r2_private`, matching production durable storage.
+
+Final operator proof:
+
+```text
+PHPStan: PASS
+line-count audit: PASS
+Blade audit: PASS
+Contract audit: PASS
+Tests: 1505 passed (9415 assertions)
+Duration: 58.89s
+```
 
 ## Root/public files kept local during first cut
 
@@ -261,7 +281,7 @@ The durable adapter targets `r2_private` for store/delete/exists/get. Private re
 
 ## Current private-upload bottleneck
 
-The current web flows still receive `UploadedFile` through PHP:
+The current production web flows still receive `UploadedFile` through PHP:
 
 ```text
 Browser
@@ -278,7 +298,7 @@ UploadSupplierInvoicePaymentProofController
 AttachSupplierPaymentProofController
 ```
 
-R2 is already the durable destination, but cPanel upload limits still constrain incoming file bytes.
+R2 is already the durable destination, but cPanel upload limits still constrain incoming file bytes until the UI/controller cutover is complete.
 
 ## Direct-to-private-R2 target
 
@@ -317,19 +337,83 @@ App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort
 App\Adapters\Out\Procurement\LaravelSupplierPaymentProofDirectUploadAdapter
 ```
 
-The adapter targets `r2_private`, generates opaque final keys, clamps signed URL TTL, propagates required content type, and fails closed.
+The adapter targets `r2_private`, generates opaque final keys, clamps signed URL TTL, propagates required Content-Type, normalizes real PSR header arrays for browser use, and fails closed.
 
-### Verification blocker discovered
-
-Repository `make verify` found one PHPStan error:
+Strict adapter proof after normalization:
 
 ```text
-Call to an undefined method Illuminate\Contracts\Filesystem\Filesystem::temporaryUploadUrl().
+Tests: 8 passed (35 assertions)
+Duration: 0.18s
 ```
 
-This is a static type mismatch between the broad `Storage::disk()` contract and the concrete Laravel `FilesystemAdapter` capability used by the R2 disk. The adapter now has an explicit `Illuminate\Filesystem\FilesystemAdapter` variable annotation. Runtime behavior was not changed.
+## Private bucket CORS - PROVEN
 
-This patch is not counted as verified until the operator reruns `make verify` successfully.
+Tracked policies:
+
+```text
+deploy/cloudflare/glasspos-private-cors.json
+deploy/cloudflare/glasspos-private-cors-dashboard.json
+```
+
+Dashboard policy:
+
+```json
+[
+  {
+    "AllowedOrigins": ["https://arbiconbengkel.my.id"],
+    "AllowedMethods": ["PUT"],
+    "AllowedHeaders": ["Content-Type"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 900
+  }
+]
+```
+
+Real presigned preflight proof:
+
+```text
+HTTP/1.1 204 No Content
+Access-Control-Allow-Origin: https://arbiconbengkel.my.id
+Vary: Origin
+Access-Control-Allow-Headers: content-type
+Access-Control-Allow-Methods: PUT
+```
+
+This proves the intended production origin can perform the required browser PUT preflight without widening the private bucket to wildcard access.
+
+## Real direct PUT infrastructure proof - PROVEN
+
+A fresh short-lived presigned URL was generated through the Laravel direct-upload port. An external HTTP client then sent the file bytes directly to `glasspos-private` with the production Origin header.
+
+PUT response:
+
+```text
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: https://arbiconbengkel.my.id
+ETag: "879442678317eb3d7ba745bfb20d8ef1"
+Vary: Origin
+```
+
+Laravel verification through `r2_private`:
+
+```text
+storage_path = supplier-payment-proofs/direct-proof/15f79d37002e001a57db8ebb099c40c5.txt
+exists = true
+content_match = true
+bytes = 22
+exists_after_delete = false
+```
+
+Therefore the infrastructure path is proven end-to-end:
+
+```text
+Laravel creates presigned authorization
+Browser-style HTTP PUT -> glasspos-private
+Laravel read-back verifies exact bytes
+cleanup removes proof object
+```
+
+The proof object was deleted. This does not yet imply the production forms/controllers use the direct path.
 
 ## Private direct-upload security requirements
 
@@ -345,7 +429,8 @@ The final direct-upload implementation must preserve all of the following:
 - replay/idempotency is handled deliberately
 - orphan/staging cleanup exists
 - no long DB transaction remains open while the browser uploads
-- private bucket CORS is origin/method constrained and is not the public wildcard policy
+- private bucket CORS is origin/method/header constrained and is not the public wildcard policy
+- browser-managed Host/Content-Length headers are not emitted as JavaScript-managed upload headers
 
 ## Local Laravel storage
 
@@ -367,7 +452,7 @@ The framework-local disks and `public/storage` mapping are not removed yet. Lega
 12. Finalize must verify the real object; client metadata is insufficient.
 13. The public wildcard CORS policy must never be copied to `glasspos-private`.
 14. Do not broaden application object credentials merely for bucket management operations.
-15. A code/static-analysis patch is not proof until the relevant local verification passes.
+15. No application DB transaction may stay open across the browser-to-R2 upload interval.
 
 ## Completed
 
@@ -385,19 +470,18 @@ The framework-local disks and `public/storage` mapping are not removed yet. Lega
 - Converted PWA/error/push static dependencies away from local-only asset assumptions.
 - Proved focused CDN contract test at 6 tests / 25 assertions.
 - Proved public bucket contains zero objects under `supplier-payment-proofs/**`.
-- Added private direct-upload port/adapter foundation and strict tests; local PASS proof remains pending.
-- Patched the PHPStan concrete-filesystem type issue; post-patch `make verify` proof remains pending.
+- Closed repository quality gate at 1,505 tests / 9,415 assertions plus PHPStan and contract audits.
+- Added private direct-upload port/adapter foundation and proved 8 strict tests / 35 assertions.
+- Applied strict private bucket CORS and proved a real presigned OPTIONS preflight.
+- Proved a real browser-style presigned PUT to `glasspos-private`, exact Laravel read-back, and deletion cleanup.
 
 ## Remaining work in order
 
-1. Rerun `make verify` and close the PHPStan blocker.
-2. Run the committed strict private direct-upload adapter tests locally and record PASS.
-3. Run browser UI/PWA/font/icon regression while local `public/assets` remains rollback.
-4. Configure strict private-bucket CORS and prove a real short-lived presigned PUT against `glasspos-private`.
-5. Add prepare/finalize application use cases plus integrity-bound upload intent and real-object verification.
-6. Cut both supplier-proof web flows from PHP multipart to direct browser -> R2.
-7. Inventory legacy supplier-proof DB rows/local files, migrate them to `glasspos-private`, and prove DB/object parity.
-8. Continue audit for any other durable runtime-media families.
-9. Verify `league/flysystem-aws-s3-v3` is committed coherently in Composer manifest/lock before fresh production install.
-10. Deploy the completed static/runtime changes to production and prove cPanel no longer owns durable media or private upload bytes.
-11. Remove obsolete local media/static copies only after rollback/parity/production proof.
+1. Run browser UI/PWA/font/icon regression while local `public/assets` remains rollback.
+2. Add prepare/finalize application use cases plus actor/business-scope-bound upload intent and real-object verification.
+3. Cut both supplier-proof web flows from PHP multipart to direct browser -> R2.
+4. Inventory legacy supplier-proof DB rows/local files, migrate them to `glasspos-private`, and prove DB/object parity.
+5. Continue the audit for any other durable runtime-media families.
+6. Verify `league/flysystem-aws-s3-v3` is committed coherently in Composer manifest/lock before fresh production install.
+7. Deploy the completed static/runtime changes to production and prove cPanel no longer owns durable media or private upload bytes.
+8. Remove obsolete local media/static copies only after rollback/parity/production proof.
