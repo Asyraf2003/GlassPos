@@ -13,11 +13,13 @@ final class LaravelSupplierPaymentProofFileStorageAdapter implements SupplierPay
 {
     public const DIRECTORY_PREFIX = SupplierPaymentProofStoragePathGuard::DIRECTORY_PREFIX;
 
+    private const DISK = 's3';
+
     public function storeMany(string $supplierPaymentId, array $files): array
     {
         $storedFiles = [];
         $storedPaths = [];
-        $disk = Storage::disk('local');
+        $disk = Storage::disk(self::DISK);
 
         try {
             foreach ($files as $file) {
@@ -63,7 +65,7 @@ final class LaravelSupplierPaymentProofFileStorageAdapter implements SupplierPay
     public function deleteMany(array $paths): void
     {
         if ($paths !== []) {
-            Storage::disk('local')->delete($paths);
+            Storage::disk(self::DISK)->delete($paths);
         }
     }
 
@@ -71,13 +73,13 @@ final class LaravelSupplierPaymentProofFileStorageAdapter implements SupplierPay
     {
         $path = trim($path);
 
-        return self::isValidPath($path) && Storage::disk('local')->exists($path);
+        return self::isValidPath($path) && Storage::disk(self::DISK)->exists($path);
     }
 
     public function get(string $path): ?string
     {
         try {
-            $content = $this->exists($path) ? Storage::disk('local')->get($path) : null;
+            $content = $this->exists($path) ? Storage::disk(self::DISK)->get($path) : null;
         } catch (Throwable) {
             return null;
         }
@@ -89,5 +91,4 @@ final class LaravelSupplierPaymentProofFileStorageAdapter implements SupplierPay
     {
         return SupplierPaymentProofStoragePathGuard::isValid($path);
     }
-
 }
