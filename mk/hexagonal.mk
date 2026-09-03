@@ -13,7 +13,7 @@ test:
 	php -d memory_limit=-1 vendor/bin/pest
 
 test-compact:
-	php -d memory_limit=-1 artisan test --compact
+	php -d memory_limit=-1 vendor/bin/pest --compact
 
 test-unit:
 	php artisan test tests/Unit
