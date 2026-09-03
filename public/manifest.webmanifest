@@ -11,25 +11,25 @@
   "theme_color": "#435ebe",
   "icons": [
     {
-      "src": "/assets/static/pwa/hyperpos-icon-192.png",
+      "src": "https://media.arbiconbengkel.my.id/assets/static/pwa/hyperpos-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/static/pwa/hyperpos-icon-512.png",
+      "src": "https://media.arbiconbengkel.my.id/assets/static/pwa/hyperpos-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/static/pwa/hyperpos-maskable-512.png",
+      "src": "https://media.arbiconbengkel.my.id/assets/static/pwa/hyperpos-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/assets/static/pwa/hyperpos-icon.svg",
+      "src": "https://media.arbiconbengkel.my.id/assets/static/pwa/hyperpos-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
