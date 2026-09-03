@@ -19,7 +19,7 @@ final class UploadSupplierInvoicePaymentProofFeatureTest extends TestCase
 
     public function test_admin_can_upload_invoice_payment_proof_and_auto_lunas_full_outstanding(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2_private');
         $this->seedInvoiceFixture('invoice-admin-proof-full-1', 100000);
 
         $backUrl = route('admin.procurement.supplier-invoices.payment-proofs.show', [
@@ -56,14 +56,14 @@ final class UploadSupplierInvoicePaymentProofFeatureTest extends TestCase
 
         $storedPath = (string) $attachments->first()->storage_path;
         self::assertNotSame('', $storedPath);
-        self::assertTrue(Storage::disk('local')->exists($storedPath));
+        self::assertTrue(Storage::disk('r2_private')->exists($storedPath));
 
         $this->assertPaidProjection('invoice-admin-proof-full-1', 100000, 1);
     }
 
     public function test_admin_can_upload_webp_phone_image_payment_proof_and_auto_lunas(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2_private');
         $this->seedInvoiceFixture('invoice-admin-proof-webp-1', 100000);
 
         $backUrl = route('admin.procurement.supplier-invoices.index');
@@ -102,7 +102,7 @@ final class UploadSupplierInvoicePaymentProofFeatureTest extends TestCase
 
     public function test_duplicate_invoice_payment_proof_submit_does_not_create_second_payment(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2_private');
         $this->seedInvoiceFixture('invoice-admin-proof-duplicate-1', 100000);
         $admin = $this->admin();
 
@@ -154,7 +154,7 @@ final class UploadSupplierInvoicePaymentProofFeatureTest extends TestCase
 
     public function test_admin_invoice_level_payment_proof_pays_only_remaining_outstanding_after_legacy_partial_payment(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2_private');
         $this->seedInvoiceFixture('invoice-admin-proof-partial-1', 100000);
 
         $this->seedMinimalSupplierPayment(
@@ -196,7 +196,7 @@ final class UploadSupplierInvoicePaymentProofFeatureTest extends TestCase
 
     public function test_admin_cannot_upload_invoice_payment_proof_for_voided_invoice(): void
     {
-        Storage::fake('local');
+        Storage::fake('r2_private');
         $this->seedInvoiceFixture('invoice-admin-proof-voided-1', 100000);
 
         DB::table('supplier_invoices')
