@@ -7,7 +7,9 @@ namespace App\Application\Procurement\UseCases;
 use App\Application\Procurement\Services\SupplierPaymentProof\SupplierPaymentProofDirectUploadRequestValidator;
 use App\Application\Procurement\Services\SupplierPaymentProof\SupplierPaymentProofPrepareIntentService;
 use App\Application\Procurement\Services\SupplierPaymentProof\SupplierPaymentProofPrepareResponse;
+use App\Application\Procurement\Services\SupplierPaymentProof\SupplierPaymentProofPublicError;
 use App\Application\Shared\DTO\Result;
+use App\Ports\Out\Procurement\SupplierPaymentProofFailureCode;
 use App\Ports\Out\Procurement\SupplierPaymentProofFailureReporterPort;
 use Throwable;
 
@@ -54,20 +56,23 @@ final class PrepareSupplierPaymentProofDirectUploadHandler
         } catch (Throwable $exception) {
             $this->report($exception, $scopeType, $scopeId, count($files));
 
-            return Result::failure('Upload bukti pembayaran gagal disiapkan.', [
-                'upload_intent' => ['PREPARE_FAILED'],
-            ]);
+            return SupplierPaymentProofPublicError::PREPARE_FAILED->result();
         }
     }
 
     private function report(Throwable $exception, string $scopeType, string $scopeId, int $fileCount): void
     {
         try {
-            $this->failures->report('prepare.handler.exception', $exception, [
-                'scope_type' => trim($scopeType),
-                'scope_id' => trim($scopeId),
-                'file_count' => $fileCount,
-            ]);
+            $this->failures->report(
+                'prepare.handler.exception',
+                SupplierPaymentProofFailureCode::PREPARE_HANDLER_EXCEPTION,
+                $exception,
+                [
+                    'scope_type' => trim($scopeType),
+                    'scope_id' => trim($scopeId),
+                    'file_count' => $fileCount,
+                ],
+            );
         } catch (Throwable) {
         }
     }
