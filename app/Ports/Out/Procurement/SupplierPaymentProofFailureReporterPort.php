@@ -9,5 +9,10 @@ use Throwable;
 interface SupplierPaymentProofFailureReporterPort
 {
     /** @param array<string, bool|int|string|null> $context */
-    public function report(string $stage, Throwable $exception, array $context = []): void;
+    public function report(
+        string $stage,
+        SupplierPaymentProofFailureCode $failureCode,
+        ?Throwable $exception = null,
+        array $context = [],
+    ): void;
 }
