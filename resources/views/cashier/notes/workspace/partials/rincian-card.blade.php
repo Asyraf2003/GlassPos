@@ -1,5 +1,5 @@
 <section class="workspace-panel workspace-entry-panel">
-    <div class="workspace-panel-heading">
+    <div class="workspace-panel-heading" data-detail-only>
         <div>
             <div class="workspace-panel-eyebrow">Transaksi</div>
             <h4 class="workspace-panel-title">Pilih jenis transaksi</h4>
@@ -14,27 +14,12 @@
                 class="workspace-type-choice"
                 data-add-item-type="{{ $option['type'] }}"
             >
-                <span class="workspace-type-icon" aria-hidden="true">
-                    @switch($option['type'])
-                        @case('product')
-                            <i class="bi bi-box-seam"></i>
-                            @break
-                        @case('service')
-                            <i class="bi bi-tools"></i>
-                            @break
-                        @case('service_store_stock')
-                            <i class="bi bi-wrench-adjustable-circle"></i>
-                            @break
-                        @default
-                            <i class="bi bi-bag-plus"></i>
-                    @endswitch
-                </span>
                 <span>{{ $option['label'] }}</span>
             </button>
         @endforeach
     </div>
 
-    <div class="workspace-lines-heading">
+    <div class="workspace-lines-heading" data-detail-only>
         <div>
             <div class="workspace-panel-eyebrow">Rincian aktif</div>
             <div class="small text-muted">Cari lalu pilih item yang akan masuk ke nota.</div>
@@ -43,11 +28,6 @@
     </div>
 
     <div id="workspace-line-items" data-next-index="{{ count($oldItems) }}"></div>
-
-    <div id="workspace-empty-state" class="workspace-empty-state">
-        <i class="bi bi-receipt" aria-hidden="true"></i>
-        <span>Pilih salah satu jenis transaksi untuk mulai membuat nota.</span>
-    </div>
 </section>
 
 @include('cashier.notes.workspace.partials.templates.product')

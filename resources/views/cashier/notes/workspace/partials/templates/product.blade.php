@@ -43,7 +43,6 @@
 
             <div class="workspace-selected-card d-none" data-product-selected>
                 <div class="workspace-selected-main">
-                    <div class="workspace-selected-icon"><i class="bi bi-box-seam"></i></div>
                     <div class="workspace-selected-copy">
                         <strong data-selected-product-name>Produk terpilih</strong>
                         <span data-selected-product-meta></span>

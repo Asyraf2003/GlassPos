@@ -20,8 +20,9 @@ final class CashierCreateWorkspacePresentationFeatureTest extends TestCase
         $response->assertOk()
             ->assertSee('data-presentation-mode="simple"', false)
             ->assertSee('data-workspace-mode="create"', false)
-            ->assertSee('data-mode-choice="simple"', false)
-            ->assertSee('data-mode-choice="detail"', false)
+            ->assertSee('data-detail-toggle', false)
+            ->assertSee('role="switch"', false)
+            ->assertDontSee('data-mode-choice=', false)
             ->assertSee('data-add-item-type="product"', false)
             ->assertSee('data-add-item-type="service"', false)
             ->assertSee('data-add-item-type="service_store_stock"', false)
@@ -33,7 +34,12 @@ final class CashierCreateWorkspacePresentationFeatureTest extends TestCase
             ->assertSee('name="note[customer_name]"', false)
             ->assertSee('value="Pelanggan baru"', false)
             ->assertSee('name="note[transaction_date]"', false)
-            ->assertSee('name="inline_payment[decision]"', false);
+            ->assertSee('name="inline_payment[decision]"', false)
+            ->assertSee('<div id="workspace-line-items" data-next-index="0"></div>', false)
+            ->assertDontSee('Kasir · Nota Aktif')
+            ->assertDontSee('Pilih transaksi, isi rincian, lalu simpan atau bayar langsung.')
+            ->assertDontSee('workspace-type-icon', false)
+            ->assertDontSee('workspace-empty-state', false);
     }
 
     public function test_workspace_assets_encode_shared_state_and_simple_payment_contract(): void
@@ -47,6 +53,8 @@ final class CashierCreateWorkspacePresentationFeatureTest extends TestCase
         self::assertStringContainsString('NS.submitSimplePayment?.("full")', $presentation);
         self::assertStringContainsString('NS.submitSimplePayment?.("partial", amount)', $presentation);
         self::assertStringContainsString('root.dataset.presentationMode = mode;', $presentation);
+        self::assertStringContainsString('detailToggle.checked ? "detail" : "simple"', $presentation);
+        self::assertStringContainsString('NS.syncSimpleActionAvailability', $presentation);
 
         self::assertStringContainsString('NS.submitSimplePayment = (action, partial = 0) =>', $payment);
         self::assertStringContainsString('applyMode("skip");', $payment);

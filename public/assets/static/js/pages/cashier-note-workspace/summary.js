@@ -158,6 +158,7 @@
     const grandTotal = rows.reduce((sum, item) => sum + item.total, 0);
     const totalText = document.getElementById("workspace-note-total-text");
     if (totalText) totalText.textContent = format(grandTotal);
+    NS.syncSimpleActionAvailability?.(grandTotal, rows.length);
     NS.refreshPaymentUi?.(grandTotal);
   };
 })();

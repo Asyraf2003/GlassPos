@@ -4,23 +4,39 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Infrastructure;
 
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 final class PublicAssetCdnContractFeatureTest extends TestCase
 {
-    public function test_asset_helper_defaults_to_public_r2_cdn(): void
+    public function test_local_asset_helper_is_same_origin_while_public_r2_url_remains_media_specific(): void
     {
         $appConfig = (string) file_get_contents(config_path('app.php'));
         $envExample = (string) file_get_contents(base_path('.env.example'));
 
         self::assertStringContainsString(
-            "'asset_url' => env('ASSET_URL', env('R2_PUBLIC_URL'))",
+            "'asset_url' => env('ASSET_URL')",
             $appConfig,
         );
+        self::assertStringNotContainsString("env('ASSET_URL', env('R2_PUBLIC_URL'))", $appConfig);
         self::assertStringContainsString(
-            'ASSET_URL=https://media.arbiconbengkel.my.id',
+            "'asset_version' => env('ASSET_VERSION', env('APP_VERSION', 'local'))",
+            $appConfig,
+        );
+        self::assertNull(config('app.asset_url'));
+        self::assertSame(
+            'http://localhost:8000/assets/static/css/cashier-note-workspace.css',
+            URL::asset('assets/static/css/cashier-note-workspace.css'),
+        );
+        self::assertSame(
+            'https://media.arbiconbengkel.my.id',
+            config('filesystems.disks.r2_public.url'),
+        );
+        self::assertStringContainsString(
+            "ASSET_URL=\n",
             $envExample,
         );
+        self::assertStringContainsString('ASSET_VERSION=local', $envExample);
     }
 
     public function test_origin_sensitive_pwa_root_files_do_not_use_asset_helper(): void

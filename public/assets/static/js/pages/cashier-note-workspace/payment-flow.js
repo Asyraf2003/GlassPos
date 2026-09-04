@@ -356,6 +356,7 @@
 	    const packageName =
 	      row.querySelector("[data-package-search]")?.value?.trim() || "";
 	    const productName =
+	      row.querySelector("[data-selected-product-name]")?.textContent?.trim() ||
 	      row.querySelector("[data-product-search]")?.value?.trim() || "";
     const externalLabel =
       row

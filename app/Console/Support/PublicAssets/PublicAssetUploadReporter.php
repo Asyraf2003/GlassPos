@@ -8,13 +8,12 @@ use Illuminate\Console\Command;
 
 final readonly class PublicAssetUploadReporter
 {
-    public function __construct(private Command $command)
-    {
-    }
+    public function __construct(private Command $command) {}
 
     public function overview(
         PublicAssetInventory $inventory,
         bool $force,
+        bool $targeted,
         int $retries,
         int $progressEvery,
     ): void {
@@ -26,7 +25,10 @@ final readonly class PublicAssetUploadReporter
         $this->command->line(
             'bytes: '.$inventory->totalBytes.' ('.PublicAssetFormat::bytes($inventory->totalBytes).')'
         );
-        $this->command->line('mode: '.($force ? 'force overwrite' : 'resume / skip existing'));
+        $mode = $targeted
+            ? 'targeted overwrite'
+            : ($force ? 'force overwrite' : 'resume / skip existing');
+        $this->command->line('mode: '.$mode);
         $this->command->line('retries: '.$retries);
         $this->command->line('progress interval: '.$progressEvery);
     }

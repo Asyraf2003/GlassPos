@@ -59,13 +59,13 @@ return [
     | Public Asset URL
     |--------------------------------------------------------------------------
     |
-    | Laravel's asset() helper uses this base for the heavy public assets tree.
-    | Root origin-sensitive files such as the manifest and service worker must
-    | use url() instead so they stay on the application origin.
+    | Laravel's asset() helper uses this optional base for static UI assets.
+    | Keep it unset for same-origin local development. R2_PUBLIC_URL belongs
+    | to the public object-storage disk and must not implicitly change it.
     |
     */
 
-    'asset_url' => env('ASSET_URL', env('R2_PUBLIC_URL')),
+    'asset_url' => env('ASSET_URL'),
 
     /*
     |--------------------------------------------------------------------------

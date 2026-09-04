@@ -20,21 +20,17 @@
         data-presentation-mode="{{ ($workspaceMode ?? 'create') === 'edit' ? 'detail' : 'simple' }}"
         data-workspace-mode="{{ $workspaceMode ?? 'create' }}"
     >
-        <header class="workspace-toolbar">
-            <div>
-                <div class="workspace-kicker">Kasir · Nota Aktif</div>
-                <p class="workspace-toolbar-copy mb-0">
-                    Pilih transaksi, isi rincian, lalu simpan atau bayar langsung.
-                </p>
-            </div>
-
-            <div class="workspace-mode-switch" aria-label="Mode tampilan">
-                <button type="button" class="workspace-mode-choice" data-mode-choice="simple" aria-pressed="false">
-                    Simple
-                </button>
-                <button type="button" class="workspace-mode-choice" data-mode-choice="detail" aria-pressed="false">
-                    Detail
-                </button>
+        <header class="workspace-toolbar" aria-label="Kontrol tampilan workspace">
+            <div class="form-check form-switch workspace-detail-control">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="workspace-detail-toggle"
+                    data-detail-toggle
+                    {{ ($workspaceMode ?? 'create') === 'edit' ? 'checked' : '' }}
+                >
+                <label class="form-check-label" for="workspace-detail-toggle">Detail</label>
             </div>
         </header>
 

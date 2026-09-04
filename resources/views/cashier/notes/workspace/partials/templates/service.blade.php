@@ -40,7 +40,6 @@
 
         <div class="workspace-selected-card d-none" data-service-selected>
             <div class="workspace-selected-main">
-                <div class="workspace-selected-icon"><i class="bi bi-tools"></i></div>
                 <div class="workspace-selected-copy">
                     <strong data-selected-service-name>Servis terpilih</strong>
                     <span data-selected-service-price></span>

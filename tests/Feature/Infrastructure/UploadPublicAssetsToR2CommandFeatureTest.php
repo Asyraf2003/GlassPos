@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Infrastructure;
 
+use FilesystemIterator;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use FilesystemIterator;
 use Tests\TestCase;
 
 final class UploadPublicAssetsToR2CommandFeatureTest extends TestCase
@@ -155,6 +156,87 @@ final class UploadPublicAssetsToR2CommandFeatureTest extends TestCase
             ->expectsOutputToContain('uploaded: 2')
             ->expectsOutputToContain('skipped existing: 0')
             ->assertExitCode(0);
+    }
+
+    public function test_targeted_mode_overwrites_only_requested_existing_object_on_fake_disk(): void
+    {
+        $root = $this->makeAssetTree([
+            'static/css/workspace.css' => '.new{}',
+            'static/js/unrelated.js' => 'new content',
+        ]);
+        Storage::fake('r2_public');
+        Storage::disk('r2_public')->put('assets/static/css/workspace.css', '.old{}');
+        Storage::disk('r2_public')->put('assets/static/js/unrelated.js', 'remote content');
+
+        $this->artisan('r2:upload-public-assets', [
+            '--source' => $root,
+            '--path' => ['static/css/workspace.css'],
+        ])
+            ->expectsOutputToContain('mode: targeted overwrite')
+            ->expectsOutputToContain('files: 1')
+            ->expectsOutputToContain('uploaded: 1')
+            ->assertExitCode(0);
+
+        self::assertSame(
+            '.new{}',
+            Storage::disk('r2_public')->get('assets/static/css/workspace.css'),
+        );
+        self::assertSame(
+            'remote content',
+            Storage::disk('r2_public')->get('assets/static/js/unrelated.js'),
+        );
+    }
+
+    public function test_targeted_mode_uploads_new_object_with_canonical_key_and_metadata(): void
+    {
+        $root = $this->makeAssetTree([
+            'static/js/presentation.js' => 'console.log(1);',
+            'static/js/unrelated.js' => 'console.log(2);',
+        ]);
+        $disk = Mockery::mock();
+        $disk->shouldNotReceive('allFiles');
+        $disk->shouldReceive('put')
+            ->once()
+            ->withArgs(function (string $key, mixed $stream, array $options): bool {
+                self::assertSame('assets/static/js/presentation.js', $key);
+                self::assertIsResource($stream);
+                self::assertSame('text/javascript; charset=utf-8', $options['ContentType'] ?? null);
+                self::assertSame('public, max-age=86400', $options['CacheControl'] ?? null);
+
+                return true;
+            })
+            ->andReturn(true);
+        Storage::shouldReceive('disk')->once()->with('r2_public')->andReturn($disk);
+
+        $this->artisan('r2:upload-public-assets', [
+            '--source' => $root,
+            '--path' => ['static/js/presentation.js'],
+        ])->assertExitCode(0);
+    }
+
+    #[DataProvider('unsafeTargetPaths')]
+    public function test_targeted_mode_rejects_traversal_absolute_and_non_file_paths(string $path): void
+    {
+        $root = $this->makeAssetTree(['safe.css' => 'body{}']);
+        Storage::shouldReceive('disk')->never();
+
+        $this->artisan('r2:upload-public-assets', [
+            '--source' => $root,
+            '--path' => [$path],
+        ])
+            ->expectsOutputToContain('Asset target')
+            ->assertExitCode(1);
+    }
+
+    /** @return array<string, array{string}> */
+    public static function unsafeTargetPaths(): array
+    {
+        return [
+            'parent traversal' => ['../outside.css'],
+            'nested traversal' => ['static/../safe.css'],
+            'absolute path' => ['/tmp/outside.css'],
+            'missing file' => ['missing.css'],
+        ];
     }
 
     /** @param array<string,string> $files */

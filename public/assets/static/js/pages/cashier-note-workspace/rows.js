@@ -245,9 +245,8 @@
   NS.addRow = (type, initial = {}) => {
     const root = document.getElementById("workspace-line-items");
     const template = document.getElementById(`workspace-template-${type}`);
-    const emptyState = document.getElementById("workspace-empty-state");
 
-    if (!root || !template || !emptyState) return null;
+    if (!root || !template) return null;
 
     const index = Number(root.dataset.nextIndex || "0");
     const wrapper = document.createElement("div");
@@ -262,7 +261,6 @@
     row.dataset.rowIndex = String(index);
     root.appendChild(row);
     root.dataset.nextIndex = String(index + 1);
-    emptyState.classList.add("d-none");
 
     NS.applyInitialValues(row, type, initial);
     window.AdminMoneyInput?.bindBySelector?.(row);
@@ -373,8 +371,6 @@
   NS.removeRow = (row) => {
     if (!(row instanceof HTMLElement)) return;
     row.remove();
-    const emptyState = document.getElementById("workspace-empty-state");
-    if (!document.querySelector("[data-line-item]")) emptyState?.classList.remove("d-none");
     NS.renumberRows();
     NS.updateSummary?.();
   };

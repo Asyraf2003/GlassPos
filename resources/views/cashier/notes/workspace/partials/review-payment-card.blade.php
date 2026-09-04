@@ -1,5 +1,5 @@
 <section class="workspace-panel workspace-checkout-panel">
-    <div class="workspace-checkout-heading">
+    <div class="workspace-checkout-heading" data-detail-only>
         <div>
             <div class="workspace-panel-eyebrow">Nota Aktif</div>
             <h4 class="workspace-panel-title">Review & Pembayaran</h4>
@@ -7,7 +7,7 @@
         <span class="workspace-line-count" id="workspace-summary-line-count">0 item</span>
     </div>
 
-    <div class="workspace-active-lines" id="workspace-active-line-summary">
+    <div class="workspace-active-lines" id="workspace-active-line-summary" data-detail-only>
         <div class="workspace-active-lines-empty">Belum ada rincian.</div>
     </div>
 
@@ -18,13 +18,13 @@
 
     <div class="workspace-simple-actions" data-simple-only>
         <div class="workspace-action-grid">
-            <button type="button" class="btn btn-outline-primary" data-simple-payment-action="skip">
+            <button type="button" class="btn btn-outline-primary" data-simple-payment-action="skip" disabled>
                 Simpan Nota
             </button>
-            <button type="button" class="btn btn-outline-primary" data-simple-payment-action="partial">
+            <button type="button" class="btn btn-outline-primary" data-simple-payment-action="partial" disabled>
                 Bayar Sebagian
             </button>
-            <button type="button" class="btn btn-primary" data-simple-payment-action="full">
+            <button type="button" class="btn btn-primary" data-simple-payment-action="full" disabled>
                 Bayar Penuh
             </button>
         </div>

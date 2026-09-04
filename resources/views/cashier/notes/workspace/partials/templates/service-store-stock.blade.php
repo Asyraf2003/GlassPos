@@ -39,13 +39,12 @@
                 >
                 <div class="workspace-search-results d-none" data-package-results></div>
             </div>
-            <small class="workspace-search-hint">Hanya paket aktif. Maksimal 3 sparepart per paket.</small>
+            <small class="workspace-search-hint" data-detail-only>Hanya paket aktif. Maksimal 3 sparepart per paket.</small>
             <small class="text-danger d-none" data-package-error>Paket wajib dipilih.</small>
         </div>
 
         <div class="workspace-selected-card d-none" data-package-selected-section>
             <div class="workspace-selected-main">
-                <div class="workspace-selected-icon"><i class="bi bi-wrench-adjustable-circle"></i></div>
                 <div class="workspace-selected-copy">
                     <strong data-package-title>Paket terpilih</strong>
                     <span data-package-description></span>
