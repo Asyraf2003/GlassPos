@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Payment;
 
+use App\Adapters\Out\Payment\DatabaseCustomerPaymentWriterAdapter;
 use App\Application\Payment\UseCases\RecordCustomerPaymentHandler;
 use App\Application\Shared\DTO\Result;
-use App\Adapters\Out\Payment\DatabaseCustomerPaymentWriterAdapter;
-use App\Ports\Out\UuidPort;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use App\Core\Payment\CustomerPayment\CustomerPayment;
 use App\Core\Payment\CustomerPayment\CustomerPaymentCashDetail;
 use App\Core\Shared\ValueObjects\Money;
+use App\Ports\Out\UuidPort;
 use DateTimeImmutable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
 
 final class RecordCustomerPaymentFeatureTest extends TestCase
 {
@@ -23,8 +23,9 @@ final class RecordCustomerPaymentFeatureTest extends TestCase
     public function test_record_customer_payment_handler_stores_new_payment(): void
     {
         $handler = new RecordCustomerPaymentHandler(
-            new DatabaseCustomerPaymentWriterAdapter(),
-            new class () implements UuidPort {
+            new DatabaseCustomerPaymentWriterAdapter,
+            new class implements UuidPort
+            {
                 public function generate(): string
                 {
                     return 'payment-1';
@@ -52,8 +53,9 @@ final class RecordCustomerPaymentFeatureTest extends TestCase
     public function test_record_customer_payment_handler_rejects_zero_amount(): void
     {
         $handler = new RecordCustomerPaymentHandler(
-            new DatabaseCustomerPaymentWriterAdapter(),
-            new class () implements UuidPort {
+            new DatabaseCustomerPaymentWriterAdapter,
+            new class implements UuidPort
+            {
                 public function generate(): string
                 {
                     return 'payment-1';
@@ -79,8 +81,9 @@ final class RecordCustomerPaymentFeatureTest extends TestCase
     public function test_record_customer_payment_handler_rejects_invalid_paid_at(): void
     {
         $handler = new RecordCustomerPaymentHandler(
-            new DatabaseCustomerPaymentWriterAdapter(),
-            new class () implements UuidPort {
+            new DatabaseCustomerPaymentWriterAdapter,
+            new class implements UuidPort
+            {
                 public function generate(): string
                 {
                     return 'payment-1';
@@ -106,8 +109,9 @@ final class RecordCustomerPaymentFeatureTest extends TestCase
     public function test_record_customer_payment_handler_stores_operational_timestamps_on_new_payment(): void
     {
         $handler = new RecordCustomerPaymentHandler(
-            new DatabaseCustomerPaymentWriterAdapter(),
-            new class () implements UuidPort {
+            new DatabaseCustomerPaymentWriterAdapter,
+            new class implements UuidPort
+            {
                 public function generate(): string
                 {
                     return 'payment-timestamp-1';
@@ -124,9 +128,11 @@ final class RecordCustomerPaymentFeatureTest extends TestCase
 
         $row = DB::table('customer_payments')
             ->where('id', 'payment-timestamp-1')
-            ->first(['created_at', 'updated_at']);
+            ->first(['recorded_at', 'created_at', 'updated_at']);
 
         $this->assertNotNull($row);
+        $this->assertNotNull($row->recorded_at);
+        $this->assertMatchesRegularExpression('/\.\d{6}$/', (string) $row->recorded_at);
         $this->assertNotNull($row->created_at);
         $this->assertNotNull($row->updated_at);
         $this->assertSame($row->created_at, $row->updated_at);
@@ -147,7 +153,7 @@ final class RecordCustomerPaymentFeatureTest extends TestCase
             Money::fromInt(200000),
         );
 
-        (new DatabaseCustomerPaymentWriterAdapter())->create($payment, $cashDetail);
+        (new DatabaseCustomerPaymentWriterAdapter)->create($payment, $cashDetail);
 
         $row = DB::table('customer_payment_cash_details')
             ->where('customer_payment_id', 'payment-cash-timestamp-1')
@@ -158,5 +164,4 @@ final class RecordCustomerPaymentFeatureTest extends TestCase
         $this->assertNotNull($row->updated_at);
         $this->assertSame($row->created_at, $row->updated_at);
     }
-
 }

@@ -2,8 +2,8 @@
 
 ## Metadata
 
-- Date: 2026-09-04
-- Slice / topic: selected stamps, create-only Simple mode, two-focus cashier history, responsive hardening, adversarial regression, and release asset manifest
+- Date: 2026-09-05
+- Slice / topic: selected stamps, create-only Simple mode, two-focus chronological cashier history, payment-event transparency, responsive hardening, adversarial regression, and release asset manifest
 - Workflow step: final local pre-production closure
 - Status: closed locally; production deployment and physical-device acceptance remain out of scope
 - Progress: 100% of the authorized local slice
@@ -21,7 +21,7 @@ Cashier create/edit note workspace and `Riwayat Nota` navigation/work queue, usi
 - DoD: `docs/01_standards/core/0013_proof_and_progress.md`
 - ADR: existing Note/payment/inventory/idempotency/revision/refund/projection contracts; no new architecture decision was required
 - Previous handoff: `docs/04_lifecycle/handoff/0020_cashier_note_workspace_simple_detail_pos_hardening_handoff.md`
-- Repo snapshot / command output: local and remote `main` started this slice at `e83853b5024d10eb22894149efa2df85eb672f7b`; implementation checkpoint `8304bc0d88d7702dfc94e2e3412e282380c8902a`
+- Repo snapshot / command output: local and remote `main` started the payment-transparency continuation at `84d162f977844021bcca28a3fdb0bfb574f5d12d`
 
 ## Locked Facts
 
@@ -31,6 +31,10 @@ Cashier create/edit note workspace and `Riwayat Nota` navigation/work queue, usi
 - Cashier history defaults to `Belum Selesai`; classification is performed before pagination by the existing projection query adapter, not by Blade or browser JavaScript.
 - `Belum Selesai` contains a non-refunded note with outstanding money or open operational work. `Selesai` contains a terminal refund or a note with neither outstanding money nor open work. Refund/canceled context remains visible.
 - No transaction, payment, inventory, revision, refund, idempotency, audit, or projection write contract was replaced.
+- History chronology is `notes.created_at DESC`, then note ID only as a deterministic fallback; `transaction_date` remains a business-date/window field.
+- Note detail exposes each official customer payment event newest first, including method, cash received/change, allocation context, and post-event remaining balance while retaining the aggregate settlement summary.
+- New payments use microsecond `recorded_at` to prevent rapid-event UUID ordering drift. Legacy events fall back to existing timestamps.
+- Revision surplus remains an automatic refund lifecycle and is not represented as customer credit or a default manual approval action.
 
 ## Scope Used
 
@@ -41,6 +45,7 @@ Cashier create/edit note workspace and `Riwayat Nota` navigation/work queue, usi
 - Two-focus cashier history backed by the existing projection/query boundary.
 - Responsive workspace/history behavior at 360, 390x844, 412, 768, 992, and 1440x900.
 - Functional browser proof, adversarial database regression, repository verification, permanent blueprint updates, and exact static-asset manifest.
+- Same-note partial -> partial -> settlement chain proof and user-visible payment timeline reconciliation.
 
 ### SCOPE-OUT
 
@@ -62,6 +67,7 @@ Cashier create/edit note workspace and `Riwayat Nota` navigation/work queue, usi
 - History is a two-focus navigation queue while detail remains the full audit surface.
 - History classification uses projected outstanding plus operational open-work truth, with terminal refund as an explicit completed override.
 - Static UI remains same-origin locally; production CDN sync is a separate, targeted release action.
+- Payment chronology comes from official persisted events through Application -> Port -> Adapter; Blade and JavaScript do not calculate financial history.
 
 ## Files Created / Changed
 
@@ -71,6 +77,15 @@ Cashier create/edit note workspace and `Riwayat Nota` navigation/work queue, usi
 - `public/assets/static/css/cashier-note-history.css`
 - `tests/Feature/Note/CashierNoteHistoryWorkQueueClassificationFeatureTest.php`
 - `docs/04_lifecycle/handoff/0021_cashier_final_preproduction_ux_hardening_handoff.md`
+- `app/Ports/Out/Payment/NotePaymentTimelineReaderPort.php`
+- `app/Adapters/Out/Payment/DatabaseNotePaymentTimelineReaderAdapter.php`
+- `app/Adapters/Out/Payment/Queries/DatabaseNotePaymentTimelineAllocationAmountsQuery.php`
+- `app/Application/Note/Services/NotePaymentTimelineBuilder.php`
+- `database/migrations/2026_09_05_000100_add_recorded_at_to_customer_payments_table.php`
+- `resources/views/shared/notes/partials/payment-timeline.blade.php`
+- `public/assets/static/css/cashier-note-payment-timeline.css`
+- `tests/Feature/Note/CashierNotePaymentTimelineChainFeatureTest.php`
+- `tests/Feature/Payment/DatabaseNotePaymentTimelineReaderAdapterFeatureTest.php`
 
 ### Changed files
 
@@ -79,8 +94,16 @@ Cashier create/edit note workspace and `Riwayat Nota` navigation/work queue, usi
 - Cashier workspace create Blade, selected-stamp templates, isolated workspace CSS, and modular lookup/presentation/row JavaScript.
 - Cashier create/edit/history feature and presentation contract tests.
 - UI blueprint `0014` and handoff index.
+- Note-detail page-data builder/payload/view, payment writer/provider, history query ordering, payment action policy, surplus audit wording/UI, and their regression tests.
 
 ## Verification Proof
+
+- command: `php artisan test tests/Feature/Note tests/Feature/Payment tests/Feature/Database/PaymentRefundTimestampSchemaTest.php`
+  - result: PASS, 453 tests and 3,525 assertions
+  - meaning: the new event timeline and chronology regressions are green with the existing payment, allocation, idempotency, revision, refund, stock, audit, and projection suite
+- command: `node /tmp/glasspos-ui-browser-proof.mjs`
+  - result: PASS with a real same-note Rp120.000 chain: cash Rp24.000, transfer Rp36.000, cash settlement Rp60.000; all three events remained separate and newest-first
+  - meaning: the visible timeline showed methods, cash received/change, remaining Rp96.000 -> Rp60.000 -> Rp0, and aggregates reconciled to total/paid Rp120.000 with zero outstanding; same-date history rendered newest -> oldest by `created_at`
 
 - command: `php artisan test` for eight focused cashier history/workspace test files
   - result: PASS, 22 tests and 178 assertions
@@ -95,7 +118,7 @@ Cashier create/edit note workspace and `Riwayat Nota` navigation/work queue, usi
   - result: PASS
   - meaning: syntax, formatting, line-count/Blade, architecture boundaries, and whitespace checks pass
 - command: `make verify`
-  - result: PASS; PHPStan analyzed 2,017 files with no errors, contract audit passed, and 1,582 tests passed with 10,103 assertions
+  - result: PASS; PHPStan analyzed 2,023 files with no errors, contract audit passed, and 1,585 tests passed with 10,135 assertions
   - meaning: the canonical full repository quality gate is green
 
 ## Risks / Follow-up Notes
@@ -103,6 +126,15 @@ Cashier create/edit note workspace and `Riwayat Nota` navigation/work queue, usi
 - Chromium emulation proves responsive browser behavior, not a physical device or installed standalone PWA; `display-mode: standalone` remained false.
 - Five pre-existing compiled navigation warnings involving `Mr.isElementInViewport` remain outside these cashier modules; no cashier workspace/history JavaScript exception occurred.
 - Static UI files were deliberately not uploaded to the shared CDN.
+- Exact changed public-asset manifest for this continuation:
+  - added: `static/css/cashier-note-payment-timeline.css`;
+  - deleted locally and no longer referenced: `static/js/pages/note-surplus-refund-due.js`.
+- The obsolete remote JS object does not need a destructive CDN delete because no shipped view loads it; the targeted upload contains only the new CSS.
+- Safe release command for this continuation, after advancing production `ASSET_VERSION`:
+
+```bash
+php artisan r2:upload-public-assets --path=static/css/cashier-note-payment-timeline.css
+```
 - Exact production-target asset paths, relative to `public/assets`, are:
   - `static/css/cashier-note-history.css`
   - `static/css/cashier-note-workspace.css`

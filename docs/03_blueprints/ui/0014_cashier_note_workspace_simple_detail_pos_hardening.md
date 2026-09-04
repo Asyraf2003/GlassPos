@@ -2,7 +2,7 @@
 
 ## Metadata
 
-- Date: 2026-09-04
+- Date: 2026-09-05
 - Area: Cashier create/edit note workspace
 - Status: Implemented and locally verified
 - Owner decision: Simple/Detail POS workspace closure slice
@@ -133,6 +133,23 @@ Assembles the existing `pay_partial` decision with cash and only asks for the cu
 
 The existing advanced skip/full/partial, cash/transfer, received amount, and paid-date flow remains available through the same form and backend contract.
 
+## Note Detail Payment Transparency
+
+Note detail keeps the aggregate settlement summary, but the summary must not replace the history of real money events.
+
+- A first-class payment timeline reads official `customer_payments`, allocation, and cash-detail records through an application port and persistence adapter.
+- Each event shows recorded date/time, paid amount, method, cash received/change when a cash-detail row exists, and remaining balance after that event.
+- Events are presented newest first. `recorded_at` with microsecond precision is the operational ordering source for new payments; legacy rows fall back to `created_at`, then `paid_at`, with payment ID only as a deterministic final tie-breaker.
+- `Bayar Sebagian` and `Pelunasan` are derived from the event's position against the note payable lifecycle. Repeated partial payment remains available while authoritative outstanding remains positive.
+- Component allocations remain authoritative when both component and legacy allocation rows describe the same payment. The timeline must not double count compatibility rows.
+- Aggregate `Total Nota`, `Sudah Dibayar`, `Total Refund`, `Sisa Tagihan`, and payment status remain visible and reconcile with the event history.
+
+Three financial concepts remain distinct in wording and data source:
+
+1. cash received above the payment amount is ordinary cash change;
+2. a requested payment above authoritative outstanding remains rejected by the existing domain guard;
+3. a downward-revision surplus is returned through the existing automatic surplus refund lifecycle, never presented as customer credit or a default manual approval action.
+
 ## Architecture Boundary
 
 - No alternative controller, endpoint, use case, domain model, or persistence path may be introduced for Simple, mobile, or desktop.
@@ -140,6 +157,7 @@ The existing advanced skip/full/partial, cash/transfer, received amount, and pai
 - Backend validation remains authoritative.
 - One shared form prevents duplicate named mobile/desktop payloads.
 - Existing edit/revision/refund/history/detail paths remain in place.
+- Blade and browser JavaScript do not reconstruct payment-event financial truth.
 
 ## Static Asset Delivery Decision
 
@@ -190,7 +208,8 @@ Implementation cannot close until there is proof for:
 - Browser interaction covered all four row types, remove, Detail on/off, product/service/package search, keyboard navigation, selected stamp, explicit release and reselection, product quantity, partial open/cancel/submit, skip, real full cash, Detail transfer, edit PATCH, and refund surface.
 - Product, service, and package release plus rapid/stale lookup behavior were exercised against canonical hidden identity/decomposition state; no released selection was revived by a delayed response.
 - All ten assets loaded by the workspace resolved from the local application origin during browser proof.
-- Final repository `make verify` passed: PHPStan analyzed 2,017 files with no errors, contract audits passed, and 1,582 tests completed with 10,103 assertions.
+- The payment-transparency continuation passed the combined Note/Payment regression with 453 tests and 3,525 assertions.
+- Final repository `make verify` passed: PHPStan analyzed 2,023 files with no errors, contract audits passed, and 1,585 tests completed with 10,135 assertions.
 
 ## Remaining GAP
 

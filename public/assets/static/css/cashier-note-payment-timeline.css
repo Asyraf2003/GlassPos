@@ -1,0 +1,88 @@
+.note-payment-timeline {
+  margin-block: 1rem;
+  padding-block: 1rem;
+  border-block: 1px solid var(--note-detail-border);
+}
+
+.note-payment-timeline__header,
+.note-payment-timeline__event-head,
+.note-payment-timeline__cash {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.note-payment-timeline__title {
+  margin: 0;
+  color: var(--note-detail-text);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.note-payment-timeline__subtitle,
+.note-payment-timeline__empty {
+  margin: .2rem 0 0;
+  color: var(--note-detail-muted);
+  font-size: .82rem;
+}
+
+.note-payment-timeline__count {
+  flex: 0 0 auto;
+  color: var(--note-detail-muted);
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+.note-payment-timeline__list {
+  display: grid;
+  gap: .65rem;
+  margin: .85rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.note-payment-timeline__event {
+  display: grid;
+  gap: .35rem;
+  padding: .8rem;
+  border: 1px solid var(--note-detail-border);
+  border-radius: .5rem;
+  background: var(--note-detail-surface-subtle);
+}
+
+.note-payment-timeline__event-head {
+  color: var(--note-detail-muted);
+  font-size: .78rem;
+}
+
+.note-payment-timeline__event-head strong {
+  color: var(--note-detail-accent);
+}
+
+.note-payment-timeline__amount {
+  color: var(--note-detail-text);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.note-payment-timeline__amount span,
+.note-payment-timeline__cash,
+.note-payment-timeline__allocation {
+  color: var(--note-detail-muted);
+  font-size: .82rem;
+  font-weight: 600;
+}
+
+.note-payment-timeline__remaining {
+  color: var(--note-detail-text);
+  font-size: .88rem;
+  font-weight: 800;
+}
+
+@media (max-width: 389.98px) {
+  .note-payment-timeline__header,
+  .note-payment-timeline__cash {
+    display: grid;
+  }
+}

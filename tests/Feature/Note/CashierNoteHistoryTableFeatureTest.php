@@ -28,6 +28,7 @@ final class CashierNoteHistoryTableFeatureTest extends TestCase
                 'customer_phone' => '08123456789',
                 'transaction_date' => $today,
                 'total_rupiah' => 150000,
+                'created_at' => now(),
             ],
             [
                 'id' => 'NOTE-YESTERDAY-OPEN',
@@ -35,6 +36,7 @@ final class CashierNoteHistoryTableFeatureTest extends TestCase
                 'customer_phone' => null,
                 'transaction_date' => $yesterday,
                 'total_rupiah' => 200000,
+                'created_at' => now()->subDay(),
             ],
         ]);
 

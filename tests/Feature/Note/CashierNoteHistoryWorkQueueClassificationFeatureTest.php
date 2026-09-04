@@ -79,6 +79,41 @@ final class CashierNoteHistoryWorkQueueClassificationFeatureTest extends TestCas
         self::assertNotContains('completed-only', array_column($secondPage['items'], 'note_id'));
     }
 
+    public function test_same_transaction_date_is_ordered_by_created_at_newest_first(): void
+    {
+        $this->seedProjectedNote(
+            'zzz-oldest-id',
+            10000,
+            0,
+            Note::STATE_OPEN,
+            WorkItem::STATUS_DONE,
+            createdAt: date('Y-m-d').' 08:00:00',
+        );
+        $this->seedProjectedNote(
+            'mmm-middle-id',
+            10000,
+            0,
+            Note::STATE_OPEN,
+            WorkItem::STATUS_DONE,
+            createdAt: date('Y-m-d').' 12:00:00',
+        );
+        $this->seedProjectedNote(
+            'aaa-newest-id',
+            10000,
+            0,
+            Note::STATE_OPEN,
+            WorkItem::STATUS_DONE,
+            createdAt: date('Y-m-d').' 16:00:00',
+        );
+
+        $result = app(CashierNoteHistoryTableQuery::class)->get([]);
+
+        self::assertSame(
+            ['aaa-newest-id', 'mmm-middle-id', 'zzz-oldest-id'],
+            array_column($result['items'], 'note_id'),
+        );
+    }
+
     public function test_history_reads_projection_and_get_does_not_mutate_business_tables(): void
     {
         $this->seedNoteOnly('without-projection', 25000, Note::STATE_OPEN);
@@ -107,8 +142,9 @@ final class CashierNoteHistoryWorkQueueClassificationFeatureTest extends TestCas
         string $noteState,
         string $workStatus,
         string $customer = 'Customer Queue',
+        ?string $createdAt = null,
     ): void {
-        $this->seedNoteOnly($id, $total, $noteState, $customer);
+        $this->seedNoteOnly($id, $total, $noteState, $customer, $createdAt);
         DB::table('work_items')->insert([
             'id' => $id.'-work',
             'note_id' => $id,
@@ -139,8 +175,13 @@ final class CashierNoteHistoryWorkQueueClassificationFeatureTest extends TestCas
         ]);
     }
 
-    private function seedNoteOnly(string $id, int $total, string $noteState, string $customer = 'Customer Queue'): void
-    {
+    private function seedNoteOnly(
+        string $id,
+        int $total,
+        string $noteState,
+        string $customer = 'Customer Queue',
+        ?string $createdAt = null,
+    ): void {
         DB::table('notes')->insert([
             'id' => $id,
             'customer_name' => $customer,
@@ -148,7 +189,7 @@ final class CashierNoteHistoryWorkQueueClassificationFeatureTest extends TestCas
             'transaction_date' => date('Y-m-d'),
             'note_state' => $noteState,
             'total_rupiah' => $total,
-            'created_at' => now(),
+            'created_at' => $createdAt ?? now(),
         ]);
     }
 

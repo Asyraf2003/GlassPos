@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
-use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
@@ -38,7 +38,7 @@ final class CashierNoteSurplusRefundDueUiAccessFeatureTest extends TestCase
             ->get(route('cashier.notes.show', ['noteId' => 'note-cashier-surplus-ui-001']));
 
         $response->assertOk();
-        $response->assertDontSee('Tandai Refund Due');
+        $response->assertDontSee('Tandai Pengembalian Belum Dibayar');
         $response->assertDontSee(route('admin.notes.revision-settlements.refund-due.store', [
             'settlementId' => 'settlement-cashier-surplus-ui-001',
         ]), false);
@@ -73,11 +73,11 @@ final class CashierNoteSurplusRefundDueUiAccessFeatureTest extends TestCase
         $this->seedNoteBase($noteId, 'Customer Cashier Surplus UI', $transactionDate, 143000, 'closed');
         $this->seedWorkItemBase($workItemId, $noteId, 1, WorkItem::TYPE_SERVICE_ONLY, WorkItem::STATUS_OPEN, 143000);
         $this->seedServiceDetailBase($workItemId, 'Servis Cashier Surplus UI', 143000, ServiceDetail::PART_SOURCE_NONE);
-        $this->seedCustomerPaymentBase('pay-' . $noteId, 143000, $transactionDate);
+        $this->seedCustomerPaymentBase('pay-'.$noteId, 143000, $transactionDate);
 
         DB::table('payment_component_allocations')->insert([
-            'id' => 'pca-' . $noteId,
-            'customer_payment_id' => 'pay-' . $noteId,
+            'id' => 'pca-'.$noteId,
+            'customer_payment_id' => 'pay-'.$noteId,
             'note_id' => $noteId,
             'work_item_id' => $workItemId,
             'component_type' => 'service_fee',

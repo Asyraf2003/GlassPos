@@ -16,7 +16,7 @@ final class AdminNoteSurplusRefundPaidUiFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
-    public function test_admin_detail_renders_refund_paid_action_when_refund_due_has_remaining_amount(): void
+    public function test_admin_detail_shows_surplus_audit_without_manual_refund_paid_action(): void
     {
         $admin = $this->loginAsAuthorizedAdmin();
 
@@ -41,25 +41,24 @@ final class AdminNoteSurplusRefundPaidUiFeatureTest extends TestCase
             noteId: 'note-surplus-paid-ui-001',
             revisionId: 'note-surplus-paid-ui-001-r001',
             amountRupiah: 50000,
+            refundDueRupiah: 122000,
         );
 
         $response = $this->actingAs($admin)
             ->get(route('admin.notes.show', ['noteId' => 'note-surplus-paid-ui-001']));
 
         $response->assertOk();
-        $response->assertSee('Catat Pengembalian Sudah Dibayar');
+        $response->assertSee('Pengembalian Surplus Revisi');
+        $response->assertSee('Riwayat Pengembalian Otomatis');
+        $response->assertSee('Surplus Revisi Dikembalikan');
+        $response->assertSee('Sisa yang belum dikembalikan');
         $response->assertSee('72.000');
-        $response->assertSee(route('admin.notes.revision-surplus-dispositions.refund-paid.store', [
+        $response->assertDontSee('Catat Pengembalian Sudah Dibayar');
+        $response->assertDontSee(route('admin.notes.revision-surplus-dispositions.refund-paid.store', [
             'dispositionId' => 'disp-surplus-paid-ui-001',
         ]), false);
-        $response->assertSee('name="amount_rupiah"', false);
-        $response->assertSee('value="72000"', false);
-        $response->assertSee('max="72000"', false);
-        $response->assertSee('name="effective_date"', false);
-        $response->assertSee('name="reason"', false);
-        $response->assertSee('name="idempotency_key"', false);
-        $response->assertSee('data-refund-paid-form', false);
-        $response->assertSee('data-refund-paid-max-rupiah="72000"', false);
+        $response->assertDontSee('data-refund-paid-form', false);
+        $response->assertDontSee('data-refund-paid-max-rupiah="72000"', false);
         $response->assertDontSee('customer_credit');
         $response->assertDontSee('customer_balance_entries');
     }
@@ -72,11 +71,11 @@ final class AdminNoteSurplusRefundPaidUiFeatureTest extends TestCase
         $this->seedNoteBase($noteId, 'Customer Surplus Paid UI', '2026-05-13', 143000, 'closed');
         $this->seedWorkItemBase($workItemId, $noteId, 1, WorkItem::TYPE_SERVICE_ONLY, WorkItem::STATUS_OPEN, 143000);
         $this->seedServiceDetailBase($workItemId, 'Servis Surplus Paid UI', 143000, ServiceDetail::PART_SOURCE_NONE);
-        $this->seedCustomerPaymentBase('pay-' . $noteId, 265000, '2026-05-13');
+        $this->seedCustomerPaymentBase('pay-'.$noteId, 265000, '2026-05-13');
 
         DB::table('payment_component_allocations')->insert([
-            'id' => 'pca-' . $noteId,
-            'customer_payment_id' => 'pay-' . $noteId,
+            'id' => 'pca-'.$noteId,
+            'customer_payment_id' => 'pay-'.$noteId,
             'note_id' => $noteId,
             'work_item_id' => $workItemId,
             'component_type' => 'service_fee',
@@ -123,7 +122,7 @@ final class AdminNoteSurplusRefundPaidUiFeatureTest extends TestCase
         ]);
 
         DB::table('audit_events')->insert([
-            'id' => 'audit-' . $dispositionId,
+            'id' => 'audit-'.$dispositionId,
             'bounded_context' => 'note',
             'aggregate_type' => 'note_revision_surplus_disposition',
             'aggregate_id' => $dispositionId,
@@ -151,7 +150,7 @@ final class AdminNoteSurplusRefundPaidUiFeatureTest extends TestCase
             'occurred_at' => '2026-05-13 10:00:00',
             'created_at' => '2026-05-13 10:00:00',
             'updated_at' => null,
-            'audit_event_id' => 'audit-' . $dispositionId,
+            'audit_event_id' => 'audit-'.$dispositionId,
         ]);
     }
 
@@ -162,9 +161,10 @@ final class AdminNoteSurplusRefundPaidUiFeatureTest extends TestCase
         string $noteId,
         string $revisionId,
         int $amountRupiah,
+        int $refundDueRupiah,
     ): void {
         DB::table('audit_events')->insert([
-            'id' => 'audit-' . $paymentId,
+            'id' => 'audit-'.$paymentId,
             'bounded_context' => 'note',
             'aggregate_type' => 'note_revision_surplus_refund_payment',
             'aggregate_id' => $paymentId,
@@ -178,6 +178,17 @@ final class AdminNoteSurplusRefundPaidUiFeatureTest extends TestCase
             'occurred_at' => '2026-05-13 11:00:00',
             'metadata_json' => null,
         ]);
+        DB::table('audit_event_snapshots')->insert([
+            'id' => 'snapshot-audit-'.$paymentId,
+            'audit_event_id' => 'audit-'.$paymentId,
+            'snapshot_kind' => 'after',
+            'payload_json' => json_encode([
+                'refund_due_rupiah' => $refundDueRupiah,
+                'active_refund_paid_rupiah' => $amountRupiah,
+                'remaining_refund_due_rupiah' => $refundDueRupiah - $amountRupiah,
+            ], JSON_THROW_ON_ERROR),
+            'created_at' => '2026-05-13 11:00:00',
+        ]);
 
         DB::table('note_revision_surplus_refund_payments')->insert([
             'id' => $paymentId,
@@ -190,7 +201,7 @@ final class AdminNoteSurplusRefundPaidUiFeatureTest extends TestCase
             'occurred_at' => '2026-05-13 11:00:00',
             'status' => 'active',
             'idempotency_key' => 'existing-refund-paid-ui-idem-001',
-            'audit_event_id' => 'audit-' . $paymentId,
+            'audit_event_id' => 'audit-'.$paymentId,
             'created_at' => '2026-05-13 11:00:00',
             'updated_at' => null,
         ]);

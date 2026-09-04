@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Note;
 
 use App\Adapters\Out\Reporting\Queries\TransactionCashLedgerReportingQuery;
+use App\Application\Note\Services\NoteDetailPageDataBuilder;
 use App\Application\Note\Services\NoteRevisionSurplusDispositionActionViewDataBuilder;
 use App\Application\Note\UseCases\CreateNoteRevisionHandler;
 use App\Application\Note\UseCases\CreateTransactionWorkspaceHandler;
@@ -295,7 +296,7 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
             ->sum('allocated_amount_rupiah'));
 
         $this->assertDatabaseHas('note_revision_settlements', [
-            'note_revision_id' => $noteId . '-r002',
+            'note_revision_id' => $noteId.'-r002',
             'note_root_id' => $noteId,
             'gross_total_rupiah' => 250000,
             'carry_forward_paid_rupiah' => 350000,
@@ -321,8 +322,8 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         self::assertNotSame('', $dispositionId);
         $this->assertDatabaseHas('note_revision_surplus_dispositions', [
             'id' => $dispositionId,
-            'note_revision_settlement_id' => $noteId . '-r002-settlement',
-            'note_revision_id' => $noteId . '-r002',
+            'note_revision_settlement_id' => $noteId.'-r002-settlement',
+            'note_revision_id' => $noteId.'-r002',
             'note_root_id' => $noteId,
             'disposition_type' => 'refund_due',
             'amount_rupiah' => 100000,
@@ -332,8 +333,8 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         ]);
         $this->assertDatabaseHas('note_revision_surplus_refund_payments', [
             'note_revision_surplus_disposition_id' => $dispositionId,
-            'note_revision_settlement_id' => $noteId . '-r002-settlement',
-            'note_revision_id' => $noteId . '-r002',
+            'note_revision_settlement_id' => $noteId.'-r002-settlement',
+            'note_revision_id' => $noteId.'-r002',
             'note_root_id' => $noteId,
             'amount_rupiah' => 100000,
             'effective_date' => '2026-05-21',
@@ -345,6 +346,20 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         self::assertSame([], $surplusAction['pending_items']);
         self::assertFalse($surplusAction['has_pending_refund_paid_action']);
         self::assertSame([], $surplusAction['refund_paid_items']);
+
+        $detail = app(NoteDetailPageDataBuilder::class)->build($noteId);
+        self::assertNotNull($detail);
+        $paymentTimeline = $detail['note']['payment_timeline'];
+        self::assertCount(1, $paymentTimeline);
+        self::assertSame(350000, $paymentTimeline[0]['payment_amount_rupiah']);
+        self::assertSame(250000, $paymentTimeline[0]['allocated_amount_rupiah']);
+        self::assertTrue($paymentTimeline[0]['show_allocated_amount']);
+        self::assertSame('Pelunasan', $paymentTimeline[0]['semantic_label']);
+        self::assertSame(0, $paymentTimeline[0]['remaining_after_rupiah']);
+        self::assertContains(
+            'Surplus Revisi Dikembalikan',
+            array_column($detail['note']['surplus_disposition_audit_timeline'], 'label'),
+        );
 
         $this->assertDatabaseHas('inventory_movements', [
             'product_id' => 'product-0062-a',
@@ -916,7 +931,7 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         self::assertSame(2, DB::table('note_revisions')->where('note_root_id', $noteId)->count());
         $this->assertDatabaseHas('notes', [
             'id' => $noteId,
-            'current_revision_id' => $noteId . '-r002',
+            'current_revision_id' => $noteId.'-r002',
             'latest_revision_number' => 2,
             'total_rupiah' => 250000,
         ]);

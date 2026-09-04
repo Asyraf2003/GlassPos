@@ -4,7 +4,7 @@
 
 In progress for the broader edit/refund/payment/stock/reporting campaign.
 
-Sub-slices A-P are closed with automated proof.
+Sub-slices A-Q are closed with automated proof.
 
 ## Context
 
@@ -368,6 +368,41 @@ Coverage:
 - UI explains transfer records that payable amount directly;
 - UI explains cash opens the change calculator;
 - this is a render/copy hardening only, with no financial runtime formula change.
+
+### 0062-Q - Payment Timeline And History Chronology Visibility
+
+Tests:
+
+- `CashierNotePaymentTimelineChainFeatureTest`
+- `DatabaseNotePaymentTimelineReaderAdapterFeatureTest`
+- `CashierNoteHistoryWorkQueueClassificationFeatureTest::test_same_transaction_date_is_ordered_by_created_at_newest_first`
+- Chromium cashier payment/history scenario in `/tmp/glasspos-ui-browser-proof.mjs`
+
+Coverage:
+
+- one Rp500.000 note records three separate real payment events: cash Rp100.000, transfer Rp150.000, and cash settlement Rp250.000;
+- the detail read model preserves all three events, displays them newest first, and reconciles paid Rp500.000 with zero outstanding;
+- cash received/change stays attached only to official cash-detail rows;
+- component allocation is authoritative without double counting a compatibility legacy allocation;
+- same-business-date history rows are ordered by `notes.created_at DESC`, with note ID only as a deterministic tie-breaker;
+- downward revision surplus remains visible as an automatic refund lifecycle, not customer credit or a default manual approval action;
+- repeated partial payment stays available while the note still has authoritative outstanding.
+
+Root cause:
+
+- history used business date plus note ID, so random/lexical IDs could put older transactions above newer transactions;
+- detail exposed only final aggregate settlement and hid the sequence of customer money events;
+- second-precision `created_at` could collide for rapid consecutive payments, making UUID fallback produce an incorrect visible order;
+- existing tests were strong on final financial invariants but weak on a same-note multi-payment chain and human-visible chronological lifecycle.
+
+Fix:
+
+- history now orders by note creation timestamp, then ID;
+- the note-detail timeline is built through Application -> Port -> Adapter from official payment/allocation/cash-detail rows;
+- new payment events persist microsecond `recorded_at`, with legacy timestamp fallback in the read adapter;
+- the default detail UI removes obsolete manual surplus actions while retaining the existing automatic settlement, refund, audit, and compatibility backend paths.
+
+The campaign's earlier no-migration constraint applied to its original financial/reporting correction slices. Sub-slice Q adds only the payment-event chronology column required by the browser-reproduced timestamp collision; it does not change payment amounts, allocation semantics, or refund policy.
 
 ## Failing Test Proof
 
@@ -966,4 +1001,4 @@ No remaining backlog for this campaign.
 
 ## Final Status
 
-Sub-slices A-O are closed with automated proof.
+Sub-slices A-Q are closed with automated proof.

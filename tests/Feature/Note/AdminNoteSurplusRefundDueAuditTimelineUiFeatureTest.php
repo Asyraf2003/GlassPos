@@ -49,11 +49,11 @@ final class AdminNoteSurplusRefundDueAuditTimelineUiFeatureTest extends TestCase
             ->get(route('admin.notes.show', ['noteId' => 'note-surplus-audit-ui-001']));
 
         $response->assertOk();
-        $response->assertSee('Timeline Audit Surplus');
-        $response->assertSee('Riwayat Pengembalian Belum Dibayar');
-        $response->assertSee('Pengembalian Belum Dibayar Ditandai');
+        $response->assertSee('Pengembalian Surplus Revisi');
+        $response->assertSee('Riwayat Pengembalian Otomatis');
+        $response->assertSee('Surplus Revisi Dicatat untuk Pengembalian');
         $response->assertSee('Nominal 122.000');
-        $response->assertSee('Sisa pending 0');
+        $response->assertSee('Sisa proses pengembalian 0');
         $response->assertSee('Customer minta refund due setelah koreksi nota.');
         $response->assertSee('admin');
         $response->assertDontSee('refund_paid');
@@ -61,63 +61,63 @@ final class AdminNoteSurplusRefundDueAuditTimelineUiFeatureTest extends TestCase
     }
 
     public function test_admin_detail_renders_refund_paid_audit_timeline(): void
-{
-    $admin = $this->loginAsAuthorizedAdmin();
+    {
+        $admin = $this->loginAsAuthorizedAdmin();
 
-    $this->seedClosedPaidCurrentRevisionNote(
-        noteId: 'note-surplus-paid-audit-ui-001',
-        revisionId: 'note-surplus-paid-audit-ui-001-r001',
-        workItemId: 'wi-surplus-paid-audit-ui-001',
-    );
+        $this->seedClosedPaidCurrentRevisionNote(
+            noteId: 'note-surplus-paid-audit-ui-001',
+            revisionId: 'note-surplus-paid-audit-ui-001-r001',
+            workItemId: 'wi-surplus-paid-audit-ui-001',
+        );
 
-    $this->seedPendingSurplusSettlement(
-        settlementId: 'settlement-surplus-paid-audit-ui-001',
-        noteId: 'note-surplus-paid-audit-ui-001',
-        revisionId: 'note-surplus-paid-audit-ui-001-r001',
-        surplusRupiah: 122000,
-    );
+        $this->seedPendingSurplusSettlement(
+            settlementId: 'settlement-surplus-paid-audit-ui-001',
+            noteId: 'note-surplus-paid-audit-ui-001',
+            revisionId: 'note-surplus-paid-audit-ui-001-r001',
+            surplusRupiah: 122000,
+        );
 
-    $this->seedRefundDueAuditTimeline(
-        dispositionId: 'disp-surplus-paid-audit-ui-001',
-        auditEventId: 'audit-surplus-paid-due-ui-001',
-        settlementId: 'settlement-surplus-paid-audit-ui-001',
-        noteId: 'note-surplus-paid-audit-ui-001',
-        revisionId: 'note-surplus-paid-audit-ui-001-r001',
-        amountRupiah: 122000,
-        beforePendingRupiah: 122000,
-        afterPendingRupiah: 0,
-        reason: 'Customer minta refund due sebelum kas keluar.',
-    );
+        $this->seedRefundDueAuditTimeline(
+            dispositionId: 'disp-surplus-paid-audit-ui-001',
+            auditEventId: 'audit-surplus-paid-due-ui-001',
+            settlementId: 'settlement-surplus-paid-audit-ui-001',
+            noteId: 'note-surplus-paid-audit-ui-001',
+            revisionId: 'note-surplus-paid-audit-ui-001-r001',
+            amountRupiah: 122000,
+            beforePendingRupiah: 122000,
+            afterPendingRupiah: 0,
+            reason: 'Customer minta refund due sebelum kas keluar.',
+        );
 
-    $this->seedRefundPaidAuditTimeline(
-        paymentId: 'surplus-refund-payment-audit-ui-001',
-        dispositionId: 'disp-surplus-paid-audit-ui-001',
-        auditEventId: 'audit-surplus-paid-ui-001',
-        settlementId: 'settlement-surplus-paid-audit-ui-001',
-        noteId: 'note-surplus-paid-audit-ui-001',
-        revisionId: 'note-surplus-paid-audit-ui-001-r001',
-        amountRupiah: 50000,
-        refundDueRupiah: 122000,
-        activeRefundPaidBeforeRupiah: 0,
-        activeRefundPaidAfterRupiah: 50000,
-        remainingBeforeRupiah: 122000,
-        remainingAfterRupiah: 72000,
-        reason: 'Refund paid dibayar tunai sebagian.',
-    );
+        $this->seedRefundPaidAuditTimeline(
+            paymentId: 'surplus-refund-payment-audit-ui-001',
+            dispositionId: 'disp-surplus-paid-audit-ui-001',
+            auditEventId: 'audit-surplus-paid-ui-001',
+            settlementId: 'settlement-surplus-paid-audit-ui-001',
+            noteId: 'note-surplus-paid-audit-ui-001',
+            revisionId: 'note-surplus-paid-audit-ui-001-r001',
+            amountRupiah: 50000,
+            refundDueRupiah: 122000,
+            activeRefundPaidBeforeRupiah: 0,
+            activeRefundPaidAfterRupiah: 50000,
+            remainingBeforeRupiah: 122000,
+            remainingAfterRupiah: 72000,
+            reason: 'Refund paid dibayar tunai sebagian.',
+        );
 
-    $response = $this->actingAs($admin)
-        ->get(route('admin.notes.show', ['noteId' => 'note-surplus-paid-audit-ui-001']));
+        $response = $this->actingAs($admin)
+            ->get(route('admin.notes.show', ['noteId' => 'note-surplus-paid-audit-ui-001']));
 
-    $response->assertOk();
-    $response->assertSee('Timeline Audit Surplus');
-    $response->assertSee('Pengembalian Belum Dibayar Ditandai');
-    $response->assertSee('Pengembalian Sudah Dibayar Dicatat');
-    $response->assertSee('Nominal 50.000');
-    $response->assertSee('Sisa pengembalian belum dibayar 72.000');
-    $response->assertSee('Refund paid dibayar tunai sebagian.');
-    $response->assertSee('admin');
-    $response->assertDontSee('customer_credit');
-}
+        $response->assertOk();
+        $response->assertSee('Pengembalian Surplus Revisi');
+        $response->assertSee('Surplus Revisi Dicatat untuk Pengembalian');
+        $response->assertSee('Surplus Revisi Dikembalikan');
+        $response->assertSee('Nominal 50.000');
+        $response->assertSee('Sisa yang belum dikembalikan 72.000');
+        $response->assertSee('Refund paid dibayar tunai sebagian.');
+        $response->assertSee('admin');
+        $response->assertDontSee('customer_credit');
+    }
 
     public function test_admin_detail_does_not_render_refund_due_audit_timeline_without_audit_event(): void
     {
@@ -133,9 +133,9 @@ final class AdminNoteSurplusRefundDueAuditTimelineUiFeatureTest extends TestCase
             ->get(route('admin.notes.show', ['noteId' => 'note-surplus-audit-ui-002']));
 
         $response->assertOk();
-        $response->assertDontSee('Timeline Audit Surplus');
-        $response->assertDontSee('Riwayat Pengembalian Belum Dibayar');
-        $response->assertDontSee('Pengembalian Belum Dibayar Ditandai');
+        $response->assertDontSee('Pengembalian Surplus Revisi');
+        $response->assertDontSee('Riwayat Pengembalian Otomatis');
+        $response->assertDontSee('Surplus Revisi Dicatat untuk Pengembalian');
         $response->assertDontSee('refund_paid');
         $response->assertDontSee('customer_credit');
     }
@@ -148,11 +148,11 @@ final class AdminNoteSurplusRefundDueAuditTimelineUiFeatureTest extends TestCase
         $this->seedNoteBase($noteId, 'Customer Surplus Audit UI', '2026-05-13', 143000, 'closed');
         $this->seedWorkItemBase($workItemId, $noteId, 1, WorkItem::TYPE_SERVICE_ONLY, WorkItem::STATUS_OPEN, 143000);
         $this->seedServiceDetailBase($workItemId, 'Servis Surplus Audit UI', 143000, ServiceDetail::PART_SOURCE_NONE);
-        $this->seedCustomerPaymentBase('pay-' . $noteId, 143000, '2026-05-13');
+        $this->seedCustomerPaymentBase('pay-'.$noteId, 143000, '2026-05-13');
 
         DB::table('payment_component_allocations')->insert([
-            'id' => 'pca-' . $noteId,
-            'customer_payment_id' => 'pay-' . $noteId,
+            'id' => 'pca-'.$noteId,
+            'customer_payment_id' => 'pay-'.$noteId,
             'note_id' => $noteId,
             'work_item_id' => $workItemId,
             'component_type' => 'service_fee',
@@ -248,88 +248,87 @@ final class AdminNoteSurplusRefundDueAuditTimelineUiFeatureTest extends TestCase
             'audit_event_id' => $auditEventId,
         ]);
     }
+
     private function seedRefundPaidAuditTimeline(
-    string $paymentId,
-    string $dispositionId,
-    string $auditEventId,
-    string $settlementId,
-    string $noteId,
-    string $revisionId,
-    int $amountRupiah,
-    int $refundDueRupiah,
-    int $activeRefundPaidBeforeRupiah,
-    int $activeRefundPaidAfterRupiah,
-    int $remainingBeforeRupiah,
-    int $remainingAfterRupiah,
-    string $reason,
-): void {
-    DB::table('audit_events')->insert([
-        'id' => $auditEventId,
-        'bounded_context' => 'note',
-        'aggregate_type' => 'note_revision_surplus_refund_payment',
-        'aggregate_id' => $paymentId,
-        'event_name' => 'note_revision_surplus_refund_paid_recorded',
-        'actor_id' => 'admin-1',
-        'actor_role' => 'admin',
-        'reason' => $reason,
-        'source_channel' => 'test',
-        'request_id' => null,
-        'correlation_id' => null,
-        'occurred_at' => '2026-05-13 11:00:00',
-        'metadata_json' => json_encode([
+        string $paymentId,
+        string $dispositionId,
+        string $auditEventId,
+        string $settlementId,
+        string $noteId,
+        string $revisionId,
+        int $amountRupiah,
+        int $refundDueRupiah,
+        int $activeRefundPaidBeforeRupiah,
+        int $activeRefundPaidAfterRupiah,
+        int $remainingBeforeRupiah,
+        int $remainingAfterRupiah,
+        string $reason,
+    ): void {
+        DB::table('audit_events')->insert([
+            'id' => $auditEventId,
+            'bounded_context' => 'note',
+            'aggregate_type' => 'note_revision_surplus_refund_payment',
+            'aggregate_id' => $paymentId,
+            'event_name' => 'note_revision_surplus_refund_paid_recorded',
+            'actor_id' => 'admin-1',
+            'actor_role' => 'admin',
+            'reason' => $reason,
+            'source_channel' => 'test',
+            'request_id' => null,
+            'correlation_id' => null,
+            'occurred_at' => '2026-05-13 11:00:00',
+            'metadata_json' => json_encode([
+                'note_root_id' => $noteId,
+                'note_revision_id' => $revisionId,
+                'note_revision_settlement_id' => $settlementId,
+                'note_revision_surplus_disposition_id' => $dispositionId,
+                'note_revision_surplus_refund_payment_id' => $paymentId,
+                'amount_rupiah' => $amountRupiah,
+                'effective_date' => '2026-05-13',
+                'disposition_type' => 'refund_due',
+                'idempotency_key' => 'idem-surplus-paid-audit-ui-001',
+            ], JSON_THROW_ON_ERROR),
+        ]);
+
+        DB::table('audit_event_snapshots')->insert([
+            [
+                'id' => $auditEventId.'-before',
+                'audit_event_id' => $auditEventId,
+                'snapshot_kind' => 'before',
+                'payload_json' => json_encode([
+                    'refund_due_rupiah' => $refundDueRupiah,
+                    'active_refund_paid_rupiah' => $activeRefundPaidBeforeRupiah,
+                    'remaining_refund_due_rupiah' => $remainingBeforeRupiah,
+                ], JSON_THROW_ON_ERROR),
+                'created_at' => '2026-05-13 11:00:00',
+            ],
+            [
+                'id' => $auditEventId.'-after',
+                'audit_event_id' => $auditEventId,
+                'snapshot_kind' => 'after',
+                'payload_json' => json_encode([
+                    'refund_due_rupiah' => $refundDueRupiah,
+                    'active_refund_paid_rupiah' => $activeRefundPaidAfterRupiah,
+                    'remaining_refund_due_rupiah' => $remainingAfterRupiah,
+                ], JSON_THROW_ON_ERROR),
+                'created_at' => '2026-05-13 11:00:00',
+            ],
+        ]);
+
+        DB::table('note_revision_surplus_refund_payments')->insert([
+            'id' => $paymentId,
+            'note_revision_surplus_disposition_id' => $dispositionId,
+            'note_revision_settlement_id' => $settlementId,
             'note_root_id' => $noteId,
             'note_revision_id' => $revisionId,
-            'note_revision_settlement_id' => $settlementId,
-            'note_revision_surplus_disposition_id' => $dispositionId,
-            'note_revision_surplus_refund_payment_id' => $paymentId,
             'amount_rupiah' => $amountRupiah,
             'effective_date' => '2026-05-13',
-            'disposition_type' => 'refund_due',
+            'occurred_at' => '2026-05-13 11:00:00',
+            'status' => 'active',
             'idempotency_key' => 'idem-surplus-paid-audit-ui-001',
-        ], JSON_THROW_ON_ERROR),
-    ]);
-
-    DB::table('audit_event_snapshots')->insert([
-        [
-            'id' => $auditEventId . '-before',
             'audit_event_id' => $auditEventId,
-            'snapshot_kind' => 'before',
-            'payload_json' => json_encode([
-                'refund_due_rupiah' => $refundDueRupiah,
-                'active_refund_paid_rupiah' => $activeRefundPaidBeforeRupiah,
-                'remaining_refund_due_rupiah' => $remainingBeforeRupiah,
-            ], JSON_THROW_ON_ERROR),
             'created_at' => '2026-05-13 11:00:00',
-        ],
-        [
-            'id' => $auditEventId . '-after',
-            'audit_event_id' => $auditEventId,
-            'snapshot_kind' => 'after',
-            'payload_json' => json_encode([
-                'refund_due_rupiah' => $refundDueRupiah,
-                'active_refund_paid_rupiah' => $activeRefundPaidAfterRupiah,
-                'remaining_refund_due_rupiah' => $remainingAfterRupiah,
-            ], JSON_THROW_ON_ERROR),
-            'created_at' => '2026-05-13 11:00:00',
-        ],
-    ]);
-
-    DB::table('note_revision_surplus_refund_payments')->insert([
-        'id' => $paymentId,
-        'note_revision_surplus_disposition_id' => $dispositionId,
-        'note_revision_settlement_id' => $settlementId,
-        'note_root_id' => $noteId,
-        'note_revision_id' => $revisionId,
-        'amount_rupiah' => $amountRupiah,
-        'effective_date' => '2026-05-13',
-        'occurred_at' => '2026-05-13 11:00:00',
-        'status' => 'active',
-        'idempotency_key' => 'idem-surplus-paid-audit-ui-001',
-        'audit_event_id' => $auditEventId,
-        'created_at' => '2026-05-13 11:00:00',
-        'updated_at' => null,
-    ]);
-}
-
-
+            'updated_at' => null,
+        ]);
+    }
 }

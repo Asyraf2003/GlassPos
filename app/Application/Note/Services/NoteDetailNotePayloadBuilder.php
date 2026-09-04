@@ -16,6 +16,7 @@ final class NoteDetailNotePayloadBuilder
         array $revisionTimeline,
         array $surplusDisposition,
         array $surplusDispositionAuditTimeline,
+        array $paymentTimeline,
         array $history,
         bool $isOpen,
         bool $isClosed,
@@ -48,7 +49,7 @@ final class NoteDetailNotePayloadBuilder
             'can_edit_workspace' => ! $isRefunded && ($isOpen || $isClosed),
             'can_show_workspace_panel' => $isOpen || $isClosed,
             'can_show_payment_form' => $canShowPayment,
-            'can_show_partial_payment_action' => $canShowPayment && $netPaid <= 0,
+            'can_show_partial_payment_action' => $canShowPayment,
             'can_show_settle_payment_action' => $canShowPayment && $outstanding > 0,
             'payment_status_label' => $statusLabel,
             'can_show_refund_form' => $refundRows !== [],
@@ -64,6 +65,7 @@ final class NoteDetailNotePayloadBuilder
             'revision_timeline' => $revisionTimeline,
             'surplus_disposition' => $surplusDisposition,
             'surplus_disposition_audit_timeline' => $surplusDispositionAuditTimeline,
+            'payment_timeline' => $paymentTimeline,
             'correction_history' => $history,
         ];
     }

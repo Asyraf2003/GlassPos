@@ -2,7 +2,7 @@
 
 ## Metadata
 
-- Date: 2026-09-04
+- Date: 2026-09-05
 - Area: Cashier note history/navigation
 - Status: Implemented and locally verified
 - Owner decision: Cashier history final pre-production UX hardening
@@ -22,6 +22,17 @@ History is navigation and prioritization. The note detail page remains the compl
 Classification stays in the existing cashier history query adapter behind `CashierNoteHistoryTableReaderPort`. Its source is `note_history_projection`, augmented by the existing `work_items` summary. Controllers, Blade, and JavaScript do not reconstruct finance or work-state truth.
 
 Pagination and search are applied inside the selected bucket at the query boundary. The browser never receives an unclassified collection and does not classify it locally.
+
+## Locked Chronology
+
+Cashier history is ordered by the time the note was actually created:
+
+```text
+notes.created_at DESC
+notes.id DESC
+```
+
+`transaction_date` remains the business-date/window field, not a substitute for creation chronology. Note ID is only a deterministic fallback when creation timestamps are equal. Bucket classification, scoped search, and pagination run without changing that chronology.
 
 ## Locked Classification
 
@@ -92,9 +103,10 @@ Closure requires proof for:
 - Full Note regression passed 367 tests with 3,051 assertions, retaining transaction, payment, inventory, idempotency, revision, refund, audit, and projection invariants.
 - Database tests prove unpaid, partial, settled/open-work, settled/done, refunded, and canceled-work classification; search remains bucket-scoped and pagination totals are calculated after server-side classification.
 - Query-boundary proof confirms history reads `note_history_projection` with the existing work summary and does not mutate notes, work items, payments, inventory movements, or audit outbox state.
+- A same-transaction-date regression deliberately reverses UUID lexical order against `created_at` and proves the API/UI order is newest creation to oldest creation.
 - Chromium exercised focus switching, search, Detail navigation, lifecycle-valid Edit visibility, and the 360, 390x844, 412, 768, 992, and 1440x900 responsive matrix with no document/card overflow or history asset/runtime failure.
 - Chromium clicked from page 1 to page 2 with a local eleven-row fixture; database/query tests independently prove totals and page contents are calculated after bucket classification.
-- Final repository `make verify` passed: PHPStan analyzed 2,017 files with no errors, contract audits passed, and 1,582 tests completed with 10,103 assertions.
+- Final repository `make verify` passed: PHPStan analyzed 2,023 files with no errors, contract audits passed, and 1,585 tests completed with 10,135 assertions.
 
 ## Remaining GAP
 

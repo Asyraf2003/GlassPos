@@ -9,6 +9,7 @@ use App\Adapters\Out\Payment\DatabaseCustomerPaymentWriterAdapter;
 use App\Adapters\Out\Payment\DatabaseCustomerRefundReaderAdapter;
 use App\Adapters\Out\Payment\DatabaseCustomerRefundWriterAdapter;
 use App\Adapters\Out\Payment\DatabaseLegacyPaymentAllocationReaderAdapter;
+use App\Adapters\Out\Payment\DatabaseNotePaymentTimelineReaderAdapter;
 use App\Adapters\Out\Payment\DatabasePaymentAllocationReaderAdapter;
 use App\Adapters\Out\Payment\DatabasePaymentAllocationWriterAdapter;
 use App\Adapters\Out\Payment\DatabasePaymentComponentAllocationReaderAdapter;
@@ -25,6 +26,7 @@ use App\Ports\Out\Payment\CustomerPaymentWriterPort;
 use App\Ports\Out\Payment\CustomerRefundReaderPort;
 use App\Ports\Out\Payment\CustomerRefundWriterPort;
 use App\Ports\Out\Payment\LegacyPaymentAllocationReaderPort;
+use App\Ports\Out\Payment\NotePaymentTimelineReaderPort;
 use App\Ports\Out\Payment\PaymentAllocationReaderPort;
 use App\Ports\Out\Payment\PaymentAllocationWriterPort;
 use App\Ports\Out\Payment\PaymentComponentAllocationReaderPort;
@@ -54,5 +56,6 @@ class PaymentServiceProvider extends ServiceProvider
         $this->app->singleton(PaymentComponentAllocationWriterPort::class, DatabasePaymentComponentAllocationWriterAdapter::class);
         $this->app->singleton(PaymentComponentAllocationReaderPort::class, DatabasePaymentComponentAllocationReaderAdapter::class);
         $this->app->singleton(LegacyPaymentAllocationReaderPort::class, DatabaseLegacyPaymentAllocationReaderAdapter::class);
+        $this->app->singleton(NotePaymentTimelineReaderPort::class, DatabaseNotePaymentTimelineReaderAdapter::class);
     }
 }

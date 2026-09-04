@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
-use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
@@ -30,7 +30,7 @@ final class CashierNoteDetailPaymentActionPolicyFeatureTest extends TestCase
         $response->assertSee('Lunasi');
     }
 
-    public function test_partially_paid_note_only_shows_settle_action(): void
+    public function test_partially_paid_note_still_shows_partial_and_settle_actions(): void
     {
         $user = $this->seedKasir();
         $today = date('Y-m-d');
@@ -54,11 +54,11 @@ final class CashierNoteDetailPaymentActionPolicyFeatureTest extends TestCase
             ->get(route('cashier.notes.show', ['noteId' => 'note-partial']));
 
         $response->assertOk();
-        $response->assertDontSee('Bayar Sebagian');
+        $response->assertSee('Bayar Sebagian');
         $response->assertSee('Lunasi');
     }
 
-    public function test_closed_note_with_new_outstanding_after_replacement_shows_settle_action(): void
+    public function test_closed_note_with_new_outstanding_after_replacement_shows_partial_and_settle_actions(): void
     {
         $user = $this->seedKasir();
         $today = date('Y-m-d');
@@ -83,7 +83,7 @@ final class CashierNoteDetailPaymentActionPolicyFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Belum Lunas / Sebagian');
-        $response->assertDontSee('Bayar Sebagian');
+        $response->assertSee('Bayar Sebagian');
         $response->assertSee('Lunasi');
     }
 

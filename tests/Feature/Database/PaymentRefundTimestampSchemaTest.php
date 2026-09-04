@@ -8,6 +8,7 @@ uses(RefreshDatabase::class);
 it('has operational timestamps on customer payment and refund persistence tables', function (): void {
     $expectedColumns = [
         'customer_payments' => [
+            'recorded_at',
             'created_at',
             'updated_at',
         ],

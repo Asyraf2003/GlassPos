@@ -20,17 +20,21 @@ final class NoteDetailPageDataBuilder
         private readonly NoteDetailRevisionViewDataBuilder $revisionView,
         private readonly NoteRevisionSurplusDispositionActionViewDataBuilder $surplusDispositions,
         private readonly NoteSurplusDispositionAuditTimelineBuilder $surplusDispositionAuditTimeline,
+        private readonly NotePaymentTimelineBuilder $paymentTimeline,
         private readonly NoteDetailNotePayloadBuilder $notePayloads,
-    ) {
-    }
+    ) {}
 
     public function build(string $noteId): ?array
     {
         $note = $this->notes->getById(trim($noteId));
-        if ($note === null) return null;
+        if ($note === null) {
+            return null;
+        }
 
         $workspacePanel = $this->workspacePanel->build($noteId);
-        if ($workspacePanel === null) return null;
+        if ($workspacePanel === null) {
+            return null;
+        }
 
         $operational = $this->operationals->build((array) ($workspacePanel['note_totals'] ?? []));
         $billingRows = $this->billingProjection->buildFromWorkspaceRows($workspacePanel['rows']);
@@ -39,6 +43,10 @@ final class NoteDetailPageDataBuilder
         $revisionView = $this->revisionView->build($note);
         $surplusDisposition = $this->surplusDispositions->build($note->id());
         $surplusDispositionAuditTimeline = $this->surplusDispositionAuditTimeline->build($note->id());
+        $paymentTimeline = $this->paymentTimeline->build(
+            $note->id(),
+            (int) $operational['grand_total_rupiah'],
+        );
 
         $refundRows = array_values(array_filter(
             $workspacePanel['rows'],
@@ -74,6 +82,7 @@ final class NoteDetailPageDataBuilder
                 $revisionView['revision_timeline'],
                 $surplusDisposition,
                 $surplusDispositionAuditTimeline,
+                $paymentTimeline,
                 $history,
                 $note->isOpen(),
                 $note->isClosed(),

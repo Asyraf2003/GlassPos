@@ -51,7 +51,7 @@ final class CashierNoteHistoryBaseQuery
         $query = $this->applyBucket($query, $criteria->bucket);
 
         return $query
-            ->orderByDesc('note_history_projection.transaction_date')
+            ->orderByDesc('notes.created_at')
             ->orderByDesc('note_history_projection.note_id')
             ->paginate($criteria->perPage, ['*'], 'page', $criteria->page);
     }

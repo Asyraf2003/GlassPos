@@ -16,7 +16,7 @@ final class AdminNoteSurplusRefundDueUiFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
-    public function test_admin_detail_renders_refund_due_action_when_pending_surplus_exists(): void
+    public function test_admin_detail_does_not_expose_manual_surplus_action_when_pending_record_exists(): void
     {
         $admin = $this->loginAsAuthorizedAdmin();
 
@@ -37,21 +37,14 @@ final class AdminNoteSurplusRefundDueUiFeatureTest extends TestCase
             ->get(route('admin.notes.show', ['noteId' => 'note-surplus-ui-001']));
 
         $response->assertOk();
-        $response->assertSee('Tandai Pengembalian Belum Dibayar');
-        $response->assertSee('122.000');
-        $response->assertSee(route('admin.notes.revision-settlements.refund-due.store', [
+        $response->assertSee('Riwayat Pembayaran');
+        $response->assertDontSee('Tandai Pengembalian Belum Dibayar');
+        $response->assertDontSee(route('admin.notes.revision-settlements.refund-due.store', [
             'settlementId' => 'settlement-surplus-ui-001',
         ]), false);
-        $response->assertSee('name="amount_rupiah"', false);
-        $response->assertSee('value="122000"', false);
-        $response->assertSee('max="122000"', false);
-        $response->assertSee('data-refund-due-form', false);
-        $response->assertSee('data-refund-due-max-rupiah="122000"', false);
-        $response->assertSee('data-refund-due-amount', false);
-        $response->assertSee('data-refund-due-submit', false);
-        $response->assertSee('data-loading-text="Menyimpan Pengembalian Belum Dibayar..."', false);
-        $response->assertSee('assets/static/js/pages/note-surplus-refund-due.js', false);
-        $response->assertSee('name="reason"', false);
+        $response->assertDontSee('data-refund-due-form', false);
+        $response->assertDontSee('data-refund-due-submit', false);
+        $response->assertDontSee('assets/static/js/pages/note-surplus-refund-due.js', false);
         $response->assertDontSee('refund_paid');
         $response->assertDontSee('customer_credit');
     }
@@ -85,11 +78,11 @@ final class AdminNoteSurplusRefundDueUiFeatureTest extends TestCase
         $this->seedNoteBase($noteId, 'Customer Surplus UI', '2026-05-13', 143000, 'closed');
         $this->seedWorkItemBase($workItemId, $noteId, 1, WorkItem::TYPE_SERVICE_ONLY, WorkItem::STATUS_OPEN, 143000);
         $this->seedServiceDetailBase($workItemId, 'Servis Surplus UI', 143000, ServiceDetail::PART_SOURCE_NONE);
-        $this->seedCustomerPaymentBase('pay-' . $noteId, 143000, '2026-05-13');
+        $this->seedCustomerPaymentBase('pay-'.$noteId, 143000, '2026-05-13');
 
         DB::table('payment_component_allocations')->insert([
-            'id' => 'pca-' . $noteId,
-            'customer_payment_id' => 'pay-' . $noteId,
+            'id' => 'pca-'.$noteId,
+            'customer_payment_id' => 'pay-'.$noteId,
             'note_id' => $noteId,
             'work_item_id' => $workItemId,
             'component_type' => 'service_fee',

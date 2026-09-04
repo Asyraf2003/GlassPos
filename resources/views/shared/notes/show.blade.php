@@ -4,6 +4,10 @@
 @section('heading', $pageTitle)
 @section('back_url', $backUrl)
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/static/css/cashier-note-payment-timeline.css') }}?v={{ config('app.asset_version') }}">
+@endpush
+
 @section('content')
 <section class="section">
   <style>
@@ -377,5 +381,4 @@
 <script src="{{ asset('assets/static/js/pages/cashier-note-payment.js') }}?v={{ config('app.asset_version') }}"></script>
 <script src="{{ asset('assets/static/js/pages/cashier-note-refund.js') }}?v={{ config('app.asset_version') }}"></script>
 <script src="{{ asset('assets/static/js/pages/note-line-actions.js') }}?v={{ config('app.asset_version') }}"></script>
-<script src="{{ asset('assets/static/js/pages/note-surplus-refund-due.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush
