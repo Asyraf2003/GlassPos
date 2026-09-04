@@ -51,7 +51,7 @@ final class SupplierPaymentProofPrepareIntentCreator
         $intent = $created ? $this->intents->findByIdForActor($intentId, $request['actor_id']) : null;
 
         return $intent === null
-            ? Result::failure('Upload bukti pembayaran gagal disiapkan.', ['upload_intent' => ['PREPARE_FAILED']])
+            ? SupplierPaymentProofPublicError::PREPARE_FAILED->result()
             : Result::success(['intent' => $intent]);
     }
 }
