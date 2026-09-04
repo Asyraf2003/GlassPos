@@ -6,7 +6,6 @@ namespace App\Adapters\Out\Procurement;
 
 use App\Core\Procurement\SupplierPaymentProof\SupplierPaymentProofMimeTypes;
 use App\Core\Procurement\SupplierPaymentProof\SupplierPaymentProofUploadLimits;
-use App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadFailureCode;
 use App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort;
 use App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPreparation;
 use App\Ports\Out\Procurement\SupplierPaymentProofFailureCode;
