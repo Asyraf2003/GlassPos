@@ -82,7 +82,7 @@ final class SupplierPaymentProofDirectUploadUiContractTest extends TestCase
         $script = $this->script();
 
         self::assertStringContainsString('navigator.mediaDevices.getUserMedia', $script);
-        self::assertStringContainsString("new File([blob], `bukti-kamera-${Date.now()}.jpg`", $script);
+        self::assertStringContainsString('new File([blob], `bukti-kamera-${Date.now()}.jpg`', $script);
         self::assertStringContainsString("type: 'image/jpeg'", $script);
         self::assertStringContainsString('const files = selectedFiles(form);', $script);
         self::assertStringContainsString('...Array.from(input?.files || [])', $script);
