@@ -227,7 +227,7 @@
 }
 
 .workspace-remove-button,
-.workspace-change-button,
+.workspace-selection-remove,
 .workspace-text-button {
     background: transparent;
     border: 0;
@@ -235,6 +235,19 @@
     font-size: 0.78rem;
     font-weight: 800;
     padding: 0.35rem;
+}
+
+.workspace-selection-remove {
+    align-items: center;
+    border: 1px solid var(--workspace-accent-border);
+    border-radius: 999px;
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 1.1rem;
+    height: 2rem;
+    justify-content: center;
+    line-height: 1;
+    width: 2rem;
 }
 
 .workspace-remove-button {
@@ -329,7 +342,7 @@
     background: var(--workspace-accent-soft);
     border: 1px solid var(--workspace-accent-border);
     border-radius: 0.9rem;
-    padding: 0.8rem;
+    padding: 0.72rem 0.8rem;
 }
 
 .workspace-selected-main {
@@ -703,13 +716,14 @@ html[data-bs-theme="dark"] .workspace-search-results {
 @media (pointer: coarse) {
     .workspace-type-choice,
     .workspace-action-grid .btn,
-    .workspace-change-button,
+    .workspace-selection-remove,
     .workspace-text-button,
     .workspace-search-result {
         min-height: 2.75rem;
     }
 
     .workspace-remove-button,
+    .workspace-selection-remove,
     .workspace-qty-control button {
         min-height: 2.75rem;
         min-width: 2.75rem;

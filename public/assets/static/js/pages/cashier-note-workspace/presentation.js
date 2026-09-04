@@ -10,17 +10,19 @@
   const digits = (value) =>
     Number.parseInt(String(value || "").replace(/\D+/g, "") || "0", 10);
   const format = (value) => Number(value || 0).toLocaleString("id-ID");
+  const simpleAvailable = root.dataset.workspaceMode === "create";
 
   const setMode = (mode) => {
     if (!["simple", "detail"].includes(mode)) return;
 
-    root.dataset.presentationMode = mode;
+    const resolvedMode = simpleAvailable && mode === "simple" ? "simple" : "detail";
+    root.dataset.presentationMode = resolvedMode;
     if (detailToggle instanceof HTMLInputElement) {
-      detailToggle.checked = mode === "detail";
+      detailToggle.checked = resolvedMode === "detail";
       detailToggle.setAttribute("aria-checked", detailToggle.checked ? "true" : "false");
     }
 
-    if (mode === "detail") {
+    if (resolvedMode === "detail") {
       partialPanel?.classList.add("d-none");
     }
   };

@@ -11,11 +11,10 @@ final class CashierNoteHistoryTableQuery implements CashierNoteHistoryTableReade
     public function __construct(
         private readonly CashierNoteHistoryBaseQuery $baseQuery,
         private readonly CashierNoteHistoryRowMapper $rowMapper,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      * @return array{
      *   filters: array<string, mixed>,
      *   items: list<array<string, mixed>>,
@@ -27,13 +26,13 @@ final class CashierNoteHistoryTableQuery implements CashierNoteHistoryTableReade
     {
         $criteria = CashierNoteHistoryCriteria::fromFilters($filters);
         $paginator = $this->baseQuery->paginate($criteria);
-        $items = $this->rowMapper->map($paginator->items(), $criteria);
+        $items = $this->rowMapper->map($paginator->items());
 
         return [
             'filters' => [
                 'date' => $criteria->anchorDateText,
                 'search' => $criteria->search,
-                'line_status' => $criteria->lineStatus,
+                'bucket' => $criteria->bucket,
             ],
             'items' => $items,
             'pagination' => [
@@ -44,7 +43,11 @@ final class CashierNoteHistoryTableQuery implements CashierNoteHistoryTableReade
             ],
             'summary' => [
                 'label' => sprintf(
-                    'Window kasir %s dan %s.',
+                    '%s · %d nota · %s–%s',
+                    $criteria->bucket === CashierNoteHistoryCriteria::BUCKET_COMPLETED
+                        ? 'Selesai'
+                        : 'Belum Selesai',
+                    $paginator->total(),
                     $criteria->previousDateText,
                     $criteria->anchorDateText,
                 ),

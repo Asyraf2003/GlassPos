@@ -16,6 +16,7 @@
       .trim();
 
   const serviceNameInput = (row) => row.querySelector("[data-service-name]");
+  const serviceSearchInput = (row) => row.querySelector("[data-service-search]");
   const serviceResults = (row) => row.querySelector("[data-service-results]");
   const serviceRaw = (row) => row.querySelector("[data-service-price-raw]");
   const serviceDisplay = (row) => row.querySelector("[data-service-price-display]");
@@ -26,6 +27,8 @@
     const selected = row.querySelector("[data-service-selected]");
     if (!selected) return;
 
+    const query = serviceSearchInput(row);
+    if (query) query.value = "";
     row.querySelector("[data-service-search-stage]")?.classList.add("d-none");
     selected.classList.remove("d-none");
     const nameText = selected.querySelector("[data-selected-service-name]");
@@ -37,6 +40,15 @@
   const clearServiceSelectedState = (row) => {
     row.querySelector("[data-service-selected]")?.classList.add("d-none");
     row.querySelector("[data-service-search-stage]")?.classList.remove("d-none");
+    row.querySelector("[data-selected-service-name]")?.replaceChildren();
+    row.querySelector("[data-selected-service-price]")?.replaceChildren();
+  };
+
+  const invalidateLookup = (row) => {
+    const input = serviceSearchInput(row);
+    if (!(input instanceof HTMLInputElement)) return;
+    clearTimeout(timers.get(input));
+    requestTokens.set(input, Symbol("service-search-invalidated"));
   };
 
   const setMoney = (raw, display, amount) => {
@@ -141,8 +153,11 @@
   };
 
   const selectService = (row, item, forceDisplay = true) => {
-    const input = serviceNameInput(row);
-    if (input) input.value = item.label || "";
+    const name = serviceNameInput(row);
+    const query = serviceSearchInput(row);
+    invalidateLookup(row);
+    if (name) name.value = item.label || "";
+    if (query) query.value = "";
     if (catalogIdInput(row)) catalogIdInput(row).value = item.id || "";
     row.dataset.serviceNameManual = "1";
     row.dataset.serviceTemplateAutofilled = "0";
@@ -182,7 +197,7 @@
 
   const fetchServices = async (row, query) => {
     const endpoint = NS.config?.serviceLookupEndpoint;
-    const input = serviceNameInput(row);
+    const input = serviceSearchInput(row);
     if (!endpoint || !input || String(query || "").trim().length < 2) return [];
 
     const token = Symbol("service-search");
@@ -202,8 +217,7 @@
     }
   };
 
-  const exactMatch = async (row) => {
-    const name = serviceNameInput(row)?.value || "";
+  const exactMatch = async (row, name) => {
     const rows = await fetchServices(row, name);
     return rows.find((item) => normalize(item.normalized_name || item.label) === normalize(name));
   };
@@ -220,12 +234,14 @@
   };
 
   const ensureCatalog = async (row) => {
-    const name = serviceNameInput(row)?.value?.trim() || "";
+    if (String(catalogIdInput(row)?.value || "").trim() !== "") return;
+
+    const name = serviceSearchInput(row)?.value?.trim() || "";
     if (name.length < 2) return;
 
     const price = feeForCreate(row);
     if (price <= 0) {
-      const matched = await exactMatch(row);
+      const matched = await exactMatch(row, name);
       if (matched) selectService(row, matched, false);
       return;
     }
@@ -309,11 +325,11 @@
     if (!(row instanceof HTMLElement) || row.dataset.serviceCatalogBound === "1") return;
     row.dataset.serviceCatalogBound = "1";
 
-    const input = serviceNameInput(row);
-    if (!(input instanceof HTMLInputElement)) return;
+    const name = serviceNameInput(row);
+    if (!(name instanceof HTMLInputElement)) return;
 
 	    if ((row.dataset.itemType || "") === "service_store_stock") {
-	      input.readOnly = true;
+	      name.readOnly = true;
 	      NS.syncServiceDefaults(row);
 	      serviceDisplay(row)?.addEventListener("input", () => {
 	        row.dataset.servicePriceManual = "1";
@@ -322,13 +338,13 @@
 	      return;
 	    }
 
+    const input = serviceSearchInput(row);
+    if (!(input instanceof HTMLInputElement)) return;
+
     input.addEventListener("input", () => {
       requestTokens.set(input, Symbol("service-search-input"));
       row.dataset.serviceNameManual = "1";
       row.dataset.serviceTemplateAutofilled = "0";
-      catalogIdInput(row)?.setAttribute("value", "");
-      if (catalogIdInput(row)) catalogIdInput(row).value = "";
-      clearServiceSelectedState(row);
       clearTimeout(timers.get(input));
       timers.set(input, setTimeout(async () => renderResults(row, await fetchServices(row, input.value)), 250));
     });
@@ -376,8 +392,10 @@
     });
 
     row.querySelector("[data-service-change]")?.addEventListener("click", () => {
+      invalidateLookup(row);
       clearServiceSelectedState(row);
       input.value = "";
+      name.value = "";
       if (catalogIdInput(row)) catalogIdInput(row).value = "";
       if (defaultFeeInput(row)) defaultFeeInput(row).value = "";
       setMoney(serviceRaw(row), serviceDisplay(row), 0);

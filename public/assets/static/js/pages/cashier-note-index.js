@@ -2,37 +2,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const configNode = document.getElementById('cashier-note-index-config');
     const searchForm = document.getElementById('cashier-note-search-form');
     const searchInput = document.getElementById('cashier-note-search-input');
-    const lineStatusInput = document.getElementById('cashier-note-line-status');
-    const tableBody = document.getElementById('cashier-note-table-body');
-    const summaryNode = document.getElementById('cashier-note-table-summary');
-    const paginationNode = document.getElementById('cashier-note-table-pagination');
-    const filterForm = document.getElementById('cashier-note-filter-form');
-    const filterDrawer = document.getElementById('cashier-note-filter-drawer');
-    const filterBackdrop = document.getElementById('cashier-note-filter-backdrop');
-    const openFilterButton = document.getElementById('open-cashier-note-filter');
-    const closeFilterButton = document.getElementById('close-cashier-note-filter');
-    const resetFilterButton = document.getElementById('reset-cashier-note-filter');
+    const list = document.getElementById('cashier-note-list');
+    const summary = document.getElementById('cashier-note-table-summary');
+    const pagination = document.getElementById('cashier-note-table-pagination');
+    const bucketButtons = Array.from(document.querySelectorAll('[data-history-bucket]'));
 
-    if (
-        !configNode
-        || !searchForm
-        || !searchInput
-        || !lineStatusInput
-        || !tableBody
-        || !summaryNode
-        || !paginationNode
-        || !filterForm
-        || !filterDrawer
-        || !filterBackdrop
-        || !openFilterButton
-        || !closeFilterButton
-        || !resetFilterButton
-    ) {
-        return;
-    }
+    if (!configNode || !searchForm || !searchInput || !list || !summary || !pagination || bucketButtons.length !== 2) return;
 
     let config = {};
-
     try {
         config = JSON.parse(configNode.textContent || '{}');
     } catch (_error) {
@@ -40,102 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const endpoint = typeof config.endpoint === 'string' ? config.endpoint : '';
-    const filters = typeof config.filters === 'object' && config.filters !== null
-        ? config.filters
-        : {};
-
-    const normalize = (value) => String(value ?? '').trim();
-    const intOrDefault = (value, fallback) => {
-        const parsed = Number.parseInt(String(value ?? ''), 10);
-        return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
-    };
-
-    const stateFromUrl = () => {
-        const params = new URLSearchParams(window.location.search);
-
-        return {
-            search: normalize(params.get('search') || filters.search),
-            line_status: normalize(params.get('line_status') || filters.line_status),
-            page: intOrDefault(params.get('page'), 1),
-            per_page: intOrDefault(params.get('per_page'), 10),
-        };
-    };
-
-    const state = stateFromUrl();
-
-    let searchDebounceTimer = null;
-    let requestCounter = 0;
-
-    const fillControlsFromState = () => {
-        searchInput.value = state.search;
-        lineStatusInput.value = state.line_status;
-    };
-
-    const syncFilterState = () => {
-        state.line_status = normalize(lineStatusInput.value);
-        state.page = 1;
-    };
-
-    const syncSearchState = () => {
-        state.search = normalize(searchInput.value);
-        state.page = 1;
-    };
-
-    const paramsObject = () => {
-        const obj = {
-            page: String(state.page),
-            per_page: String(state.per_page),
-        };
-
-        ['search', 'line_status'].forEach((key) => {
-            const value = normalize(state[key]);
-            if (value !== '') {
-                obj[key] = value;
-            }
-        });
-
-        return obj;
-    };
-
-    const paramsString = () => new URLSearchParams(paramsObject()).toString();
-
-    const updateUrlState = (replace = false) => {
-        const url = new URL(window.location.href);
-        url.search = paramsString();
-
-        if (replace) {
-            window.history.replaceState(null, '', url);
-            return;
-        }
-
-        window.history.pushState(null, '', url);
-    };
-
-    const drawOpen = (open) => {
-        filterDrawer.classList.toggle('d-none', !open);
-        filterBackdrop.classList.toggle('d-none', !open);
-    };
-
-    const renderLoading = () => {
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="9" class="text-center text-muted py-4">Sedang memuat daftar nota...</td>
-            </tr>
-        `;
-        summaryNode.textContent = 'Memuat ringkasan daftar nota kasir...';
-        paginationNode.innerHTML = '<span class="text-muted small">Memuat pagination...</span>';
-    };
-
-    const renderError = () => {
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="9" class="text-center text-danger py-4">Daftar nota gagal dimuat.</td>
-            </tr>
-        `;
-        summaryNode.textContent = 'Gagal memuat ringkasan daftar nota kasir.';
-        paginationNode.innerHTML = '<span class="text-muted small">Pagination belum tersedia.</span>';
-    };
-
+    const filters = typeof config.filters === 'object' && config.filters !== null ? config.filters : {};
+    const clean = (value) => String(value ?? '').trim();
+    const validBucket = (value) => clean(value) === 'completed' ? 'completed' : 'unfinished';
+    const pageNumber = (value) => Math.max(Number.parseInt(String(value || '1'), 10) || 1, 1);
     const escapeHtml = (value) => String(value ?? '')
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
@@ -143,193 +28,192 @@ document.addEventListener('DOMContentLoaded', () => {
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#039;');
 
-    const renderAction = (item) => {
-        if (typeof item.action_url === 'string' && item.action_url !== '') {
-            return `<a href="${escapeHtml(item.action_url)}" class="btn btn-sm btn-outline-primary">${escapeHtml(item.action_label ?? 'Pilih')}</a>`;
-        }
-
-        return escapeHtml(item.action_label ?? '-');
+    const stateFromUrl = () => {
+        const params = new URLSearchParams(window.location.search);
+        return {
+            search: clean(params.get('search') || filters.search),
+            bucket: validBucket(params.get('bucket') || filters.bucket),
+            page: pageNumber(params.get('page')),
+            per_page: 10,
+        };
     };
 
-    const renderPager = (pagination) => {
-        const page = Number.parseInt(String(pagination?.page ?? 1), 10) || 1;
-        const lastPage = Number.parseInt(String(pagination?.last_page ?? 1), 10) || 1;
+    const state = stateFromUrl();
+    let requestCounter = 0;
+    let debounceTimer = null;
 
-        if (lastPage <= 1) {
-            paginationNode.innerHTML = '';
-            return;
-        }
-
-        const start = Math.max(1, page - 2);
-        const end = Math.min(lastPage, page + 2);
-
-        let html = '<nav><ul class="pagination pagination-primary mb-0">';
-        html += `<li class="page-item ${page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page - 1}"><i class="bi bi-chevron-left"></i></a></li>`;
-
-        for (let p = start; p <= end; p += 1) {
-            html += `<li class="page-item ${p === page ? 'active' : ''}"><a class="page-link" href="#" data-page="${p}">${p}</a></li>`;
-        }
-
-        html += `<li class="page-item ${page === lastPage ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page + 1}"><i class="bi bi-chevron-right"></i></a></li>`;
-        html += '</ul></nav>';
-
-        paginationNode.innerHTML = html;
-    };
-
-    const renderItems = (items, summaryLabel, pagination) => {
-        if (!Array.isArray(items) || items.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="9" class="text-center text-muted py-4">
-                        ${escapeHtml(summaryLabel || 'Belum ada data daftar nota kasir.')}
-                    </td>
-                </tr>
-            `;
-        } else {
-            const page = Number.parseInt(String(pagination?.page ?? 1), 10) || 1;
-            const perPage = Number.parseInt(String(pagination?.per_page ?? 10), 10) || 10;
-
-            tableBody.innerHTML = items.map((item, index) => `
-                <tr>
-                    <td>${((page - 1) * perPage) + index + 1}</td>
-                    <td>${escapeHtml(item.transaction_date ?? '-')}</td>
-                    <td>
-                        <div class="fw-semibold">${escapeHtml(item.customer_name ?? 'Nota Pelanggan')}</div>
-                        <div class="small text-muted">${escapeHtml(item.transaction_date ?? '-')}</div>
-                    </td>
-                    <td>${escapeHtml(item.customer_name ?? '-')}</td>
-                    <td class="text-end">${escapeHtml(item.grand_total_text ?? '-')}</td>
-                    <td class="text-end">${escapeHtml(item.total_paid_text ?? '-')}</td>
-                    <td class="text-end">${escapeHtml(item.outstanding_text ?? '-')}</td>
-                    <td>${escapeHtml(item.line_summary_label ?? '-')}</td>
-                    <td>${renderAction(item)}</td>
-                </tr>
-            `).join('');
-        }
-
-        summaryNode.textContent = summaryLabel || 'Daftar nota kasir siap.';
-        renderPager(pagination);
-    };
-
-    const loadTable = async (replaceUrl = false) => {
-        if (endpoint === '') {
-            renderError();
-            return;
-        }
-
-        const currentRequest = ++requestCounter;
-        renderLoading();
-
-        const url = new URL(endpoint, window.location.origin);
-        const params = paramsObject();
-
-        Object.keys(params).forEach((key) => {
-            url.searchParams.set(key, params[key]);
+    const fillControls = () => {
+        searchInput.value = state.search;
+        bucketButtons.forEach((button) => {
+            button.setAttribute('aria-pressed', button.dataset.historyBucket === state.bucket ? 'true' : 'false');
         });
+    };
+
+    const requestParams = () => {
+        const params = new URLSearchParams({
+            bucket: state.bucket,
+            page: String(state.page),
+            per_page: String(state.per_page),
+        });
+        if (state.search !== '') params.set('search', state.search);
+        return params;
+    };
+
+    const updateUrl = (replace = false) => {
+        const url = new URL(window.location.href);
+        url.search = requestParams().toString();
+        window.history[replace ? 'replaceState' : 'pushState'](null, '', url);
+    };
+
+    const renderState = (message, error = false) => {
+        list.innerHTML = `<div class="cashier-note-list-state${error ? ' is-error' : ''}">${escapeHtml(message)}</div>`;
+    };
+
+    const badge = (label, domain = false) => label
+        ? `<span class="cashier-note-badge${domain ? ' is-domain' : ''}">${escapeHtml(label)}</span>`
+        : '';
+
+    const renderActions = (item) => {
+        const detail = typeof item.detail_url === 'string' && item.detail_url !== ''
+            ? `<a class="btn btn-sm btn-outline-primary" data-history-detail href="${escapeHtml(item.detail_url)}">Detail</a>`
+            : '';
+        const edit = item.can_edit === true && typeof item.edit_url === 'string' && item.edit_url !== ''
+            ? `<a class="btn btn-sm btn-primary" data-history-edit href="${escapeHtml(item.edit_url)}">Edit</a>`
+            : '';
+        return detail + edit;
+    };
+
+    const renderItems = (items) => {
+        if (!Array.isArray(items) || items.length === 0) {
+            renderState(state.bucket === 'completed' ? 'Belum ada nota selesai.' : 'Tidak ada nota yang perlu ditangani.');
+            return;
+        }
+
+        list.innerHTML = items.map((item) => `
+            <article class="cashier-note-card" data-history-note-id="${escapeHtml(item.note_id)}">
+                <div class="cashier-note-card-primary">
+                    <strong>${escapeHtml(item.customer_name || 'Pelanggan baru')}</strong>
+                    <span class="cashier-note-card-meta">${escapeHtml(item.transaction_at_text || item.transaction_date || '-')} · ${escapeHtml(item.note_number || '-')}</span>
+                    <div class="cashier-note-card-badges">
+                        ${badge(item.focus_status_label)}
+                        ${badge(item.payment_status_label)}
+                        ${badge(item.domain_status_label, true)}
+                    </div>
+                </div>
+                <div class="cashier-note-card-money">
+                    <strong>${escapeHtml(item.grand_total_text || '-')}</strong>
+                    <span>Sisa ${escapeHtml(item.outstanding_text || '-')}</span>
+                </div>
+                <div class="cashier-note-card-context">
+                    ${escapeHtml(item.line_summary_label || '-')}
+                    <span>${escapeHtml(item.work_status_label || '-')}</span>
+                </div>
+                <div class="cashier-note-card-actions">${renderActions(item)}</div>
+            </article>
+        `).join('');
+    };
+
+    const renderPager = (data) => {
+        const current = pageNumber(data?.page);
+        const last = pageNumber(data?.last_page);
+        if (last <= 1) {
+            pagination.replaceChildren();
+            return;
+        }
+
+        const pages = [];
+        for (let page = Math.max(1, current - 2); page <= Math.min(last, current + 2); page += 1) {
+            pages.push(`<li class="page-item${page === current ? ' active' : ''}"><button type="button" class="page-link" data-page="${page}">${page}</button></li>`);
+        }
+        pagination.innerHTML = `<nav aria-label="Halaman riwayat"><ul class="pagination pagination-primary">
+            <li class="page-item${current === 1 ? ' disabled' : ''}"><button type="button" class="page-link" data-page="${current - 1}" aria-label="Sebelumnya">‹</button></li>
+            ${pages.join('')}
+            <li class="page-item${current === last ? ' disabled' : ''}"><button type="button" class="page-link" data-page="${current + 1}" aria-label="Berikutnya">›</button></li>
+        </ul></nav>`;
+    };
+
+    const load = async (replaceUrl = false) => {
+        if (endpoint === '') {
+            renderState('Riwayat nota gagal dimuat.', true);
+            return;
+        }
+
+        const request = ++requestCounter;
+        list.setAttribute('aria-busy', 'true');
+        renderState('Memuat riwayat nota...');
 
         try {
-            const response = await fetch(url.toString(), {
-                headers: {
-                    Accept: 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-            });
-
+            const url = new URL(endpoint, window.location.origin);
+            url.search = requestParams().toString();
+            const response = await fetch(url, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
             const payload = await response.json();
+            if (request !== requestCounter) return;
+            if (!response.ok || payload?.success !== true) throw new Error('history-request-failed');
 
-            if (currentRequest !== requestCounter) {
-                return;
-            }
-
-            if (!response.ok || payload?.success !== true) {
-                renderError();
-                return;
-            }
-
-            const data = payload?.data ?? {};
-            const items = Array.isArray(data.items) ? data.items : [];
-            const summaryLabel = typeof data?.summary?.label === 'string'
-                ? data.summary.label
-                : 'Daftar nota kasir siap.';
-            const pagination = typeof data.pagination === 'object' && data.pagination !== null
-                ? data.pagination
-                : { page: 1, per_page: 10, total: 0, last_page: 1 };
-
-            renderItems(items, summaryLabel, pagination);
-            fillControlsFromState();
-            updateUrlState(replaceUrl);
+            const data = payload.data || {};
+            renderItems(data.items || []);
+            renderPager(data.pagination || {});
+            summary.textContent = data?.summary?.label || 'Riwayat nota siap.';
+            list.setAttribute('aria-busy', 'false');
+            fillControls();
+            updateUrl(replaceUrl);
         } catch (_error) {
-            if (currentRequest !== requestCounter) {
-                return;
-            }
-
-            renderError();
+            if (request !== requestCounter) return;
+            renderState('Riwayat nota gagal dimuat.', true);
+            summary.textContent = 'Gagal memuat riwayat nota.';
+            pagination.replaceChildren();
+            list.setAttribute('aria-busy', 'false');
         }
     };
+
+    bucketButtons.forEach((button) => button.addEventListener('click', () => {
+        const bucket = validBucket(button.dataset.historyBucket);
+        if (bucket === state.bucket) return;
+        state.bucket = bucket;
+        state.page = 1;
+        fillControls();
+        void load();
+    }));
 
     searchForm.addEventListener('submit', (event) => {
         event.preventDefault();
-        syncSearchState();
-        loadTable();
+        state.search = clean(searchInput.value);
+        state.page = 1;
+        void load();
     });
 
     searchInput.addEventListener('input', () => {
-        clearTimeout(searchDebounceTimer);
-
-        const value = normalize(searchInput.value);
-
-        if (value.length === 0) {
-            syncSearchState();
-            searchDebounceTimer = window.setTimeout(() => loadTable(), 250);
-            return;
-        }
-
-        if (value.length < 2) {
-            return;
-        }
-
-        searchDebounceTimer = window.setTimeout(() => {
-            syncSearchState();
-            loadTable();
-        }, 300);
+        clearTimeout(debounceTimer);
+        const value = clean(searchInput.value);
+        if (value.length === 1) return;
+        debounceTimer = window.setTimeout(() => {
+            state.search = value;
+            state.page = 1;
+            void load();
+        }, value === '' ? 200 : 300);
     });
 
-    openFilterButton.addEventListener('click', () => drawOpen(true));
-    closeFilterButton.addEventListener('click', () => drawOpen(false));
-    filterBackdrop.addEventListener('click', () => drawOpen(false));
-
-    filterForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        syncFilterState();
-        drawOpen(false);
-        loadTable();
+    searchInput.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        searchInput.value = '';
+        state.search = '';
+        state.page = 1;
+        void load();
     });
 
-    resetFilterButton.addEventListener('click', () => {
-        filterForm.reset();
-        lineStatusInput.value = '';
-        syncFilterState();
-        drawOpen(false);
-        loadTable();
-    });
-
-    paginationNode.addEventListener('click', (event) => {
-        const link = event.target.closest('[data-page]');
-        if (!link || link.parentElement.classList.contains('disabled')) {
-            return;
-        }
-
-        event.preventDefault();
-        state.page = Number(link.dataset.page || 1);
-        loadTable();
+    pagination.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-page]');
+        if (!button || button.closest('.page-item')?.classList.contains('disabled')) return;
+        state.page = pageNumber(button.dataset.page);
+        void load();
     });
 
     window.addEventListener('popstate', () => {
         Object.assign(state, stateFromUrl());
-        fillControlsFromState();
-        loadTable(true);
+        fillControls();
+        void load(true);
     });
 
-    fillControlsFromState();
-    loadTable(true);
+    fillControls();
+    void load(true);
 });

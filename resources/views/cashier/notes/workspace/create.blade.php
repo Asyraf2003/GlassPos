@@ -20,6 +20,7 @@
         data-presentation-mode="{{ ($workspaceMode ?? 'create') === 'edit' ? 'detail' : 'simple' }}"
         data-workspace-mode="{{ $workspaceMode ?? 'create' }}"
     >
+        @if (($workspaceMode ?? 'create') === 'create')
         <header class="workspace-toolbar" aria-label="Kontrol tampilan workspace">
             <div class="form-check form-switch workspace-detail-control">
                 <input
@@ -28,11 +29,11 @@
                     role="switch"
                     id="workspace-detail-toggle"
                     data-detail-toggle
-                    {{ ($workspaceMode ?? 'create') === 'edit' ? 'checked' : '' }}
                 >
                 <label class="form-check-label" for="workspace-detail-toggle">Detail</label>
             </div>
         </header>
+        @endif
 
         <form action="{{ $formAction ?? route('notes.workspace.store') }}" method="POST" novalidate id="cashier-note-workspace-form">
             @csrf

@@ -4,47 +4,41 @@ declare(strict_types=1);
 
 namespace App\Adapters\Out\Note\Queries;
 
-use App\Application\Note\Services\WorkItemOperationalStatusResolver;
+use App\Core\Note\Note\Note;
 
 final class CashierNoteHistoryRowMapper
 {
     public function __construct(
         private readonly CashierNoteHistoryValueFormatter $formatter,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<int, object> $rows
+     * @param  array<int, object>  $rows
      * @return list<array<string, mixed>>
      */
-    public function map(array $rows, CashierNoteHistoryCriteria $criteria): array
+    public function map(array $rows): array
     {
         $items = [];
 
         foreach ($rows as $row) {
             $grandTotal = (int) $row->total_rupiah;
-            $allocated = (int) ($row->allocated_rupiah ?? 0);
-            $refunded = (int) ($row->refunded_rupiah ?? 0);
-            $netPaid = max($allocated - $refunded, 0);
-            $outstanding = max($grandTotal - $netPaid, 0);
+            $netPaid = max((int) ($row->net_paid_rupiah ?? 0), 0);
+            $outstanding = max((int) ($row->outstanding_rupiah ?? 0), 0);
             $transactionDate = (string) $row->transaction_date;
 
             $lineOpenCount = (int) ($row->line_open_count ?? 0);
             $lineCloseCount = (int) ($row->line_close_count ?? 0);
             $lineRefundCount = (int) ($row->line_refund_count ?? 0);
 
-            if (! $this->matchesLineStatusFilter(
-                $criteria->lineStatus,
-                $lineOpenCount,
-                $lineCloseCount,
-                $lineRefundCount
-            )) {
-                continue;
-            }
+            $workOpenCount = (int) ($row->open_count ?? 0);
+            $workDoneCount = (int) ($row->done_count ?? 0);
+            $workCanceledCount = (int) ($row->canceled_count ?? 0);
+            $noteState = (string) ($row->note_state ?? Note::STATE_OPEN);
 
             $items[] = [
                 'note_id' => (string) $row->id,
-                'transaction_date' => $transactionDate,
+                'transaction_date' => $this->formatter->date($transactionDate),
+                'transaction_at_text' => $this->formatter->dateTime($row->created_at ?? null, $transactionDate),
                 'note_number' => (string) $row->id,
                 'customer_name' => $this->formatter->customerLabel(
                     (string) $row->customer_name,
@@ -54,7 +48,6 @@ final class CashierNoteHistoryRowMapper
                 'total_paid_text' => $this->formatter->rupiah($netPaid),
                 'outstanding_text' => $this->formatter->rupiah($outstanding),
 
-                // new line-centric summary fields
                 'line_summary_label' => $this->formatter->lineSummary(
                     $lineOpenCount,
                     $lineCloseCount,
@@ -66,34 +59,24 @@ final class CashierNoteHistoryRowMapper
                     'refund' => $lineRefundCount,
                 ],
 
-                // legacy fields kept temporarily for UI transition
                 'payment_status_label' => $outstanding <= 0 ? 'Lunas' : ($netPaid > 0 ? 'Dibayar Sebagian' : 'Belum Dibayar'),
                 'work_status_label' => $this->formatter->workSummary(
-                    (int) ($row->open_count ?? 0),
-                    (int) ($row->done_count ?? 0),
-                    (int) ($row->canceled_count ?? 0),
+                    $workOpenCount,
+                    $workDoneCount,
+                    $workCanceledCount,
                 ),
-
-                'action_label' => 'Pilih',
+                'focus_status_label' => $this->formatter->focusStatus($noteState, $outstanding, $workOpenCount),
+                'domain_status_label' => $this->formatter->domainStatus($noteState, $workCanceledCount),
+                'detail_url' => route('cashier.notes.show', ['noteId' => (string) $row->id]),
+                'edit_url' => $noteState === Note::STATE_REFUNDED
+                    ? null
+                    : route('cashier.notes.workspace.edit', ['noteId' => (string) $row->id]),
+                'can_edit' => $noteState !== Note::STATE_REFUNDED,
+                'action_label' => 'Detail',
                 'action_url' => route('cashier.notes.show', ['noteId' => (string) $row->id]),
             ];
         }
 
         return $items;
-    }
-
-    private function matchesLineStatusFilter(
-        string $filter,
-        int $lineOpenCount,
-        int $lineCloseCount,
-        int $lineRefundCount
-    ): bool {
-        return match ($filter) {
-            WorkItemOperationalStatusResolver::STATUS_OPEN => $lineOpenCount > 0,
-            WorkItemOperationalStatusResolver::STATUS_CLOSE => $lineCloseCount > 0,
-            WorkItemOperationalStatusResolver::STATUS_REFUND => $lineRefundCount > 0,
-            '' => true,
-            default => true,
-        };
     }
 }

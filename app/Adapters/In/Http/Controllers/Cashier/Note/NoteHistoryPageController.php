@@ -14,11 +14,11 @@ final class NoteHistoryPageController extends Controller
     {
         $filters = [
             'search' => $this->resolveString($request, 'search') ?? '',
-            'line_status' => $this->resolveString($request, 'line_status') ?? '',
+            'bucket' => $this->resolveString($request, 'bucket') ?? 'unfinished',
         ];
 
         return view('cashier.notes.index', [
-            'pageTitle' => 'Daftar Nota',
+            'pageTitle' => 'Riwayat Nota',
             'filters' => $filters,
         ]);
     }

@@ -78,6 +78,8 @@ final class EditTransactionWorkspacePageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('Edit Nota');
         $response->assertSee('Budi Pointer');
+        $response->assertSee('data-presentation-mode="detail"', false);
+        $response->assertDontSee('data-detail-toggle', false);
 
         $this->assertDatabaseHas('notes', [
             'id' => 'note-edit-pointer-1',
@@ -131,6 +133,8 @@ final class EditTransactionWorkspacePageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('Edit Nota');
         $response->assertSee('data-presentation-mode="detail"', false);
+        $response->assertDontSee('data-detail-toggle', false);
+        $response->assertDontSee('id="workspace-detail-toggle"', false);
         $response->assertSee('Budi Santoso');
         $response->assertSee('08123456789');
         $response->assertSee('Proses Nota');

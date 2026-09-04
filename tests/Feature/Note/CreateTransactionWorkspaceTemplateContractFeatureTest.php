@@ -90,6 +90,7 @@ final class CreateTransactionWorkspaceTemplateContractFeatureTest extends TestCa
         $response->assertSee('serviceStoreEndpoint', false);
         $response->assertSee('service-catalog.js', false);
         $response->assertSee('data-service-name', false);
+        $response->assertSee('data-service-search', false);
         $response->assertSee('data-service-results', false);
         $response->assertSee('data-service-default-fee-rupiah', false);
     }

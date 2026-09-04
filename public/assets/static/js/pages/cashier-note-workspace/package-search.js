@@ -25,6 +25,13 @@
     if (el) el.textContent = String(value || "-");
   };
 
+  const invalidateLookup = (row) => {
+    const input = packageSearchInput(row);
+    if (!(input instanceof HTMLInputElement)) return;
+    clearTimeout(timers.get(input));
+    requestTokens.set(input, Symbol("package-search-invalidated"));
+  };
+
   const packageTotal = (item) => {
     const configured = digits(item?.service_product_template?.default_package_total_rupiah);
     if (configured > 0) return configured;
@@ -133,6 +140,7 @@
     if (!(row instanceof HTMLElement)) return;
     if ((row.dataset.itemType || "") !== "service_store_stock") return;
 
+    invalidateLookup(row);
     const productLines = Array.isArray(item?.product_lines)
       ? item.product_lines.slice(0, 3)
       : [];
@@ -254,10 +262,12 @@
   };
 
   const clearPackageState = (row) => {
+    invalidateLookup(row);
     row.dataset.serviceProductTemplateApplied = "0";
     row.dataset.serviceTemplateAutofilled = "0";
     row.dataset.selectedPackageId = "";
     row.dataset.selectedPackageLabel = "";
+    delete row.dataset.serviceTemplateDefaultPriceRupiah;
     setValue(row, "[data-requires-service-product-template]", "1");
 
     setValue(row, "[data-service-name]", "");
@@ -266,6 +276,7 @@
     setValue(row, "[data-service-price-raw]", "0");
     setValue(row, "[data-service-price-display]", "");
 
+    ensureProductLineCount(row, 1);
     productLineScopes(row).forEach((scope) => {
       setValue(scope, "[data-product-search]", "");
       setValue(scope, "[data-product-id]", "");
@@ -273,10 +284,22 @@
       setValue(scope, "[data-qty-input]", "1");
       setValue(scope, 'input[name$="[unit_price_rupiah]"]', "");
       scope.dataset.minimumUnitPriceRupiah = "0";
+      scope.dataset.availableStock = "0";
+      const stockText = scope.querySelector("[data-stock-text]");
+      if (stockText) stockText.textContent = "Stok tersedia: -";
+      scope.querySelector("[data-stock-error]")?.classList.add("d-none");
+      scope.querySelector("[data-min-price-warning]")?.classList.add("d-none");
     });
 
     packageSelectedSection(row)?.classList.add("d-none");
     row.querySelector("[data-package-search-stage]")?.classList.remove("d-none");
+    row.querySelector("[data-package-product-list]")?.replaceChildren();
+    setText(row, "[data-package-title]", "");
+    setText(row, "[data-package-description]", "");
+    setText(row, "[data-package-stock-text]", "");
+    clearResults(row);
+    NS.syncFloorPriceGuard?.(row);
+    NS.syncQtyGuard?.(row);
     NS.updateSummary?.();
   };
 

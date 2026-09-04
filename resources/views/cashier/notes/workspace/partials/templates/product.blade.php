@@ -48,7 +48,7 @@
                         <span data-selected-product-meta></span>
                         <span data-selected-product-price-stock></span>
                     </div>
-                    <button type="button" class="workspace-change-button" data-product-change>Ganti</button>
+                    <button type="button" class="workspace-selection-remove" data-product-change data-selection-remove="product" aria-label="Lepas produk terpilih" title="Lepas pilihan">×</button>
                 </div>
 
                 <div class="workspace-qty-row">

@@ -1,0 +1,237 @@
+.cashier-note-history {
+    --history-card: var(--cashier-surface);
+    --history-border: var(--cashier-border);
+    --history-muted: var(--cashier-muted);
+    --history-text: var(--cashier-text);
+    --history-accent: var(--cashier-accent);
+    --history-accent-soft: var(--cashier-accent-soft);
+    color: var(--history-text);
+    display: grid;
+    gap: 1rem;
+    margin-inline: auto;
+    max-width: 1180px;
+    min-width: 0;
+}
+
+.cashier-note-history-toolbar {
+    align-items: center;
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.cashier-note-history-search {
+    position: relative;
+}
+
+.cashier-note-history-search > i {
+    color: var(--history-muted);
+    left: 0.9rem;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.cashier-note-history-search .form-control {
+    background: var(--history-card);
+    border-color: var(--history-border);
+    border-radius: 0.82rem;
+    min-height: 2.9rem;
+    padding-left: 2.55rem;
+}
+
+.cashier-note-create-action {
+    align-items: center;
+    border-radius: 0.82rem;
+    display: inline-flex;
+    font-weight: 750;
+    gap: 0.45rem;
+    min-height: 2.9rem;
+}
+
+.cashier-note-focus {
+    background: var(--history-accent-soft);
+    border: 1px solid var(--history-border);
+    border-radius: 0.82rem;
+    display: grid;
+    gap: 0.25rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0.25rem;
+}
+
+.cashier-note-focus button {
+    background: transparent;
+    border: 0;
+    border-radius: 0.62rem;
+    color: var(--history-muted);
+    font-size: 0.86rem;
+    font-weight: 800;
+    min-height: 2.55rem;
+}
+
+.cashier-note-focus button[aria-pressed="true"] {
+    background: var(--history-card);
+    box-shadow: var(--cashier-shadow);
+    color: var(--history-accent);
+}
+
+.cashier-note-list {
+    display: grid;
+    gap: 0.7rem;
+    min-width: 0;
+}
+
+.cashier-note-card {
+    align-items: center;
+    background: var(--history-card);
+    border: 1px solid var(--history-border);
+    border-radius: 0.92rem;
+    box-shadow: var(--cashier-shadow);
+    display: grid;
+    gap: 0.75rem 1rem;
+    grid-template-columns: minmax(12rem, 1.25fr) minmax(10rem, 0.8fr) minmax(9rem, 0.65fr) auto;
+    min-width: 0;
+    padding: 0.85rem 0.95rem;
+}
+
+.cashier-note-card-primary,
+.cashier-note-card-money,
+.cashier-note-card-context {
+    min-width: 0;
+}
+
+.cashier-note-card-primary strong,
+.cashier-note-card-money strong {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.cashier-note-card-meta,
+.cashier-note-card-context,
+.cashier-note-card-money span {
+    color: var(--history-muted);
+    display: block;
+    font-size: 0.77rem;
+    margin-top: 0.18rem;
+    overflow-wrap: anywhere;
+}
+
+.cashier-note-card-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.45rem;
+}
+
+.cashier-note-badge {
+    background: var(--history-accent-soft);
+    border: 1px solid var(--history-border);
+    border-radius: 999px;
+    color: var(--history-accent);
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.22rem 0.48rem;
+}
+
+.cashier-note-badge.is-domain {
+    color: var(--bs-danger);
+}
+
+.cashier-note-card-actions {
+    display: flex;
+    gap: 0.4rem;
+    justify-content: flex-end;
+}
+
+.cashier-note-card-actions .btn {
+    border-radius: 0.65rem;
+    font-weight: 750;
+}
+
+.cashier-note-list-state {
+    background: var(--history-card);
+    border: 1px dashed var(--history-border);
+    border-radius: 0.92rem;
+    color: var(--history-muted);
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+.cashier-note-list-state.is-error {
+    color: var(--bs-danger);
+}
+
+.cashier-note-history-footer {
+    align-items: center;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+}
+
+.cashier-note-history-footer .pagination {
+    flex-wrap: wrap;
+    gap: 0.2rem;
+    margin: 0;
+}
+
+@media (max-width: 991.98px) {
+    .cashier-note-history-toolbar,
+    .cashier-note-card {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cashier-note-create-action {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .cashier-note-card {
+        align-items: stretch;
+        gap: 0.65rem;
+    }
+
+    .cashier-note-card-money {
+        border-block: 1px solid var(--history-border);
+        padding-block: 0.6rem;
+    }
+
+    .cashier-note-card-context {
+        margin-top: 0;
+    }
+
+    .cashier-note-card-actions {
+        justify-content: stretch;
+    }
+
+    .cashier-note-card-actions .btn {
+        flex: 1 1 0;
+        min-height: 2.7rem;
+    }
+
+    .cashier-note-history-footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (pointer: coarse) {
+    .cashier-note-focus button,
+    .cashier-note-card-actions .btn,
+    .cashier-note-history-footer .page-link {
+        min-height: 2.75rem;
+        min-width: 2.75rem;
+    }
+}
+
+@media (hover: none) {
+    .cashier-note-focus button:hover {
+        color: var(--history-muted);
+    }
+}
+
+@media (display-mode: standalone) and (max-width: 991.98px) {
+    .cashier-note-history {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}

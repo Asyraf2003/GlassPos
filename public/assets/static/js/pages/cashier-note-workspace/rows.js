@@ -205,7 +205,7 @@
 	
 		    return (
 		      row.querySelector("[data-product-search]") ||
-		      row.querySelector('input[name$="[service][name]"]') ||
+		      row.querySelector("[data-service-search]") ||
 	      row.querySelector("[data-service-price-display]") ||
 	      row.querySelector("[data-product-search]") ||
       row.querySelector('input[name$="[external_purchase_lines][0][label]"]') ||

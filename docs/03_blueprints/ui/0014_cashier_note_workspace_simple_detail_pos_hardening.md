@@ -4,7 +4,7 @@
 
 - Date: 2026-09-04
 - Area: Cashier create/edit note workspace
-- Status: Implemented and locally verified
+- Status: Active hardening
 - Owner decision: Simple/Detail POS workspace closure slice
 - Supersedes: the create/edit transaction workspace direction in `0011_cashier_stepper_mobile_ui_redesign.md`
 - Related note: `0013_cashier_responsive_simple_complex_modes_note.md`
@@ -49,9 +49,9 @@ Blueprint `0011` remains historical evidence and may remain relevant to cashier 
 
 ### Detail
 
-- A single compact `Detail` control enables the advanced presentation.
+- A single compact `Detail` control enables the advanced presentation on create only.
 - Fresh create defaults the control off.
-- Edit/revision defaults the control on.
+- Edit/revision is a hard Detail presentation: it never renders the toggle and provides no route into Simple.
 - Detail preserves customer/date/operational fields, advanced payment method and amount controls, paid date, payment notes where supported, revision context, and refund controls where the existing lifecycle permits them.
 - A paid transaction must not receive a cancel shortcut; reversal remains the existing refund path.
 
@@ -92,18 +92,24 @@ Desktop browser emulation at mobile width proves responsive layout only; it is n
 - Search input is query only.
 - The authoritative product identity is the selected product ID.
 - Results expose name as primary text; brand, size, and code as secondary text; price and stock as additional text.
-- Selection clears the query, closes results, and renders a stable selected state with `Ganti` and quantity controls.
+- Selection clears the query, closes results, and renders one compact selected stamp with quantity controls.
+- Only the explicit `×` action releases the stamp and authoritative ID. Typing, focus, blur, ordinary click, keyboard navigation, stale responses, and re-rendering must not release it.
+- Releasing the stamp clears product price/stock presentation state as well as identity before search becomes active again.
 - Plain typed text without an authoritative selected ID cannot pass as a valid product.
 - ArrowUp, ArrowDown, Enter, Escape, stale-request protection, and a bounded query cache remain supported.
 - The server remains authoritative for active product, price floor, stock, and submit-time constraints.
 
 ### Service
 
-Service lookup follows query -> result -> stable selected state. Service catalog data supplies identity/default presentation without becoming the transaction financial source of truth.
+Service lookup follows query -> result -> stable selected stamp. A catalog selection retains its authoritative catalog ID until explicit `×`; release clears catalog identity and catalog-derived defaults together. Service catalog data supplies identity/default presentation without becoming the transaction financial source of truth.
 
 ### Store-stock package
 
-Simple selects an active service-product package/template and displays its service/product composition compactly. The UI must not construct a bypass payload. Existing template requirement, maximum product lines, package auto split, floor price, and submit-time stock validation remain authoritative.
+Simple selects an active service-product package/template and displays its service/product composition as one compact stamp. Explicit `×` clears package/template/service/product identity and every derived decomposition before search is re-enabled. The UI must not construct a bypass payload. Existing template requirement, maximum product lines, package auto split, floor price, and submit-time stock validation remain authoritative.
+
+### Shared selection language
+
+Product, service, and store-stock package use the same interaction language: query -> authoritative result -> compact selected stamp -> explicit `×` release. Display text is never identity, and an invalidated or stale lookup response cannot revive a released selection.
 
 ### External purchase
 
@@ -161,7 +167,7 @@ The existing advanced skip/full/partial, cash/transfer, received amount, and pai
 
 - New transaction/payment/inventory domain semantics.
 - New Simple/mobile/desktop endpoints or use cases.
-- History/detail audit simplification.
+- Cashier history work-queue redesign, which is governed by blueprint `0015`.
 - Production deploy, production migration, production data mutation, or static upload to the shared production CDN.
 - Claiming physical phone/PWA acceptance from Chromium emulation.
 

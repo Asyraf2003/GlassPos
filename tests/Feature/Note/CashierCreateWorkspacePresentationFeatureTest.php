@@ -52,7 +52,8 @@ final class CashierCreateWorkspacePresentationFeatureTest extends TestCase
         self::assertStringContainsString('NS.submitSimplePayment?.("skip")', $presentation);
         self::assertStringContainsString('NS.submitSimplePayment?.("full")', $presentation);
         self::assertStringContainsString('NS.submitSimplePayment?.("partial", amount)', $presentation);
-        self::assertStringContainsString('root.dataset.presentationMode = mode;', $presentation);
+        self::assertStringContainsString('const simpleAvailable = root.dataset.workspaceMode === "create";', $presentation);
+        self::assertStringContainsString('root.dataset.presentationMode = resolvedMode;', $presentation);
         self::assertStringContainsString('detailToggle.checked ? "detail" : "simple"', $presentation);
         self::assertStringContainsString('NS.syncSimpleActionAvailability', $presentation);
 

@@ -50,7 +50,7 @@
                     <span data-package-description></span>
                     <span data-package-stock-text></span>
                 </div>
-                <button type="button" class="workspace-change-button" data-package-change>Ganti</button>
+                <button type="button" class="workspace-selection-remove" data-package-change data-selection-remove="package" aria-label="Lepas paket terpilih" title="Lepas pilihan">×</button>
             </div>
             <div class="workspace-package-products" data-package-product-list></div>
         </div>

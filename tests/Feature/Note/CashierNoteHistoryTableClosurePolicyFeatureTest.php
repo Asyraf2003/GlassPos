@@ -14,7 +14,7 @@ final class CashierNoteHistoryTableClosurePolicyFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_returns_today_and_yesterday_notes_without_forcing_open_only(): void
+    public function test_two_focus_buckets_share_today_and_yesterday_window_without_mixing_results(): void
     {
         $today = date('Y-m-d');
         $yesterday = date('Y-m-d', strtotime('-1 day'));
@@ -24,6 +24,7 @@ final class CashierNoteHistoryTableClosurePolicyFeatureTest extends TestCase
         $this->seedNote('note-yesterday-open', $yesterday, 'open', 11000);
         $this->seedNote('note-today-closed', $today, 'closed', 12000);
         $this->seedNote('note-older-open', $older, 'open', 13000);
+        $this->seedFullPayment('note-today-closed', 12000);
 
         $this->syncNoteProjectionForTest('note-today-open');
         $this->syncNoteProjectionForTest('note-yesterday-open');
@@ -33,8 +34,6 @@ final class CashierNoteHistoryTableClosurePolicyFeatureTest extends TestCase
         $result = app(CashierNoteHistoryTableQuery::class)->get([
             'date' => $today,
             'search' => '',
-            'payment_status' => '',
-            'work_status' => '',
             'page' => 1,
         ]);
 
@@ -43,8 +42,16 @@ final class CashierNoteHistoryTableClosurePolicyFeatureTest extends TestCase
 
         $this->assertContains('note-today-open', $noteIds);
         $this->assertContains('note-yesterday-open', $noteIds);
-        $this->assertContains('note-today-closed', $noteIds);
+        $this->assertNotContains('note-today-closed', $noteIds);
         $this->assertNotContains('note-older-open', $noteIds);
+
+        $completed = app(CashierNoteHistoryTableQuery::class)->get([
+            'bucket' => 'completed',
+            'page' => 1,
+        ]);
+        $completedIds = array_column($completed['items'], 'note_id');
+
+        $this->assertSame(['note-today-closed'], $completedIds);
     }
 
     public function test_it_ignores_client_supplied_historical_date_when_building_cashier_window(): void
@@ -64,8 +71,6 @@ final class CashierNoteHistoryTableClosurePolicyFeatureTest extends TestCase
         $result = app(CashierNoteHistoryTableQuery::class)->get([
             'date' => $historicalDate,
             'search' => '',
-            'payment_status' => '',
-            'work_status' => '',
             'page' => 1,
         ]);
 
@@ -128,6 +133,22 @@ final class CashierNoteHistoryTableClosurePolicyFeatureTest extends TestCase
             'transaction_date' => $transactionDate,
             'note_state' => $noteState,
             'total_rupiah' => $totalRupiah,
+        ]);
+    }
+
+    private function seedFullPayment(string $noteId, int $amount): void
+    {
+        $paymentId = $noteId.'-payment';
+        DB::table('customer_payments')->insert([
+            'id' => $paymentId,
+            'amount_rupiah' => $amount,
+            'paid_at' => date('Y-m-d'),
+        ]);
+        DB::table('payment_allocations')->insert([
+            'id' => $noteId.'-allocation',
+            'customer_payment_id' => $paymentId,
+            'note_id' => $noteId,
+            'amount_rupiah' => $amount,
         ]);
     }
 }

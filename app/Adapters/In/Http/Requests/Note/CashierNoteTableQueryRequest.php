@@ -18,7 +18,7 @@ final class CashierNoteTableQueryRequest extends FormRequest
         $this->merge([
             'date' => $this->trimOrNull('date'),
             'search' => $this->trimOrNull('search'),
-            'line_status' => $this->trimOrNull('line_status'),
+            'bucket' => $this->trimOrNull('bucket'),
         ]);
     }
 
@@ -27,7 +27,7 @@ final class CashierNoteTableQueryRequest extends FormRequest
         return [
             'date' => ['nullable', 'date_format:Y-m-d'],
             'search' => ['nullable', 'string'],
-            'line_status' => ['nullable', 'in:open,close,refund'],
+            'bucket' => ['nullable', 'in:unfinished,completed'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'in:10'],
         ];

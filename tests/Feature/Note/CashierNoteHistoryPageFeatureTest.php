@@ -21,10 +21,15 @@ final class CashierNoteHistoryPageFeatureTest extends TestCase
         $response = $this->actingAs($user)->get(route('cashier.notes.index'));
 
         $response->assertOk();
-        $response->assertSee('Daftar Nota Kasir');
+        $response->assertSee('Riwayat Nota');
         $response->assertSee('cashier-note-search-input', false);
-        $response->assertSee('cashier-note-table-body', false);
+        $response->assertSee('data-history-bucket="unfinished"', false);
+        $response->assertSee('data-history-bucket="completed"', false);
+        $response->assertSee('cashier-note-list', false);
+        $response->assertSee('cashier-note-history.css');
         $response->assertSee('cashier-note-index.js');
+        $response->assertDontSee('cashier-note-filter-drawer', false);
+        $response->assertDontSee('cashier-note-table-body', false);
         $response->assertSee(json_encode(route('cashier.notes.table')), false);
     }
 

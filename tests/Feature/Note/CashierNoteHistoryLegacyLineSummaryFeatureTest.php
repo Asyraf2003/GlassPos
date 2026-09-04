@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
-use App\Core\Note\WorkItem\WorkItem;
 use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
+use App\Core\Note\WorkItem\WorkItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -75,6 +75,7 @@ final class CashierNoteHistoryLegacyLineSummaryFeatureTest extends TestCase
 
         $this->assertSame('1 Selesai', $items->get('note-legacy')['line_summary_label']);
         $this->assertSame('Lunas', $items->get('note-legacy')['payment_status_label']);
+        $this->assertSame('Pekerjaan aktif', $items->get('note-legacy')['focus_status_label']);
         $this->assertStringContainsString('/cashier/notes/note-legacy', (string) $items->get('note-legacy')['action_url']);
     }
 }

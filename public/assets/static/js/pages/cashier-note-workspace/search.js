@@ -43,6 +43,12 @@
     activeChoiceIndexes.set(scope, -1);
   };
 
+  const invalidateLookup = (input) => {
+    if (!(input instanceof HTMLInputElement)) return;
+    window.clearTimeout(timers.get(input));
+    requestTokens.set(input, Symbol("product-search-invalidated"));
+  };
+
   const productName = (item) => String(item?.name || item?.label || "Produk");
   const productMeta = (item) =>
     [item?.brand, item?.size, item?.code].filter((value) => value !== null && value !== undefined && String(value) !== "").join(" · ");
@@ -68,6 +74,7 @@
     const hidden = scope.querySelector("[data-product-id]");
     const raw = scope.querySelector('input[name$="[unit_price_rupiah]"]');
 
+    invalidateLookup(search);
     if (hidden) hidden.value = "";
     if (raw) raw.value = "";
     if (search) {
@@ -77,6 +84,15 @@
 
     scope.dataset.minimumUnitPriceRupiah = "0";
     scope.dataset.availableStock = "0";
+    const qty = scope.querySelector("[data-qty-input]");
+    if (qty) qty.value = "1";
+    const stockText = scope.querySelector("[data-stock-text]");
+    if (stockText) stockText.textContent = "Stok tersedia: -";
+    scope.querySelector("[data-stock-error]")?.classList.add("d-none");
+    scope.querySelector("[data-min-price-warning]")?.classList.add("d-none");
+    scope.querySelector("[data-selected-product-name]")?.replaceChildren();
+    scope.querySelector("[data-selected-product-meta]")?.replaceChildren();
+    scope.querySelector("[data-selected-product-price-stock]")?.replaceChildren();
     scope.querySelector("[data-product-search-stage]")?.classList.remove("d-none");
     scope.querySelector("[data-product-selected]")?.classList.add("d-none");
     clearResults(scope);
@@ -142,6 +158,7 @@
     const priceBasis = scope.querySelector("[data-price-basis]");
     if (!search || !hidden) return;
 
+    invalidateLookup(search);
     hidden.value = item.id;
     search.value = "";
     search.dataset.selectedLabel = item.label || productName(item);
