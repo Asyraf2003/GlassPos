@@ -71,7 +71,7 @@ final class ProcurementInvoiceTableDataAccessFeatureTest extends TestCase
 
         self::assertSame('payment_proof', $lockedRow['payment_action_kind']);
         self::assertSame('Bayar', $lockedRow['payment_action_label']);
-        self::assertSame('modal', $lockedRow['payment_action_mode']);
+        self::assertSame('link', $lockedRow['payment_action_mode']);
         self::assertSame(
             route('admin.procurement.supplier-invoices.payment-proofs.show', ['supplierInvoiceId' => 'invoice-locked']),
             $lockedRow['payment_action_url']
@@ -95,7 +95,7 @@ final class ProcurementInvoiceTableDataAccessFeatureTest extends TestCase
 
         self::assertSame('payment_proof', $editableRow['payment_action_kind']);
         self::assertSame('Bayar', $editableRow['payment_action_label']);
-        self::assertSame('modal', $editableRow['payment_action_mode']);
+        self::assertSame('link', $editableRow['payment_action_mode']);
         self::assertSame(
             route('admin.procurement.supplier-invoices.payment-proofs.show', ['supplierInvoiceId' => 'invoice-editable']),
             $editableRow['payment_action_url']
@@ -130,7 +130,7 @@ final class ProcurementInvoiceTableDataAccessFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '@example.test',
+            'email' => $role.'@example.test',
             'password' => 'password123',
         ]);
 
