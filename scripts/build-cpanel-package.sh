@@ -170,14 +170,15 @@ sed "s/__APP_DIR_NAME__/$APP_DIR_NAME/g" \
 
 clear_token="$(php -r 'echo bin2hex(random_bytes(32));')"
 clear_token_hash="$(php -r 'echo hash("sha256", $argv[1]);' "$clear_token")"
+clear_file_name="clear-${clear_token_hash:0:16}.php"
 
 sed \
     -e "s/__APP_DIR_NAME__/$APP_DIR_NAME/g" \
     -e "s/__DEPLOY_TOKEN_HASH__/$clear_token_hash/g" \
-    deploy/cpanel/clear.php.template > "$public_stage/clear.php"
+    deploy/cpanel/clear.php.template > "$public_stage/$clear_file_name"
 
 php -l "$public_stage/index.php" >/dev/null
-php -l "$public_stage/clear.php" >/dev/null
+php -l "$public_stage/$clear_file_name" >/dev/null
 
 echo "==> Install production Composer dependencies"
 (
@@ -212,7 +213,8 @@ bash scripts/verify-cpanel-package.sh \
     "$zip_file" \
     "$APP_DIR_NAME" \
     "$PUBLIC_DIR_NAME" \
-    "$SITE_URL"
+    "$SITE_URL" \
+    "$clear_file_name"
 
 {
     echo "GlassPos cPanel deployment"
@@ -220,8 +222,9 @@ bash scripts/verify-cpanel-package.sh \
     echo "Extract the ZIP directly into the cPanel home directory."
     echo "Packaged environment: $APP_DIR_NAME/.env (copied from local $ENV_FILE)."
     echo "After extraction, open this one-time maintenance URL:"
-    echo "URL: $SITE_URL/clear.php?token=$clear_token"
-    echo "clear.php runs optimize:clear, migrate --force, optimize, then deletes itself after success."
+    echo "URL: $SITE_URL/$clear_file_name?token=$clear_token"
+    echo "$clear_file_name clears pre-bootstrap caches, refreshes web OPcache when enabled, verifies private-R2 presigning,"
+    echo "then runs optimize:clear, migrate --force, optimize, and deletes itself after success."
 } > "$setup_file"
 
 chmod 600 "$zip_file" "$setup_file"

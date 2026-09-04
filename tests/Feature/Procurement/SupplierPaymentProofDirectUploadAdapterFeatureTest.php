@@ -6,11 +6,14 @@ namespace Tests\Feature\Procurement;
 
 use App\Adapters\Out\Procurement\LaravelSupplierPaymentProofDirectUploadAdapter;
 use App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort;
+use App\Ports\Out\Procurement\SupplierPaymentProofFailureReporterPort;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
 use RuntimeException;
 use Tests\TestCase;
+use Throwable;
 
 final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
 {
@@ -132,9 +135,7 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
 
     public function test_prepare_many_rejects_final_durable_path_before_presigning(): void
     {
-        $disk = Mockery::mock();
-        Storage::shouldReceive('disk')->once()->with('r2_private')->andReturn($disk);
-        $disk->shouldNotReceive('temporaryUploadUrl');
+        Storage::shouldReceive('disk')->never();
 
         $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter)->prepareMany(
             'intent-final-path',
@@ -146,9 +147,7 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
 
     public function test_prepare_many_rejects_foreign_intent_and_traversal_paths_before_presigning(): void
     {
-        $disk = Mockery::mock();
-        Storage::shouldReceive('disk')->twice()->with('r2_private')->andReturn($disk);
-        $disk->shouldNotReceive('temporaryUploadUrl');
+        Storage::shouldReceive('disk')->never();
         $adapter = new LaravelSupplierPaymentProofDirectUploadAdapter;
 
         self::assertSame([], $adapter->prepareMany(
@@ -163,9 +162,7 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
 
     public function test_prepare_many_rejects_incomplete_metadata_before_presigning(): void
     {
-        $disk = Mockery::mock();
-        Storage::shouldReceive('disk')->once()->with('r2_private')->andReturn($disk);
-        $disk->shouldNotReceive('temporaryUploadUrl');
+        Storage::shouldReceive('disk')->never();
 
         $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter)->prepareMany('intent-invalid', [[
             'storage_path' => 'supplier-payment-proof-uploads/intent-invalid/file-1.upload',
@@ -179,9 +176,7 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
 
     public function test_prepare_many_rejects_non_allowlisted_mime_and_oversized_declaration(): void
     {
-        $disk = Mockery::mock();
-        Storage::shouldReceive('disk')->twice()->with('r2_private')->andReturn($disk);
-        $disk->shouldNotReceive('temporaryUploadUrl');
+        Storage::shouldReceive('disk')->never();
         $adapter = new LaravelSupplierPaymentProofDirectUploadAdapter;
 
         self::assertSame([], $adapter->prepareMany(
@@ -196,16 +191,23 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
 
     public function test_prepare_many_fails_closed_when_presigning_throws(): void
     {
-        $disk = Mockery::mock();
+        $disk = Mockery::mock(FilesystemAdapter::class);
+        $failures = new RecordingSupplierPaymentProofFailureReporter;
         Storage::shouldReceive('disk')->once()->with('r2_private')->andReturn($disk);
-        $disk->shouldReceive('temporaryUploadUrl')->once()->andThrow(new RuntimeException('presign failed'));
+        $disk->shouldReceive('getAdapter')->once()->andReturn(new \stdClass);
+        $disk->shouldReceive('temporaryUploadUrl')->once()->andThrow(
+            new RuntimeException('presign failed at https://private.example/?X-Amz-Signature=secret'),
+        );
 
-        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter)->prepareMany(
+        $prepared = (new LaravelSupplierPaymentProofDirectUploadAdapter($failures))->prepareMany(
             'intent-error',
             [$this->file('supplier-payment-proof-uploads/intent-error/file-1.upload', 'proof.pdf', 'application/pdf', 100)],
         );
 
         self::assertSame([], $prepared);
+        self::assertSame('prepare.presign.exception', $failures->stage);
+        self::assertSame('intent-error', $failures->context['upload_intent_id']);
+        self::assertInstanceOf(RuntimeException::class, $failures->exception);
     }
 
     /** @return array{storage_path:string,original_filename:string,mime_type:string,file_size_bytes:int} */
@@ -217,5 +219,22 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
             'mime_type' => $mimeType,
             'file_size_bytes' => $size,
         ];
+    }
+}
+
+final class RecordingSupplierPaymentProofFailureReporter implements SupplierPaymentProofFailureReporterPort
+{
+    public ?string $stage = null;
+
+    public ?Throwable $exception = null;
+
+    /** @var array<string, bool|int|string|null> */
+    public array $context = [];
+
+    public function report(string $stage, Throwable $exception, array $context = []): void
+    {
+        $this->stage = $stage;
+        $this->exception = $exception;
+        $this->context = $context;
     }
 }

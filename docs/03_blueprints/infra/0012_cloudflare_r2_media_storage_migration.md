@@ -1,8 +1,8 @@
 # Cloudflare R2 Media and Static Asset Migration
 
 Status: In progress
-Date: 2026-09-03
-Current phase: local direct-upload application and UI complete; real browser/R2 and production rollout pending
+Date: 2026-09-04
+Current phase: local direct-upload application, real R2, and both browser UI flows proven; legacy migration and production rollout pending
 
 ## Goal
 
@@ -839,7 +839,32 @@ Browser -> Laravel finalize
 14. browser/real-R2 end-to-end proof
 ```
 
-Steps 1-13 are complete locally. Step 14 remains the explicit real-environment gap. Do not combine production cleanup with this unverified real-browser step.
+Steps 1-14 are complete in the isolated local/test environment. The browser proof used the configured real private R2 bucket and the production HTTPS origin mapped to the local Laravel runtime, so the real private-bucket CORS policy remained active. This does not authorize or prove a production deployment.
+
+### Web-runtime stale configuration failure - ROOT CAUSE PROVEN
+
+The reported prepare failure was reproduced through the real HTTP kernel with the same observable state: HTTP `422`, safe generic `PRESIGN_FAILED`, and a persisted `prepared` invoice-scope intent plus child file row.
+
+The exact server-side exception was:
+
+```text
+InvalidArgumentException: Disk [r2_private] does not have a configured driver.
+```
+
+The failing web process was loading a stale Laravel configuration cache that predated the `r2_private` disk. A fresh CLI process loaded the current filesystem configuration, which explains why direct CLI presigning, port resolution, intent hydration, and `SupplierPaymentProofPrepareResponse::make()` all passed while the browser request failed.
+
+The deployment lifecycle made that split possible: the prior maintenance entry booted Laravel before calling `optimize:clear`; extracting a new package also did not remove an old deployed `bootstrap/cache/config.php`; and a reused `clear.php` path could itself remain in web OPcache. The presign adapter resolved `Storage::disk('r2_private')` outside its prior exception boundary, while the prepare handler converted the resulting throwable into a generic response without a durable diagnostic.
+
+The local fix now:
+
+- records prepare-stage exceptions server-side with safe stage/runtime/config-presence context;
+- keeps the browser response generic and removes URL, signature, token, credential, and secret-like values from logged exception messages;
+- resolves the real storage disk inside the observable presign boundary;
+- emits a unique token-derived maintenance filename per package;
+- removes disposable Laravel PHP caches before framework bootstrap;
+- resets enabled web OPcache in phase one and boots Laravel only on the redirected phase-two request;
+- resolves `r2_private` and creates a staging-only PUT presign in that web runtime before migration/optimization can be reported successful;
+- keeps the maintenance endpoint token-gated, one-time/self-deleting, and free of raw internal exception output.
 
 ## Local Laravel storage
 
@@ -895,11 +920,17 @@ The framework-local disks and `public/storage` mapping are not removed yet. Lega
 - Added deterministic promotion-failure cleanup plus leased/retryable cleanup for expired and stale-finalizing intents.
 - Proved the local flow through focused application, HTTP, UI, MIME, cleanup, replay, and regression tests.
 - Closed PHPStan, line-count, Blade contract, and hexagonal architecture gates without suppressions.
+- Reproduced the web-versus-CLI prepare failure and proved stale deployed Laravel configuration as its exact root cause.
+- Added redacted server-side failure reporting and a two-phase cPanel cache/OPcache maintenance lifecycle that validates private-R2 presigning in the web runtime.
+- Added an explicit opt-in real-R2 smoke gate; it exercises prepare, real PUT, verification, CopyObject promotion, finalize, and cleanup through the configured adapters.
+- Drove both supplier-proof forms in real Chromium through `prepare -> private R2 staging PUT -> finalize` with the production HTTPS origin/CORS policy and proved final attachment rendering.
+- Closed the current repository gate at 1,547 tests / 9,752 assertions, with focused direct-upload proof at 54 tests / 486 assertions and real-R2 smoke at 1 test / 24 assertions.
 
 ## Remaining work in order
 
-1. Run a real browser end-to-end proof against the current staging-only prepare/PUT/finalize UI and private R2.
-2. Inventory legacy supplier-proof DB rows/local files, migrate them to `glasspos-private`, and prove DB/object parity.
+1. Inventory legacy supplier-proof production DB rows/local files under separate authorization.
+2. Migrate legacy objects to `glasspos-private` and prove DB/object parity plus rollback.
 3. Continue the audit for any other durable runtime-media families.
-4. Deploy the completed static/runtime changes to production and prove cPanel no longer owns durable media or private upload bytes.
-5. Remove obsolete local media/static copies only after rollback/parity/production proof.
+4. Deploy the completed static/runtime changes to production, run the unique two-phase maintenance entry, and prove its web-runtime private-R2 readiness check.
+5. Run production browser/read/delete verification and prove cPanel no longer receives private upload bodies.
+6. Remove obsolete local media/static copies only after rollback/parity/production proof.

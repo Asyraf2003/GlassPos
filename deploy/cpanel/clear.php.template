@@ -3,7 +3,11 @@
 declare(strict_types=1);
 
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
+use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Console\Output\BufferedOutput;
+
+final class SafeMaintenanceException extends RuntimeException {}
 
 header('Content-Type: text/plain; charset=utf-8');
 header('X-Robots-Tag: noindex, nofollow, noarchive');
@@ -19,6 +23,8 @@ if ($providedToken === '' || ! hash_equals($expectedTokenHash, hash('sha256', $p
 
 $publicPath = __DIR__;
 $appRoot = dirname(__DIR__).'/__APP_DIR_NAME__';
+$cacheDirectory = $appRoot.'/bootstrap/cache';
+$phaseMarker = $cacheDirectory.'/.maintenance-'.$expectedTokenHash.'.phase';
 $results = [];
 
 $record = static function (string $message) use (&$results): void {
@@ -26,7 +32,23 @@ $record = static function (string $message) use (&$results): void {
 };
 
 $fail = static function (string $message): never {
-    throw new RuntimeException($message);
+    throw new SafeMaintenanceException($message);
+};
+
+$resetOpcache = static function () use ($fail, $record): void {
+    $enabled = filter_var(ini_get('opcache.enable'), FILTER_VALIDATE_BOOL);
+
+    if (! $enabled) {
+        $record('OK: web OPcache is not enabled for this request.');
+
+        return;
+    }
+
+    if (! function_exists('opcache_reset') || ! @opcache_reset()) {
+        $fail('Web OPcache is enabled but could not be reset. Restart PHP-FPM before retrying.');
+    }
+
+    $record('OK: web OPcache reset requested.');
 };
 
 try {
@@ -34,20 +56,54 @@ try {
         $fail('PHP 8.2 or newer is required. Current: '.PHP_VERSION);
     }
 
-    foreach ([
-        $appRoot,
-        $appRoot.'/artisan',
-        $appRoot.'/.env',
-        $appRoot.'/vendor/autoload.php',
-        $appRoot.'/bootstrap/app.php',
-    ] as $requiredPath) {
+    foreach ([$appRoot, $appRoot.'/artisan', $appRoot.'/.env', $cacheDirectory] as $requiredPath) {
         if (! file_exists($requiredPath)) {
-            $fail('Required deployment path is missing: '.$requiredPath);
+            $fail('Required deployment path is missing.');
+        }
+    }
+
+    if (! is_writable($cacheDirectory)) {
+        $fail('Laravel bootstrap cache directory is not writable by PHP.');
+    }
+
+    if ((string) ($_GET['phase'] ?? '') !== 'maintain') {
+        $cachedFiles = glob($cacheDirectory.'/*.php');
+
+        if ($cachedFiles === false) {
+            $fail('Unable to enumerate Laravel bootstrap cache files.');
+        }
+
+        foreach ($cachedFiles as $cachedFile) {
+            if (! @unlink($cachedFile)) {
+                $fail('Unable to remove a Laravel bootstrap cache file.');
+            }
+        }
+
+        if (file_put_contents($phaseMarker, 'ready', LOCK_EX) === false) {
+            $fail('Unable to persist the maintenance phase marker.');
+        }
+
+        $resetOpcache();
+        header(
+            'Location: '.basename(__FILE__).'?token='.rawurlencode($providedToken).'&phase=maintain',
+            true,
+            303,
+        );
+        exit;
+    }
+
+    if (! is_file($phaseMarker)) {
+        $fail('Pre-bootstrap cache reset phase has not completed. Use the setup URL without a phase parameter.');
+    }
+
+    foreach ([$appRoot.'/vendor/autoload.php', $appRoot.'/bootstrap/app.php'] as $requiredPath) {
+        if (! file_exists($requiredPath)) {
+            $fail('Required deployment path is missing.');
         }
     }
 
     $writableDirectories = [
-        $appRoot.'/bootstrap/cache',
+        $cacheDirectory,
         $appRoot.'/storage/app/private',
         $appRoot.'/storage/app/public',
         $appRoot.'/storage/framework/cache/data',
@@ -58,11 +114,11 @@ try {
 
     foreach ($writableDirectories as $directory) {
         if (! is_dir($directory) && ! mkdir($directory, 0775, true) && ! is_dir($directory)) {
-            $fail('Unable to create writable directory: '.$directory);
+            $fail('Unable to create a required writable directory.');
         }
 
         if (! is_writable($directory)) {
-            $fail('Directory is not writable by PHP: '.$directory);
+            $fail('A required directory is not writable by PHP.');
         }
     }
 
@@ -81,10 +137,7 @@ try {
     } elseif (file_exists($storageLink)) {
         $fail('public_html/storage already exists and is not a symlink.');
     } else {
-        if (! function_exists('symlink')) {
-            $fail('symlink() is disabled on this hosting account.');
-        }
-        if (! @symlink($storageTarget, $storageLink)) {
+        if (! function_exists('symlink') || ! @symlink($storageTarget, $storageLink)) {
             $fail('Unable to create public storage symlink.');
         }
         $record('OK: public_html/storage symlink created.');
@@ -113,6 +166,33 @@ try {
         $fail('Database connection failed. Check production DB_* values.');
     }
 
+    $r2 = config('filesystems.disks.r2_private');
+    if (! is_array($r2)
+        || ($r2['driver'] ?? null) !== 's3'
+        || trim((string) ($r2['endpoint'] ?? '')) === ''
+        || trim((string) ($r2['bucket'] ?? '')) === ''
+        || trim((string) ($r2['key'] ?? '')) === ''
+        || trim((string) ($r2['secret'] ?? '')) === '') {
+        $fail('Private R2 runtime configuration is incomplete.');
+    }
+
+    try {
+        /** @var FilesystemAdapter $privateDisk */
+        $privateDisk = Storage::disk('r2_private');
+        $readinessPath = 'supplier-payment-proof-uploads/deploy-readiness/'.bin2hex(random_bytes(16)).'.upload';
+        $upload = $privateDisk->temporaryUploadUrl($readinessPath, now()->addMinutes(5), [
+            'ContentType' => 'application/pdf',
+        ]);
+        $uploadUrl = (string) ($upload['url'] ?? '');
+
+        if ($uploadUrl === '' || parse_url($uploadUrl, PHP_URL_HOST) === null) {
+            $fail('Private R2 runtime did not return a valid presigned upload target.');
+        }
+    } catch (Throwable $exception) {
+        $fail('Private R2 runtime presign failed ('.$exception::class.').');
+    }
+    $record('OK: private R2 runtime disk resolved and staging-only PUT presign succeeded.');
+
     $commands = [
         ['optimize:clear', []],
         ['migrate', ['--force' => true, '--no-interaction' => true]],
@@ -124,25 +204,28 @@ try {
         $exitCode = $kernel->call($command, $arguments, $output);
 
         if ($exitCode !== 0) {
-            $details = trim($output->fetch());
-            $fail('Artisan command failed: '.$command.($details !== '' ? "\n".$details : ''));
+            $fail('Artisan command failed: '.$command.'.');
         }
 
         $record('OK: php artisan '.$command);
     }
 
+    @unlink($phaseMarker);
     $selfDeleted = @unlink(__FILE__);
+    $resetOpcache();
 
     echo "MAINTENANCE COMPLETE\n";
     foreach ($results as $result) {
         echo $result."\n";
     }
     echo $selfDeleted
-        ? "OK: clear.php deleted itself.\n"
-        : "WARNING: maintenance succeeded, but clear.php could not delete itself. Delete it manually.\n";
+        ? "OK: maintenance entry deleted itself.\n"
+        : "WARNING: maintenance succeeded, but its entry file could not delete itself. Delete it manually.\n";
 } catch (Throwable $exception) {
     http_response_code(500);
     echo "MAINTENANCE FAILED\n";
-    echo $exception->getMessage()."\n";
-    echo "clear.php was kept so the same URL can be retried after fixing the problem.\n";
+    echo $exception instanceof SafeMaintenanceException
+        ? $exception->getMessage()."\n"
+        : "Unexpected maintenance failure (".$exception::class.").\n";
+    echo "The maintenance entry was kept so the setup URL can be retried after fixing the problem.\n";
 }

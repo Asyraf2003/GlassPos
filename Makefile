@@ -9,7 +9,7 @@ DEPLOY_DIR ?= deploy-package
 SITE_URL ?= https://arbiconbengkel.my.id
 ENV_FILE ?= .env.production
 
-.PHONY: deploy
+.PHONY: deploy smoke-r2-supplier-payment-proof
 deploy:
 	@APP_NAME="$(APP_NAME)" \
 	APP_DIR_NAME="$(APP_DIR_NAME)" \
@@ -18,6 +18,11 @@ deploy:
 	SITE_URL="$(SITE_URL)" \
 	ENV_FILE="$(ENV_FILE)" \
 	bash scripts/build-cpanel-package.sh
+
+smoke-r2-supplier-payment-proof:
+	@test "$$RUN_REAL_R2_SUPPLIER_PROOF_SMOKE" = "1" || \
+		(echo "ERROR: set RUN_REAL_R2_SUPPLIER_PROOF_SMOKE=1 for this real-R2 gate." >&2; exit 2)
+	php artisan test tests/Smoke/Procurement/RealR2SupplierPaymentProofDirectUploadSmokeTest.php
 
 push:
 	@$(MAKE) git-push
@@ -68,6 +73,7 @@ help:
 	@echo "    make docs-help                      Show documentation entrypoint"
 	@echo ""
 	@echo "  Specialized verification:"
+	@echo "    make smoke-r2-supplier-payment-proof Explicit opt-in prepare/PUT/finalize against configured private R2"
 	@echo "    make verify-service-product-template Validate service catalog/template slice"
 	@echo ""
 	@echo "  Git:"

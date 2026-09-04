@@ -6,10 +6,16 @@ zip_file="${1:-}"
 app_dir="${2:-glasspos}"
 public_dir="${3:-public_html}"
 site_url="${4:-https://arbiconbengkel.my.id}"
+clear_file_name="${5:-}"
 site_url="${site_url%/}"
 
 if [[ -z "$zip_file" || ! -f "$zip_file" ]]; then
     echo "ERROR: ZIP deployment tidak ditemukan: $zip_file" >&2
+    exit 1
+fi
+
+if [[ ! "$clear_file_name" =~ ^clear-[a-f0-9]{16}\.php$ ]]; then
+    echo "ERROR: nama maintenance entry harus unik dan berbentuk clear-<16 hex>.php." >&2
     exit 1
 fi
 
@@ -64,13 +70,13 @@ require_entry "$app_dir/vendor/autoload.php"
 require_entry "$app_dir/.env"
 require_entry "$public_dir/index.php"
 require_entry "$public_dir/.htaccess"
-require_entry "$public_dir/clear.php"
+require_entry "$public_dir/$clear_file_name"
 
 require_mode "$app_dir/" "drwxr-xr-x"
 require_mode "$app_dir/.env" "-rw-------"
 require_mode "$public_dir/" "drwxr-xr-x"
 require_mode "$public_dir/index.php" "-rw-r--r--"
-require_mode "$public_dir/clear.php" "-rw-r--r--"
+require_mode "$public_dir/$clear_file_name" "-rw-r--r--"
 
 while IFS= read -r entry; do
     case "$entry" in
@@ -104,7 +110,7 @@ while IFS= read -r entry; do
 done < "$listing_file"
 
 unzip -p "$zip_file" "$public_dir/index.php" > "$index_file"
-unzip -p "$zip_file" "$public_dir/clear.php" > "$clear_file"
+unzip -p "$zip_file" "$public_dir/$clear_file_name" > "$clear_file"
 unzip -p "$zip_file" "$app_dir/.env" > "$env_file"
 
 if grep -Fq "__APP_DIR_NAME__" "$index_file" "$clear_file"; then
@@ -118,6 +124,15 @@ if ! grep -Fq "usePublicPath(__DIR__)" "$index_file"; then
 fi
 if ! grep -Eq "[a-f0-9]{64}" "$clear_file"; then
     fail "hash token clear.php tidak ditemukan"
+fi
+if ! grep -Fq "glob(\$cacheDirectory.'/*.php')" "$clear_file"; then
+    fail "maintenance entry belum menghapus cache Laravel sebelum bootstrap"
+fi
+if ! grep -Fq "opcache_reset" "$clear_file" || ! grep -Fq "phase=maintain" "$clear_file"; then
+    fail "maintenance entry belum memuat kontrak two-phase web OPcache reset"
+fi
+if ! grep -Fq "temporaryUploadUrl" "$clear_file" || ! grep -Fq "supplier-payment-proof-uploads/deploy-readiness/" "$clear_file"; then
+    fail "maintenance entry belum memverifikasi runtime presign private R2"
 fi
 if ! grep -Fq "optimize:clear" "$clear_file" || ! grep -Fq "migrate" "$clear_file" || ! grep -Fq "optimize" "$clear_file"; then
     fail "clear.php belum memuat kontrak clear/migrate/optimize"
@@ -150,4 +165,4 @@ if (( failures > 0 )); then
     exit 1
 fi
 
-echo "OK: ZIP structure, production .env, clear.php, vendor, public files, permissions, and caches verified."
+echo "OK: ZIP structure, production .env, unique two-phase maintenance entry, vendor, public files, permissions, and caches verified."
