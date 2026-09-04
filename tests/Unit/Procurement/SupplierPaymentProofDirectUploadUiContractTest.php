@@ -65,7 +65,7 @@ final class SupplierPaymentProofDirectUploadUiContractTest extends TestCase
             'Bukti pembayaran gagal diproses. Silakan coba lagi.',
         ];
         preg_match(
-            '/const publicMessages = Object\.freeze\(\{(?<messages>.*?)\}\);/s',
+            '/const publicMessages = Object\\.freeze\\(\\{(?<messages>.*?)\\}\\);/s',
             $script,
             $mapping,
         );
@@ -111,15 +111,19 @@ final class SupplierPaymentProofDirectUploadUiContractTest extends TestCase
         self::assertStringNotContainsString('setTimeout(() => window.bootstrap.Modal', $script);
     }
 
-    public function test_local_runtime_loads_direct_upload_script_from_app_origin_instead_of_cdn(): void
+    public function test_local_runtime_loads_direct_upload_script_from_app_origin_without_php_directives(): void
     {
         $partial = file_get_contents(dirname(__DIR__, 3)
             .'/resources/views/admin/procurement/partials/supplier_payment_proof_direct_upload_script.blade.php');
         self::assertIsString($partial);
 
         self::assertStringContainsString("app()->environment(['local', 'testing'])", $partial);
+        self::assertStringContainsString("request()->getHost()", $partial);
         self::assertStringContainsString("['127.0.0.1', 'localhost']", $partial);
-        self::assertStringContainsString("? '/'.\$directUploadAssetPath : asset(\$directUploadAssetPath)", $partial);
+        self::assertStringContainsString("'/assets/static/js/shared/supplier-payment-proof-direct-upload.js'", $partial);
+        self::assertStringContainsString("asset('assets/static/js/shared/supplier-payment-proof-direct-upload.js')", $partial);
+        self::assertStringNotContainsString('@php', $partial);
+        self::assertStringNotContainsString('@endphp', $partial);
     }
 
     public function test_failed_storage_put_stops_before_finalize_and_malformed_prepare_is_distinct(): void
