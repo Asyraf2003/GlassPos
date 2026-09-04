@@ -18,7 +18,41 @@
             heif: 'image/heif',
             pdf: 'application/pdf'
         };
+        const publicMessages = Object.freeze({
+            appNetworkUnavailable: 'Aplikasi tidak dapat dihubungi. Periksa koneksi lalu coba lagi.',
+            storageNetworkUnavailable: 'Penyimpanan privat tidak dapat dihubungi. Periksa koneksi lalu coba lagi.',
+            storageUploadRejected: 'Penyimpanan privat menolak upload. Silakan coba lagi.',
+            malformedPreparation: 'Respons persiapan upload tidak valid. Silakan coba lagi.',
+            prepareFailed: 'Upload bukti pembayaran gagal disiapkan.',
+            finalizeFailed: 'Upload bukti pembayaran gagal difinalisasi.',
+            invalidFileCount: 'Pilih 1 sampai 3 file bukti pembayaran.',
+            invalidFileSize: 'Ukuran tiap bukti pembayaran harus lebih dari 0 dan maksimal 10 MB.',
+            invalidFileType: 'Format bukti harus JPG, PNG, WEBP, HEIC, HEIF, atau PDF.',
+            missingScope: 'Scope bukti pembayaran tidak tersedia.',
+            unknown: 'Bukti pembayaran gagal diproses. Silakan coba lagi.'
+        });
+        const trustedBackendMessages = new Set([
+            'Upload bukti pembayaran gagal disiapkan.',
+            'Upload bukti pembayaran tidak dapat difinalisasi.',
+            'Upload bukti pembayaran gagal difinalisasi.'
+        ]);
         const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+        class DirectUploadFailure {
+            constructor(code, backendMessage = '') {
+                this.code = code;
+                this.backendMessage = trustedBackendMessages.has(backendMessage) ? backendMessage : '';
+            }
+        }
+
+        const failure = (code, backendMessage = '') => new DirectUploadFailure(code, backendMessage);
+        const publicMessageFor = (error) => {
+            if (!(error instanceof DirectUploadFailure)) {
+                return publicMessages.unknown;
+            }
+
+            return error.backendMessage || publicMessages[error.code] || publicMessages.unknown;
+        };
 
         const declaredMime = (file) => {
             const browserMime = String(file.type || '').trim().toLowerCase();
@@ -44,21 +78,34 @@
             return generated;
         };
 
-        const postJson = async (url, body) => {
-            const response = await fetch(url, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrf
-                },
-                body: JSON.stringify(body)
-            });
+        const postJson = async (url, body, stage) => {
+            let response;
+
+            try {
+                response = await fetch(url, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrf
+                    },
+                    body: JSON.stringify(body)
+                });
+            } catch {
+                throw failure('appNetworkUnavailable');
+            }
+
             const payload = await response.json().catch(() => null);
 
+            if (!payload || typeof payload !== 'object') {
+                throw failure(stage === 'prepare' ? 'malformedPreparation' : 'finalizeFailed');
+            }
+
             if (!response.ok || !payload?.success) {
-                throw new Error(payload?.message || 'Bukti pembayaran gagal diproses.');
+                const message = typeof payload.message === 'string' ? payload.message : '';
+
+                throw failure(stage === 'prepare' ? 'prepareFailed' : 'finalizeFailed', message);
             }
 
             return payload.data;
@@ -69,18 +116,25 @@
             mime_type: declaredMime(file),
             file_size_bytes: file.size
         }));
+        const browserHeaders = (headers) => {
+            if (Array.isArray(headers)) {
+                return headers.length === 0 ? {} : null;
+            }
+
+            return headers && typeof headers === 'object' ? headers : null;
+        };
 
         const validateFiles = (files) => {
             if (files.length < 1 || files.length > 3) {
-                return 'Pilih 1 sampai 3 file bukti pembayaran.';
+                return 'invalidFileCount';
             }
 
             if (files.some((file) => file.size < 1 || file.size > 10485760)) {
-                return 'Ukuran tiap bukti pembayaran harus lebih dari 0 dan maksimal 10 MB.';
+                return 'invalidFileSize';
             }
 
             if (files.some((file) => !allowed.has(declaredMime(file)))) {
-                return 'Format bukti harus JPG, PNG, WEBP, HEIC, HEIF, atau PDF.';
+                return 'invalidFileType';
             }
 
             return '';
@@ -101,16 +155,16 @@
         const upload = async (form) => {
             const input = form.querySelector('input[type="file"]');
             const files = Array.from(input?.files || []);
-            const error = validateFiles(files);
+            const validationFailure = validateFiles(files);
 
-            if (error) {
-                throw new Error(error);
+            if (validationFailure) {
+                throw failure(validationFailure);
             }
 
             const scopeId = String(form.dataset.scopeId || '').trim();
 
             if (!scopeId) {
-                throw new Error('Scope bukti pembayaran tidak tersedia.');
+                throw failure('missingScope');
             }
 
             setState(form, 'Menyiapkan upload aman...');
@@ -119,35 +173,53 @@
                 scope_id: scopeId,
                 idempotency_key: idempotencyKey(form),
                 files: declarations(files)
-            });
+            }, 'prepare');
 
             if (prepared?.proof_status) {
                 return;
             }
 
-            if (!prepared?.upload_intent_id || prepared.files?.length !== files.length) {
-                throw new Error('Otorisasi upload tidak lengkap. Silakan coba lagi.');
+            const preparedFilesAreValid = Array.isArray(prepared?.files)
+                && prepared.files.length === files.length
+                && prepared.files.every((file) => typeof file?.upload_url === 'string'
+                    && file.upload_url.startsWith('https://')
+                    && browserHeaders(file.headers) !== null);
+
+            if (!prepared?.upload_intent_id || !preparedFilesAreValid) {
+                throw failure('malformedPreparation');
             }
 
             for (let index = 0; index < files.length; index += 1) {
                 setState(form, `Mengunggah file ${index + 1} dari ${files.length} langsung ke penyimpanan privat...`);
-                const response = await fetch(prepared.files[index].upload_url, {
-                    method: 'PUT',
-                    headers: prepared.files[index].headers || {},
-                    body: files[index]
-                });
+                let response;
+
+                try {
+                    response = await fetch(prepared.files[index].upload_url, {
+                        method: 'PUT',
+                        headers: browserHeaders(prepared.files[index].headers),
+                        body: files[index]
+                    });
+                } catch {
+                    throw failure('storageNetworkUnavailable');
+                }
 
                 if (!response.ok) {
-                    throw new Error('Upload langsung gagal. Silakan periksa koneksi dan coba lagi.');
+                    throw failure('storageUploadRejected');
                 }
             }
 
             setState(form, 'Memverifikasi dan menyimpan bukti pembayaran...');
-            const finalizeUrl = form.dataset.finalizeUrl.replace(
+            const finalizeTemplate = String(form.dataset.finalizeUrl || '');
+
+            if (!finalizeTemplate.includes('__INTENT__')) {
+                throw failure('finalizeFailed');
+            }
+
+            const finalizeUrl = finalizeTemplate.replace(
                 '__INTENT__',
                 encodeURIComponent(prepared.upload_intent_id)
             );
-            await postJson(finalizeUrl, {});
+            await postJson(finalizeUrl, {}, 'finalize');
         };
 
         forms.forEach((form) => {
@@ -176,7 +248,7 @@
                     setState(form, 'Bukti pembayaran berhasil disimpan.');
                     window.location.assign(form.dataset.successUrl || window.location.href);
                 } catch (error) {
-                    setState(form, error instanceof Error ? error.message : 'Bukti pembayaran gagal diproses.', true);
+                    setState(form, publicMessageFor(error), true);
                     form.dataset.uploading = '0';
 
                     if (button) {

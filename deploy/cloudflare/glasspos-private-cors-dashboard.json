@@ -1,6 +1,10 @@
 [
   {
-    "AllowedOrigins": ["https://arbiconbengkel.my.id"],
+    "AllowedOrigins": [
+      "https://arbiconbengkel.my.id",
+      "http://127.0.0.1:8000",
+      "http://localhost:8000"
+    ],
     "AllowedMethods": ["PUT"],
     "AllowedHeaders": ["Content-Type"],
     "ExposeHeaders": ["ETag"],

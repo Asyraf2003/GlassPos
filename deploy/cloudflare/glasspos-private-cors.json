@@ -2,7 +2,11 @@
   "rules": [
     {
       "allowed": {
-        "origins": ["https://arbiconbengkel.my.id"],
+        "origins": [
+          "https://arbiconbengkel.my.id",
+          "http://127.0.0.1:8000",
+          "http://localhost:8000"
+        ],
         "methods": ["PUT"],
         "headers": ["Content-Type"]
       },

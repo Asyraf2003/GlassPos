@@ -8,14 +8,16 @@ use App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPreparation;
 use App\Ports\Out\Procurement\SupplierPaymentProofFailureCode;
 use App\Ports\Out\Procurement\SupplierPaymentProofFailureReporterPort;
 use Illuminate\Filesystem\FilesystemAdapter;
-use Illuminate\Support\Facades\Storage;
-use Throwable;
 
 final class SupplierPaymentProofPresignedUploadFactory
 {
+    private readonly SupplierPaymentProofPresignGateway $presigner;
+
     public function __construct(
-        private readonly ?SupplierPaymentProofFailureReporterPort $failures = null,
-    ) {}
+        ?SupplierPaymentProofFailureReporterPort $failures = null,
+    ) {
+        $this->presigner = new SupplierPaymentProofPresignGateway($failures);
+    }
 
     /** @param list<array<string,mixed>> $files */
     public function make(
@@ -23,7 +25,7 @@ final class SupplierPaymentProofPresignedUploadFactory
         array $files,
         int $expiresInSeconds,
     ): SupplierPaymentProofDirectUploadPreparation {
-        $disk = $this->resolveDisk($intentId, count($files));
+        $disk = $this->presigner->resolveDisk($intentId, count($files));
 
         if (! $disk instanceof FilesystemAdapter) {
             return SupplierPaymentProofDirectUploadPreparation::failure(
@@ -34,7 +36,14 @@ final class SupplierPaymentProofPresignedUploadFactory
         $prepared = [];
 
         foreach ($files as $index => $file) {
-            $upload = $this->presign($disk, $intentId, $file, count($files), $index + 1, $expiresInSeconds);
+            $upload = $this->presigner->presign(
+                $disk,
+                $intentId,
+                $file,
+                count($files),
+                $index + 1,
+                $expiresInSeconds,
+            );
 
             if (! is_array($upload)) {
                 return SupplierPaymentProofDirectUploadPreparation::failure(
@@ -46,7 +55,7 @@ final class SupplierPaymentProofPresignedUploadFactory
 
             if ($url === '') {
                 $failure = SupplierPaymentProofFailureCode::EMPTY_PRESIGNED_URL;
-                $this->report($failure, null, $disk, $intentId, count($files), $index + 1);
+                $this->presigner->report($failure, null, $disk, $intentId, count($files), $index + 1);
 
                 return SupplierPaymentProofDirectUploadPreparation::failure($failure);
             }
@@ -60,74 +69,5 @@ final class SupplierPaymentProofPresignedUploadFactory
         }
 
         return SupplierPaymentProofDirectUploadPreparation::success($prepared);
-    }
-
-    private function resolveDisk(string $intentId, int $fileCount): ?FilesystemAdapter
-    {
-        try {
-            /** @var FilesystemAdapter $disk */
-            $disk = Storage::disk('r2_private');
-
-            return $disk;
-        } catch (Throwable $exception) {
-            $this->report(
-                SupplierPaymentProofFailureCode::STORAGE_RESOLUTION_EXCEPTION,
-                $exception,
-                null,
-                $intentId,
-                $fileCount,
-                1,
-            );
-
-            return null;
-        }
-    }
-
-    /** @param array<string,mixed> $file @return array<string,mixed>|null */
-    private function presign(
-        FilesystemAdapter $disk,
-        string $intentId,
-        array $file,
-        int $fileCount,
-        int $ordinal,
-        int $expiresInSeconds,
-    ): ?array {
-        try {
-            return $disk->temporaryUploadUrl(
-                (string) $file['storage_path'],
-                now()->addSeconds($expiresInSeconds),
-                ['ContentType' => (string) $file['mime_type']],
-            );
-        } catch (Throwable $exception) {
-            $this->report(
-                SupplierPaymentProofFailureCode::PRESIGN_EXCEPTION,
-                $exception,
-                $disk,
-                $intentId,
-                $fileCount,
-                $ordinal,
-            );
-
-            return null;
-        }
-    }
-
-    private function report(
-        SupplierPaymentProofFailureCode $failureCode,
-        ?Throwable $exception,
-        ?FilesystemAdapter $disk,
-        string $intentId,
-        int $fileCount,
-        int $ordinal,
-    ): void {
-        try {
-            $this->failures?->report(
-                'prepare.presign',
-                $failureCode,
-                $exception,
-                SupplierPaymentProofPresignRuntimeContext::capture($disk, $intentId, $fileCount, $ordinal),
-            );
-        } catch (Throwable) {
-        }
     }
 }

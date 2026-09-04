@@ -362,12 +362,16 @@ deploy/cloudflare/glasspos-private-cors.json
 deploy/cloudflare/glasspos-private-cors-dashboard.json
 ```
 
-Dashboard policy:
+Wrangler/dashboard policy:
 
 ```json
 [
   {
-    "AllowedOrigins": ["https://arbiconbengkel.my.id"],
+    "AllowedOrigins": [
+      "https://arbiconbengkel.my.id",
+      "http://127.0.0.1:8000",
+      "http://localhost:8000"
+    ],
     "AllowedMethods": ["PUT"],
     "AllowedHeaders": ["Content-Type"],
     "ExposeHeaders": ["ETag"],
@@ -376,7 +380,17 @@ Dashboard policy:
 ]
 ```
 
-Real presigned preflight proof:
+Wrangler `4.129.0` applied the tracked policy to the real `glasspos-private` bucket. Post-apply list proof is:
+
+```text
+allowed_origins:  https://arbiconbengkel.my.id, http://127.0.0.1:8000, http://localhost:8000
+allowed_methods:  PUT
+allowed_headers:  Content-Type
+exposed_headers:  ETag
+max_age_seconds:  900
+```
+
+Real production-origin presigned preflight proof:
 
 ```text
 HTTP/1.1 204 No Content
@@ -386,7 +400,7 @@ Access-Control-Allow-Headers: content-type
 Access-Control-Allow-Methods: PUT
 ```
 
-This proves the intended production origin can perform the required browser PUT preflight without widening the private bucket to wildcard access.
+This keeps the production origin and adds only the two origins used by normal local `php artisan serve` operation. The private bucket remains non-public, has no wildcard origin, and permits neither browser GET nor arbitrary request headers.
 
 ## Real direct PUT infrastructure proof - PROVEN
 
@@ -866,6 +880,71 @@ The local fix now:
 - resolves `r2_private` and creates a staging-only PUT presign in that web runtime before migration/optimization can be reported successful;
 - keeps the maintenance endpoint token-gated, one-time/self-deleting, and free of raw internal exception output.
 
+### Manual local browser CORS failure - ROOT CAUSE PROVEN
+
+The later manual operator symptom had a separate boundary and was reproduced without reopening the already-proven Laravel prepare path:
+
+```text
+normal local browser origin: http://localhost:8000 or http://127.0.0.1:8000
+prepare:                      HTTP 200
+private R2 CORS before fix:   https://arbiconbengkel.my.id only
+browser PUT result:           CORS/network rejection
+finalize:                     not requested
+Laravel exception log:        none, as expected
+```
+
+The prior production-origin Chromium proof passed because it deliberately mapped `https://arbiconbengkel.my.id` to an isolated local Laravel runtime. It did not prove normal localhost operator ergonomics.
+
+The root fix has two parts:
+
+- real private-bucket CORS now permits the production origin plus exact local port-8000 origins, while remaining PUT-only and `Content-Type`-only;
+- the browser upload boundary maps same-origin application network failure, R2 network/CORS rejection, R2 non-2xx, malformed prepare output, finalize failure, and unknown exceptions to centralized trusted Bahasa Indonesia messages.
+
+Native `Error`, `TypeError`, and `DOMException` messages are never rendered. Only explicitly allowlisted backend public messages may cross the UI boundary. Runtime proof also found and fixed a response-shape edge case: an empty PHP header map can encode as JSON `[]`; the browser accepts only that empty list or a real header object and normalizes the empty list to `{}`.
+
+#### Server-side configured-R2 smoke
+
+```text
+RUN_REAL_R2_SUPPLIER_PROOF_SMOKE=1 make smoke-r2-supplier-payment-proof
+1 passed (24 assertions)
+```
+
+This proves the configured adapter/disk, HTTP prepare/finalize handlers, real staging PUT, trusted verification, CopyObject promotion, DB mutation, and cleanup. It does not prove browser CORS by itself.
+
+#### Normal local operator browser proof
+
+Real Chromium drove both UI scopes through a normal `php artisan serve` runtime at `http://localhost:8000`:
+
+```text
+supplier_invoice: prepare JSON 243 bytes -> staging PUT -> finalize JSON 2 bytes -> PASS
+supplier_payment: prepare JSON 246 bytes -> staging PUT -> finalize JSON 2 bytes -> PASS
+```
+
+The already-running manual owner runtime at `http://127.0.0.1:8000` independently passed the invoice flow with prepare JSON 243 bytes, one staging PUT, and finalize `{}`. No TLS-origin impersonation was used for either local-origin proof.
+
+#### Approved production-origin browser proof
+
+The production origin remains allowed. Real Chromium using `https://arbiconbengkel.my.id` against an isolated local Laravel runtime passed:
+
+```text
+prepare JSON 248 bytes -> staging PUT -> finalize {} -> PASS
+```
+
+#### Rejected-origin browser/CORS proof
+
+Real Chromium from the explicitly disallowed `http://127.0.0.1:8001` origin produced:
+
+```text
+prepare:                  HTTP 200
+CORS result:              PreflightMissingAllowOriginHeader
+finalize request count:   0
+payment/attachment/audit: 0 / 0 / 0
+UI message:               Penyimpanan privat tidak dapat dihubungi. Periksa koneksi lalu coba lagi.
+native Failed to fetch:   not exposed
+```
+
+For every successful browser proof, application requests contained JSON metadata only and did not contain the PDF marker. The PDF was sent only in the cross-origin `PUT` to `supplier-payment-proof-uploads/**`; no browser-writable final path appeared. Browser/DB/object fixtures were removed after proof.
+
 ## Local Laravel storage
 
 The framework-local disks and `public/storage` mapping are not removed yet. Legacy-data checks remain mandatory. Framework logs, cache, sessions, and temporary files are outside this migration.
@@ -924,7 +1003,10 @@ The framework-local disks and `public/storage` mapping are not removed yet. Lega
 - Added redacted server-side failure reporting and a two-phase cPanel cache/OPcache maintenance lifecycle that validates private-R2 presigning in the web runtime.
 - Added an explicit opt-in real-R2 smoke gate; it exercises prepare, real PUT, verification, CopyObject promotion, finalize, and cleanup through the configured adapters.
 - Drove both supplier-proof forms in real Chromium through `prepare -> private R2 staging PUT -> finalize` with the production HTTPS origin/CORS policy and proved final attachment rendering.
-- Closed the current repository gate at 1,547 tests / 9,752 assertions, with focused direct-upload proof at 54 tests / 486 assertions and real-R2 smoke at 1 test / 24 assertions.
+- Applied and listed the strict private-bucket CORS policy with exact production, `127.0.0.1:8000`, and `localhost:8000` origins through Wrangler `4.129.0`.
+- Proved both local operator origins without TLS impersonation, retained the approved production-origin flow, and proved an unlisted origin is blocked before finalize with a localized UI failure.
+- Replaced raw browser exception rendering with a centralized trusted Bahasa Indonesia direct-upload error boundary and adversarial contract tests.
+- Closed the current repository gate at 1,550 tests / 9,797 assertions, with focused supplier-proof proof at 68 tests / 481 assertions and real-R2 smoke at 1 test / 24 assertions.
 
 ## Remaining work in order
 
