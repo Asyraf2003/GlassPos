@@ -6,10 +6,15 @@ namespace App\Application\Procurement\Services\SupplierPaymentProof;
 
 use App\Application\Shared\DTO\Result;
 use App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort;
+use App\Ports\Out\Procurement\SupplierPaymentProofFailureCode;
+use App\Ports\Out\Procurement\SupplierPaymentProofFailureReporterPort;
 
 final class SupplierPaymentProofPrepareResponse
 {
-    public function __construct(private readonly SupplierPaymentProofDirectUploadPort $uploads) {}
+    public function __construct(
+        private readonly SupplierPaymentProofDirectUploadPort $uploads,
+        private readonly SupplierPaymentProofFailureReporterPort $failures,
+    ) {}
 
     /** @param array<string,mixed> $intent */
     public function make(array $intent): Result
@@ -21,12 +26,26 @@ final class SupplierPaymentProofPrepareResponse
             'file_size_bytes' => (int) $file['declared_size_bytes'],
         ], is_array($intent['files'] ?? null) ? $intent['files'] : []);
 
-        $prepared = $this->uploads->prepareMany((string) $intent['id'], $files);
+        $preparation = $this->uploads->prepareMany((string) $intent['id'], $files);
 
-        if ($prepared === [] || count($prepared) !== count($files)) {
-            return Result::failure('Upload bukti pembayaran gagal disiapkan.', [
-                'upload_intent' => ['PRESIGN_FAILED'],
-            ]);
+        if (! $preparation->isSuccess()) {
+            return SupplierPaymentProofPublicError::PRESIGN_FAILED->result();
+        }
+
+        $prepared = $preparation->files();
+
+        if (count($prepared) !== count($files)) {
+            $this->failures->report(
+                'prepare.response.contract',
+                SupplierPaymentProofFailureCode::RESULT_COUNT_MISMATCH,
+                null,
+                [
+                    'upload_intent_id' => (string) $intent['id'],
+                    'file_count' => count($files),
+                ],
+            );
+
+            return SupplierPaymentProofPublicError::PRESIGN_FAILED->result();
         }
 
         return Result::success([
