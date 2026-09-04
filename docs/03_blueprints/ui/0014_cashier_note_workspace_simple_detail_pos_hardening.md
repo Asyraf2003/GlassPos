@@ -4,7 +4,7 @@
 
 - Date: 2026-09-04
 - Area: Cashier create/edit note workspace
-- Status: Active hardening
+- Status: Implemented and locally verified
 - Owner decision: Simple/Detail POS workspace closure slice
 - Supersedes: the create/edit transaction workspace direction in `0011_cashier_stepper_mobile_ui_redesign.md`
 - Related note: `0013_cashier_responsive_simple_complex_modes_note.md`
@@ -185,11 +185,12 @@ Implementation cannot close until there is proof for:
 
 ## Verification Proof
 
-- Focused Note/infrastructure regression: 114 tests and 1,324 assertions passed.
-- Full repository `make verify`: PHPStan passed across 2,016 analyzed files; line-count and Blade contracts passed; 1,576 tests and 10,065 assertions passed.
+- The prior closure regression remains green: 114 focused Note/infrastructure tests with 1,324 assertions, followed by the full Note suite with 367 tests and 3,051 assertions.
 - Chromium interaction proof passed at widths 360, 390x844, 412, 768, 992, and 1440x900 with no horizontal overflow, duplicate active named input, sticky/input overlap, workspace asset failure, or workspace JavaScript exception.
-- Browser interaction covered all four row types, remove, Detail on/off, product keyboard/search/select/change/quantity, service/package select, partial open/cancel/submit, skip, real full cash, Detail transfer, edit PATCH, and refund surface.
+- Browser interaction covered all four row types, remove, Detail on/off, product/service/package search, keyboard navigation, selected stamp, explicit release and reselection, product quantity, partial open/cancel/submit, skip, real full cash, Detail transfer, edit PATCH, and refund surface.
+- Product, service, and package release plus rapid/stale lookup behavior were exercised against canonical hidden identity/decomposition state; no released selection was revived by a delayed response.
 - All ten assets loaded by the workspace resolved from the local application origin during browser proof.
+- Final repository `make verify` passed: PHPStan analyzed 2,017 files with no errors, contract audits passed, and 1,582 tests completed with 10,103 assertions.
 
 ## Remaining GAP
 
@@ -198,4 +199,4 @@ Implementation cannot close until there is proof for:
 
 ## Next Active Step
 
-Deploy through the separate production workflow: set explicit production asset configuration, advance the asset release version, sync the reviewed changed-asset manifest, and perform physical phone/PWA plus production smoke verification.
+Use the separate production workflow to set explicit production asset configuration, advance the asset release version, sync the reviewed changed-asset manifest, and perform physical phone/PWA plus production smoke verification.

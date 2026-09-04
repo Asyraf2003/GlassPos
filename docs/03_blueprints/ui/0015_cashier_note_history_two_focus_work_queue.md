@@ -4,7 +4,7 @@
 
 - Date: 2026-09-04
 - Area: Cashier note history/navigation
-- Status: Active implementation
+- Status: Implemented and locally verified
 - Owner decision: Cashier history final pre-production UX hardening
 - Related workspace blueprint: `0014_cashier_note_workspace_simple_detail_pos_hardening.md`
 
@@ -86,6 +86,20 @@ Closure requires proof for:
 - Production deployment, production migration, production data mutation, or CDN upload.
 - Claiming physical phone or installed PWA acceptance from emulation.
 
+## Verification Proof
+
+- Focused history/workspace regression passed 22 tests with 178 assertions.
+- Full Note regression passed 367 tests with 3,051 assertions, retaining transaction, payment, inventory, idempotency, revision, refund, audit, and projection invariants.
+- Database tests prove unpaid, partial, settled/open-work, settled/done, refunded, and canceled-work classification; search remains bucket-scoped and pagination totals are calculated after server-side classification.
+- Query-boundary proof confirms history reads `note_history_projection` with the existing work summary and does not mutate notes, work items, payments, inventory movements, or audit outbox state.
+- Chromium exercised focus switching, search, Detail navigation, lifecycle-valid Edit visibility, and the 360, 390x844, 412, 768, 992, and 1440x900 responsive matrix with no document/card overflow or history asset/runtime failure.
+- Pagination interaction remains conditionally rendered in the browser and is covered adversarially at the database/query boundary with eleven unfinished records over two pages.
+- Final repository `make verify` passed: PHPStan analyzed 2,017 files with no errors, contract audits passed, and 1,582 tests completed with 10,103 assertions.
+
 ## Remaining GAP
 
 Physical phone and installed standalone PWA acceptance remain manual pre-production verification unless performed on real devices.
+
+## Next Active Step
+
+Perform physical-device/PWA and deployed production smoke verification through the separate release workflow; do not redefine bucket classification in presentation code.

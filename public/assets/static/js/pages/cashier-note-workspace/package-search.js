@@ -330,8 +330,13 @@
     row.dataset.packageSearchBound = "1";
 
     input.addEventListener("input", () => {
+      const selected = packageSelectedSection(row);
+      if (selected && !selected.classList.contains("d-none")) {
+        input.value = "";
+        return;
+      }
+
       requestTokens.set(input, Symbol("package-search-input"));
-      clearPackageState(row);
       clearTimeout(timers.get(input));
       timers.set(input, setTimeout(() => void fetchPackages(row, input), 250));
     });

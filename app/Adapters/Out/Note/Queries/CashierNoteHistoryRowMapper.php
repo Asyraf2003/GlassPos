@@ -37,7 +37,7 @@ final class CashierNoteHistoryRowMapper
 
             $items[] = [
                 'note_id' => (string) $row->id,
-                'transaction_date' => $this->formatter->date($transactionDate),
+                'transaction_date' => $transactionDate,
                 'transaction_at_text' => $this->formatter->dateTime($row->created_at ?? null, $transactionDate),
                 'note_number' => (string) $row->id,
                 'customer_name' => $this->formatter->customerLabel(

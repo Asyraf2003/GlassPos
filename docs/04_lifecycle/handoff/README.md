@@ -33,6 +33,7 @@ This folder is only for active or latest handoffs. Once a session is closed, arc
 | `0018_service_catalog_lookup_migration_handoff.md` | Service catalog lookup + migration backfill | focused verified |
 | `0019_cloudflare_r2_static_sync_direct_upload_handoff.md` | Cloudflare R2 static sync + private direct-upload migration | active: public CDN + privacy + repo verification + strict direct-upload adapter proven; private CORS next |
 | `0020_cashier_note_workspace_simple_detail_pos_hardening_handoff.md` | Cashier Note Workspace Simple/Detail POS hardening + financial/static delivery closure | closed locally; production/device verification next |
+| `0021_cashier_final_preproduction_ux_hardening_handoff.md` | Cashier final pre-production UX hardening + two-focus history | closed locally; production/device verification next |
 
 ## Archive
 

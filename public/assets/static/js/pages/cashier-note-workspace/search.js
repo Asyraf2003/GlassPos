@@ -255,8 +255,13 @@
       };
 
       input.addEventListener("input", () => {
+        const selected = scope.querySelector("[data-product-selected]");
+        if (hidden?.value && selected && !selected.classList.contains("d-none")) {
+          input.value = "";
+          return;
+        }
+
         requestTokens.set(input, Symbol("product-search-input"));
-        if (hidden) hidden.value = "";
         const raw = scope.querySelector('input[name$="[unit_price_rupiah]"]');
         if (raw) raw.value = "";
         window.clearTimeout(timers.get(input));
