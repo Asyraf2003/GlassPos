@@ -53,7 +53,6 @@ Cashier create/edit note workspace and `Riwayat Nota` navigation/work queue, usi
 
 - Physical phone and installed standalone PWA require manual device acceptance.
 - The separate production release must advance `ASSET_VERSION`, run only the reviewed targeted asset upload, and smoke-check deployed CDN/application responses.
-- Browser pagination controls were not shown by the small local fixture; server-side bucket pagination was proven with eleven matching records across two pages.
 
 ## Locked Decisions
 
@@ -91,7 +90,7 @@ Cashier create/edit note workspace and `Riwayat Nota` navigation/work queue, usi
   - meaning: financial, stock, idempotency, rollback, revision, refund, audit, and projection Note regressions remain green
 - command: `node /tmp/glasspos-ui-browser-proof.mjs`
   - result: PASS at 360, 390x844, 412, 768, 992, and 1440x900; no relevant runtime error, failed cashier asset, duplicate active name, sticky overlap, or overflow
-  - meaning: four add controls, remove, Detail toggle, product/service/package search-stamp-release-reselect, stale request, keyboard navigation, quantity, partial open/cancel/pay, save, full cash, Detail transfer, edit PATCH, refund surface, history bucket/search/Detail/Edit were interacted with
+  - meaning: four add controls, remove, Detail toggle, product/service/package search-stamp-release-reselect, stale request, keyboard navigation, quantity, partial open/cancel/pay, save, full cash, Detail transfer, edit PATCH, refund surface, and history bucket/search/pagination/Detail/Edit were interacted with
 - command: `node --check` for all changed JavaScript; `vendor/bin/pint --dirty`; `make audit-contract`; `make audit-hex`; `git diff --check`
   - result: PASS
   - meaning: syntax, formatting, line-count/Blade, architecture boundaries, and whitespace checks pass

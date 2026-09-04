@@ -93,7 +93,7 @@ Closure requires proof for:
 - Database tests prove unpaid, partial, settled/open-work, settled/done, refunded, and canceled-work classification; search remains bucket-scoped and pagination totals are calculated after server-side classification.
 - Query-boundary proof confirms history reads `note_history_projection` with the existing work summary and does not mutate notes, work items, payments, inventory movements, or audit outbox state.
 - Chromium exercised focus switching, search, Detail navigation, lifecycle-valid Edit visibility, and the 360, 390x844, 412, 768, 992, and 1440x900 responsive matrix with no document/card overflow or history asset/runtime failure.
-- Pagination interaction remains conditionally rendered in the browser and is covered adversarially at the database/query boundary with eleven unfinished records over two pages.
+- Chromium clicked from page 1 to page 2 with a local eleven-row fixture; database/query tests independently prove totals and page contents are calculated after bucket classification.
 - Final repository `make verify` passed: PHPStan analyzed 2,017 files with no errors, contract audits passed, and 1,582 tests completed with 10,103 assertions.
 
 ## Remaining GAP
