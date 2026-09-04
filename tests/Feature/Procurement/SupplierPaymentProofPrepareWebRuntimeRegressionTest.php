@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Procurement;
 
 use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
+use App\Ports\Out\Procurement\SupplierPaymentProofFailureCode;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -68,7 +69,8 @@ final class SupplierPaymentProofPrepareWebRuntimeRegressionTest extends TestCase
         $log->shouldHaveReceived('error')->once()->with(
             'supplier_payment_proof_direct_upload_failure',
             Mockery::on(static function (array $context) use ($intent): bool {
-                return ($context['stage'] ?? null) === 'prepare.presign.exception'
+                return ($context['stage'] ?? null) === 'prepare.presign'
+                    && ($context['failure_code'] ?? null) === SupplierPaymentProofFailureCode::STORAGE_RESOLUTION_EXCEPTION->value
                     && ($context['exception_class'] ?? null) === 'InvalidArgumentException'
                     && ($context['runtime']['config_cached'] ?? null) === app()->configurationIsCached()
                     && ($context['context']['upload_intent_id'] ?? null) === (string) $intent->id
