@@ -21,7 +21,6 @@ trait BuildsProcurementInvoiceTableRowPayload
 
         $paymentActionKind = $outstandingRupiah > 0 ? 'payment_proof' : 'proof';
         $paymentActionLabel = $outstandingRupiah > 0 ? 'Bayar' : 'Bukti Bayar';
-        $paymentActionMode = $outstandingRupiah > 0 ? 'modal' : 'link';
 
         return [
             'supplier_invoice_id' => $supplierInvoiceId,
@@ -45,7 +44,7 @@ trait BuildsProcurementInvoiceTableRowPayload
             'payment_action_enabled' => ! $isVoided,
             'payment_action_kind' => $paymentActionKind,
             'payment_action_label' => $paymentActionLabel,
-            'payment_action_mode' => $paymentActionMode,
+            'payment_action_mode' => 'link',
             'payment_action_url' => route('admin.procurement.supplier-invoices.payment-proofs.show', [
                 'supplierInvoiceId' => $supplierInvoiceId,
             ]),
