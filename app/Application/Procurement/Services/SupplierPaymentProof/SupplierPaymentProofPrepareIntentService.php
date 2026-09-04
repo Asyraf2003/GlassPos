@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Application\Procurement\Services\SupplierPaymentProof;
 
 use App\Application\Shared\DTO\Result;
+use App\Ports\Out\Procurement\SupplierPaymentProofFailureCode;
+use App\Ports\Out\Procurement\SupplierPaymentProofFailureReporterPort;
 use App\Ports\Out\Procurement\SupplierPaymentProofUploadIntentPort;
 
 final class SupplierPaymentProofPrepareIntentService
@@ -14,6 +16,7 @@ final class SupplierPaymentProofPrepareIntentService
         private readonly SupplierPaymentProofPreparedIntentEvaluator $evaluator,
         private readonly SupplierPaymentProofPrepareScopePreflight $preflight,
         private readonly SupplierPaymentProofPrepareIntentCreator $creator,
+        private readonly SupplierPaymentProofFailureReporterPort $failures,
     ) {}
 
     /** @param array<string,mixed> $request */
@@ -49,6 +52,21 @@ final class SupplierPaymentProofPrepareIntentService
             $request['idempotency_key'],
         );
 
-        return $raced === null ? $created : $this->evaluator->evaluate($raced, $request['request_hash']);
+        if ($raced !== null) {
+            return $this->evaluator->evaluate($raced, $request['request_hash']);
+        }
+
+        $this->failures->report(
+            'prepare.intent.persist',
+            SupplierPaymentProofFailureCode::PREPARE_INTENT_NOT_AVAILABLE,
+            null,
+            [
+                'scope_type' => (string) $request['scope_type'],
+                'scope_id' => (string) $request['scope_id'],
+                'file_count' => count($request['files']),
+            ],
+        );
+
+        return $created;
     }
 }
