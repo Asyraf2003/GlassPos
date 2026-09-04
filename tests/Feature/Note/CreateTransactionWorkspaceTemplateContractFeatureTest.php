@@ -69,7 +69,6 @@ final class CreateTransactionWorkspaceTemplateContractFeatureTest extends TestCa
         $response->assertSee('data-product-lines', false);
         $response->assertSee('data-product-line-template', false);
         $response->assertSee('__PRODUCT_INDEX__', false);
-        $response->assertSee('data-add-product-line', false);
         $response->assertSee('data-remove-product-line', false);
 
         $blade = (string) file_get_contents(resource_path('views/cashier/notes/workspace/partials/templates/service-store-stock.blade.php'));
@@ -105,5 +104,4 @@ final class CreateTransactionWorkspaceTemplateContractFeatureTest extends TestCa
         $response->assertSee('packageLookupEndpoint', false);
         $response->assertSee('/cashier/notes/packages/lookup', false);
     }
-
 }

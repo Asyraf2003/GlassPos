@@ -1,31 +1,54 @@
-<details class="workspace-step-card" open>
-    <summary class="workspace-step-header workspace-details-summary">
-        <span class="workspace-step-number">2</span>
-        <div class="flex-grow-1">
-            <h4 class="workspace-step-title">Buat Rincian Nota</h4>
-            <p class="workspace-step-help">Setiap rincian tampil seperti jawaban form yang bisa ditambah sesuai kebutuhan.</p>
-        </div>
-        <span class="workspace-details-toggle" aria-hidden="true">
-            <i class="bi bi-chevron-down"></i>
-        </span>
-    </summary>
-
-    <div class="workspace-step-body">
-        <div class="position-relative workspace-add-question-wrap mb-3">
-            <button type="button" class="btn workspace-add-question-button w-100" id="workspace-add-button">
-                <span class="workspace-add-question-icon" aria-hidden="true">+</span>
-                Tambah Rincian
-            </button>
-            @include('cashier.notes.workspace.partials.item-type-menu')
-        </div>
-
-        <div id="workspace-line-items" data-next-index="{{ count($oldItems) }}"></div>
-
-        <div id="workspace-empty-state" class="workspace-empty-answer text-center text-muted">
-            Belum ada rincian. Tekan tombol tambah dan pilih jenis rincian yang sesuai.
+<section class="workspace-panel workspace-entry-panel">
+    <div class="workspace-panel-heading">
+        <div>
+            <div class="workspace-panel-eyebrow">Transaksi</div>
+            <h4 class="workspace-panel-title">Pilih jenis transaksi</h4>
+            <p class="workspace-panel-help mb-0">Pilihan langsung menambahkan satu rincian ke nota aktif.</p>
         </div>
     </div>
-</details>
+
+    <div class="workspace-type-grid" id="workspace-type-selector">
+        @foreach ($itemTypeOptions as $option)
+            <button
+                type="button"
+                class="workspace-type-choice"
+                data-add-item-type="{{ $option['type'] }}"
+            >
+                <span class="workspace-type-icon" aria-hidden="true">
+                    @switch($option['type'])
+                        @case('product')
+                            <i class="bi bi-box-seam"></i>
+                            @break
+                        @case('service')
+                            <i class="bi bi-tools"></i>
+                            @break
+                        @case('service_store_stock')
+                            <i class="bi bi-wrench-adjustable-circle"></i>
+                            @break
+                        @default
+                            <i class="bi bi-bag-plus"></i>
+                    @endswitch
+                </span>
+                <span>{{ $option['label'] }}</span>
+            </button>
+        @endforeach
+    </div>
+
+    <div class="workspace-lines-heading">
+        <div>
+            <div class="workspace-panel-eyebrow">Rincian aktif</div>
+            <div class="small text-muted">Cari lalu pilih item yang akan masuk ke nota.</div>
+        </div>
+        <span class="workspace-line-count" id="workspace-line-count">0 item</span>
+    </div>
+
+    <div id="workspace-line-items" data-next-index="{{ count($oldItems) }}"></div>
+
+    <div id="workspace-empty-state" class="workspace-empty-state">
+        <i class="bi bi-receipt" aria-hidden="true"></i>
+        <span>Pilih salah satu jenis transaksi untuk mulai membuat nota.</span>
+    </div>
+</section>
 
 @include('cashier.notes.workspace.partials.templates.product')
 @include('cashier.notes.workspace.partials.templates.service')

@@ -293,7 +293,7 @@
     if (!rows.length) {
       return {
         message: "Tambahkan minimal satu rincian nota sebelum proses nota.",
-        target: byId("workspace-add-button"),
+        target: byId("workspace-type-selector"),
       };
     }
 
@@ -607,7 +607,8 @@
 
   NS.refreshPaymentUi = (total = grandTotal()) => {
     const noteDate = byId("note_transaction_date")?.value || "";
-    updateHidden("inline_payment_paid_at_hidden", noteDate);
+    const paymentDate = byId("inline_payment_paid_at_display")?.value || noteDate;
+    updateHidden("inline_payment_paid_at_hidden", paymentDate);
 
     resetUnavailablePaymentMode(total);
     syncDialogWidth();
@@ -751,6 +752,60 @@
     showPaymentModal();
   };
 
+  const submitPreparedForm = () => {
+    const form = formEl();
+    if (!form) return false;
+
+    if (typeof form.requestSubmit === "function") {
+      form.requestSubmit();
+    } else {
+      form.submit();
+    }
+
+    return true;
+  };
+
+  NS.submitSimplePayment = (action, partial = 0) => {
+    if (!ensureWorkspaceReadyForPayment()) return false;
+
+    const total = grandTotal();
+    const payable = effectivePaymentTotal(total);
+    const paidAt = byId("note_transaction_date")?.value || "";
+
+    if (action === "skip") {
+      applyMode("skip");
+      updateHidden("inline_payment_paid_at_hidden", paidAt);
+      return submitPreparedForm();
+    }
+
+    if (payable <= 0) {
+      showWorkspaceValidationError("Nota sudah tidak memiliki sisa tagihan.");
+      return false;
+    }
+
+    if (action === "partial" && (partial <= 0 || partial >= payable)) {
+      showWorkspaceValidationError(
+        "Nominal pembayaran sebagian harus lebih dari 0 dan lebih kecil dari total tagihan.",
+        byId("workspace-simple-partial-amount")
+      );
+      return false;
+    }
+
+    applyMode(action === "partial" ? "partial" : "full");
+    updateHidden("inline_payment_method_hidden", "cash");
+    updateHidden("inline_payment_paid_at_hidden", paidAt);
+
+    const cashAmount = action === "partial" ? partial : payable;
+    updateHidden(
+      "inline_payment_amount_paid_rupiah",
+      action === "partial" ? cashAmount : ""
+    );
+    updateHidden("inline_payment_amount_received_rupiah", cashAmount);
+    NS.refreshPaymentUi(total);
+
+    return submitPreparedForm();
+  };
+
   document.addEventListener("click", (event) => {
     if (event.target.closest("#workspace-open-payment-dialog")) {
       if (!ensureWorkspaceReadyForPayment()) {
@@ -820,6 +875,10 @@
 
     if (event.target.id === "note_transaction_date") {
       NS.refreshPaymentUi();
+    }
+
+    if (event.target.id === "inline_payment_paid_at_display") {
+      updateHidden("inline_payment_paid_at_hidden", event.target.value || "");
     }
   });
 

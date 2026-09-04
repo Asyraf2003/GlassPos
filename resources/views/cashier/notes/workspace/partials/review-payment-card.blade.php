@@ -1,39 +1,67 @@
-<details class="workspace-step-card" open>
-    <summary class="workspace-step-header workspace-details-summary">
-        <span class="workspace-step-number">4</span>
-        <div class="flex-grow-1">
-            <h4 class="workspace-step-title">Review & Pembayaran</h4>
-            <p class="workspace-step-help">
-                Cek total, lalu pilih bayar penuh, bayar sebagian, atau simpan tanpa pembayaran.
-            </p>
+<section class="workspace-panel workspace-checkout-panel">
+    <div class="workspace-checkout-heading">
+        <div>
+            <div class="workspace-panel-eyebrow">Nota Aktif</div>
+            <h4 class="workspace-panel-title">Review & Pembayaran</h4>
         </div>
-        <span class="workspace-details-toggle" aria-hidden="true">
-            <i class="bi bi-chevron-down"></i>
-        </span>
-    </summary>
+        <span class="workspace-line-count" id="workspace-summary-line-count">0 item</span>
+    </div>
 
-    <div class="workspace-step-body">
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-            <div>
-                <div class="small text-muted">Total Biaya Nota</div>
-                <div class="fs-4 fw-bold lh-sm" id="workspace-note-total-text">0</div>
+    <div class="workspace-active-lines" id="workspace-active-line-summary">
+        <div class="workspace-active-lines-empty">Belum ada rincian.</div>
+    </div>
+
+    <div class="workspace-checkout-total">
+        <span>Total</span>
+        <strong><span class="workspace-currency">Rp</span><span id="workspace-note-total-text">0</span></strong>
+    </div>
+
+    <div class="workspace-simple-actions" data-simple-only>
+        <div class="workspace-action-grid">
+            <button type="button" class="btn btn-outline-primary" data-simple-payment-action="skip">
+                Simpan Nota
+            </button>
+            <button type="button" class="btn btn-outline-primary" data-simple-payment-action="partial">
+                Bayar Sebagian
+            </button>
+            <button type="button" class="btn btn-primary" data-simple-payment-action="full">
+                Bayar Penuh
+            </button>
+        </div>
+
+        <div class="workspace-partial-quick d-none" id="workspace-simple-partial-panel">
+            <label for="workspace-simple-partial-amount" class="form-label">Nominal dibayar sekarang</label>
+            <div class="workspace-partial-input-row">
+                <div class="workspace-money-prefix">
+                    <span>Rp</span>
+                    <input
+                        type="text"
+                        inputmode="numeric"
+                        autocomplete="off"
+                        id="workspace-simple-partial-amount"
+                        class="form-control"
+                        placeholder="0"
+                    >
+                </div>
+                <button type="button" class="btn btn-primary" id="workspace-simple-partial-submit">Bayar</button>
             </div>
-
-            <div class="ui-form-actions justify-content-sm-end">
-                <button type="button" class="btn btn-primary" id="workspace-open-payment-dialog">
-                    Proses Nota
-                </button>
-
-                @if (($workspaceMode ?? 'create') === 'edit' && ($canShowRefundModal ?? false))
-                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#workspace-refund-modal">
-                        Pengembalian Dana
-                    </button>
-                @endif
-
-                <a href="{{ $cancelAction ?? route('cashier.notes.index') }}" class="btn btn-outline-secondary">
-                    Batal
-                </a>
-            </div>
+            <button type="button" class="workspace-text-button" id="workspace-simple-partial-cancel">Batal pembayaran sebagian</button>
         </div>
     </div>
-</details>
+
+    <div class="workspace-detail-actions" data-detail-only>
+        <button type="button" class="btn btn-primary w-100" id="workspace-open-payment-dialog">
+            Proses Nota
+        </button>
+
+        @if (($workspaceMode ?? 'create') === 'edit' && ($canShowRefundModal ?? false))
+            <button type="button" class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#workspace-refund-modal">
+                Pengembalian Dana
+            </button>
+        @endif
+    </div>
+
+    <a href="{{ $cancelAction ?? route('cashier.notes.index') }}" class="workspace-cancel-link" data-detail-only>
+        Batal dan kembali
+    </a>
+</section>

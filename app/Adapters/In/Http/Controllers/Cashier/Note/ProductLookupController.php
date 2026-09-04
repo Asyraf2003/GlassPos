@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Adapters\In\Http\Controllers\Cashier\Note;
 
 use App\Application\Note\Services\CashierNoteProductLookupData;
-use App\Application\ServiceProductTemplate\DTO\ServiceProductTemplateLookupRow;
 use App\Application\ProductCatalog\DTO\ProductLookupRow;
+use App\Application\ServiceProductTemplate\DTO\ServiceProductTemplateLookupRow;
 use App\Ports\Out\ServiceProductTemplate\ServiceProductTemplateLookupReaderPort;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -64,6 +64,10 @@ final class ProductLookupController extends Controller
         $row = [
             'id' => $product->id,
             'label' => $product->label(),
+            'name' => $product->namaBarang,
+            'brand' => $product->merek,
+            'size' => $product->ukuran,
+            'code' => $product->kodeBarang,
             'available_stock' => $product->availableStock,
             'default_unit_price_rupiah' => $product->defaultUnitPriceRupiah,
             'minimum_unit_price_rupiah' => $product->minimumUnitPriceRupiah,

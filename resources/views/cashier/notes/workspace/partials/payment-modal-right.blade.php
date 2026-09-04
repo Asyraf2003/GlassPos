@@ -78,5 +78,19 @@
             </div>
         </div>
 
+        <div class="workspace-gform-panel mt-3">
+            <div class="fw-semibold mb-2">Tanggal Pembayaran</div>
+            <div class="form-group mb-0">
+                <label for="inline_payment_paid_at_display" class="form-label">Tanggal Bayar</label>
+                <input
+                    type="date"
+                    data-ui-date="single"
+                    id="inline_payment_paid_at_display"
+                    value="{{ $oldInlinePayment['paid_at'] ?? $oldNote['transaction_date'] }}"
+                    class="form-control"
+                >
+            </div>
+        </div>
+
     </div>
 </div>

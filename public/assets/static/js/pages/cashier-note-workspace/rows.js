@@ -66,7 +66,7 @@
     if (el && value !== undefined && value !== null) el.value = String(value);
   };
 
-	  const setProductLineValues = (row, scope, line = {}, selectedLabel = "") => {
+  const setProductLineValues = (row, scope, line = {}, selectedLabel = "") => {
     if (!(scope instanceof HTMLElement)) return;
 
     setValue(scope, "[data-product-search]", line?.selected_label || line?.product_label || selectedLabel || "");
@@ -78,7 +78,9 @@
     if (line?.available_stock !== undefined && line?.available_stock !== null) {
       NS.updateStockText?.(row, line.available_stock, scope);
     }
-	  };
+
+    NS.restoreSelectedProduct?.(row, scope, line, selectedLabel);
+  };
 
 	  const externalLineTotal = (line = {}) => {
 	    const total = digits(line?.total_rupiah || "");
@@ -333,6 +335,7 @@
 
 	      reindexProductLines(row);
       updateAddProductLineState(row);
+	      NS.restorePackageSelection?.(row, item);
 	      return;
     }
 
@@ -344,17 +347,31 @@
 
     if (type === "product") {
       NS.updateStockText(row, item?.available_stock || 0);
+      NS.restoreSelectedProduct?.(
+        row,
+        row.querySelector("[data-product-line]") || row,
+        item?.product_lines?.[0] || {},
+        item?.selected_label || ""
+      );
     }
   };
 
   NS.renumberRows = () => {
-    document.querySelectorAll("[data-line-item]").forEach((row, index) => {
+    const rows = document.querySelectorAll("[data-line-item]");
+    rows.forEach((row, index) => {
       const title = row.querySelector("[data-line-title]");
       if (title) title.textContent = titleByType(row.dataset.itemType || "", index + 1);
     });
+
+    const label = `${rows.length} item`;
+    const lineCount = document.getElementById("workspace-line-count");
+    const summaryLineCount = document.getElementById("workspace-summary-line-count");
+    if (lineCount) lineCount.textContent = label;
+    if (summaryLineCount) summaryLineCount.textContent = label;
   };
 
   NS.removeRow = (row) => {
+    if (!(row instanceof HTMLElement)) return;
     row.remove();
     const emptyState = document.getElementById("workspace-empty-state");
     if (!document.querySelector("[data-line-item]")) emptyState?.classList.remove("d-none");

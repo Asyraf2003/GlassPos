@@ -1,11 +1,16 @@
 <template id="workspace-template-service_store_stock">
-    <div class="workspace-answer-card" data-line-item data-item-type="service_store_stock">
-        <div class="workspace-answer-header">
+    <article class="workspace-line-card" data-line-item data-item-type="service_store_stock">
+        <div class="workspace-line-header">
             <div>
-                <h6 class="mb-0 small fw-semibold" data-line-title>Rincian</h6>
-                <small class="text-muted">Cari paket servis. Produk dan jasa terisi otomatis dari template.</small>
+                <div class="workspace-line-kind">Servis + Sparepart Toko</div>
+                <h5 class="workspace-line-title" data-line-title>Servis + Sparepart Toko</h5>
             </div>
-            <button type="button" class="btn btn-sm btn-outline-danger py-1" data-remove-line>Hapus</button>
+            <div class="workspace-line-header-actions">
+                <strong class="workspace-line-total"><span class="workspace-currency">Rp</span><span data-line-total-text>0</span></strong>
+                <button type="button" class="workspace-remove-button" data-remove-line aria-label="Hapus rincian">
+                    <i class="bi bi-trash3"></i>
+                </button>
+            </div>
         </div>
 
         <input type="hidden" name="items[__INDEX__][entry_mode]" value="service">
@@ -16,46 +21,39 @@
         <input type="hidden" name="items[__INDEX__][service][notes]" value="">
         <input type="hidden" value="" data-service-catalog-id>
         <input type="hidden" value="" data-service-default-fee-rupiah>
-
-        <input
-            type="hidden"
-            name="items[__INDEX__][service][name]"
-            value=""
-            data-service-name
-            data-template-service-name
-        >
-        <input
-            type="hidden"
-            name="items[__INDEX__][service][price_rupiah]"
-            value="0"
-            data-money-raw
-            data-service-price-raw
-        >
+        <input type="hidden" name="items[__INDEX__][service][name]" value="" data-service-name data-template-service-name>
+        <input type="hidden" name="items[__INDEX__][service][price_rupiah]" value="0" data-money-raw data-service-price-raw>
         <input type="hidden" value="" data-service-price-display>
 
-        <div class="workspace-answer-field">
-            <label class="form-label small mb-1">Paket Service x Product <span class="text-danger">*</span></label>
-            <div class="position-relative">
+        <div class="workspace-search-stage" data-package-search-stage>
+            <label class="form-label">Cari paket servis</label>
+            <div class="workspace-search-wrap">
+                <i class="bi bi-search workspace-search-icon" aria-hidden="true"></i>
                 <input
-                    type="text"
-                    class="form-control form-control-sm"
-                    placeholder="Cari paket, service, atau produk"
+                    type="search"
+                    class="form-control"
+                    placeholder="Ketik servis atau sparepart"
                     autocomplete="off"
+                    enterkeyhint="search"
                     data-package-search
                 >
-                <div class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 20;" data-package-results></div>
+                <div class="workspace-search-results d-none" data-package-results></div>
             </div>
-            <small class="text-muted d-block mt-1">
-                Pilih paket. Service wajib, Produk 1 wajib, Produk 2 dan 3 opsional dari template.
-            </small>
+            <small class="workspace-search-hint">Hanya paket aktif. Maksimal 3 sparepart per paket.</small>
             <small class="text-danger d-none" data-package-error>Paket wajib dipilih.</small>
         </div>
 
-        <div class="rounded border bg-light p-2 d-none" data-package-selected-section>
-            <div class="small text-muted">Paket terpilih</div>
-            <div class="fw-semibold small" data-package-title>-</div>
-            <div class="small text-muted mt-1" data-package-description>-</div>
-            <div class="small text-muted mt-1" data-package-stock-text>-</div>
+        <div class="workspace-selected-card d-none" data-package-selected-section>
+            <div class="workspace-selected-main">
+                <div class="workspace-selected-icon"><i class="bi bi-wrench-adjustable-circle"></i></div>
+                <div class="workspace-selected-copy">
+                    <strong data-package-title>Paket terpilih</strong>
+                    <span data-package-description></span>
+                    <span data-package-stock-text></span>
+                </div>
+                <button type="button" class="workspace-change-button" data-package-change>Ganti</button>
+            </div>
+            <div class="workspace-package-products" data-package-product-list></div>
         </div>
 
         <div class="d-none" data-product-lines>
@@ -86,5 +84,5 @@
                 </div>
             </template>
         </div>
-    </div>
+    </article>
 </template>

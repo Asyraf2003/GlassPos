@@ -177,8 +177,12 @@
 
   const numberText = (value) => String(value ?? "").replace(/\D+/g, "");
 	  const valueOf = (selector, root = document) => root.querySelector(selector)?.value || "";
-	  const packageLabelFromRow = (row) =>
-	    valueOf("[data-package-search]", row) || valueOf("[data-product-search]", row);
+  const selectedProductLabel = (scope) => {
+    const input = scope.querySelector("[data-product-search]");
+    return input?.dataset.selectedLabel || input?.value || "";
+  };
+  const packageLabelFromRow = (row) =>
+    row.dataset.selectedPackageLabel || valueOf("[data-package-search]", row) || selectedProductLabel(row);
 
   const productLineScopes = (row) => {
     const scopes = Array.from(row.querySelectorAll("[data-product-line]"));
@@ -191,7 +195,7 @@
 	      qty: numberText(valueOf("[data-qty-input]", scope)) || "1",
 	      unit_price_rupiah: numberText(valueOf('input[name$="[unit_price_rupiah]"]', scope)),
 	      price_basis: valueOf("[data-price-basis]", scope) || "current_catalog",
-	      selected_label: valueOf("[data-product-search]", scope),
+	      selected_label: selectedProductLabel(scope),
 	    }));
 
 	  const firstProductLineFromRow = (row) => {
@@ -211,7 +215,7 @@
         ...base,
 	        entry_mode: "product",
 	        part_source: "store_stock",
-	        selected_label: valueOf("[data-product-search]", row),
+	        selected_label: selectedProductLabel(row),
 	        product_lines: firstProductLineFromRow(row),
 	      };
 	    }

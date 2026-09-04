@@ -25,6 +25,10 @@ final class CashierProductLookupServiceProductTemplateFeatureTest extends TestCa
         $response->assertJsonPath('success', true);
         $response->assertJsonCount(1, 'data.rows');
         $response->assertJsonPath('data.rows.0.id', 'product-template-lookup-1');
+        $response->assertJsonPath('data.rows.0.name', 'Ban Template Lookup');
+        $response->assertJsonPath('data.rows.0.brand', 'Federal');
+        $response->assertJsonPath('data.rows.0.size', 80);
+        $response->assertJsonPath('data.rows.0.code', 'SPT-LOOKUP-001');
         $response->assertJsonPath('data.rows.0.default_unit_price_rupiah', 125000);
 
         $row = $response->json('data.rows.0');

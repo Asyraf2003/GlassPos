@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
-use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -130,6 +130,7 @@ final class EditTransactionWorkspacePageFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Edit Nota');
+        $response->assertSee('data-presentation-mode="detail"', false);
         $response->assertSee('Budi Santoso');
         $response->assertSee('08123456789');
         $response->assertSee('Proses Nota');
@@ -146,6 +147,7 @@ final class EditTransactionWorkspacePageFeatureTest extends TestCase
         $response->assertSee('Bayar Sebagian');
         $response->assertDontSee('Refund');
     }
+
     public function test_cashier_edit_workspace_renders_backend_payment_settlement_explanation_for_partially_paid_note(): void
     {
         $this->loginAsKasir();
@@ -345,5 +347,4 @@ final class EditTransactionWorkspacePageFeatureTest extends TestCase
         $response->assertSee('Bayar Penuh memakai sisa tagihan dari sistem.');
         $response->assertSee('Transfer mencatat nominal itu; tunai membuka kalkulator kembalian.');
     }
-
 }

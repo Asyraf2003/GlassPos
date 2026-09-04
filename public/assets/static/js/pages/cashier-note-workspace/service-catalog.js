@@ -22,6 +22,23 @@
   const defaultFeeInput = (row) => row.querySelector("[data-service-default-fee-rupiah]");
   const catalogIdInput = (row) => row.querySelector("[data-service-catalog-id]");
 
+  const setServiceSelectedState = (row, name, price) => {
+    const selected = row.querySelector("[data-service-selected]");
+    if (!selected) return;
+
+    row.querySelector("[data-service-search-stage]")?.classList.add("d-none");
+    selected.classList.remove("d-none");
+    const nameText = selected.querySelector("[data-selected-service-name]");
+    const priceText = selected.querySelector("[data-selected-service-price]");
+    if (nameText) nameText.textContent = name || "Servis terpilih";
+    if (priceText) priceText.textContent = price > 0 ? `Rp${format(price)}` : "Harga belum diisi";
+  };
+
+  const clearServiceSelectedState = (row) => {
+    row.querySelector("[data-service-selected]")?.classList.add("d-none");
+    row.querySelector("[data-service-search-stage]")?.classList.remove("d-none");
+  };
+
   const setMoney = (raw, display, amount) => {
     if (raw) raw.value = amount > 0 ? String(amount) : "";
     if (display) display.value = amount > 0 ? format(amount) : "";
@@ -130,9 +147,12 @@
     row.dataset.serviceNameManual = "1";
     row.dataset.serviceTemplateAutofilled = "0";
 
-	    setDefaultFee(row, digits(item.default_price_rupiah), forceDisplay);
+	    const price = digits(item.default_price_rupiah);
+	    setDefaultFee(row, price, forceDisplay);
+	    setServiceSelectedState(row, item.label || "", price);
 	    clearResults(row);
     NS.updateSummary?.();
+    NS.focusElement?.(serviceDisplay(row));
   };
 
   const renderResults = (row, items) => {
@@ -143,9 +163,15 @@
     items.forEach((item) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "list-group-item list-group-item-action";
+      button.className = "workspace-search-result";
       button.dataset.serviceChoice = "1";
-      button.textContent = `${item.label} · ${format(item.default_price_rupiah)}`;
+      const name = document.createElement("span");
+      name.className = "workspace-result-primary";
+      name.textContent = item.label || "Servis";
+      const price = document.createElement("span");
+      price.className = "workspace-result-additional";
+      price.textContent = `Rp${format(item.default_price_rupiah)}`;
+      button.append(name, price);
       button.addEventListener("click", () => selectService(row, item, true));
       results.appendChild(button);
     });
@@ -157,7 +183,7 @@
   const fetchServices = async (row, query) => {
     const endpoint = NS.config?.serviceLookupEndpoint;
     const input = serviceNameInput(row);
-    if (!endpoint || !input) return [];
+    if (!endpoint || !input || String(query || "").trim().length < 2) return [];
 
     const token = Symbol("service-search");
     requestTokens.set(input, token);
@@ -266,6 +292,17 @@
     if (existingFee <= 0 && rawFee > 0) setDefaultFee(row, rawFee, false);
 
     syncPackageTotal(row, options.force === true);
+
+    const name = serviceNameInput(row)?.value?.trim() || "";
+    if (name !== "") {
+      setServiceSelectedState(row, name, digits(serviceRaw(row)?.value));
+    }
+  };
+
+  NS.restoreSelectedService = (row) => {
+    const name = serviceNameInput(row)?.value?.trim() || "";
+    if (name === "") return;
+    setServiceSelectedState(row, name, digits(serviceRaw(row)?.value));
   };
 
   NS.bindServiceCatalog = (row) => {
@@ -286,15 +323,21 @@
 	    }
 
     input.addEventListener("input", () => {
+      requestTokens.set(input, Symbol("service-search-input"));
       row.dataset.serviceNameManual = "1";
       row.dataset.serviceTemplateAutofilled = "0";
       catalogIdInput(row)?.setAttribute("value", "");
       if (catalogIdInput(row)) catalogIdInput(row).value = "";
+      clearServiceSelectedState(row);
       clearTimeout(timers.get(input));
       timers.set(input, setTimeout(async () => renderResults(row, await fetchServices(row, input.value)), 250));
     });
 
-    input.addEventListener("focus", async () => renderResults(row, await fetchServices(row, input.value)));
+    input.addEventListener("focus", async () => {
+      if (input.value.trim().length >= 2) {
+        renderResults(row, await fetchServices(row, input.value));
+      }
+    });
     input.addEventListener("keydown", (event) => {
       const buttons = resultButtons(row);
       if (!buttons.length) return;
@@ -309,12 +352,16 @@
       } else if (event.key === "Enter") {
         event.preventDefault();
         buttons[activeChoiceIndexes.get(row) ?? 0]?.click();
+      } else if (event.key === "Escape") {
+        clearResults(row);
       }
     });
     input.addEventListener("blur", () => setTimeout(() => void ensureCatalog(row), 150));
 
     serviceDisplay(row)?.addEventListener("input", () => {
       row.dataset.servicePriceManual = "1";
+      const name = serviceNameInput(row)?.value?.trim() || "";
+      if (name !== "") setServiceSelectedState(row, name, digits(serviceDisplay(row)?.value));
     });
     serviceDisplay(row)?.addEventListener("blur", () => void ensureCatalog(row));
 
@@ -326,6 +373,18 @@
 
     document.addEventListener("click", (event) => {
       if (event.target instanceof Node && !row.contains(event.target)) clearResults(row);
+    });
+
+    row.querySelector("[data-service-change]")?.addEventListener("click", () => {
+      clearServiceSelectedState(row);
+      input.value = "";
+      if (catalogIdInput(row)) catalogIdInput(row).value = "";
+      if (defaultFeeInput(row)) defaultFeeInput(row).value = "";
+      setMoney(serviceRaw(row), serviceDisplay(row), 0);
+      row.dataset.serviceNameManual = "0";
+      clearResults(row);
+      NS.updateSummary?.();
+      NS.focusElement?.(input);
     });
 
     NS.syncServiceDefaults(row);

@@ -95,9 +95,67 @@
       productTotal: NS.rowProductTotal(row),
     }));
 
+  const rowLabel = (row) => {
+    const type = row.dataset.itemType || "";
+    const product = row.querySelector("[data-selected-product-name]")?.textContent?.trim() || "";
+    const service = row.querySelector("[data-service-name]")?.value?.trim() || "";
+    const packageName = row.querySelector("[data-package-title]")?.textContent?.trim() || "";
+    const external = row
+      .querySelector('input[name$="[external_purchase_lines][0][label]"]')
+      ?.value?.trim() || "";
+
+    if (type === "product") return product || "Produk belum dipilih";
+    if (type === "service_store_stock") return packageName || service || "Paket belum dipilih";
+    if (type === "service_external") return [service, external].filter(Boolean).join(" + ") || "Servis + part luar";
+    return service || "Servis belum dipilih";
+  };
+
+  const rowQuantity = (row) =>
+    Array.from(row.querySelectorAll("[data-qty-input]")).reduce(
+      (sum, input) => sum + Math.max(digits(input.value), 0),
+      0
+    );
+
+  const renderActiveSummary = (rows) => {
+    const container = document.getElementById("workspace-active-line-summary");
+    if (!container) return;
+    container.replaceChildren();
+
+    if (!rows.length) {
+      const empty = document.createElement("div");
+      empty.className = "workspace-active-lines-empty";
+      empty.textContent = "Belum ada rincian.";
+      container.appendChild(empty);
+      return;
+    }
+
+    rows.forEach((item) => {
+      const line = document.createElement("div");
+      line.className = "workspace-active-line";
+      const copy = document.createElement("div");
+      copy.className = "workspace-active-line-copy";
+      const name = document.createElement("strong");
+      name.textContent = rowLabel(item.row);
+      const meta = document.createElement("span");
+      const qty = rowQuantity(item.row);
+      meta.textContent = `${NS.labelByType?.(item.row.dataset.itemType || "") || "Rincian"}${qty > 0 ? ` · qty ${qty}` : ""}`;
+      const total = document.createElement("strong");
+      total.textContent = `Rp${format(item.total)}`;
+      copy.append(name, meta);
+      line.append(copy, total);
+      container.appendChild(line);
+    });
+  };
+
   NS.updateSummary = () => {
     document.querySelectorAll("[data-line-item]").forEach((row) => NS.syncQtyGuard(row));
-    const grandTotal = NS.currentRows().reduce((sum, item) => sum + item.total, 0);
+    const rows = NS.currentRows();
+    rows.forEach((item) => {
+      const text = item.row.querySelector("[data-line-total-text]");
+      if (text) text.textContent = format(item.total);
+    });
+    renderActiveSummary(rows);
+    const grandTotal = rows.reduce((sum, item) => sum + item.total, 0);
     const totalText = document.getElementById("workspace-note-total-text");
     if (totalText) totalText.textContent = format(grandTotal);
     NS.refreshPaymentUi?.(grandTotal);

@@ -25,6 +25,49 @@
     if (el) el.textContent = String(value || "-");
   };
 
+  const packageTotal = (item) => {
+    const configured = digits(item?.service_product_template?.default_package_total_rupiah);
+    if (configured > 0) return configured;
+
+    const service = digits(item?.service?.price_rupiah);
+    const products = (item?.product_lines || []).reduce(
+      (sum, line) => sum + digits(line?.qty) * digits(line?.unit_price_rupiah),
+      0
+    );
+    return service + products;
+  };
+
+  const renderPackageProducts = (row, productLines) => {
+    const list = row.querySelector("[data-package-product-list]");
+    if (!list) return;
+    list.replaceChildren();
+
+    productLines.forEach((line) => {
+      const item = document.createElement("div");
+      item.className = "workspace-package-product";
+      const name = document.createElement("span");
+      name.textContent = `${line?.product_name || line?.label || "Sparepart"} × ${line?.qty || 1}`;
+      const detail = document.createElement("span");
+      detail.textContent = `Rp${format(digits(line?.qty) * digits(line?.unit_price_rupiah))} · stok ${line?.available_stock ?? "-"}`;
+      item.append(name, detail);
+      list.appendChild(item);
+    });
+  };
+
+  const showPackageSelected = (row, item, productLines) => {
+    const serviceName = String(item?.service?.name || item?.service_product_template?.service_name || "Paket servis").trim();
+    row.querySelector("[data-package-search-stage]")?.classList.add("d-none");
+    packageSelectedSection(row)?.classList.remove("d-none");
+    setText(row, "[data-package-title]", serviceName);
+    setText(
+      row,
+      "[data-package-description]",
+      `${productLines.length} sparepart · total Rp${format(packageTotal(item))}`
+    );
+    setText(row, "[data-package-stock-text]", item?.stock_label || "Stok mengikuti validasi server");
+    renderPackageProducts(row, productLines);
+  };
+
   const clearResults = (row) => {
     const results = packageResults(row);
     if (!results) return;
@@ -97,10 +140,11 @@
     row.dataset.serviceProductTemplateApplied = productLines.length > 0 ? "1" : "0";
     row.dataset.serviceTemplateAutofilled = productLines.length > 0 ? "1" : "0";
     row.dataset.selectedPackageId = String(item?.id || "");
+    row.dataset.selectedPackageLabel = String(item?.label || item?.service?.name || "");
     setValue(row, "[data-requires-service-product-template]", "1");
 
     const input = packageSearchInput(row);
-    if (input) input.value = String(item?.label || "");
+    if (input) input.value = "";
 
     const service = item?.service || {};
     const serviceTemplate = item?.service_product_template || {};
@@ -121,10 +165,7 @@
       applyProductLine(row, scope, productLines[index] || {});
     });
 
-    packageSelectedSection(row)?.classList.toggle("d-none", productLines.length === 0);
-    setText(row, "[data-package-title]", serviceName !== "" ? `Paket ${serviceName}` : item?.label || "");
-    setText(row, "[data-package-description]", item?.description || item?.label || "");
-    setText(row, "[data-package-stock-text]", item?.stock_label || "");
+    if (productLines.length > 0) showPackageSelected(row, item, productLines);
 
     row.querySelector("[data-package-error]")?.classList.add("d-none");
 
@@ -154,13 +195,24 @@
     rows.forEach((item) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "list-group-item list-group-item-action";
+      button.className = "workspace-search-result";
       button.dataset.packageChoice = "1";
-      button.textContent = item.label || item.description || "Paket";
+      const primary = document.createElement("span");
+      primary.className = "workspace-result-primary";
+      primary.textContent = item?.service?.name || item?.service_product_template?.service_name || "Paket servis";
+      const secondary = document.createElement("span");
+      secondary.className = "workspace-result-secondary";
+      secondary.textContent = (item?.product_lines || [])
+        .map((line) => `${line.product_name || line.label} × ${line.qty || 1}`)
+        .join(" + ");
+      const additional = document.createElement("span");
+      additional.className = "workspace-result-additional";
+      additional.textContent = `Rp${format(packageTotal(item))} · ${item.stock_label || "stok dicek server"}`;
+      button.append(primary, secondary, additional);
       button.addEventListener("click", () => {
         NS.applyPackageTemplate(row, item);
         clearResults(row);
-        NS.focusElement?.(packageSearchInput(row), false);
+        NS.focusElement?.(row.querySelector("[data-package-change]"), false);
       });
       results.appendChild(button);
     });
@@ -172,14 +224,13 @@
   const fetchPackages = async (row, input) => {
     const query = input.value.trim();
     const endpoint = NS.config?.packageLookupEndpoint;
+    const token = Symbol("package-search");
+    requestTokens.set(input, token);
 
     if (query.length < 2 || !endpoint) {
       clearResults(row);
       return;
     }
-
-    const token = Symbol("package-search");
-    requestTokens.set(input, token);
 
     try {
       const params = new URLSearchParams({ q: query });
@@ -206,6 +257,7 @@
     row.dataset.serviceProductTemplateApplied = "0";
     row.dataset.serviceTemplateAutofilled = "0";
     row.dataset.selectedPackageId = "";
+    row.dataset.selectedPackageLabel = "";
     setValue(row, "[data-requires-service-product-template]", "1");
 
     setValue(row, "[data-service-name]", "");
@@ -224,7 +276,24 @@
     });
 
     packageSelectedSection(row)?.classList.add("d-none");
+    row.querySelector("[data-package-search-stage]")?.classList.remove("d-none");
     NS.updateSummary?.();
+  };
+
+  NS.restorePackageSelection = (row, item) => {
+    if (!(row instanceof HTMLElement)) return;
+    const productLines = Array.isArray(item?.product_lines) ? item.product_lines.slice(0, 3) : [];
+    if (!productLines.some((line) => String(line?.product_id || "").trim() !== "")) return;
+
+    row.dataset.selectedPackageLabel = String(item?.selected_label || item?.service?.name || "Paket servis");
+    showPackageSelected(
+      row,
+      {
+        ...item,
+        stock_label: item?.stock_label || "Snapshot paket tersimpan",
+      },
+      productLines
+    );
   };
 
   NS.bindPackageSearch = (row) => {
@@ -238,6 +307,7 @@
     row.dataset.packageSearchBound = "1";
 
     input.addEventListener("input", () => {
+      requestTokens.set(input, Symbol("package-search-input"));
       clearPackageState(row);
       clearTimeout(timers.get(input));
       timers.set(input, setTimeout(() => void fetchPackages(row, input), 250));
@@ -267,6 +337,12 @@
       } else if (event.key === "Escape") {
         clearResults(row);
       }
+    });
+
+    row.querySelector("[data-package-change]")?.addEventListener("click", () => {
+      clearPackageState(row);
+      input.value = "";
+      NS.focusElement?.(input);
     });
 
     document.addEventListener("click", (event) => {

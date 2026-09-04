@@ -18,37 +18,12 @@
 
     NS.config = parseConfig();
 
-    const addButton = document.getElementById("workspace-add-button");
-    const addMenu = document.getElementById("workspace-item-type-menu");
     const form = document.getElementById("cashier-note-workspace-form");
     const customerName = document.getElementById("note_customer_name");
     const customerPhone = document.getElementById("note_customer_phone");
     const transactionDate = document.getElementById("note_transaction_date");
     const operationalNote = document.getElementById("note_operational_note");
     const paymentModal = document.getElementById("workspace-payment-modal");
-
-    const menuButtons = () =>
-      Array.from(addMenu?.querySelectorAll("[data-add-item-type]") || []);
-
-    const syncMenuButtonState = () => {
-      menuButtons().forEach((button) => {
-        button.classList.remove("btn-primary", "text-white", "shadow-sm");
-      });
-    };
-
-    const closeItemTypeMenu = () => {
-      if (!addMenu) return;
-
-      addMenu.classList.add("d-none");
-      syncMenuButtonState();
-    };
-
-    const openItemTypeMenu = () => {
-      if (!addMenu) return;
-
-      addMenu.classList.remove("d-none");
-      syncMenuButtonState();
-    };
 
     const hydrateNoteFields = () => {
       const note =
@@ -101,6 +76,10 @@
         payment.paid_at || transactionDate?.value || ""
       );
       setValue(
+        "inline_payment_paid_at_display",
+        payment.paid_at || transactionDate?.value || ""
+      );
+      setValue(
         "inline_payment_amount_paid_rupiah",
         payment.amount_paid_rupiah || ""
       );
@@ -110,27 +89,7 @@
       );
     };
 
-    addButton?.addEventListener("click", () => {
-      const isHidden = addMenu?.classList.contains("d-none");
-      if (isHidden) {
-        openItemTypeMenu();
-        return;
-      }
-
-      closeItemTypeMenu();
-    });
-
     document.addEventListener("click", (event) => {
-      if (addMenu && addButton) {
-        const clickedInsideMenu = addMenu.contains(event.target);
-        const clickedAddButton =
-          event.target === addButton || event.target.closest("#workspace-add-button");
-
-        if (!clickedInsideMenu && !clickedAddButton) {
-          closeItemTypeMenu();
-        }
-      }
-
       const removeButton = event.target.closest("[data-remove-line]");
       if (removeButton) {
         NS.removeRow?.(removeButton.closest("[data-line-item]"));
@@ -138,7 +97,6 @@
 
       const typeButton = event.target.closest("[data-add-item-type]");
       if (typeButton) {
-        closeItemTypeMenu();
         NS.addRow?.(typeButton.dataset.addItemType || "service");
       }
     });
