@@ -6,6 +6,7 @@ namespace Tests\Feature\Procurement;
 
 use App\Application\Shared\DTO\Result;
 use App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPort;
+use App\Ports\Out\Procurement\SupplierPaymentProofDirectUploadPreparation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SeedsMinimalProcurementFixture;
@@ -347,8 +348,11 @@ final class FakeSupplierPaymentProofDirectUploadPortForPrepareContract implement
     /** @var list<string> */
     public array $uploadIntentIds = [];
 
-    public function prepareMany(string $supplierPaymentId, array $files, int $expiresInSeconds = 900): array
-    {
+    public function prepareMany(
+        string $supplierPaymentId,
+        array $files,
+        int $expiresInSeconds = 900,
+    ): SupplierPaymentProofDirectUploadPreparation {
         $this->callCount++;
         $uploadIntentId = trim($supplierPaymentId);
         $this->uploadIntentIds[] = $uploadIntentId;
@@ -372,6 +376,6 @@ final class FakeSupplierPaymentProofDirectUploadPortForPrepareContract implement
             ];
         }
 
-        return $prepared;
+        return SupplierPaymentProofDirectUploadPreparation::success($prepared);
     }
 }
