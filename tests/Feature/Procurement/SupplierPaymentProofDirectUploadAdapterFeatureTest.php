@@ -104,18 +104,18 @@ final class SupplierPaymentProofDirectUploadAdapterFeatureTest extends TestCase
         $adapter = new LaravelSupplierPaymentProofDirectUploadAdapter($reporter);
 
         $cases = [
-            SupplierPaymentProofFailureCode::INVALID_INTENT_ID => [' ', [$this->file('supplier-payment-proof-uploads/x/a.upload', 'a.pdf', 'application/pdf', 1)]],
-            SupplierPaymentProofFailureCode::INVALID_FILE_COUNT => ['intent-empty', []],
-            SupplierPaymentProofFailureCode::INVALID_ORIGINAL_FILENAME => ['intent-name', [$this->file('supplier-payment-proof-uploads/intent-name/a.upload', '', 'application/pdf', 1)]],
-            SupplierPaymentProofFailureCode::INVALID_DECLARED_MIME => ['intent-mime', [$this->file('supplier-payment-proof-uploads/intent-mime/a.upload', 'a.txt', 'text/plain', 1)]],
-            SupplierPaymentProofFailureCode::INVALID_DECLARED_SIZE => ['intent-size', [$this->file('supplier-payment-proof-uploads/intent-size/a.upload', 'a.pdf', 'application/pdf', 10_485_761)]],
-            SupplierPaymentProofFailureCode::INVALID_STAGING_PATH => ['intent-path', [$this->file('supplier-payment-proofs/payment/final.pdf', 'a.pdf', 'application/pdf', 1)]],
+            [SupplierPaymentProofFailureCode::INVALID_INTENT_ID, ' ', [$this->file('supplier-payment-proof-uploads/x/a.upload', 'a.pdf', 'application/pdf', 1)]],
+            [SupplierPaymentProofFailureCode::INVALID_FILE_COUNT, 'intent-empty', []],
+            [SupplierPaymentProofFailureCode::INVALID_ORIGINAL_FILENAME, 'intent-name', [$this->file('supplier-payment-proof-uploads/intent-name/a.upload', '', 'application/pdf', 1)]],
+            [SupplierPaymentProofFailureCode::INVALID_DECLARED_MIME, 'intent-mime', [$this->file('supplier-payment-proof-uploads/intent-mime/a.upload', 'a.txt', 'text/plain', 1)]],
+            [SupplierPaymentProofFailureCode::INVALID_DECLARED_SIZE, 'intent-size', [$this->file('supplier-payment-proof-uploads/intent-size/a.upload', 'a.pdf', 'application/pdf', 10_485_761)]],
+            [SupplierPaymentProofFailureCode::INVALID_STAGING_PATH, 'intent-path', [$this->file('supplier-payment-proofs/payment/final.pdf', 'a.pdf', 'application/pdf', 1)]],
         ];
 
-        foreach ($cases as $expected => [$intentId, $files]) {
+        foreach ($cases as [$expected, $intentId, $files]) {
             $result = $adapter->prepareMany($intentId, $files);
             self::assertFalse($result->isSuccess());
-            self::assertSame($expected, $result->failureCode()?->value);
+            self::assertSame($expected, $result->failureCode());
         }
 
         self::assertCount(count($cases), $reporter->reports);
