@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Adapters\Out\Procurement;
 
+use App\Ports\Out\Procurement\SupplierPaymentProofFailureCode;
 use App\Ports\Out\Procurement\SupplierPaymentProofFailureReporterPort;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -25,18 +26,16 @@ final class LaravelSupplierPaymentProofFailureReporterAdapter implements Supplie
         'filesystem_adapter',
     ];
 
-    public function report(string $stage, Throwable $exception, array $context = []): void
-    {
+    public function report(
+        string $stage,
+        SupplierPaymentProofFailureCode $failureCode,
+        ?Throwable $exception = null,
+        array $context = [],
+    ): void {
         try {
-            Log::error('supplier_payment_proof_direct_upload_failure', [
+            $payload = [
                 'stage' => preg_replace('/[^a-z0-9._-]/i', '_', $stage) ?? 'unknown',
-                'exception_class' => $exception::class,
-                'exception_code' => (string) $exception->getCode(),
-                'exception_message' => SupplierPaymentProofFailureMessageSanitizer::sanitize(
-                    $exception->getMessage(),
-                    $this->configuredSecrets(),
-                ),
-                'exception_source' => basename($exception->getFile()).':'.$exception->getLine(),
+                'failure_code' => $failureCode->value,
                 'runtime' => [
                     'php_sapi' => PHP_SAPI,
                     'php_version' => PHP_VERSION,
@@ -45,7 +44,19 @@ final class LaravelSupplierPaymentProofFailureReporterAdapter implements Supplie
                     'config_cached' => app()->configurationIsCached(),
                 ],
                 'context' => array_intersect_key($context, array_flip(self::SAFE_CONTEXT_KEYS)),
-            ]);
+            ];
+
+            if ($exception !== null) {
+                $payload['exception_class'] = $exception::class;
+                $payload['exception_code'] = (string) $exception->getCode();
+                $payload['exception_message'] = SupplierPaymentProofFailureMessageSanitizer::sanitize(
+                    $exception->getMessage(),
+                    $this->configuredSecrets(),
+                );
+                $payload['exception_source'] = basename($exception->getFile()).':'.$exception->getLine();
+            }
+
+            Log::error('supplier_payment_proof_direct_upload_failure', $payload);
         } catch (Throwable) {
         }
     }
