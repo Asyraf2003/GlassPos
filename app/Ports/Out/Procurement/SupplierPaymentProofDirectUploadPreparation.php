@@ -21,7 +21,16 @@ final class SupplierPaymentProofDirectUploadPreparation
         private readonly ?SupplierPaymentProofFailureCode $failureCode,
     ) {}
 
-    /** @param list<array<string,mixed>> $files */
+    /**
+     * @param list<array{
+     * storage_path:string,
+     * original_filename:string,
+     * mime_type:string,
+     * file_size_bytes:int,
+     * upload_url:string,
+     * headers:array<string,string>
+     * }> $files
+     */
     public static function success(array $files): self
     {
         return new self($files, null);
@@ -37,7 +46,16 @@ final class SupplierPaymentProofDirectUploadPreparation
         return $this->failureCode === null;
     }
 
-    /** @return list<array<string,mixed>> */
+    /**
+     * @return list<array{
+     * storage_path:string,
+     * original_filename:string,
+     * mime_type:string,
+     * file_size_bytes:int,
+     * upload_url:string,
+     * headers:array<string,string>
+     * }>
+     */
     public function files(): array
     {
         return $this->files;
