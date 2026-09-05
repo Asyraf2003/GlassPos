@@ -1,0 +1,97 @@
+body:has(.cashier-note-workspace[data-device-class="handset"]) .layout-page-heading > h3 {
+    display: none;
+}
+
+.cashier-note-workspace[data-device-class="handset"] .workspace-pos-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.cashier-note-workspace[data-device-class="handset"] .workspace-order-pane {
+    bottom: calc(0.5rem + env(safe-area-inset-bottom));
+    position: sticky !important;
+    top: auto !important;
+    z-index: 25;
+}
+
+.cashier-note-workspace[data-device-class="handset"] .workspace-checkout-panel {
+    box-shadow: 0 -0.5rem 1.6rem rgba(15, 23, 42, 0.13);
+}
+
+.cashier-note-workspace[data-device-class="handset"] .workspace-active-lines,
+.cashier-note-workspace[data-device-class="handset"] .workspace-checkout-heading {
+    display: none !important;
+}
+
+.cashier-note-workspace[data-device-class="handset"] #workspace-payment-modal [data-handset-trim],
+.cashier-note-workspace[data-device-class="handset"][data-presentation-mode="detail"] #workspace-payment-modal [data-desktop-detail-only] {
+    display: none !important;
+}
+
+.cashier-note-workspace[data-device-class="handset"] #workspace-payment-modal [data-handset-payment-main] {
+    flex: 0 0 100%;
+    max-width: 100%;
+    width: 100%;
+}
+
+.cashier-note-workspace[data-device-class="handset"] #workspace-payment-modal-dialog {
+    margin: 0.5rem auto;
+    max-width: min(100% - 1rem, 44rem);
+}
+
+.cashier-note-workspace[data-device-class="desktop"] .workspace-order-pane {
+    bottom: auto !important;
+}
+
+@media (max-width: 991.98px) {
+    .cashier-note-workspace[data-device-class="desktop"] .workspace-order-pane {
+        position: static !important;
+    }
+
+    .cashier-note-workspace[data-device-class="desktop"] .workspace-active-lines {
+        display: grid !important;
+    }
+
+    .cashier-note-workspace[data-device-class="desktop"] .workspace-checkout-heading {
+        display: flex !important;
+    }
+}
+
+body[data-note-device="handset"] .note-detail-mobile-help {
+    display: none;
+}
+
+body[data-note-device="handset"] .note-detail-mobile-stack {
+    max-width: 720px;
+}
+
+body[data-note-device="desktop"] .note-detail-mobile-stack {
+    max-width: 1480px;
+}
+
+body[data-note-device="desktop"] .note-detail-mobile-stack-list {
+    align-items: start;
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(22rem, 0.75fr);
+}
+
+body[data-note-device="desktop"] .note-detail-mobile-step:nth-child(1),
+body[data-note-device="desktop"] .note-detail-mobile-step:nth-child(2) {
+    grid-column: 1;
+}
+
+body[data-note-device="desktop"] .note-detail-mobile-step:nth-child(3) {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    position: sticky;
+    top: 1rem;
+}
+
+body[data-note-device="desktop"] .note-detail-mobile-step:nth-child(4) {
+    grid-column: 1 / -1;
+}
+
+@media (display-mode: standalone) {
+    .cashier-note-workspace[data-device-class="handset"] {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}

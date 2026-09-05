@@ -107,7 +107,6 @@
     </style>
 
     <div class="cashier-home">
-
         <div class="cashier-home-grid">
             <a href="{{ route('cashier.notes.workspace.create') }}" class="cashier-home-card">
                 <span class="cashier-home-card-inner">
@@ -148,23 +147,27 @@
                     <span class="cashier-home-button">Buka</span>
                 </span>
             </a>
-                    <div class="cashier-home-card cashier-home-install-card" data-pwa-install-card>
-                <span class="cashier-home-card-inner">
-                    <span>
-                        <span class="cashier-home-title">Download App PWA</span>
-                        <span class="cashier-home-status d-block" data-pwa-install-status>Gunakan Chrome/Edge mobile, lalu tekan tombol install.</span>
-                    </span>
-                    <button type="button" class="cashier-home-button cashier-home-install-button" data-pwa-install-button>
-                        Download App
-                    </button>
-                </span>
-            </div>
 
+            @if ($isHandset ?? false)
+                <div class="cashier-home-card cashier-home-install-card" data-pwa-install-card>
+                    <span class="cashier-home-card-inner">
+                        <span>
+                            <span class="cashier-home-title">Download App PWA</span>
+                            <span class="cashier-home-status d-block" data-pwa-install-status>Menunggu dukungan install dari browser.</span>
+                        </span>
+                        <button type="button" class="cashier-home-button cashier-home-install-button" data-pwa-install-button disabled>
+                            Download App
+                        </button>
+                    </span>
+                </div>
+            @endif
         </div>
     </div>
 </section>
 @endsection
 
-@push('scripts')
-<script src="{{ asset('assets/static/js/pages/cashier-dashboard/pwa-install.js') }}?v={{ config('app.asset_version') }}"></script>
-@endpush
+@if ($isHandset ?? false)
+    @push('scripts')
+    <script src="{{ asset('assets/static/js/pages/cashier-dashboard/pwa-install.js') }}?v={{ config('app.asset_version') }}"></script>
+    @endpush
+@endif

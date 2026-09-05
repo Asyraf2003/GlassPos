@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Adapters\In\Http\Controllers\Cashier\Note;
 
+use App\Adapters\In\Http\Support\HandsetRequestDetector;
 use App\Application\Note\Services\CashierNoteDetailPageAccessData;
 use App\Application\Note\Services\EnsureInitialNoteRevisionExists;
 use App\Application\Note\Services\NoteCorrectionUiOptionsBuilder;
@@ -23,6 +24,7 @@ final class NoteDetailPageController extends Controller
         NoteDetailPageDataBuilder $builder,
         NoteCorrectionUiOptionsBuilder $options,
         EnsureInitialNoteRevisionExists $ensureInitialRevision,
+        HandsetRequestDetector $devices,
         UuidPort $uuid,
     ): View {
         try {
@@ -55,6 +57,7 @@ final class NoteDetailPageController extends Controller
         $refundIdempotencyKey = is_string($oldRefundIdempotencyKey) && trim($oldRefundIdempotencyKey) !== ''
             ? trim($oldRefundIdempotencyKey)
             : $uuid->generate();
+        $isHandset = $devices->isHandset($request);
 
         return view('shared.notes.show', $data + [
             'backUrl' => route('cashier.notes.index'),
@@ -79,6 +82,8 @@ final class NoteDetailPageController extends Controller
             ],
             'statusCorrectionAction' => route('cashier.notes.corrections.status.store', ['noteId' => $noteId]),
             'serviceOnlyCorrectionAction' => route('cashier.notes.corrections.service-only.store', ['noteId' => $noteId]),
+            'noteDeviceClass' => $isHandset ? 'handset' : 'desktop',
+            'noteDetailLayout' => $isHandset ? 'compact' : 'desktop',
         ] + $options->build());
     }
 }

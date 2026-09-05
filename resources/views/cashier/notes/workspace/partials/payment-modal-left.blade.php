@@ -1,4 +1,4 @@
-<div class="col-12 col-xl-7">
+<div class="col-12 col-xl-7" data-desktop-detail-only>
     <div class="workspace-gform-panel h-100 d-flex flex-column">
         <div class="fw-semibold mb-1">Ringkasan Nota</div>
         <div class="text-muted small mb-3">Cek isi transaksi sebelum diproses.</div>

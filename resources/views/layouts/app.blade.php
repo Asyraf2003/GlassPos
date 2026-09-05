@@ -18,10 +18,16 @@
     <link rel="stylesheet" href="{{ asset('assets/compiled/css/app-dark.css') }}?v={{ config('app.asset_version') }}">
     <link rel="stylesheet" href="{{ asset('assets/compiled/css/iconly.css') }}?v={{ config('app.asset_version') }}">
     <link rel="stylesheet" href="{{ asset('assets/static/css/ui-foundation.css') }}?v={{ config('app.asset_version') }}">
+    <link rel="stylesheet" href="{{ asset('assets/static/css/cashier-note-device-presentation.css') }}?v={{ config('app.asset_version') }}">
     @stack('styles')
 </head>
 
-<body>
+<body
+    @isset($noteDeviceClass)
+        data-note-device="{{ $noteDeviceClass }}"
+        data-note-detail-layout="{{ $noteDetailLayout ?? 'desktop' }}"
+    @endisset
+>
     <script src="{{ asset('assets/static/js/initTheme.js') }}?v={{ config('app.asset_version') }}"></script>
 
     <div id="app">

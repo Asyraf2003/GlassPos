@@ -1,4 +1,4 @@
-<div class="col-12 col-xl-5">
+<div class="col-12 col-xl-5" data-handset-payment-main>
     <div class="workspace-gform-panel h-100 d-flex flex-column">
         <div class="fw-semibold mb-1">Pilih Aksi</div>
 
@@ -15,7 +15,7 @@
                 Bayar Penuh
             </button>
 
-            <div class="text-muted small">
+            <div class="text-muted small" data-handset-trim>
                 Bayar Penuh memakai sisa tagihan dari sistem.
                 Transfer mencatat nominal itu; tunai membuka kalkulator kembalian.
             </div>
@@ -57,7 +57,7 @@
         <div id="workspace-payment-panel-partial" class="d-none">
             <div class="workspace-gform-panel">
                 <div class="fw-semibold mb-1">Nominal Dibayar Sekarang</div>
-                <div class="text-muted small mb-3">
+                <div class="text-muted small mb-3" data-handset-trim>
                     Isi nominal pembayaran sebagian, lalu pilih transfer atau tunai.
                 </div>
 
@@ -71,14 +71,14 @@
                         inputmode="numeric"
                         placeholder="Masukkan nominal pembayaran sebagian"
                     >
-                    <div class="form-text">
+                    <div class="form-text" data-handset-trim>
                         Suggestion dapat diganti. Sistem mencatat nominal aktual selama tidak melebihi sisa tagihan.
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="workspace-gform-panel mt-3">
+        <div class="workspace-gform-panel mt-3" data-handset-trim>
             <div class="fw-semibold mb-2">Tanggal Pembayaran</div>
             <div class="form-group mb-0">
                 <label for="inline_payment_paid_at_display" class="form-label">Tanggal Bayar</label>

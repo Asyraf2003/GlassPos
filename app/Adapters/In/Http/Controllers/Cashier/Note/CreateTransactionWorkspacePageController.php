@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Adapters\In\Http\Controllers\Cashier\Note;
 
+use App\Adapters\In\Http\Controllers\Cashier\Note\Support\CreateTransactionWorkspaceDraftPayloadLoader;
+use App\Adapters\In\Http\Support\HandsetRequestDetector;
 use App\Application\Note\Services\CreateTransactionWorkspacePageDataBuilder;
-use App\Application\Note\Services\TransactionWorkspaceDraftData;
 use App\Ports\Out\UuidPort;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -16,7 +17,8 @@ final class CreateTransactionWorkspacePageController extends Controller
     public function __invoke(
         Request $request,
         CreateTransactionWorkspacePageDataBuilder $builder,
-        TransactionWorkspaceDraftData $draftData,
+        CreateTransactionWorkspaceDraftPayloadLoader $draftPayloads,
+        HandsetRequestDetector $devices,
         UuidPort $uuid,
     ): View {
         $page = $builder->build();
@@ -30,8 +32,9 @@ final class CreateTransactionWorkspacePageController extends Controller
             ? trim($oldIdempotencyKey)
             : $uuid->generate();
 
-        $sessionHasOldInput = is_array($request->session()->get('_old_input', [])) && $request->session()->get('_old_input', []) !== [];
-        $draftPayload = $this->loadDraftPayload($request, $draftData, $sessionHasOldInput);
+        $oldInput = $request->session()->get('_old_input', []);
+        $sessionHasOldInput = is_array($oldInput) && $oldInput !== [];
+        $draftPayload = $draftPayloads->load($request, $sessionHasOldInput);
 
         $oldNote = old('note');
         $oldItems = old('items');
@@ -46,9 +49,7 @@ final class CreateTransactionWorkspacePageController extends Controller
             'customer_phone' => $noteFromDraft['customer_phone'] ?? '',
             'transaction_date' => $noteFromDraft['transaction_date'] ?? date('Y-m-d'),
         ];
-
         $resolvedItems = is_array($oldItems) ? array_values($oldItems) : $itemsFromDraft;
-
         $resolvedInlinePayment = is_array($oldInlinePayment) ? $oldInlinePayment : [
             'decision' => $inlinePaymentFromDraft['decision'] ?? 'skip',
             'payment_method' => $inlinePaymentFromDraft['payment_method'] ?? 'cash',
@@ -57,6 +58,8 @@ final class CreateTransactionWorkspacePageController extends Controller
             'amount_received_rupiah' => $inlinePaymentFromDraft['amount_received_rupiah'] ?? '',
             'notes' => $inlinePaymentFromDraft['notes'] ?? '',
         ];
+
+        $isHandset = $devices->isHandset($request);
 
         return view('cashier.notes.workspace.create', [
             'pageTitle' => 'Buat Nota',
@@ -70,30 +73,8 @@ final class CreateTransactionWorkspacePageController extends Controller
             'serviceStoreEndpoint' => $serviceStoreEndpoint,
             'idempotencyKey' => $idempotencyKey,
             'hasOldInput' => $sessionHasOldInput || $draftPayload !== [],
+            'deviceClass' => $isHandset ? 'handset' : 'desktop',
+            'presentationMode' => $isHandset ? 'simple' : 'detail',
         ] + $page);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function loadDraftPayload(
-        Request $request,
-        TransactionWorkspaceDraftData $draftData,
-        bool $sessionHasOldInput,
-    ): array {
-        if ($sessionHasOldInput) {
-            return [];
-        }
-
-        $actorId = $request->user()?->getAuthIdentifier();
-
-        if ($actorId === null) {
-            return [];
-        }
-
-        $draft = $draftData->findByActorAndWorkspaceKey((string) $actorId, 'create');
-        $payload = $draft['payload'] ?? null;
-
-        return is_array($payload) ? $payload : [];
     }
 }

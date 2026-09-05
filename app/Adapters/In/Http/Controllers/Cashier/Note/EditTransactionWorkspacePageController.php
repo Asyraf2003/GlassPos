@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Adapters\In\Http\Controllers\Cashier\Note;
 
 use App\Adapters\In\Http\Controllers\Cashier\Note\Support\EditTransactionWorkspaceDraftPayloadLoader;
+use App\Adapters\In\Http\Support\HandsetRequestDetector;
 use App\Application\Note\Services\EditTransactionWorkspacePageDataBuilder;
 use App\Application\Note\Services\EnsureInitialNoteRevisionExists;
 use App\Core\Shared\Exceptions\DomainException;
@@ -21,6 +22,7 @@ final class EditTransactionWorkspacePageController extends Controller
         EditTransactionWorkspacePageDataBuilder $builder,
         EditTransactionWorkspaceDraftPayloadLoader $draftPayloads,
         EnsureInitialNoteRevisionExists $ensureInitialRevision,
+        HandsetRequestDetector $devices,
         UuidPort $uuid,
     ): View {
         $actorId = $request->user()?->getAuthIdentifier();
@@ -53,11 +55,9 @@ final class EditTransactionWorkspacePageController extends Controller
         $resolvedNote = is_array($oldNote)
             ? $oldNote
             : (is_array($page['oldNote'] ?? null) ? array_replace($page['oldNote'], $noteFromDraft) : $noteFromDraft);
-
         $resolvedItems = is_array($oldItems)
             ? array_values($oldItems)
             : ($itemsFromDraft !== [] ? $itemsFromDraft : (is_array($page['oldItems'] ?? null) ? array_values($page['oldItems']) : []));
-
         $resolvedInlinePayment = is_array($oldInlinePayment)
             ? $oldInlinePayment
             : $inlinePaymentFromDraft;
@@ -74,6 +74,8 @@ final class EditTransactionWorkspacePageController extends Controller
             'oldInlinePayment' => $resolvedInlinePayment,
             'idempotencyKey' => $idempotencyKey,
             'hasOldInput' => $sessionHasOldInput || $draftPayload !== [],
+            'deviceClass' => $devices->isHandset($request) ? 'handset' : 'desktop',
+            'presentationMode' => 'detail',
         ]);
     }
 }

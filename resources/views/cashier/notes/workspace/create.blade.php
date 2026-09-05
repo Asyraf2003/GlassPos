@@ -17,7 +17,8 @@
 
     <div
         class="cashier-note-workspace"
-        data-presentation-mode="{{ ($workspaceMode ?? 'create') === 'edit' ? 'detail' : 'simple' }}"
+        data-presentation-mode="{{ $presentationMode ?? (($workspaceMode ?? 'create') === 'edit' ? 'detail' : 'simple') }}"
+        data-device-class="{{ $deviceClass ?? 'desktop' }}"
         data-workspace-mode="{{ $workspaceMode ?? 'create' }}"
     >
         @if (($workspaceMode ?? 'create') === 'create')
@@ -29,6 +30,7 @@
                     role="switch"
                     id="workspace-detail-toggle"
                     data-detail-toggle
+                    @checked(($presentationMode ?? 'simple') === 'detail')
                 >
                 <label class="form-check-label" for="workspace-detail-toggle">Detail</label>
             </div>
@@ -72,7 +74,8 @@
             'serviceLookupEndpoint' => $serviceLookupEndpoint ?? null,
             'serviceStoreEndpoint' => $serviceStoreEndpoint ?? null,
             'workspaceMode' => $workspaceMode ?? 'create',
-            'presentationMode' => ($workspaceMode ?? 'create') === 'edit' ? 'detail' : 'simple',
+            'presentationMode' => $presentationMode ?? (($workspaceMode ?? 'create') === 'edit' ? 'detail' : 'simple'),
+            'deviceClass' => $deviceClass ?? 'desktop',
             'noteId' => $noteId ?? null,
             'draftLoadEndpoint' => $draftLoadEndpoint ?? route('cashier.notes.workspace.draft.show'),
             'draftSaveEndpoint' => $draftSaveEndpoint ?? route('cashier.notes.workspace.draft.save'),
