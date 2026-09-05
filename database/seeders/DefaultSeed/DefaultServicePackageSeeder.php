@@ -21,7 +21,7 @@ final class DefaultServicePackageSeeder extends Seeder
             ->get(['id'])
             ->values();
         $services = DB::table('service_catalog_items')
-            ->where('name', 'like', 'Default Service %')
+            ->where('is_active', true)
             ->orderBy('name')
             ->get(['id'])
             ->values();
