@@ -69,6 +69,6 @@ final class ViewDateValueParser
             }
         }
 
-        return 'UTC';
+        return 'Asia/Makassar';
     }
 }

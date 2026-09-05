@@ -69,29 +69,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Application Timezone
+    | Application / Business Timezone
     |--------------------------------------------------------------------------
     |
-    | Here you may specify the default timezone for your application, which
-    | will be used by the PHP date and date-time functions. The timezone
-    | is set to "UTC" by default as it is suitable for most use cases.
+    | APP_TIMEZONE is the single timezone authority for PHP/Laravel, Carbon,
+    | ClockPort, business-day calculations, owner-facing timestamp rendering,
+    | and the database-session timezone derived in config/database.php.
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'Asia/Makassar') ?: 'Asia/Makassar',
 
     /*
-    |--------------------------------------------------------------------------
-    | Owner-Facing Display Timezone
-    |--------------------------------------------------------------------------
-    |
-    | Database and audit timestamps are stored using the application timezone.
-    | Owner-facing timestamp labels are rendered in the shop's operational
-    | timezone so audit timelines match local business time.
-    |
+    | Compatibility alias only. It is intentionally NOT independently
+    | configurable; all display code must follow the same APP_TIMEZONE.
     */
-
-    'display_timezone' => env('APP_DISPLAY_TIMEZONE', 'Asia/Makassar'),
+    'display_timezone' => env('APP_TIMEZONE', 'Asia/Makassar') ?: 'Asia/Makassar',
 
     /*
     |--------------------------------------------------------------------------

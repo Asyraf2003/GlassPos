@@ -19,7 +19,7 @@ final class TimestampReadOnlyDiagnosticCommandTest extends TestCase
         parent::setUp();
 
         config([
-            'app.timezone' => 'UTC',
+            'app.timezone' => 'Asia/Makassar',
             'app.display_timezone' => 'Asia/Makassar',
         ]);
     }
@@ -38,11 +38,11 @@ final class TimestampReadOnlyDiagnosticCommandTest extends TestCase
         self::assertSame(0, $exitCode);
         self::assertStringContainsString('Timestamp read-only diagnostic', $output);
         self::assertStringContainsString('mode: READ ONLY', $output);
-        self::assertStringContainsString('app.timezone: UTC', $output);
+        self::assertStringContainsString('app.timezone: Asia/Makassar', $output);
         self::assertStringContainsString('app.display_timezone: Asia/Makassar', $output);
         self::assertStringContainsString('audit_events', $output);
         self::assertStringContainsString('occurred_at', $output);
-        self::assertStringContainsString('2026-06-29 02:07:45', $output);
+        self::assertStringContainsString('2026-06-29 10:07:45', $output);
         self::assertStringContainsString('29 Juni 2026 10:07', $output);
         self::assertStringContainsString('note_refund_recorded', $output);
 
@@ -58,7 +58,7 @@ final class TimestampReadOnlyDiagnosticCommandTest extends TestCase
         }
     }
 
-    public function test_it_exposes_mixed_utc_like_and_local_like_legacy_rows_for_manual_classification(): void
+    public function test_it_exposes_legacy_rows_without_guessing_or_shifting_their_semantics(): void
     {
         DB::table('audit_events')->insert([
             [
@@ -69,12 +69,12 @@ final class TimestampReadOnlyDiagnosticCommandTest extends TestCase
                 'event_name' => 'diagnostic_utc_like_row',
                 'actor_id' => null,
                 'actor_role' => null,
-                'reason' => 'UTC-like row: expected local action time 11:45 WITA',
+                'reason' => 'Legacy row intentionally left untouched after timezone unification.',
                 'source_channel' => 'test',
                 'request_id' => null,
                 'correlation_id' => null,
                 'occurred_at' => '2026-06-29 03:45:00',
-                'metadata_json' => json_encode(['classification' => 'utc_like']),
+                'metadata_json' => json_encode(['classification' => 'legacy_unknown']),
             ],
             [
                 'id' => 'audit-local-like-legacy-row',
@@ -84,12 +84,12 @@ final class TimestampReadOnlyDiagnosticCommandTest extends TestCase
                 'event_name' => 'diagnostic_local_like_row',
                 'actor_id' => null,
                 'actor_role' => null,
-                'reason' => 'Local-like row: raw value already looked like 11:45 WITA',
+                'reason' => 'Legacy local-like row intentionally left untouched.',
                 'source_channel' => 'test',
                 'request_id' => null,
                 'correlation_id' => null,
                 'occurred_at' => '2026-06-29 11:45:00',
-                'metadata_json' => json_encode(['classification' => 'local_like']),
+                'metadata_json' => json_encode(['classification' => 'legacy_unknown']),
             ],
         ]);
 
@@ -101,14 +101,12 @@ final class TimestampReadOnlyDiagnosticCommandTest extends TestCase
         $output = Artisan::output();
 
         self::assertSame(0, $exitCode);
-
         self::assertStringContainsString('diagnostic_utc_like_row', $output);
         self::assertStringContainsString('2026-06-29 03:45:00', $output);
-        self::assertStringContainsString('29 Juni 2026 11:45', $output);
-
+        self::assertStringContainsString('29 Juni 2026 03:45', $output);
         self::assertStringContainsString('diagnostic_local_like_row', $output);
         self::assertStringContainsString('2026-06-29 11:45:00', $output);
-        self::assertStringContainsString('29 Juni 2026 19:45', $output);
+        self::assertStringContainsString('29 Juni 2026 11:45', $output);
     }
 
     public function test_it_does_not_run_database_write_queries(): void
@@ -153,7 +151,7 @@ final class TimestampReadOnlyDiagnosticCommandTest extends TestCase
             'source_channel' => 'test',
             'request_id' => null,
             'correlation_id' => null,
-            'occurred_at' => '2026-06-29 02:07:45',
+            'occurred_at' => '2026-06-29 10:07:45',
             'metadata_json' => json_encode(['source' => 'timestamp-readonly-diagnostic-test']),
         ]);
     }

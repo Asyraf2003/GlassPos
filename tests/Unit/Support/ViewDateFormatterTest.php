@@ -15,9 +15,16 @@ final class ViewDateFormatterTest extends TestCase
         self::assertSame('01 Juni 2026', ViewDateFormatter::display('2026-06-01'));
     }
 
-    public function test_it_displays_database_timestamp_in_operational_timezone(): void
+    public function test_it_displays_business_timezone_timestamp_without_a_second_shift(): void
     {
-        self::assertSame('29 Juni 2026 10:07', ViewDateFormatter::display('2026-06-29 02:07:45', true));
+        self::assertSame('29 Juni 2026 10:07', ViewDateFormatter::display('2026-06-29 10:07:45', true));
+    }
+
+    public function test_it_converts_an_explicit_utc_datetime_to_business_timezone(): void
+    {
+        $utc = Carbon::create(2026, 6, 29, 2, 7, 45, 'UTC');
+
+        self::assertSame('29 Juni 2026 10:07', ViewDateFormatter::display($utc, true));
     }
 
     public function test_it_converts_legacy_slash_date_text(): void
