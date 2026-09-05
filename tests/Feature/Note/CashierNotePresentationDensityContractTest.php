@@ -51,34 +51,39 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         self::assertStringNotContainsString('Ketik nominal, cek kembalian, lalu simpan tunai saat jumlah cukup.', $cash);
     }
 
-    public function test_note_detail_removes_duplicate_copy_without_removing_business_truth(): void
+    public function test_note_detail_desktop_separates_current_state_from_history_without_losing_business_truth(): void
     {
         $detail = $this->readViewSource('shared/notes/show.blade.php');
         $header = $this->readViewSource('shared/notes/partials/header-summary.blade.php');
         $lines = $this->readViewSource('shared/notes/partials/line-workspace.blade.php');
         $payment = $this->readViewSource('shared/notes/partials/payment-summary-actions.blade.php');
+        $history = $this->readViewSource('shared/notes/partials/history-panel.blade.php');
         $timeline = $this->readViewSource('shared/notes/partials/payment-timeline.blade.php');
         $paymentModal = $this->readViewSource('cashier/notes/partials/payment-modal.blade.php');
         $deviceCss = $this->readPublicAsset('assets/static/css/cashier-note-device-presentation.css');
 
-        self::assertStringContainsString('note-detail-mobile-help', $detail);
-        self::assertStringContainsString('body[data-note-device] .note-detail-mobile-help', $deviceCss);
+        self::assertStringContainsString('note-detail-desktop', $detail);
+        self::assertStringContainsString('note-detail-handset', $detail);
+        self::assertStringContainsString("\$noteDetailLayout ?? 'desktop'", $detail);
         self::assertStringContainsString("{{ \$note['id'] }}", $header);
         self::assertStringContainsString('Alasan Nota', $header);
         self::assertStringNotContainsString('Jumlah Rincian', $header);
         self::assertStringNotContainsString('Ringkasan Rincian', $header);
-        self::assertStringContainsString("line_summary", $lines);
-        self::assertStringNotContainsString('Status & Aksi Nota', $payment);
-        self::assertStringNotContainsString('Status Operasional', $payment);
+        self::assertStringContainsString('line_summary', $lines);
         self::assertStringContainsString('payment_status_label', $payment);
-        self::assertStringContainsString('Riwayat Pengembalian Otomatis', $payment);
+        self::assertStringNotContainsString("@include('shared.notes.partials.payment-timeline')", $payment);
+        self::assertStringNotContainsString('Riwayat Pengembalian Otomatis', $payment);
+        self::assertStringContainsString("@include('shared.notes.partials.payment-timeline')", $history);
+        self::assertStringContainsString('Riwayat Pengembalian Otomatis', $history);
+        self::assertStringContainsString('Riwayat Perubahan Nota', $history);
         self::assertStringNotContainsString('Setiap penerimaan uang dicatat sebagai transaksi terpisah.', $timeline);
         self::assertStringContainsString('<div class="visually-hidden">Kalkulator Tunai</div>', $paymentModal);
         self::assertStringNotContainsString('Hanya tiga angka utama. Angka tengah langsung bisa diisi.', $paymentModal);
         self::assertStringNotContainsString('Tagihan aktif dipilih otomatis. Rincian tagihan dikirim otomatis agar pembayaran tercatat sesuai urutan.', $paymentModal);
-        self::assertStringNotContainsString('grid-column: 1 / -1;', $deviceCss);
-        self::assertStringContainsString('.note-detail-mobile-step:nth-child(4)', $deviceCss);
-        self::assertStringContainsString('grid-row: 1 / span 3;', $deviceCss);
+        self::assertStringContainsString('.note-detail-desktop-main', $deviceCss);
+        self::assertStringContainsString('.note-detail-desktop-history', $deviceCss);
+        self::assertStringNotContainsString('grid-row: 1 / span 3;', $deviceCss);
+        self::assertStringNotContainsString('.note-detail-mobile-step:nth-child(4)', $deviceCss);
     }
 
     private function readViewSource(string $path): string
