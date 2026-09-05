@@ -10,11 +10,11 @@ final class CashierNotePresentationDensityContractTest extends TestCase
 {
     public function test_workspace_removes_repeated_section_context_and_duplicate_back_action(): void
     {
-        $info = $this->view('cashier/notes/workspace/partials/info-card.blade.php');
-        $description = $this->view('cashier/notes/workspace/partials/note-description-card.blade.php');
-        $lines = $this->view('cashier/notes/workspace/partials/rincian-card.blade.php');
-        $review = $this->view('cashier/notes/workspace/partials/review-payment-card.blade.php');
-        $layout = $this->view('layouts/app.blade.php');
+        $info = $this->readViewSource('cashier/notes/workspace/partials/info-card.blade.php');
+        $description = $this->readViewSource('cashier/notes/workspace/partials/note-description-card.blade.php');
+        $lines = $this->readViewSource('cashier/notes/workspace/partials/rincian-card.blade.php');
+        $review = $this->readViewSource('cashier/notes/workspace/partials/review-payment-card.blade.php');
+        $layout = $this->readViewSource('layouts/app.blade.php');
 
         self::assertStringNotContainsString('workspace-panel-eyebrow', $info);
         self::assertStringNotContainsString('workspace-mode-badge', $info);
@@ -33,10 +33,10 @@ final class CashierNotePresentationDensityContractTest extends TestCase
 
     public function test_create_and_edit_payment_ui_keeps_financial_hooks_but_hides_explanatory_duplication(): void
     {
-        $modal = $this->view('cashier/notes/workspace/partials/payment-modal.blade.php');
-        $left = $this->view('cashier/notes/workspace/partials/payment-modal-left.blade.php');
-        $right = $this->view('cashier/notes/workspace/partials/payment-modal-right.blade.php');
-        $cash = $this->view('cashier/notes/workspace/partials/payment-modal-cash.blade.php');
+        $modal = $this->readViewSource('cashier/notes/workspace/partials/payment-modal.blade.php');
+        $left = $this->readViewSource('cashier/notes/workspace/partials/payment-modal-left.blade.php');
+        $right = $this->readViewSource('cashier/notes/workspace/partials/payment-modal-right.blade.php');
+        $cash = $this->readViewSource('cashier/notes/workspace/partials/payment-modal-cash.blade.php');
 
         self::assertStringContainsString('id="workspace-payment-modal-subtitle"', $modal);
         self::assertStringContainsString('visually-hidden', $modal);
@@ -53,12 +53,12 @@ final class CashierNotePresentationDensityContractTest extends TestCase
 
     public function test_note_detail_removes_visible_duplicate_summary_copy_and_keeps_history_in_main_desktop_column(): void
     {
-        $detail = $this->view('shared/notes/show.blade.php');
-        $header = $this->view('shared/notes/partials/header-summary.blade.php');
-        $payment = $this->view('shared/notes/partials/payment-summary-actions.blade.php');
-        $timeline = $this->view('shared/notes/partials/payment-timeline.blade.php');
-        $paymentModal = $this->view('cashier/notes/partials/payment-modal.blade.php');
-        $deviceCss = $this->asset('assets/static/css/cashier-note-device-presentation.css');
+        $detail = $this->readViewSource('shared/notes/show.blade.php');
+        $header = $this->readViewSource('shared/notes/partials/header-summary.blade.php');
+        $payment = $this->readViewSource('shared/notes/partials/payment-summary-actions.blade.php');
+        $timeline = $this->readViewSource('shared/notes/partials/payment-timeline.blade.php');
+        $paymentModal = $this->readViewSource('cashier/notes/partials/payment-modal.blade.php');
+        $deviceCss = $this->readPublicAsset('assets/static/css/cashier-note-device-presentation.css');
 
         self::assertStringContainsString('note-detail-mobile-help', $detail);
         self::assertStringContainsString('body[data-note-device] .note-detail-mobile-help', $deviceCss);
@@ -76,12 +76,12 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         self::assertStringContainsString('grid-row: 1 / span 3;', $deviceCss);
     }
 
-    private function view(string $path): string
+    private function readViewSource(string $path): string
     {
         return (string) file_get_contents(resource_path('views/'.$path));
     }
 
-    private function asset(string $path): string
+    private function readPublicAsset(string $path): string
     {
         return (string) file_get_contents(public_path($path));
     }
