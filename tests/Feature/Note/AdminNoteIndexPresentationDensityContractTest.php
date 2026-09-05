@@ -11,9 +11,12 @@ final class AdminNoteIndexPresentationDensityContractTest extends TestCase
     public function test_admin_note_index_prioritizes_customer_and_avoids_duplicate_note_identity(): void
     {
         $view = $this->readViewSource('admin/notes/index.blade.php');
+        $filter = $this->readViewSource('admin/notes/partials/filter-drawer.blade.php');
         $script = $this->readPublicAsset('assets/static/js/pages/admin-note-index.js');
 
         self::assertStringNotContainsString('Daftar Nota Admin', $view);
+        self::assertStringNotContainsString('Daftar Nota Admin', $filter);
+        self::assertStringContainsString('Filter Nota', $filter);
         self::assertStringContainsString('Cari pelanggan, no. HP, atau rincian', $view);
         self::assertStringNotContainsString('data-sort-by="note_number"', $view);
         self::assertStringContainsString('data-sort-by="customer_name"', $view);
