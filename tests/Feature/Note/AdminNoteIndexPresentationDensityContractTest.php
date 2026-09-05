@@ -17,10 +17,12 @@ final class AdminNoteIndexPresentationDensityContractTest extends TestCase
         self::assertStringContainsString('Cari pelanggan, no. HP, atau rincian', $view);
         self::assertStringNotContainsString('data-sort-by="note_number"', $view);
         self::assertStringContainsString('data-sort-by="customer_name"', $view);
+        self::assertStringContainsString('colspan="8"', $view);
         self::assertStringNotContainsString('item.note_number ?? item.note_id', $script);
         self::assertStringNotContainsString('item.transaction_date ??', $script);
         self::assertStringContainsString("item.customer_name ?? 'Pelanggan'", $script);
-        self::assertStringContainsString("item.action_label ?? 'Buka'", $script);
+        self::assertStringContainsString('>Buka</a>', $script);
+        self::assertStringContainsString('colspan="8"', $script);
     }
 
     private function readViewSource(string $path): string
