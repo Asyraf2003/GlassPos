@@ -6,12 +6,10 @@ namespace App\Adapters\In\Http\Controllers\Admin\ServiceProductTemplate;
 
 use App\Adapters\In\Http\Controllers\Admin\ServiceProductTemplate\Concerns\ValidatesServiceProductTemplateForm;
 use App\Adapters\Out\ServiceProductTemplate\DatabaseServiceProductTemplateAdminLineInput;
-use App\Adapters\Out\ServiceProductTemplate\DatabaseServiceProductTemplateLineWriter;
+use App\Application\ServiceProductTemplate\UseCases\CreateServiceProductTemplateHandler;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 final class StoreServiceProductTemplateController extends Controller
 {
@@ -19,44 +17,33 @@ final class StoreServiceProductTemplateController extends Controller
 
     public function __construct(
         private readonly DatabaseServiceProductTemplateAdminLineInput $lineInput,
-        private readonly DatabaseServiceProductTemplateLineWriter $lineWriter,
+        private readonly CreateServiceProductTemplateHandler $useCase,
     ) {}
 
     public function __invoke(Request $request): RedirectResponse
     {
         $data = $this->validated($request);
         $lines = $this->lineInput->fromData($data);
-        $serviceCatalogItemId = (string) $data['service_catalog_item_id'];
+        $actorId = $request->user()?->getAuthIdentifier();
 
-        if ($this->activeTemplateExists($lines[0]['product_id'], $serviceCatalogItemId)) {
+        $result = $this->useCase->handle(
+            $lines,
+            (string) $data['service_catalog_item_id'],
+            $actorId !== null ? (string) $actorId : null,
+            'web_admin',
+        );
+
+        if ($result->isFailure()) {
+            $errors = $result->errors();
+            $field = array_key_first($errors) ?? 'service_catalog_item_id';
+
             return back()
-                ->withErrors(['service_catalog_item_id' => 'Produk 1 dan jasa ini sudah punya paket aktif.'])
+                ->withErrors([$field => $result->message() ?? 'Service gagal dibuat.'])
                 ->withInput();
         }
 
-        $servicePrice = $this->serviceDefaultPriceRupiah($serviceCatalogItemId);
-        $packageTotal = $this->lineInput->total($lines) + $servicePrice;
-
-        DB::transaction(function () use ($lines, $packageTotal, $servicePrice, $serviceCatalogItemId): void {
-            $templateId = (string) Str::uuid();
-
-            DB::table('service_product_templates')->insert([
-                'id' => $templateId,
-                'product_id' => $lines[0]['product_id'],
-                'service_catalog_item_id' => $serviceCatalogItemId,
-                'default_service_price_rupiah' => $servicePrice,
-                'default_package_total_rupiah' => $packageTotal,
-                'is_active' => true,
-                'sort_order' => 0,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            $this->lineWriter->replace($templateId, $lines);
-        });
-
         return redirect()
             ->route('admin.service-product-templates.index')
-            ->with('success', 'Service berhasil dibuat.');
+            ->with('success', $result->message() ?? 'Service berhasil dibuat.');
     }
 }

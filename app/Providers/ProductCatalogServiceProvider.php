@@ -12,6 +12,7 @@ use App\Adapters\Out\ProductCatalog\DatabaseProductTableReaderAdapter;
 use App\Adapters\Out\ProductCatalog\DatabaseVersionedProductWriterAdapter;
 use App\Adapters\Out\ServiceCatalog\DatabaseServiceCatalogAdapter;
 use App\Adapters\Out\ServiceCatalog\DatabaseServiceCatalogTableReaderAdapter;
+use App\Adapters\Out\ServiceProductTemplate\DatabaseServiceProductTemplateCreateAdapter;
 use App\Adapters\Out\ServiceProductTemplate\DatabaseServiceProductTemplateLookupReaderAdapter;
 use App\Adapters\Out\ServiceProductTemplate\DatabaseServiceProductTemplateTableReaderAdapter;
 use App\Application\ProductCatalog\Context\ProductChangeContext;
@@ -26,6 +27,7 @@ use App\Ports\Out\ProductCatalog\ProductWriterPort;
 use App\Ports\Out\ServiceCatalog\ServiceCatalogReaderPort;
 use App\Ports\Out\ServiceCatalog\ServiceCatalogTableReaderPort;
 use App\Ports\Out\ServiceCatalog\ServiceCatalogWriterPort;
+use App\Ports\Out\ServiceProductTemplate\ServiceProductTemplateCreatePort;
 use App\Ports\Out\ServiceProductTemplate\ServiceProductTemplateLookupReaderPort;
 use App\Ports\Out\ServiceProductTemplate\ServiceProductTemplateTableReaderPort;
 use Illuminate\Support\ServiceProvider;
@@ -49,6 +51,7 @@ class ProductCatalogServiceProvider extends ServiceProvider
         $this->app->singleton(ServiceCatalogTableReaderPort::class, DatabaseServiceCatalogTableReaderAdapter::class);
         $this->app->singleton(ServiceProductTemplateLookupReaderPort::class, DatabaseServiceProductTemplateLookupReaderAdapter::class);
         $this->app->singleton(ServiceProductTemplateTableReaderPort::class, DatabaseServiceProductTemplateTableReaderAdapter::class);
+        $this->app->scoped(ServiceProductTemplateCreatePort::class, DatabaseServiceProductTemplateCreateAdapter::class);
         $this->app->scoped(ServiceCatalogWriterPort::class, DatabaseServiceCatalogAdapter::class);
     }
 }

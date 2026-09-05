@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Adapters\In\Http\Controllers\Cashier\Note;
 
+use App\Application\ServiceCatalog\UseCases\CreateServiceCatalogItemHandler;
 use App\Core\ServiceCatalog\ServiceCatalogItem;
 use App\Core\Shared\Exceptions\DomainException;
-use App\Ports\Out\ServiceCatalog\ServiceCatalogWriterPort;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
 final class ServiceCatalogStoreController extends Controller
 {
-    public function __invoke(Request $request, ServiceCatalogWriterPort $services): JsonResponse
+    public function __invoke(Request $request, CreateServiceCatalogItemHandler $services): JsonResponse
     {
         $name = trim((string) $request->input('name', ''));
         $price = $this->price($request->input('default_price_rupiah'));
@@ -25,8 +25,15 @@ final class ServiceCatalogStoreController extends Controller
             ], 422);
         }
 
+        $actorId = $request->user()?->getAuthIdentifier();
+
         try {
-            $item = $services->createIfMissing($name, $price);
+            $item = $services->handle(
+                $name,
+                $price,
+                $actorId !== null ? (string) $actorId : null,
+                'web_cashier',
+            );
         } catch (DomainException $e) {
             return response()->json([
                 'success' => false,
@@ -36,9 +43,7 @@ final class ServiceCatalogStoreController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => [
-                'row' => $this->row($item),
-            ],
+            'data' => ['row' => $this->row($item)],
         ]);
     }
 
@@ -57,9 +62,7 @@ final class ServiceCatalogStoreController extends Controller
         return is_string($digits) && $digits !== '' ? (int) $digits : 0;
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     private function row(ServiceCatalogItem $item): array
     {
         return [

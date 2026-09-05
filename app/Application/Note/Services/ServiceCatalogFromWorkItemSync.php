@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace App\Application\Note\Services;
 
+use App\Application\ServiceCatalog\UseCases\CreateServiceCatalogItemHandler;
 use App\Core\Note\WorkItem\WorkItem;
-use App\Ports\Out\ServiceCatalog\ServiceCatalogWriterPort;
 
 final class ServiceCatalogFromWorkItemSync
 {
-    public function __construct(private readonly ServiceCatalogWriterPort $serviceCatalog)
-    {
-    }
+    public function __construct(private readonly CreateServiceCatalogItemHandler $serviceCatalog) {}
 
     public function sync(WorkItem $workItem): void
     {
@@ -21,9 +19,11 @@ final class ServiceCatalogFromWorkItemSync
             return;
         }
 
-        $this->serviceCatalog->createIfMissing(
+        $this->serviceCatalog->handle(
             $service->serviceName(),
-            $service->totalPriceRupiah()->amount()
+            $service->totalPriceRupiah()->amount(),
+            null,
+            'transaction_workspace',
         );
     }
 }

@@ -7,10 +7,12 @@ namespace App\Providers;
 use App\Adapters\Out\IdentityAccess\CachedActorAccessReaderAdapter;
 use App\Adapters\Out\IdentityAccess\CachedAdminCashierAreaAccessStateAdapter;
 use App\Adapters\Out\IdentityAccess\CachedAdminTransactionCapabilityStateAdapter;
+use App\Adapters\Out\IdentityAccess\DatabaseUserAccessWriterAdapter;
 use App\Application\IdentityAccess\Request\IdentityAccessRequestStore;
 use App\Ports\Out\IdentityAccess\ActorAccessReaderPort;
 use App\Ports\Out\IdentityAccess\AdminCashierAreaAccessStatePort;
 use App\Ports\Out\IdentityAccess\AdminTransactionCapabilityStatePort;
+use App\Ports\Out\IdentityAccess\UserAccessWriterPort;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -30,6 +32,7 @@ class IdentityAccessServiceProvider extends ServiceProvider
         $this->app->scoped(ActorAccessReaderPort::class, CachedActorAccessReaderAdapter::class);
         $this->app->scoped(AdminTransactionCapabilityStatePort::class, CachedAdminTransactionCapabilityStateAdapter::class);
         $this->app->scoped(AdminCashierAreaAccessStatePort::class, CachedAdminCashierAreaAccessStateAdapter::class);
+        $this->app->scoped(UserAccessWriterPort::class, DatabaseUserAccessWriterAdapter::class);
     }
 
     public function boot(): void
