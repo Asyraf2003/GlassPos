@@ -51,10 +51,11 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         self::assertStringNotContainsString('Ketik nominal, cek kembalian, lalu simpan tunai saat jumlah cukup.', $cash);
     }
 
-    public function test_note_detail_removes_visible_duplicate_summary_copy_and_keeps_history_in_main_desktop_column(): void
+    public function test_note_detail_removes_duplicate_copy_without_removing_business_truth(): void
     {
         $detail = $this->readViewSource('shared/notes/show.blade.php');
         $header = $this->readViewSource('shared/notes/partials/header-summary.blade.php');
+        $lines = $this->readViewSource('shared/notes/partials/line-workspace.blade.php');
         $payment = $this->readViewSource('shared/notes/partials/payment-summary-actions.blade.php');
         $timeline = $this->readViewSource('shared/notes/partials/payment-timeline.blade.php');
         $paymentModal = $this->readViewSource('cashier/notes/partials/payment-modal.blade.php');
@@ -63,10 +64,14 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         self::assertStringContainsString('note-detail-mobile-help', $detail);
         self::assertStringContainsString('body[data-note-device] .note-detail-mobile-help', $deviceCss);
         self::assertStringContainsString("{{ \$note['id'] }}", $header);
+        self::assertStringContainsString('Alasan Nota', $header);
         self::assertStringNotContainsString('Jumlah Rincian', $header);
         self::assertStringNotContainsString('Ringkasan Rincian', $header);
+        self::assertStringContainsString("line_summary", $lines);
         self::assertStringNotContainsString('Status & Aksi Nota', $payment);
         self::assertStringNotContainsString('Status Operasional', $payment);
+        self::assertStringContainsString('payment_status_label', $payment);
+        self::assertStringContainsString('Riwayat Pengembalian Otomatis', $payment);
         self::assertStringNotContainsString('Setiap penerimaan uang dicatat sebagai transaksi terpisah.', $timeline);
         self::assertStringContainsString('<div class="visually-hidden">Kalkulator Tunai</div>', $paymentModal);
         self::assertStringNotContainsString('Hanya tiga angka utama. Angka tengah langsung bisa diisi.', $paymentModal);
