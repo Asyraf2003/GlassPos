@@ -65,6 +65,9 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         self::assertStringContainsString('note-detail-desktop', $detail);
         self::assertStringContainsString('note-detail-handset', $detail);
         self::assertStringContainsString("\$noteDetailLayout ?? 'desktop'", $detail);
+        self::assertStringContainsString('<h4>Pembayaran</h4>', $detail);
+        self::assertStringNotContainsString('note-detail-desktop-history note-detail-surface', $detail);
+        self::assertStringContainsString('note-detail-history-title', $detail);
         self::assertStringContainsString("{{ \$note['id'] }}", $header);
         self::assertStringContainsString('Alasan Nota', $header);
         self::assertStringNotContainsString('Jumlah Rincian', $header);
