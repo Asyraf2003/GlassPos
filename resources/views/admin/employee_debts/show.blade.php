@@ -3,20 +3,24 @@
 @section('heading', 'Detail Hutang Karyawan')
 
 @section('content')
+    @php
+        $payments = $detail['payments'] ?? [];
+        $hasPayments = $payments !== [];
+        $hasPaymentReversals = $paymentReversals !== [];
+        $hasAdjustments = $adjustments !== [];
+        $hasHistory = $hasPayments || $hasPaymentReversals || $hasAdjustments;
+    @endphp
+
     <section class="section">
-        <div class="row">
-            <div class="col-12 col-xl-5">
+        <div class="row g-4 align-items-start">
+            <div class="{{ $hasHistory ? 'col-12 col-xl-5' : 'col-12 col-xl-7 mx-xl-auto' }}">
                 <div class="card">
                     <div class="card-header">
-                        <div class="d-flex flex-row justify-content-between align-items-center gap-2">
-                            <div>
-                                <h4 class="card-title mb-1">Ringkasan Hutang</h4>
-                            </div>
-                        </div>
+                        <h4 class="card-title mb-0">Ringkasan Hutang</h4>
                     </div>
 
                     <div class="card-body">
-                        <dl class="row mb-0">
+                        <dl class="row mb-0 gy-2">
                             <dt class="col-sm-5">Karyawan</dt>
                             <dd class="col-sm-7">{{ $detail['summary']['employee_name'] }}</dd>
 
@@ -30,130 +34,128 @@
                             <dd class="col-sm-7">Rp{{ $detail['summary']['total_paid_amount_formatted'] }}</dd>
 
                             <dt class="col-sm-5">Sisa Hutang</dt>
-                            <dd class="col-sm-7">Rp{{ $detail['summary']['remaining_balance_formatted'] }}</dd>
+                            <dd class="col-sm-7 fw-semibold">Rp{{ $detail['summary']['remaining_balance_formatted'] }}</dd>
 
                             <dt class="col-sm-5">Status</dt>
-                            <dd class="col-sm-7">{{ $detail['summary']['status_label'] }}</dd>
+                            <dd class="col-sm-7">
+                                <span class="badge border">{{ $detail['summary']['status_label'] }}</span>
+                            </dd>
 
                             <dt class="col-sm-5">Catatan</dt>
-                            <dd class="col-sm-7">{{ $detail['summary']['notes'] ?? '-' }}</dd>
+                            <dd class="col-sm-7 mb-0">{{ $detail['summary']['notes'] ?? '-' }}</dd>
                         </dl>
                     </div>
                 </div>
             </div>
 
-            <div class="col-12 col-xl-7">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h4 class="card-title mb-1">Riwayat Pembayaran</h4>
-                    </div>
+            @if ($hasHistory)
+                <div class="col-12 col-xl-7">
+                    @if (! empty($detail['payments']))
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h4 class="card-title mb-0">Riwayat Pembayaran</h4>
+                            </div>
 
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-lg">
-                                <thead>
-                                    <tr class="text-nowrap">
-                                        <th style="width: 64px;">No</th>
-                                        <th>Tanggal Bayar</th>
-                                        <th>Nominal</th>
-                                        <th>Catatan</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse ($detail['payments'] as $payment)
-                                        <tr>
-                                            <td>{{ $loop->iteration }}</td>
-                                            <td>{{ \App\Support\ViewDateFormatter::display($payment['payment_date'] ?? null) }}</td>
-                                            <td>Rp{{ $payment['amount_formatted'] }}</td>
-                                            <td>{{ $payment['notes'] ?? '-' }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="4" class="text-center text-muted py-4">Belum ada pembayaran hutang.</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-lg mb-0">
+                                        <thead>
+                                            <tr class="text-nowrap">
+                                                <th style="width: 64px;">No</th>
+                                                <th>Tanggal Bayar</th>
+                                                <th>Nominal</th>
+                                                <th>Catatan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($payments as $payment)
+                                                <tr>
+                                                    <td>{{ $loop->iteration }}</td>
+                                                    <td>{{ \App\Support\ViewDateFormatter::display($payment['payment_date'] ?? null) }}</td>
+                                                    <td>Rp{{ $payment['amount_formatted'] }}</td>
+                                                    <td>{{ $payment['notes'] ?? '-' }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    @endif
 
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h4 class="card-title mb-1">Riwayat Reversal Pembayaran</h4>
-                    </div>
+                    @if ($paymentReversals !== [])
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h4 class="card-title mb-0">Riwayat Reversal Pembayaran</h4>
+                            </div>
 
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-lg">
-                                <thead>
-                                    <tr class="text-nowrap">
-                                        <th style="width: 64px;">No</th>
-                                        <th>Waktu Reversal</th>
-                                        <th>Tanggal Bayar</th>
-                                        <th>Nominal</th>
-                                        <th>Catatan Pembayaran</th>
-                                        <th>Alasan Reversal</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse ($paymentReversals as $reversal)
-                                        <tr>
-                                            <td>{{ $loop->iteration }}</td>
-                                            <td>{{ $reversal['recorded_at'] }}</td>
-                                            <td>{{ \App\Support\ViewDateFormatter::display($reversal['payment_date'] ?? null) }}</td>
-                                            <td>Rp{{ $reversal['amount_formatted'] }}</td>
-                                            <td>{{ $reversal['payment_notes'] ?? '-' }}</td>
-                                            <td>{{ $reversal['reason'] }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="6" class="text-center text-muted py-4">Belum ada reversal pembayaran hutang.</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-lg mb-0">
+                                        <thead>
+                                            <tr class="text-nowrap">
+                                                <th style="width: 64px;">No</th>
+                                                <th>Waktu Reversal</th>
+                                                <th>Tanggal Bayar</th>
+                                                <th>Nominal</th>
+                                                <th>Catatan Pembayaran</th>
+                                                <th>Alasan Reversal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($paymentReversals as $reversal)
+                                                <tr>
+                                                    <td>{{ $loop->iteration }}</td>
+                                                    <td>{{ $reversal['recorded_at'] }}</td>
+                                                    <td>{{ \App\Support\ViewDateFormatter::display($reversal['payment_date'] ?? null) }}</td>
+                                                    <td>Rp{{ $reversal['amount_formatted'] }}</td>
+                                                    <td>{{ $reversal['payment_notes'] ?? '-' }}</td>
+                                                    <td>{{ $reversal['reason'] }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    @endif
 
-                <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title mb-1">Riwayat Koreksi Hutang</h4>
-                    </div>
+                    @if ($adjustments !== [])
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title mb-0">Riwayat Koreksi Hutang</h4>
+                            </div>
 
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-lg">
-                                <thead>
-                                    <tr class="text-nowrap">
-                                        <th style="width: 64px;">No</th>
-                                        <th>Waktu</th>
-                                        <th>Tipe</th>
-                                        <th>Nominal</th>
-                                        <th>Alasan</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse ($adjustments as $adjustment)
-                                        <tr>
-                                            <td>{{ $loop->iteration }}</td>
-                                            <td>{{ $adjustment['recorded_at'] }}</td>
-                                            <td>{{ $adjustment['adjustment_type_label'] }}</td>
-                                            <td>Rp{{ $adjustment['amount_formatted'] }}</td>
-                                            <td>{{ $adjustment['reason'] }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="5" class="text-center text-muted py-4">Belum ada koreksi hutang.</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-lg mb-0">
+                                        <thead>
+                                            <tr class="text-nowrap">
+                                                <th style="width: 64px;">No</th>
+                                                <th>Waktu</th>
+                                                <th>Tipe</th>
+                                                <th>Nominal</th>
+                                                <th>Alasan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($adjustments as $adjustment)
+                                                <tr>
+                                                    <td>{{ $loop->iteration }}</td>
+                                                    <td>{{ $adjustment['recorded_at'] }}</td>
+                                                    <td>{{ $adjustment['adjustment_type_label'] }}</td>
+                                                    <td>Rp{{ $adjustment['amount_formatted'] }}</td>
+                                                    <td>{{ $adjustment['reason'] }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    @endif
                 </div>
-            </div>
+            @endif
         </div>
     </section>
 @endsection
