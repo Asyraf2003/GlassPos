@@ -8,6 +8,8 @@ use App\Application\Note\Services\NoteDetailPageDataBuilder;
 use App\Application\Note\UseCases\CreateNoteRevisionHandler;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
+use App\Ports\Out\ClockPort;
+use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +21,16 @@ final class PaymentTimelineRevisionTruthFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
+    private MutablePaymentTimelineClockPort $clock;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->clock = new MutablePaymentTimelineClockPort(new DateTimeImmutable('2026-09-05 09:00:00'));
+        $this->app->instance(ClockPort::class, $this->clock);
+    }
+
     protected function tearDown(): void
     {
         Carbon::setTestNow();
@@ -27,11 +39,11 @@ final class PaymentTimelineRevisionTruthFeatureTest extends TestCase
 
     public function test_upward_revision_does_not_rewrite_historical_payment_remaining_balance(): void
     {
-        Carbon::setTestNow('2026-09-05 09:00:00');
+        $this->setTestNow('2026-09-05 09:00:00');
         $admin = $this->loginAsAuthorizedAdmin();
         $this->seedFiveHundredThousandServiceNote('timeline-revision-up');
 
-        Carbon::setTestNow('2026-09-05 10:00:00');
+        $this->setTestNow('2026-09-05 10:00:00');
         $this->actingAs($admin)
             ->post(route('admin.notes.payments.store', ['noteId' => 'timeline-revision-up']), $this->paymentPayload(
                 'timeline-revision-up',
@@ -40,7 +52,7 @@ final class PaymentTimelineRevisionTruthFeatureTest extends TestCase
             ))
             ->assertSessionHasNoErrors();
 
-        Carbon::setTestNow('2026-09-05 12:00:00');
+        $this->setTestNow('2026-09-05 12:00:00');
         $revision = app(CreateNoteRevisionHandler::class)->handle(
             'timeline-revision-up',
             $this->revisionPayload(650000, 'revision-up'),
@@ -48,6 +60,7 @@ final class PaymentTimelineRevisionTruthFeatureTest extends TestCase
             false,
         );
         self::assertTrue($revision->isSuccess(), $revision->message());
+        $this->assertStoredChronology('timeline-revision-up');
 
         $timeline = $this->timeline('timeline-revision-up');
         self::assertCount(1, $timeline);
@@ -64,11 +77,11 @@ final class PaymentTimelineRevisionTruthFeatureTest extends TestCase
 
     public function test_downward_revision_auto_refund_keeps_original_payment_event_truthful(): void
     {
-        Carbon::setTestNow('2026-09-05 09:00:00');
+        $this->setTestNow('2026-09-05 09:00:00');
         $admin = $this->loginAsAuthorizedAdmin();
         $this->seedFiveHundredThousandServiceNote('timeline-revision-down');
 
-        Carbon::setTestNow('2026-09-05 10:00:00');
+        $this->setTestNow('2026-09-05 10:00:00');
         $this->actingAs($admin)
             ->post(route('admin.notes.payments.store', ['noteId' => 'timeline-revision-down']), $this->paymentPayload(
                 'timeline-revision-down',
@@ -77,7 +90,7 @@ final class PaymentTimelineRevisionTruthFeatureTest extends TestCase
             ))
             ->assertSessionHasNoErrors();
 
-        Carbon::setTestNow('2026-09-05 12:00:00');
+        $this->setTestNow('2026-09-05 12:00:00');
         $revision = app(CreateNoteRevisionHandler::class)->handle(
             'timeline-revision-down',
             $this->revisionPayload(100000, 'revision-down'),
@@ -85,6 +98,7 @@ final class PaymentTimelineRevisionTruthFeatureTest extends TestCase
             false,
         );
         self::assertTrue($revision->isSuccess(), $revision->message());
+        $this->assertStoredChronology('timeline-revision-down');
 
         self::assertSame(200000, (int) DB::table('customer_payments')->sum('amount_rupiah'));
         self::assertSame(100000, (int) DB::table('note_revision_surplus_refund_payments')->sum('amount_rupiah'));
@@ -102,7 +116,7 @@ final class PaymentTimelineRevisionTruthFeatureTest extends TestCase
 
     public function test_payment_after_refund_uses_net_lifecycle_without_rewriting_original_event(): void
     {
-        Carbon::setTestNow('2026-09-05 09:00:00');
+        $this->setTestNow('2026-09-05 09:00:00');
         $this->seedFiveHundredThousandServiceNote('timeline-refund-repay');
 
         DB::table('customer_payments')->insert([
@@ -243,5 +257,44 @@ final class PaymentTimelineRevisionTruthFeatureTest extends TestCase
         self::assertIsArray($data);
 
         return $data['note']['payment_timeline'];
+    }
+
+    private function setTestNow(string $now): void
+    {
+        $dateTime = new DateTimeImmutable($now);
+        Carbon::setTestNow($dateTime);
+        $this->clock->setNow($dateTime);
+    }
+
+    private function assertStoredChronology(string $noteId): void
+    {
+        self::assertSame(
+            ['2026-09-05 09:00:00', '2026-09-05 12:00:00'],
+            DB::table('note_revisions')
+                ->where('note_root_id', $noteId)
+                ->orderBy('revision_number')
+                ->pluck('created_at')
+                ->map(static fn (mixed $value): string => (string) $value)
+                ->all(),
+        );
+        self::assertSame(
+            '2026-09-05 10:00:00.000000',
+            (string) DB::table('customer_payments')->value('recorded_at'),
+        );
+    }
+}
+
+final class MutablePaymentTimelineClockPort implements ClockPort
+{
+    public function __construct(private DateTimeImmutable $now) {}
+
+    public function now(): DateTimeImmutable
+    {
+        return $this->now;
+    }
+
+    public function setNow(DateTimeImmutable $now): void
+    {
+        $this->now = $now;
     }
 }
