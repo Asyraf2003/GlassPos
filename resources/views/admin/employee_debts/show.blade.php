@@ -3,14 +3,6 @@
 @section('heading', 'Detail Hutang Karyawan')
 
 @section('content')
-    @php
-        $payments = $detail['payments'] ?? [];
-        $hasPayments = $payments !== [];
-        $hasPaymentReversals = $paymentReversals !== [];
-        $hasAdjustments = $adjustments !== [];
-        $hasHistory = $hasPayments || $hasPaymentReversals || $hasAdjustments;
-    @endphp
-
     <section class="section">
         <div class="row g-4 align-items-start">
             <div class="{{ $hasHistory ? 'col-12 col-xl-5' : 'col-12 col-xl-7 mx-xl-auto' }}">
@@ -50,7 +42,7 @@
 
             @if ($hasHistory)
                 <div class="col-12 col-xl-7">
-                    @if (! empty($detail['payments']))
+                    @if ($hasPayments)
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h4 class="card-title mb-0">Riwayat Pembayaran</h4>
@@ -83,7 +75,7 @@
                         </div>
                     @endif
 
-                    @if ($paymentReversals !== [])
+                    @if ($hasPaymentReversals)
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h4 class="card-title mb-0">Riwayat Reversal Pembayaran</h4>
@@ -120,7 +112,7 @@
                         </div>
                     @endif
 
-                    @if ($adjustments !== [])
+                    @if ($hasAdjustments)
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title mb-0">Riwayat Koreksi Hutang</h4>
