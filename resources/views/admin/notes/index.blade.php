@@ -39,14 +39,44 @@
                     <thead>
                         <tr class="text-nowrap">
                             <th style="width: 64px;">No</th>
-                            <th><button type="button" class="btn btn-link p-0 text-body fw-semibold" data-sort-by="created_at">Dibuat <span data-sort-indicator="created_at">↓</span></button></th>
-                            <th><button type="button" class="btn btn-link p-0 text-body fw-semibold" data-sort-by="note_number">Nota <span data-sort-indicator="note_number">↕</span></button></th>
-                            <th><button type="button" class="btn btn-link p-0 text-body fw-semibold" data-sort-by="customer_name">Pelanggan <span data-sort-indicator="customer_name">↕</span></button></th>
-                            <th class="text-end"><button type="button" class="btn btn-link p-0 text-body fw-semibold" data-sort-by="total_rupiah">Total Nota <span data-sort-indicator="total_rupiah">↕</span></button></th>
-                            <th class="text-end"><button type="button" class="btn btn-link p-0 text-body fw-semibold" data-sort-by="net_paid_rupiah">Sudah Dibayar <span data-sort-indicator="net_paid_rupiah">↕</span></button></th>
-                            <th class="text-end"><button type="button" class="btn btn-link p-0 text-body fw-semibold" data-sort-by="outstanding_rupiah">Sisa Tagihan <span data-sort-indicator="outstanding_rupiah">↕</span></button></th>
+                            <th>
+                                <button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="created_at">
+                                    Dibuat
+                                    <span class="ms-1 text-muted" data-sort-indicator="created_at">↕</span>
+                                </button>
+                            </th>
+                            <th>
+                                <button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="note_number">
+                                    Nota
+                                    <span class="ms-1 text-muted" data-sort-indicator="note_number">↕</span>
+                                </button>
+                            </th>
+                            <th>
+                                <button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="customer_name">
+                                    Pelanggan
+                                    <span class="ms-1 text-muted" data-sort-indicator="customer_name">↕</span>
+                                </button>
+                            </th>
+                            <th class="text-end">
+                                <button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="total_rupiah">
+                                    Total Nota
+                                    <span class="ms-1 text-muted" data-sort-indicator="total_rupiah">↕</span>
+                                </button>
+                            </th>
+                            <th class="text-end">
+                                <button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="net_paid_rupiah">
+                                    Sudah Dibayar
+                                    <span class="ms-1 text-muted" data-sort-indicator="net_paid_rupiah">↕</span>
+                                </button>
+                            </th>
+                            <th class="text-end">
+                                <button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="outstanding_rupiah">
+                                    Sisa Tagihan
+                                    <span class="ms-1 text-muted" data-sort-indicator="outstanding_rupiah">↕</span>
+                                </button>
+                            </th>
                             <th>Ringkasan Rincian</th>
-                            <th style="width: 120px;">Aksi</th>
+                            <th class="text-center" style="width: 120px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="admin-note-table-body">
