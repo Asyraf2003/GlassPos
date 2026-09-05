@@ -59,7 +59,7 @@ final class CashierCreateWorkspacePresentationFeatureTest extends TestCase
     {
         $presentation = (string) file_get_contents(public_path('assets/static/js/pages/cashier-note-workspace/presentation.js'));
         $payment = (string) file_get_contents(public_path('assets/static/js/pages/cashier-note-workspace/payment-flow.js'));
-        $css = (string) file_get_contents(public_path('assets/static/css/cashier-note-workspace.css'));
+        $deviceCss = (string) file_get_contents(public_path('assets/static/css/cashier-note-device-presentation.css'));
 
         self::assertStringContainsString('root.dataset.presentationMode', $presentation);
         self::assertStringContainsString('detailToggle.checked ? "detail" : "simple"', $presentation);
@@ -68,7 +68,9 @@ final class CashierCreateWorkspacePresentationFeatureTest extends TestCase
         self::assertStringContainsString('NS.submitSimplePayment?.("partial", amount)', $presentation);
         self::assertStringContainsString('NS.submitSimplePayment = (action, partial = 0) =>', $payment);
         self::assertStringContainsString('inline_payment_method_hidden', $payment);
-        self::assertStringContainsString('[data-device-class="handset"]', $css);
-        self::assertStringContainsString('[data-device-class="desktop"]', $css);
+        self::assertStringContainsString('[data-device-class="handset"]', $deviceCss);
+        self::assertStringContainsString('[data-device-class="desktop"]', $deviceCss);
+        self::assertStringContainsString('body[data-note-device="handset"]', $deviceCss);
+        self::assertStringContainsString('body[data-note-device="desktop"]', $deviceCss);
     }
 }
