@@ -6,8 +6,9 @@ namespace App\Application\EmployeeFinance\UseCases;
 
 use App\Core\EmployeeFinance\EmployeeDebt\EmployeeDebt;
 use App\Core\Shared\ValueObjects\Money;
-use App\Ports\Out\EmployeeFinance\EmployeeReaderPort;
+use App\Ports\Out\AuditLogPort;
 use App\Ports\Out\EmployeeFinance\EmployeeDebtWriterPort;
+use App\Ports\Out\EmployeeFinance\EmployeeReaderPort;
 use App\Ports\Out\TransactionManagerPort;
 use App\Ports\Out\UuidPort;
 use InvalidArgumentException;
@@ -19,29 +20,36 @@ class RecordEmployeeDebtHandler
         private EmployeeReaderPort $employeeReader,
         private EmployeeDebtWriterPort $debtWriter,
         private UuidPort $uuidPort,
-        private TransactionManagerPort $transactionManager
+        private TransactionManagerPort $transactionManager,
+        private AuditLogPort $auditLog,
     ) {
     }
 
-    public function handle(string $employeeId, int $debtAmount, ?string $notes = null): string
-    {
+    public function handle(
+        string $employeeId,
+        int $debtAmount,
+        ?string $notes = null,
+        ?string $performedByActorId = null,
+    ): string {
         $this->transactionManager->begin();
 
         try {
-            // Validasi keberadaan karyawan sebelum memberikan hutang
             $employee = $this->employeeReader->findById($employeeId);
-            
-            if (!$employee) {
-                throw new InvalidArgumentException("Karyawan tidak ditemukan.");
+
+            if (! $employee) {
+                throw new InvalidArgumentException('Karyawan tidak ditemukan.');
             }
 
             $id = $this->uuidPort->generate();
-            $amount = Money::fromInt($debtAmount);
-
-            $debt = EmployeeDebt::record($id, $employeeId, $amount, $notes);
-
+            $debt = EmployeeDebt::record($id, $employeeId, Money::fromInt($debtAmount), $notes);
             $this->debtWriter->save($debt);
-
+            $this->auditLog->record('employee_debt_recorded', [
+                'employee_debt_id' => $id,
+                'employee_id' => $employeeId,
+                'total_debt' => $debtAmount,
+                'notes' => $notes,
+                'performed_by_actor_id' => $performedByActorId,
+            ]);
             $this->transactionManager->commit();
 
             return $id;
