@@ -20,7 +20,8 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         self::assertStringNotContainsString('workspace-mode-badge', $info);
         self::assertStringNotContainsString('Pelanggan & tanggal', $info);
         self::assertStringNotContainsString('workspace-panel-heading', $description);
-        self::assertStringNotContainsString('Akan tampil di Riwayat Perubahan Nota.', $description);
+        self::assertStringContainsString('Akan tampil di Riwayat Perubahan Nota.', $description);
+        self::assertStringContainsString('visually-hidden', $description);
         self::assertStringNotContainsString('workspace-panel-eyebrow', $lines);
         self::assertStringNotContainsString('Pilihan langsung menambahkan satu rincian ke nota aktif.', $lines);
         self::assertStringNotContainsString('Cari lalu pilih item yang akan masuk ke nota.', $lines);
