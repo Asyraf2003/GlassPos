@@ -56,47 +56,445 @@ body:has(.cashier-note-workspace[data-device-class="handset"]) .layout-page-head
     }
 }
 
+body[data-note-device] .note-detail-shell {
+    --note-detail-card: var(--cashier-surface);
+    --note-detail-surface-subtle: var(--cashier-surface-subtle);
+    --note-detail-border: var(--cashier-border);
+    --note-detail-muted: var(--cashier-muted);
+    --note-detail-text: var(--cashier-text);
+    --note-detail-accent: var(--cashier-accent);
+    --note-detail-accent-soft: var(--cashier-accent-soft);
+    --note-detail-accent-border: var(--cashier-accent-border);
+    background: var(--cashier-page-bg);
+    padding-block: 1rem 2rem;
+}
+
 body[data-note-device] .note-detail-mobile-help,
 body[data-note-device] .note-detail-line-list > .small.text-muted {
     display: none;
 }
 
-body[data-note-device="handset"] .note-detail-mobile-stack {
-    max-width: 720px;
-}
-
-body[data-note-device="desktop"] .note-detail-mobile-stack {
-    max-width: 1480px;
-}
-
-body[data-note-device="desktop"] .note-detail-mobile-stack-list {
-    align-items: start;
+body[data-note-device] .note-detail-readonly-grid {
     display: grid;
     gap: 1rem;
-    grid-template-columns: minmax(0, 1.6fr) minmax(22rem, 0.72fr);
 }
 
-body[data-note-device="desktop"] .note-detail-mobile-step:nth-child(1) {
-    grid-column: 1;
-    grid-row: 1;
+body[data-note-device] .note-detail-readonly-field {
+    display: grid;
+    gap: .4rem;
+    min-width: 0;
 }
 
-body[data-note-device="desktop"] .note-detail-mobile-step:nth-child(2) {
-    grid-column: 1;
-    grid-row: 2;
+body[data-note-device] .note-detail-readonly-label {
+    color: var(--note-detail-muted);
+    font-size: .78rem;
+    font-weight: 700;
+    line-height: 1.3;
 }
 
-body[data-note-device="desktop"] .note-detail-mobile-step:nth-child(3) {
-    align-self: start;
-    grid-column: 2;
-    grid-row: 1 / span 3;
+body[data-note-device] .note-detail-readonly-control {
+    min-height: 2.65rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    min-width: 0;
+    border: 1px solid var(--note-detail-border);
+    border-radius: .4rem;
+    background: transparent;
+    color: var(--note-detail-text);
+    padding: .65rem .75rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+body[data-note-device] .note-detail-readonly-control .badge {
+    flex: 0 0 auto;
+}
+
+body[data-note-device] .note-detail-payment-metrics {
+    display: grid;
+    gap: .6rem;
+}
+
+body[data-note-device] .note-detail-payment-metric {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .7rem 0;
+    border-bottom: 1px solid var(--note-detail-border);
+}
+
+body[data-note-device] .note-detail-payment-metric span {
+    color: var(--note-detail-muted);
+}
+
+body[data-note-device] .note-detail-payment-metric strong {
+    color: var(--note-detail-text);
+}
+
+body[data-note-device] .note-detail-payment-metric--outstanding {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+body[data-note-device] .note-detail-payment-metric--outstanding strong {
+    font-size: 1.2rem;
+}
+
+body[data-note-device] .note-detail-history-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+body[data-note-device] .note-detail-history-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: .85rem;
+}
+
+body[data-note-device] .note-detail-history-event {
+    padding: .85rem 0;
+    border-top: 1px solid var(--note-detail-border);
+}
+
+body[data-note-device] .note-detail-history-event:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+body[data-note-device] #note-payment-modal .form-control,
+body[data-note-device] #note-payment-modal .form-select,
+body[data-note-device] #note-refund-modal .form-control,
+body[data-note-device] #note-refund-modal .form-select {
+    border-color: var(--note-detail-border);
+    background: var(--note-detail-card);
+    color: var(--note-detail-text);
+}
+
+body[data-note-device] #note-payment-modal .modal-content,
+body[data-note-device] #note-refund-modal .modal-content {
+    border: 1px solid var(--note-detail-border);
+    background: var(--note-detail-card);
+    color: var(--note-detail-text);
+}
+
+body[data-note-device] #note-payment-modal .modal-header,
+body[data-note-device] #note-payment-modal .modal-footer,
+body[data-note-device] #note-refund-modal .modal-header,
+body[data-note-device] #note-refund-modal .modal-footer {
+    border-color: var(--note-detail-border);
+    background: var(--note-detail-card);
+}
+
+body[data-note-device="handset"] .note-detail-mobile-stack {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+body[data-note-device="handset"] .note-detail-mobile-stack-list {
+    display: grid;
+    gap: .85rem;
+}
+
+body[data-note-device="handset"] .note-detail-mobile-step {
+    border: 1px solid var(--note-detail-border);
+    border-top: .42rem solid var(--note-detail-accent);
+    border-radius: .55rem;
+    background: var(--note-detail-card);
+    overflow: visible;
+    box-shadow: none;
+}
+
+body[data-note-device="handset"] .note-detail-mobile-summary {
+    display: grid !important;
+    grid-template-columns: 2.1rem minmax(0, 1fr) 2.1rem;
+    align-items: center;
+    column-gap: .75rem;
+    padding: .9rem;
+    cursor: pointer;
+    list-style: none;
+    border-bottom: 1px solid var(--note-detail-border);
+}
+
+body[data-note-device="handset"] .note-detail-mobile-summary::-webkit-details-marker {
+    display: none;
+}
+
+body[data-note-device="handset"] .note-detail-mobile-heading {
+    min-width: 0;
+}
+
+body[data-note-device="handset"] .note-detail-mobile-number {
+    width: 2.1rem;
+    height: 2.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: var(--note-detail-accent);
+    background: var(--note-detail-accent-soft);
+    border: 1px solid var(--note-detail-accent-border);
+    font-weight: 800;
+}
+
+body[data-note-device="handset"] .note-detail-mobile-title {
+    margin: 0;
+    color: var(--note-detail-text);
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+body[data-note-device="handset"] .note-detail-mobile-toggle {
+    width: 2.1rem;
+    height: 2.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: end;
+    color: var(--note-detail-accent);
+    transition: transform .15s ease;
+}
+
+body[data-note-device="handset"] .note-detail-mobile-step[open] .note-detail-mobile-toggle {
+    transform: rotate(180deg);
+}
+
+body[data-note-device="handset"] .note-detail-mobile-body {
+    padding: .9rem;
+}
+
+body[data-note-device="handset"] .note-detail-mobile-stack .card {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--note-detail-text);
+    box-shadow: none !important;
+}
+
+body[data-note-device="handset"] .note-detail-mobile-stack .card-header {
+    border-bottom: 1px solid var(--note-detail-border);
+    background: transparent;
+    padding: 0 0 .8rem;
+    margin-bottom: .8rem;
+}
+
+body[data-note-device="handset"] .note-detail-mobile-stack .card-body {
+    padding: 0;
+}
+
+body[data-note-device="handset"] .note-detail-mobile-stack .btn,
+body[data-note-device="handset"] .note-detail-mobile-stack a.btn,
+body[data-note-device="handset"] .note-detail-mobile-stack button.btn {
+    width: 100%;
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: .4rem;
+    font-weight: 800;
+}
+
+body[data-note-device="handset"] .note-detail-history-section {
+    padding-top: 1rem;
+    border-top: 1px solid var(--note-detail-border);
+}
+
+body[data-note-device="handset"] .note-detail-history-section:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop {
+    max-width: 1480px;
+    margin: 0 auto;
+    display: grid;
+    gap: 1rem;
+}
+
+body[data-note-device="desktop"] .note-detail-surface {
+    border: 1px solid var(--note-detail-border);
+    border-radius: .7rem;
+    background: var(--note-detail-card);
+    color: var(--note-detail-text);
+    overflow: hidden;
+}
+
+body[data-note-device="desktop"] .note-detail-section-heading {
+    display: flex;
+    align-items: center;
+    min-height: 3.2rem;
+    padding: .85rem 1rem;
+    border-bottom: 1px solid var(--note-detail-border);
+}
+
+body[data-note-device="desktop"] .note-detail-section-heading h4 {
+    margin: 0;
+    color: var(--note-detail-text);
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-info .note-detail-readonly-grid {
+    grid-template-columns: minmax(14rem, 1.45fr) minmax(10rem, .9fr) minmax(10rem, .9fr) minmax(8rem, .55fr);
+    padding: 1rem;
+}
+
+body[data-note-device="desktop"] .note-detail-readonly-field--reason {
+    grid-column: 1 / span 3;
+}
+
+body[data-note-device="desktop"] .note-detail-readonly-field--reference {
+    grid-column: 4;
+}
+
+body[data-note-device="desktop"] .note-detail-readonly-field--reference .note-detail-readonly-control {
+    color: var(--note-detail-muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(21rem, .72fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-lines .note-detail-line-list {
+    padding: 1rem;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-lines .note-detail-line-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-lines .note-detail-line-metric {
+    background: transparent;
+    border: 0;
+    border-left: 1px solid var(--note-detail-border);
+    border-radius: 0;
+    padding: .25rem .75rem;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-lines .note-detail-line-metric:first-child {
+    border-left: 0;
+    padding-left: 0;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-payment {
     position: sticky;
     top: 1rem;
 }
 
-body[data-note-device="desktop"] .note-detail-mobile-step:nth-child(4) {
+body[data-note-device="desktop"] .note-detail-desktop-payment .note-detail-payment-card {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-payment .note-detail-payment-card .card-body {
+    padding: 1rem;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-history {
+    padding-bottom: 1rem;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-history > .note-detail-history-grid {
+    grid-template-columns: minmax(0, 1.55fr) minmax(20rem, .75fr);
+    padding: 1rem;
+    align-items: start;
+}
+
+body[data-note-device="desktop"] .note-detail-history-section {
+    min-width: 0;
+    border: 1px solid var(--note-detail-border);
+    border-radius: .55rem;
+    background: var(--note-detail-surface-subtle);
+    padding: 1rem;
+}
+
+body[data-note-device="desktop"] .note-detail-history-section--changes {
     grid-column: 1;
-    grid-row: 3;
+    grid-row: 1 / span 2;
+}
+
+body[data-note-device="desktop"] .note-detail-history-section--payments {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+body[data-note-device="desktop"] .note-detail-history-section--refunds {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-history .card {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none !important;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-history .card-header {
+    border-bottom: 1px solid var(--note-detail-border);
+    background: transparent;
+    padding: 0 0 .8rem;
+    margin-bottom: .8rem;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-history .card-body {
+    padding: 0;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-history .border.rounded,
+body[data-note-device="desktop"] .note-detail-desktop-history .bg-body {
+    background: transparent !important;
+    border-color: var(--note-detail-border) !important;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-history .note-payment-timeline {
+    margin: 0;
+}
+
+@media (max-width: 1100px) {
+    body[data-note-device="desktop"] .note-detail-desktop-main,
+    body[data-note-device="desktop"] .note-detail-desktop-history > .note-detail-history-grid {
+        grid-template-columns: 1fr;
+    }
+
+    body[data-note-device="desktop"] .note-detail-desktop-payment,
+    body[data-note-device="desktop"] .note-detail-history-section--changes,
+    body[data-note-device="desktop"] .note-detail-history-section--payments,
+    body[data-note-device="desktop"] .note-detail-history-section--refunds {
+        grid-column: 1;
+        grid-row: auto;
+        position: static;
+    }
+
+    body[data-note-device="desktop"] .note-detail-desktop-info .note-detail-readonly-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body[data-note-device="desktop"] .note-detail-readonly-field--reason,
+    body[data-note-device="desktop"] .note-detail-readonly-field--reference {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 575.98px) {
+    body[data-note-device="handset"] .note-detail-mobile-stack {
+        max-width: none;
+    }
+
+    body[data-note-device="handset"] .note-detail-mobile-summary,
+    body[data-note-device="handset"] .note-detail-mobile-body {
+        padding-inline: .8rem;
+    }
 }
 
 @media (display-mode: standalone) {
