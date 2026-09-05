@@ -62,8 +62,9 @@ final class EmployeeDebtDetailPageFeatureTest extends TestCase
         $response->assertSee('Rp750.000');
         $response->assertSee('Cicilan pertama');
         $response->assertSee('Riwayat Pembayaran');
-        $response->assertSee('Riwayat Reversal Pembayaran');
-        $response->assertSee('Belum ada reversal pembayaran hutang.');
+        $response->assertDontSee('Riwayat Reversal Pembayaran');
+        $response->assertDontSee('Riwayat Koreksi Hutang');
+        $response->assertDontSee('Belum ada reversal pembayaran hutang.');
 
         $response->assertDontSee('Batalkan Pembayaran');
         $response->assertDontSee('Catat Pembayaran Hutang');
@@ -175,9 +176,47 @@ final class EmployeeDebtDetailPageFeatureTest extends TestCase
         $response->assertSee('Pembayaran salah input');
         $response->assertSee('Rp250.000');
         $response->assertSee('Riwayat Pembayaran');
+        $response->assertDontSee('Riwayat Koreksi Hutang');
 
         $response->assertDontSee('Belum ada pembayaran hutang aktif.');
         $response->assertDontSee('Batalkan Pembayaran');
+    }
+
+    public function test_empty_employee_debt_histories_are_not_rendered_as_empty_tables(): void
+    {
+        $employeeId = (string) Str::uuid();
+        $debtId = (string) Str::uuid();
+
+        DB::table('employees')->insert([
+            'id' => $employeeId,
+            'employee_name' => 'Asyraf Hutang Tanpa Riwayat',
+            'phone' => null,
+            'default_salary_amount' => 5000000,
+            'salary_basis_type' => 'monthly',
+            'employment_status' => 'active',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('employee_debts')->insert([
+            'id' => $debtId,
+            'employee_id' => $employeeId,
+            'total_debt' => 450000,
+            'remaining_balance' => 450000,
+            'status' => 'unpaid',
+            'notes' => 'Tanpa histori',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->createUserWithRole('admin-debt-empty-history@example.test', 'admin'))
+            ->get(route('admin.employee-debts.show', ['debtId' => $debtId]));
+
+        $response->assertOk();
+        $response->assertSee('Ringkasan Hutang');
+        $response->assertDontSee('Riwayat Pembayaran');
+        $response->assertDontSee('Riwayat Reversal Pembayaran');
+        $response->assertDontSee('Riwayat Koreksi Hutang');
     }
 
     private function createUserWithRole(string $email, string $role): User
