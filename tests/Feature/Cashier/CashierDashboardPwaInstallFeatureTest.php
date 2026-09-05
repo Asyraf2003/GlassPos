@@ -11,11 +11,25 @@ final class CashierDashboardPwaInstallFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_cashier_dashboard_exposes_pwa_install_menu(): void
+    public function test_desktop_cashier_dashboard_does_not_render_pwa_install_affordance(): void
     {
         $this->loginAsKasir();
 
-        $response = $this->get(route('cashier.dashboard'));
+        $response = $this->withHeaders(['Sec-CH-UA-Mobile' => '?0'])
+            ->get(route('cashier.dashboard'));
+
+        $response->assertOk()
+            ->assertDontSee('Download App PWA')
+            ->assertDontSee('data-pwa-install-button', false)
+            ->assertDontSee('assets/static/js/pages/cashier-dashboard/pwa-install.js', false);
+    }
+
+    public function test_handset_cashier_dashboard_exposes_capability_gated_pwa_install_affordance(): void
+    {
+        $this->loginAsKasir();
+
+        $response = $this->withHeaders(['Sec-CH-UA-Mobile' => '?1'])
+            ->get(route('cashier.dashboard'));
 
         $response->assertOk()
             ->assertSee('Download App PWA')
