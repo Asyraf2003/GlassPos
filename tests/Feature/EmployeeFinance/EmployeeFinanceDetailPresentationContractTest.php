@@ -23,11 +23,20 @@ final class EmployeeFinanceDetailPresentationContractTest extends TestCase
     {
         $view = (string) file_get_contents(resource_path('views/admin/employee_debts/show.blade.php'));
 
-        self::assertStringContainsString("@if (! empty(\$detail['payments']))", $view);
-        self::assertStringContainsString('@if ($paymentReversals !== [])', $view);
-        self::assertStringContainsString('@if ($adjustments !== [])', $view);
+        self::assertStringContainsString('@if ($hasPayments)', $view);
+        self::assertStringContainsString('@if ($hasPaymentReversals)', $view);
+        self::assertStringContainsString('@if ($hasAdjustments)', $view);
         self::assertStringNotContainsString('Belum ada pembayaran hutang.', $view);
         self::assertStringNotContainsString('Belum ada reversal pembayaran hutang.', $view);
         self::assertStringNotContainsString('Belum ada koreksi hutang.', $view);
+    }
+
+    public function test_employee_debt_detail_keeps_php_out_of_blade_boundary(): void
+    {
+        $view = (string) file_get_contents(resource_path('views/admin/employee_debts/show.blade.php'));
+
+        self::assertStringNotContainsString('@php', $view);
+        self::assertStringNotContainsString('@endphp', $view);
+        self::assertStringNotContainsString('<?php', $view);
     }
 }
