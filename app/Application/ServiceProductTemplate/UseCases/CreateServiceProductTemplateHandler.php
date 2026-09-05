@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\ServiceProductTemplate\UseCases;
 
-use App\Application\Audit\DTO\AuditEventSnapshotWrite;
-use App\Application\Audit\DTO\AuditEventWrite;
+use App\Application\ServiceProductTemplate\Services\CreateServiceProductTemplateAuditRecorder;
 use App\Application\Shared\DTO\Result;
-use App\Ports\Out\AuditEventWriterPort;
-use App\Ports\Out\ClockPort;
 use App\Ports\Out\ServiceProductTemplate\ServiceProductTemplateCreatePort;
 use App\Ports\Out\TransactionManagerPort;
 use App\Ports\Out\UuidPort;
@@ -18,8 +15,7 @@ final class CreateServiceProductTemplateHandler
 {
     public function __construct(
         private readonly ServiceProductTemplateCreatePort $templates,
-        private readonly AuditEventWriterPort $audit,
-        private readonly ClockPort $clock,
+        private readonly CreateServiceProductTemplateAuditRecorder $auditRecorder,
         private readonly UuidPort $uuid,
         private readonly TransactionManagerPort $transactions,
     ) {}
@@ -72,22 +68,7 @@ final class CreateServiceProductTemplateHandler
 
         try {
             $this->templates->create($templateId, $serviceId, $servicePrice, $packageTotal, $lines);
-            $this->audit->write(new AuditEventWrite(
-                id: $this->uuid->generate(),
-                boundedContext: 'service_product_template',
-                aggregateType: 'service_product_template',
-                aggregateId: $templateId,
-                eventName: 'service_product_template_created',
-                actorId: $this->nullable($actorId),
-                actorRole: null,
-                reason: null,
-                sourceChannel: $this->nullable($sourceChannel),
-                requestId: null,
-                correlationId: null,
-                occurredAt: $this->clock->now(),
-                metadata: ['service_product_template_id' => $templateId],
-                snapshots: [new AuditEventSnapshotWrite('after', $snapshot)],
-            ));
+            $this->auditRecorder->record($templateId, $snapshot, $actorId, $sourceChannel);
             $this->transactions->commit();
         } catch (Throwable $e) {
             $this->transactions->rollBack();
@@ -95,12 +76,5 @@ final class CreateServiceProductTemplateHandler
         }
 
         return Result::success($snapshot, 'Service berhasil dibuat.');
-    }
-
-    private function nullable(?string $value): ?string
-    {
-        $trimmed = trim((string) $value);
-
-        return $trimmed === '' ? null : $trimmed;
     }
 }
