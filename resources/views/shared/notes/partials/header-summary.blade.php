@@ -29,7 +29,7 @@
 
   @if (!empty($note['operational_note']))
     <div class="note-detail-readonly-field">
-      <div class="note-detail-readonly-label">Keterangan</div>
+      <div class="note-detail-readonly-label">Alasan Nota</div>
       <div class="note-detail-readonly-control">
         {{ $note['operational_note'] }}
       </div>
