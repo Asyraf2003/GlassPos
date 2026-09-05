@@ -50,7 +50,7 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         self::assertStringNotContainsString('Ketik nominal, cek kembalian, lalu simpan tunai saat jumlah cukup.', $cash);
     }
 
-    public function test_note_detail_removes_duplicate_summary_copy_and_keeps_history_in_main_desktop_column(): void
+    public function test_note_detail_removes_visible_duplicate_summary_copy_and_keeps_history_in_main_desktop_column(): void
     {
         $detail = $this->view('shared/notes/show.blade.php');
         $header = $this->view('shared/notes/partials/header-summary.blade.php');
@@ -59,7 +59,8 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         $paymentModal = $this->view('cashier/notes/partials/payment-modal.blade.php');
         $deviceCss = $this->asset('assets/static/css/cashier-note-device-presentation.css');
 
-        self::assertStringNotContainsString('note-detail-mobile-help', $detail);
+        self::assertStringContainsString('note-detail-mobile-help', $detail);
+        self::assertStringContainsString('body[data-note-device] .note-detail-mobile-help', $deviceCss);
         self::assertStringContainsString("{{ \$note['id'] }}", $header);
         self::assertStringNotContainsString('Jumlah Rincian', $header);
         self::assertStringNotContainsString('Ringkasan Rincian', $header);
