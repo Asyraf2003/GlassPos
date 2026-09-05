@@ -40,8 +40,8 @@
                         <tr class="text-nowrap">
                             <th style="width: 64px;">No</th>
                             <th><button type="button" class="btn btn-link p-0 text-body fw-semibold" data-sort-by="created_at">Dibuat <span data-sort-indicator="created_at">↓</span></button></th>
-                            <th>Nota</th>
-                            <th>Pelanggan</th>
+                            <th><button type="button" class="btn btn-link p-0 text-body fw-semibold" data-sort-by="note_number">Nota <span data-sort-indicator="note_number">↕</span></button></th>
+                            <th><button type="button" class="btn btn-link p-0 text-body fw-semibold" data-sort-by="customer_name">Pelanggan <span data-sort-indicator="customer_name">↕</span></button></th>
                             <th class="text-end"><button type="button" class="btn btn-link p-0 text-body fw-semibold" data-sort-by="total_rupiah">Total Nota <span data-sort-indicator="total_rupiah">↕</span></button></th>
                             <th class="text-end"><button type="button" class="btn btn-link p-0 text-body fw-semibold" data-sort-by="net_paid_rupiah">Sudah Dibayar <span data-sort-indicator="net_paid_rupiah">↕</span></button></th>
                             <th class="text-end"><button type="button" class="btn btn-link p-0 text-body fw-semibold" data-sort-by="outstanding_rupiah">Sisa Tagihan <span data-sort-indicator="outstanding_rupiah">↕</span></button></th>

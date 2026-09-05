@@ -7,11 +7,15 @@ use App\Adapters\In\Http\Controllers\Admin\ServiceCatalog\CreateServiceCatalogIt
 use App\Adapters\In\Http\Controllers\Admin\ServiceCatalog\DeactivateServiceCatalogItemController;
 use App\Adapters\In\Http\Controllers\Admin\ServiceCatalog\EditServiceCatalogItemPageController;
 use App\Adapters\In\Http\Controllers\Admin\ServiceCatalog\ServiceCatalogIndexPageController;
+use App\Adapters\In\Http\Controllers\Admin\ServiceCatalog\ServiceCatalogTableDataController;
 use App\Adapters\In\Http\Controllers\Admin\ServiceCatalog\StoreServiceCatalogItemController;
 use App\Adapters\In\Http\Controllers\Admin\ServiceCatalog\UpdateServiceCatalogItemController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth', 'admin.page'])->group(function (): void {
+    Route::get('/admin/services/table', ServiceCatalogTableDataController::class)
+        ->name('admin.services.table');
+
     Route::post('/admin/services', StoreServiceCatalogItemController::class)
         ->name('admin.services.store');
 

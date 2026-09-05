@@ -11,7 +11,9 @@ use App\Adapters\Out\ProductCatalog\DatabaseProductReaderAdapter;
 use App\Adapters\Out\ProductCatalog\DatabaseProductTableReaderAdapter;
 use App\Adapters\Out\ProductCatalog\DatabaseVersionedProductWriterAdapter;
 use App\Adapters\Out\ServiceCatalog\DatabaseServiceCatalogAdapter;
+use App\Adapters\Out\ServiceCatalog\DatabaseServiceCatalogTableReaderAdapter;
 use App\Adapters\Out\ServiceProductTemplate\DatabaseServiceProductTemplateLookupReaderAdapter;
+use App\Adapters\Out\ServiceProductTemplate\DatabaseServiceProductTemplateTableReaderAdapter;
 use App\Application\ProductCatalog\Context\ProductChangeContext;
 use App\Core\ProductCatalog\Policies\MinSellingPricePolicy;
 use App\Ports\Out\ProductCatalog\ProductDetailReaderPort;
@@ -22,8 +24,10 @@ use App\Ports\Out\ProductCatalog\ProductReaderPort;
 use App\Ports\Out\ProductCatalog\ProductTableReaderPort;
 use App\Ports\Out\ProductCatalog\ProductWriterPort;
 use App\Ports\Out\ServiceCatalog\ServiceCatalogReaderPort;
+use App\Ports\Out\ServiceCatalog\ServiceCatalogTableReaderPort;
 use App\Ports\Out\ServiceCatalog\ServiceCatalogWriterPort;
 use App\Ports\Out\ServiceProductTemplate\ServiceProductTemplateLookupReaderPort;
+use App\Ports\Out\ServiceProductTemplate\ServiceProductTemplateTableReaderPort;
 use Illuminate\Support\ServiceProvider;
 
 class ProductCatalogServiceProvider extends ServiceProvider
@@ -42,7 +46,9 @@ class ProductCatalogServiceProvider extends ServiceProvider
         $this->app->scoped(ProductLifecyclePort::class, DatabaseVersionedProductWriterAdapter::class);
         $this->app->singleton(ProductDuplicateCheckerPort::class, DatabaseProductDuplicateCheckerAdapter::class);
         $this->app->singleton(ServiceCatalogReaderPort::class, DatabaseServiceCatalogAdapter::class);
+        $this->app->singleton(ServiceCatalogTableReaderPort::class, DatabaseServiceCatalogTableReaderAdapter::class);
         $this->app->singleton(ServiceProductTemplateLookupReaderPort::class, DatabaseServiceProductTemplateLookupReaderAdapter::class);
+        $this->app->singleton(ServiceProductTemplateTableReaderPort::class, DatabaseServiceProductTemplateTableReaderAdapter::class);
         $this->app->scoped(ServiceCatalogWriterPort::class, DatabaseServiceCatalogAdapter::class);
     }
 }

@@ -6,7 +6,8 @@
     q: "",
     page: 1,
     sort_by: "nama_pt_pengirim",
-    sort_dir: "asc"
+    sort_dir: "asc",
+    status: "all"
   };
 
   const allowedSortBy = new Set([
@@ -24,6 +25,9 @@
   const summary = $("supplier-table-summary");
   const searchForm = $("supplier-search-form");
   const searchInput = $("supplier-search-input");
+  const filterForm = $("supplier-filter-form");
+  const filterDrawer = $("supplier-filter-drawer");
+  const filterBackdrop = $("supplier-filter-backdrop");
 
   const editModalElement = $("supplier-edit-modal");
   const editModalSubtitle = $("supplier-edit-modal-subtitle");
@@ -39,6 +43,7 @@
 
   let searchDebounceTimer = null;
   let requestCounter = 0;
+  let activeController = null;
   let lastLoadedRows = [];
 
   const esc = (v) => String(v ?? "").replace(/[&<>\"']/g, (m) => ({
@@ -150,7 +155,8 @@
       q: trimValue(p.get("q")),
       page: intOrDefault(p.get("page"), 1),
       sort_by: allowedSortBy.has(sortBy) ? sortBy : defaults.sort_by,
-      sort_dir: allowedSortDir.has(sortDir) ? sortDir : defaults.sort_dir
+      sort_dir: allowedSortDir.has(sortDir) ? sortDir : defaults.sort_dir,
+      status: ["outstanding", "settled"].includes(trimValue(p.get("status"))) ? trimValue(p.get("status")) : defaults.status
     };
   };
 
@@ -158,6 +164,7 @@
 
   const syncInputsFromState = () => {
     searchInput.value = s.q;
+    if (filterForm?.elements.status) filterForm.elements.status.value = s.status;
   };
 
   const paramsObject = () => {
@@ -165,7 +172,8 @@
       page: String(s.page),
       per_page: "10",
       sort_by: s.sort_by,
-      sort_dir: s.sort_dir
+      sort_dir: s.sort_dir,
+      status: s.status
     };
 
     if (s.q) obj.q = s.q;
@@ -239,7 +247,10 @@
   };
 
   const renderSummary = (meta) => {
-    summary.textContent = `Total: ${meta.total} supplier`;
+    const total = Number(meta.total || 0);
+    const from = total === 0 ? 0 : ((Number(meta.page || 1) - 1) * Number(meta.per_page || 10)) + 1;
+    const to = Math.min(Number(meta.page || 1) * Number(meta.per_page || 10), total);
+    summary.textContent = `Menampilkan ${from} sampai ${to} dari ${total} pemasok`;
   };
 
   const renderSortIndicators = () => {
@@ -278,34 +289,38 @@
   };
 
   const load = async (replaceUrl = false) => {
+    activeController?.abort();
+    const controller = new AbortController();
+    activeController = controller;
     const currentRequest = ++requestCounter;
 
     body.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">Memuat data...</td></tr>`;
 
-    const res = await fetch(`${c.endpoint}?${paramsString()}`, {
-      headers: { Accept: "application/json" }
-    });
+    try {
+      const res = await fetch(`${c.endpoint}?${paramsString()}`, {
+        headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
+        signal: controller.signal
+      });
+      const json = await res.json();
+      if (currentRequest !== requestCounter) return;
+      if (!res.ok || !json.success) throw new Error("supplier-table-response");
 
-    const json = await res.json();
-
-    if (currentRequest !== requestCounter) {
-      return;
-    }
-
-    if (!res.ok || !json.success) {
+      lastLoadedRows = json.data.rows || [];
+      renderRows(lastLoadedRows, json.data.meta || {});
+      renderSummary(json.data.meta || {});
+      renderPager(json.data.meta || {});
+      renderSortIndicators();
+      syncInputsFromState();
+      updateUrlState(replaceUrl);
+      maybeRestoreFailedEditModal();
+    } catch (error) {
+      if (error?.name === "AbortError" || currentRequest !== requestCounter) return;
       body.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Gagal memuat data.</td></tr>`;
-      return;
+      summary.textContent = "Menampilkan 0 sampai 0 dari 0 pemasok";
+      pager.innerHTML = "";
+    } finally {
+      if (activeController === controller) activeController = null;
     }
-
-    lastLoadedRows = json.data.rows || [];
-
-    renderRows(lastLoadedRows, json.data.meta || {});
-    renderSummary(json.data.meta || {});
-    renderPager(json.data.meta || {});
-    renderSortIndicators();
-    syncInputsFromState();
-    updateUrlState(replaceUrl);
-    maybeRestoreFailedEditModal();
   };
 
   searchForm.addEventListener("submit", (e) => {
@@ -313,7 +328,7 @@
 
     const value = trimValue(searchInput.value);
 
-    if (value.length === 0) {
+    if (value.length < 2) {
       s.q = "";
       s.page = 1;
       load();
@@ -332,14 +347,10 @@
 
     clearTimeout(searchDebounceTimer);
 
-    if (value.length === 0) {
+    if (value.length < 2) {
       s.q = "";
       s.page = 1;
-      searchDebounceTimer = setTimeout(() => load(), 250);
-      return;
-    }
-
-    if (value.length < 2) {
+      searchDebounceTimer = setTimeout(() => load(), 160);
       return;
     }
 
@@ -347,7 +358,29 @@
       s.q = value;
       s.page = 1;
       load();
-    }, 300);
+    }, 220);
+  });
+
+  const drawFilter = (open) => {
+    filterDrawer?.classList.toggle("d-none", !open);
+    filterBackdrop?.classList.toggle("d-none", !open);
+  };
+  $("open-supplier-filter")?.addEventListener("click", () => drawFilter(true));
+  $("close-supplier-filter")?.addEventListener("click", () => drawFilter(false));
+  filterBackdrop?.addEventListener("click", () => drawFilter(false));
+  filterForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    s.status = filterForm.elements.status.value;
+    s.page = 1;
+    drawFilter(false);
+    load();
+  });
+  $("reset-supplier-filter")?.addEventListener("click", () => {
+    s.status = "all";
+    s.page = 1;
+    syncInputsFromState();
+    drawFilter(false);
+    load();
   });
 
   document.querySelectorAll("[data-sort-by]").forEach((button) => {
@@ -403,6 +436,8 @@
     s.page = nextState.page;
     s.sort_by = nextState.sort_by;
     s.sort_dir = nextState.sort_dir;
+    s.status = nextState.status;
+    syncInputsFromState();
     load(true);
   });
 

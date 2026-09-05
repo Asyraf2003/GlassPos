@@ -83,8 +83,12 @@ final class AdminServiceProductTemplateManagementFeatureTest extends TestCase
         $indexPage = $this->actingAs($admin)->get(route('admin.service-product-templates.index'));
         $indexPage->assertOk();
         $indexPage->assertSee('Produk memakai harga jual katalog. Harga jasa mengikuti master jasa. Total paket wajib minimal produk + jasa', false);
-        $indexPage->assertSee('Ban Admin Template', false);
-        $indexPage->assertSee('Jasa Pasang Ban Admin', false);
+
+        $this->actingAs($admin)
+            ->getJson(route('admin.service-product-templates.table', ['q' => 'Ban Admin Template']))
+            ->assertOk()
+            ->assertJsonPath('data.rows.0.nama_barang', 'Ban Admin Template')
+            ->assertJsonPath('data.rows.0.service_name', 'Jasa Pasang Ban Admin');
 
         $editPage = $this->actingAs($admin)->get(route('admin.service-product-templates.edit', ['templateId' => $templateId]));
         $editPage->assertOk();

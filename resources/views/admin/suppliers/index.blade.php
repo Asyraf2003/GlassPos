@@ -12,15 +12,13 @@
                         <h4 class="card-title mb-1">List data pemasok untuk admin</h4>
                     </div>
 
-                    <form id="supplier-search-form" class="m-0 d-flex">
-                        <input
-                            type="text"
-                            id="supplier-search-input"
-                            class="form-control"
-                            placeholder="Cari nama supplier"
-                            autocomplete="off"
-                        >
-                    </form>
+                    <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+                        <form id="supplier-search-form" class="m-0 d-flex">
+                            <input type="text" id="supplier-search-input" class="form-control py-2"
+                                placeholder="Cari nama supplier" autocomplete="off">
+                        </form>
+                        <button type="button" id="open-supplier-filter" class="btn btn-primary py-2">Filter</button>
+                    </div>
                 </div>
             </div>
 
@@ -72,11 +70,13 @@
                 </div>
 
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-3">
-                    <small id="supplier-table-summary" class="text-muted">Total: -</small>
+                    <small id="supplier-table-summary" class="text-muted">Menampilkan 0 sampai 0 dari 0 pemasok</small>
                     <div id="supplier-table-pagination"></div>
                 </div>
             </div>
         </div>
+
+        @include('admin.suppliers.partials.filter_drawer')
 
         <div
             class="modal fade"

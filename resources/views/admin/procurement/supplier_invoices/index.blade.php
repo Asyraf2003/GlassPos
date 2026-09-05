@@ -42,7 +42,11 @@
                         <thead>
                             <tr class="text-nowrap">
                                 <th style="width: 64px;">No</th>
-                                <th>Nomor Faktur</th>
+                                <th>
+                                    <button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="nomor_faktur">
+                                        Nomor Faktur <span class="ms-1 text-muted" data-sort-indicator="nomor_faktur">↕</span>
+                                    </button>
+                                </th>
                                 <th>
                                     <button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="nama_pt_pengirim">
                                         Nama PT
@@ -101,7 +105,7 @@
                 </div>
 
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-3">
-                    <small id="procurement-invoice-table-summary" class="text-muted">Total: -</small>
+                    <small id="procurement-invoice-table-summary" class="text-muted">Menampilkan 0 sampai 0 dari 0 nota supplier</small>
                     <div id="procurement-invoice-table-pagination"></div>
                 </div>
 

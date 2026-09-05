@@ -13,6 +13,7 @@
   };
 
   const allowedSortBy = new Set([
+    "nomor_faktur",
     "shipment_date",
     "due_date",
     "nama_pt_pengirim",
@@ -79,6 +80,7 @@
 
   let searchDebounceTimer = null;
   let requestCounter = 0;
+  let activeController = null;
   let pendingPaymentAction = null;
   let pendingVoidAction = null;
 
@@ -217,13 +219,15 @@
     const sortBy = trimValue(p.get("sort_by"));
     const sortDir = trimValue(p.get("sort_dir"));
     const paymentStatus = trimValue(p.get("payment_status"));
+    const q = trimValue(p.get("q"));
+    const hasExplicitSort = allowedSortBy.has(sortBy);
 
     return {
-      q: trimValue(p.get("q")),
+      q,
       payment_status: allowedPaymentStatus.has(paymentStatus) ? paymentStatus : defaults.payment_status,
       page: intOrDefault(p.get("page"), 1),
-      sort_by: allowedSortBy.has(sortBy) ? sortBy : defaults.sort_by,
-      sort_dir: allowedSortDir.has(sortDir) ? sortDir : defaults.sort_dir,
+      sort_by: q.length >= 2 && !hasExplicitSort ? "relevance" : (hasExplicitSort ? sortBy : defaults.sort_by),
+      sort_dir: q.length >= 2 && !hasExplicitSort ? "asc" : (allowedSortDir.has(sortDir) ? sortDir : defaults.sort_dir),
       shipment_date_from: trimValue(p.get("shipment_date_from")),
       shipment_date_to: trimValue(p.get("shipment_date_to"))
     };
@@ -255,10 +259,11 @@
     const obj = {
       page: String(s.page),
       per_page: "10",
-      sort_by: s.sort_by,
       sort_dir: s.sort_dir,
       payment_status: s.payment_status
     };
+
+    if (s.sort_by !== "relevance") obj.sort_by = s.sort_by;
 
     ["q", "shipment_date_from", "shipment_date_to"].forEach((k) => {
       if (s[k]) obj[k] = s[k];
@@ -473,7 +478,10 @@
   };
 
   const renderSummary = (meta) => {
-    summary.textContent = `Total: ${meta.total} nota supplier`;
+    const total = Number(meta.total || 0);
+    const from = total === 0 ? 0 : ((Number(meta.page || 1) - 1) * Number(meta.per_page || 10)) + 1;
+    const to = Math.min(Number(meta.page || 1) * Number(meta.per_page || 10), total);
+    summary.textContent = `Menampilkan ${from} sampai ${to} dari ${total} nota supplier`;
   };
 
   const renderSortIndicators = () => {
@@ -491,13 +499,17 @@
   };
 
   const load = async (replaceUrl = false) => {
+    activeController?.abort();
+    const controller = new AbortController();
+    activeController = controller;
     const currentRequest = ++requestCounter;
 
     body.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-4">Memuat data...</td></tr>`;
 
     try {
       const res = await fetch(`${c.endpoint}?${paramsString()}`, {
-        headers: { Accept: "application/json" }
+        headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
+        signal: controller.signal
       });
 
       const json = await res.json();
@@ -537,12 +549,16 @@
           c.oldVoidInvoiceId = "";
         }
       }
-    } catch (_error) {
-      if (currentRequest !== requestCounter) {
+    } catch (error) {
+      if (error?.name === "AbortError" || currentRequest !== requestCounter) {
         return;
       }
 
       body.innerHTML = `<tr><td colspan="11" class="text-center text-danger py-4">Gagal memuat data.</td></tr>`;
+      summary.textContent = "Menampilkan 0 sampai 0 dari 0 nota supplier";
+      pager.innerHTML = "";
+    } finally {
+      if (activeController === controller) activeController = null;
     }
   };
 
@@ -598,8 +614,12 @@
     e.preventDefault();
     const value = trimValue(searchInput?.value);
 
-    if (value.length === 0) {
+    if (value.length < 2) {
       s.q = "";
+      if (s.sort_by === "relevance") {
+        s.sort_by = defaults.sort_by;
+        s.sort_dir = defaults.sort_dir;
+      }
       s.page = 1;
       load();
       return;
@@ -607,6 +627,8 @@
 
     if (value.length >= 2) {
       s.q = value;
+      s.sort_by = "relevance";
+      s.sort_dir = "asc";
       s.page = 1;
       load();
     }
@@ -616,22 +638,24 @@
     const value = trimValue(searchInput.value);
     clearTimeout(searchDebounceTimer);
 
-    if (value.length === 0) {
-      s.q = "";
-      s.page = 1;
-      searchDebounceTimer = setTimeout(() => load(), 250);
-      return;
-    }
-
     if (value.length < 2) {
+      s.q = "";
+      if (s.sort_by === "relevance") {
+        s.sort_by = defaults.sort_by;
+        s.sort_dir = defaults.sort_dir;
+      }
+      s.page = 1;
+      searchDebounceTimer = setTimeout(() => load(), 160);
       return;
     }
 
     searchDebounceTimer = setTimeout(() => {
       s.q = value;
+      s.sort_by = "relevance";
+      s.sort_dir = "asc";
       s.page = 1;
       load();
-    }, 300);
+    }, 220);
   });
 
   filterForm?.addEventListener("submit", (e) => {
@@ -661,6 +685,10 @@
 
   resetAllFilters?.addEventListener("click", () => {
     s.q = "";
+    if (s.sort_by === "relevance") {
+      s.sort_by = defaults.sort_by;
+      s.sort_dir = defaults.sort_dir;
+    }
     s.payment_status = "all";
     s.shipment_date_from = "";
     s.shipment_date_to = "";
@@ -724,6 +752,7 @@
 
   window.addEventListener("popstate", () => {
     Object.assign(s, stateFromUrl());
+    syncInputsFromState();
     load(true);
   });
 

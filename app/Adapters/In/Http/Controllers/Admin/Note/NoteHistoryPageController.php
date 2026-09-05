@@ -13,14 +13,15 @@ final class NoteHistoryPageController extends Controller
     public function __invoke(Request $request): View
     {
         $today = date('Y-m-d');
+        $search = $this->resolveString($request, 'search') ?? '';
 
         $filters = [
             'date_from' => $this->resolveString($request, 'date_from') ?? $today,
             'date_to' => $this->resolveString($request, 'date_to') ?? $today,
-            'search' => $this->resolveString($request, 'search') ?? '',
+            'search' => $search,
             'line_status' => $this->resolveString($request, 'line_status') ?? '',
-            'sort_by' => $this->resolveString($request, 'sort_by') ?? 'created_at',
-            'sort_dir' => $this->resolveString($request, 'sort_dir') ?? 'desc',
+            'sort_by' => $this->resolveString($request, 'sort_by') ?? ($search !== '' ? 'relevance' : 'created_at'),
+            'sort_dir' => $this->resolveString($request, 'sort_dir') ?? ($search !== '' ? 'asc' : 'desc'),
         ];
 
         return view('admin.notes.index', [

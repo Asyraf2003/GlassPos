@@ -39,6 +39,7 @@ trait SupplierTablePayload
                 'sort_dir' => $query->sortDir(),
                 'filters' => [
                     'q' => $query->q(),
+                    'status' => $query->status(),
                 ],
             ],
         ];

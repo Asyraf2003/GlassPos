@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         : {};
 
     const normalize = (value) => String(value ?? '').trim();
-    const allowedSortBy = new Set(['created_at', 'total_rupiah', 'net_paid_rupiah', 'outstanding_rupiah']);
+    const allowedSortBy = new Set(['note_number', 'customer_name', 'created_at', 'total_rupiah', 'net_paid_rupiah', 'outstanding_rupiah']);
     const intOrDefault = (value, fallback) => {
         const parsed = Number.parseInt(String(value ?? ''), 10);
         return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
@@ -70,9 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
             date_to: normalize(params.get('date_to') || filters.date_to),
             search: normalize(params.get('search') || filters.search),
             line_status: normalize(params.get('line_status') || filters.line_status),
-            sort_by: allowedSortBy.has(normalize(params.get('sort_by') || filters.sort_by))
-                ? normalize(params.get('sort_by') || filters.sort_by)
-                : 'created_at',
+            sort_by: normalize(params.get('sort_by') || filters.sort_by) === 'relevance'
+                ? 'relevance'
+                : (allowedSortBy.has(normalize(params.get('sort_by') || filters.sort_by)) ? normalize(params.get('sort_by') || filters.sort_by) : 'created_at'),
             sort_dir: normalize(params.get('sort_dir') || filters.sort_dir) === 'asc' ? 'asc' : 'desc',
             page: intOrDefault(params.get('page'), 1),
             per_page: intOrDefault(params.get('per_page'), 10),
@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let searchDebounceTimer = null;
     let requestCounter = 0;
+    let activeController = null;
 
     const fillControlsFromState = () => {
         searchInput.value = state.search;
@@ -105,7 +106,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const syncSearchState = () => {
-        state.search = normalize(searchInput.value);
+        const value = normalize(searchInput.value);
+        state.search = value.length >= 2 ? value : '';
+        if (state.search !== '') {
+            state.sort_by = 'relevance';
+            state.sort_dir = 'asc';
+        } else if (state.sort_by === 'relevance') {
+            state.sort_by = 'created_at';
+            state.sort_dir = 'desc';
+        }
         state.page = 1;
     };
 
@@ -113,9 +122,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const obj = {
             page: String(state.page),
             per_page: String(state.per_page),
-            sort_by: state.sort_by,
             sort_dir: state.sort_dir,
         };
+
+        if (state.sort_by !== 'relevance') obj.sort_by = state.sort_by;
 
         ['date_from', 'date_to', 'search', 'line_status'].forEach((key) => {
             const value = normalize(state[key]);
@@ -224,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${((page - 1) * perPage) + index + 1}</td>
                     <td>${escapeHtml(item.created_at_text ?? item.transaction_date ?? '-')}</td>
                     <td>
-                        <div class="fw-semibold">${escapeHtml(item.customer_name ?? 'Nota Pelanggan')}</div>
+                        <div class="fw-semibold">${escapeHtml(item.note_number ?? item.note_id ?? 'Nota Pelanggan')}</div>
                         <div class="small text-muted">${escapeHtml(item.transaction_date ?? '-')}</div>
                     </td>
                     <td>${escapeHtml(item.customer_name ?? '-')}</td>
@@ -237,7 +247,12 @@ document.addEventListener('DOMContentLoaded', () => {
             `).join('');
         }
 
-        summaryNode.textContent = summaryLabel || 'Daftar nota admin siap.';
+        const total = Number(pagination?.total || 0);
+        const page = Number(pagination?.page || 1);
+        const perPage = Number(pagination?.per_page || 10);
+        const from = total === 0 ? 0 : ((page - 1) * perPage) + 1;
+        const to = Math.min(page * perPage, total);
+        summaryNode.textContent = `Menampilkan ${from} sampai ${to} dari ${total} nota pelanggan`;
         renderPager(pagination);
     };
 
@@ -247,6 +262,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        activeController?.abort();
+        const controller = new AbortController();
+        activeController = controller;
         const currentRequest = ++requestCounter;
         renderLoading();
 
@@ -263,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                 },
+                signal: controller.signal,
             });
 
             const payload = await response.json();
@@ -288,12 +307,14 @@ document.addEventListener('DOMContentLoaded', () => {
             renderItems(items, summaryLabel, pagination);
             fillControlsFromState();
             updateUrlState(replaceUrl);
-        } catch (_error) {
-            if (currentRequest !== requestCounter) {
+        } catch (error) {
+            if (error?.name === 'AbortError' || currentRequest !== requestCounter) {
                 return;
             }
 
             renderError();
+        } finally {
+            if (activeController === controller) activeController = null;
         }
     };
 
@@ -308,20 +329,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const value = normalize(searchInput.value);
 
-        if (value.length === 0) {
-            syncSearchState();
-            searchDebounceTimer = window.setTimeout(() => loadTable(), 250);
-            return;
-        }
-
         if (value.length < 2) {
+            syncSearchState();
+            searchDebounceTimer = window.setTimeout(() => loadTable(), 160);
             return;
         }
 
         searchDebounceTimer = window.setTimeout(() => {
             syncSearchState();
             loadTable();
-        }, 300);
+        }, 220);
     });
 
     openFilterButton.addEventListener('click', () => {

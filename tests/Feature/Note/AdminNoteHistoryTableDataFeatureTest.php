@@ -91,6 +91,27 @@ final class AdminNoteHistoryTableDataFeatureTest extends TestCase
         );
     }
 
+    public function test_default_search_prioritizes_exact_note_identity_over_newer_customer_match(): void
+    {
+        $this->loginAsAuthorizedAdmin();
+        $today = now()->toDateString();
+        $this->seedProjectedAdminNote('FOCUS-NOTE', $today, 10000, 0, $today.' 08:00:00');
+        $this->seedProjectedAdminNote('newer-customer-match', $today, 20000, 0, $today.' 16:00:00');
+        DB::table('note_history_projection')->where('note_id', 'newer-customer-match')->update([
+            'customer_name' => 'Pelanggan FOCUS-NOTE Umum',
+            'customer_name_normalized' => 'pelanggan focus-note umum',
+        ]);
+
+        $response = $this->getJson(route('admin.notes.table', [
+            'date_from' => $today,
+            'date_to' => $today,
+            'search' => 'FOCUS-NOTE',
+        ]))->assertOk();
+
+        $response->assertJsonPath('data.items.0.note_id', 'FOCUS-NOTE')
+            ->assertJsonPath('data.filters.sort_by', 'relevance');
+    }
+
     public function test_server_side_money_sort_is_applied_before_pagination(): void
     {
         $this->loginAsAuthorizedAdmin();

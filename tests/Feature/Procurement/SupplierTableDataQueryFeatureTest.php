@@ -56,6 +56,26 @@ final class SupplierTableDataQueryFeatureTest extends TestCase
         $response->assertJsonPath('data.rows.1.outstanding_rupiah', 30000);
     }
 
+    public function test_admin_can_filter_suppliers_by_outstanding_status(): void
+    {
+        $this->seedSupplier('supplier-outstanding', 'PT Masih Berhutang');
+        $this->seedSupplier('supplier-settled', 'PT Sudah Lunas');
+        $this->seedInvoice('invoice-outstanding', 'supplier-outstanding', '2026-03-15', '2026-04-15', 100000);
+        $this->seedInvoice('invoice-settled', 'supplier-settled', '2026-03-16', '2026-04-16', 100000);
+        $this->seedPayment('payment-settled', 'invoice-settled', 100000, '2026-03-17', 'uploaded');
+        $this->syncSupplierListProjectionForTest('supplier-outstanding');
+        $this->syncSupplierListProjectionForTest('supplier-settled');
+
+        $response = $this->actingAs($this->admin())->getJson(route('admin.suppliers.table', [
+            'status' => 'outstanding',
+        ]));
+
+        $response->assertOk()
+            ->assertJsonPath('data.meta.filters.status', 'outstanding')
+            ->assertJsonCount(1, 'data.rows')
+            ->assertJsonPath('data.rows.0.id', 'supplier-outstanding');
+    }
+
     public function test_admin_can_get_supplier_summary_aggregation_from_multiple_invoices(): void
     {
         $this->seedSupplier('supplier-1', 'PT Sumber Makmur');

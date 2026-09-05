@@ -7,14 +7,21 @@
     <section class="section">
         <div class="card">
             <div class="card-header">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
                     <div>
                         <h4 class="card-title mb-1">Dipakai untuk lookup kasir dan paket service</h4>
                     </div>
 
-                    <a href="{{ route('admin.services.create') }}" class="btn btn-primary">
-                        Tambah Jasa
-                    </a>
+                    <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+                        <form id="service-search-form" class="m-0 d-flex">
+                            <input type="text" id="service-search-input" class="form-control py-2"
+                                placeholder="Cari nama jasa" autocomplete="off">
+                        </form>
+                        <button type="button" id="open-service-filter" class="btn btn-primary py-2">Filter</button>
+                        <a href="{{ route('admin.services.create') }}" class="btn btn-primary py-2 d-inline-flex align-items-center">
+                            Tambah Jasa
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -28,55 +35,39 @@
                 @endif
 
                 <div class="table-responsive">
-                    <table class="table table-lg">
+                    <table class="table table-lg" id="service-table">
                         <thead>
-                            <tr>
-                                <th>Nama Jasa</th>
-                                <th>Nama Normal</th>
-                                <th>Default Harga</th>
-                                <th>Status</th>
+                            <tr class="text-nowrap">
+                                <th style="width: 64px;">No</th>
+                                @foreach ([
+                                    'name' => 'Nama Jasa',
+                                    'normalized_name' => 'Nama Normal',
+                                    'default_price_rupiah' => 'Default Harga',
+                                    'is_active' => 'Status',
+                                ] as $sortKey => $label)
+                                    <th>
+                                        <button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="{{ $sortKey }}">
+                                            {{ $label }} <span class="ms-1 text-muted" data-sort-indicator="{{ $sortKey }}">↕</span>
+                                        </button>
+                                    </th>
+                                @endforeach
                                 <th class="text-center" style="width: 120px;">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @forelse ($services as $service)
-                                <tr>
-                                    <td class="fw-semibold">{{ $service['name'] }}</td>
-                                    <td><small class="text-muted">{{ $service['normalized_name'] }}</small></td>
-                                    <td>{{ number_format($service['default_price_rupiah'], 0, ',', '.') }}</td>
-                                    <td>
-                                        <span class="badge {{ $service['is_active'] ? 'bg-success' : 'bg-secondary' }}">
-                                            {{ $service['is_active'] ? 'Aktif' : 'Nonaktif' }}
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <button
-                                            type="button"
-                                            class="btn btn-sm btn-outline-primary"
-                                            data-service-action="open"
-                                            data-service-name="{{ $service['name'] }}"
-                                            data-service-normalized="{{ $service['normalized_name'] }}"
-                                            data-service-status="{{ $service['is_active'] ? 'active' : 'inactive' }}"
-                                            data-edit-url="{{ route('admin.services.edit', ['serviceId' => $service['id']]) }}"
-                                            data-deactivate-url="{{ route('admin.services.deactivate', ['serviceId' => $service['id']]) }}"
-                                            data-activate-url="{{ route('admin.services.activate', ['serviceId' => $service['id']]) }}"
-                                        >
-                                            Aksi
-                                        </button>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">
-                                        Belum ada jasa.
-                                    </td>
-                                </tr>
-                            @endforelse
+                        <tbody id="service-table-body">
+                            <tr><td colspan="6" class="text-center text-muted py-4">Sedang memuat data...</td></tr>
                         </tbody>
                     </table>
                 </div>
+
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-3">
+                    <small id="service-table-summary" class="text-muted">Menampilkan 0 sampai 0 dari 0 jasa</small>
+                    <div id="service-table-pagination"></div>
+                </div>
             </div>
         </div>
+
+        @include('admin.service_catalog.partials.filter_drawer')
 
         <div
             class="modal fade"
@@ -128,5 +119,11 @@
 @endsection
 
 @push('scripts')
+    <script>
+        window.AdminServiceTableConfig = {
+            endpoint: @json(route('admin.services.table')),
+        };
+    </script>
+    <script src="{{ asset('assets/static/js/pages/admin-services-table.js') }}?v={{ config('app.asset_version') }}"></script>
     <script src="{{ asset('assets/static/js/pages/admin-service-actions.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

@@ -43,9 +43,13 @@ final class AdminServiceCatalogManagementFeatureTest extends TestCase
 
         $indexPage = $this->actingAs($admin)->get(route('admin.services.index'));
         $indexPage->assertOk();
-        $indexPage->assertSee('Ganti Oli Mesin', false);
         $indexPage->assertSee('Dipakai untuk lookup kasir dan paket service', false);
         $indexPage->assertSee(route('admin.services.index'), false);
+
+        $this->actingAs($admin)
+            ->getJson(route('admin.services.table', ['q' => 'Ganti Oli Mesin']))
+            ->assertOk()
+            ->assertJsonPath('data.rows.0.name', 'Ganti Oli Mesin');
 
         $editPage = $this->actingAs($admin)->get(route('admin.services.edit', ['serviceId' => $serviceId]));
         $editPage->assertOk();

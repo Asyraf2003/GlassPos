@@ -17,6 +17,12 @@ trait SupplierTableFilters
             $query->where('supplier_list_projection.nama_pt_pengirim', 'like', '%' . $keyword . '%');
         }
 
+        if ($filters->status() === 'outstanding') {
+            $query->where('supplier_list_projection.outstanding_rupiah', '>', 0);
+        } elseif ($filters->status() === 'settled') {
+            $query->where('supplier_list_projection.outstanding_rupiah', '=', 0);
+        }
+
         return $query;
     }
 }

@@ -7,14 +7,21 @@
     <section class="section">
         <div class="card">
             <div class="card-header">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
                     <div>
                         <h4 class="card-title mb-1">Produk memakai harga jual katalog. Harga jasa mengikuti master jasa. Total paket wajib minimal produk + jasa</h4>
                     </div>
 
-                    <a href="{{ route('admin.service-product-templates.create') }}" class="btn btn-primary">
-                        Tambah Paket
-                    </a>
+                    <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+                        <form id="package-search-form" class="m-0 d-flex">
+                            <input type="text" id="package-search-input" class="form-control py-2"
+                                placeholder="Cari kode, produk, atau jasa" autocomplete="off">
+                        </form>
+                        <button type="button" id="open-package-filter" class="btn btn-primary py-2">Filter</button>
+                        <a href="{{ route('admin.service-product-templates.create') }}" class="btn btn-primary py-2 d-inline-flex align-items-center">
+                            Tambah Paket
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -32,82 +39,37 @@
                 @enderror
 
                 <div class="table-responsive">
-                    <table class="table table-lg">
+                    <table class="table table-lg" id="package-table">
                         <thead>
-                            <tr>
-                                <th>Paket</th>
-                                <th>Produk</th>
-                                <th>Jasa</th>
-                                <th>Total</th>
-                                <th>Status</th>
+                            <tr class="text-nowrap">
+                                <th style="width: 64px;">No</th>
+                                @foreach ([
+                                    'service_name' => 'Paket',
+                                    'product_name' => 'Produk',
+                                    'default_service_price_rupiah' => 'Jasa',
+                                    'package_total' => 'Total',
+                                    'is_active' => 'Status',
+                                ] as $sortKey => $label)
+                                    <th><button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="{{ $sortKey }}">
+                                        {{ $label }} <span class="ms-1 text-muted" data-sort-indicator="{{ $sortKey }}">↕</span>
+                                    </button></th>
+                                @endforeach
                                 <th class="text-center" style="width: 120px;">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @forelse ($templates as $template)
-                                <tr>
-                                    <td>
-                                        <div class="fw-semibold">{{ $template['service_name'] }}</div>
-                                        <small class="text-muted">Service</small>
-                                    </td>
-                                    <td>
-                                        <div class="fw-semibold">{{ $template['nama_barang'] }}</div>
-                                        <small class="text-muted">
-                                            {{ $template['kode_barang'] ?: '-' }} · harga jual {{ number_format($template['harga_jual'], 0, ',', '.') }}
-                                        </small>
-                                    </td>
-                                    <td>{{ number_format($template['default_service_price_rupiah'], 0, ',', '.') }}</td>
-                                    <td>
-                                        <div class="fw-semibold">{{ number_format($template['package_total'], 0, ',', '.') }}</div>
-                                        <small class="text-muted">
-                                            Min {{ number_format($template['minimum_total'], 0, ',', '.') }}
-                                            @if ($template['package_margin'] > 0)
-                                                · Selisih {{ number_format($template['package_margin'], 0, ',', '.') }}
-                                            @endif
-                                        </small>
-                                        @if ($template['package_margin'] > 0)
-                                            <div class="small text-muted mt-1">
-                                                80% keuntungan {{ number_format($template['package_profit'], 0, ',', '.') }}
-                                                · 20% jasa {{ number_format($template['package_service_extra'], 0, ',', '.') }}
-                                            </div>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <span class="badge {{ $template['is_active'] ? 'bg-success' : 'bg-secondary' }}">
-                                            {{ $template['is_active'] ? 'Aktif' : 'Nonaktif' }}
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <button
-                                            type="button"
-                                            class="btn btn-sm btn-outline-primary"
-                                            data-package-action="open"
-                                            data-package-name="{{ $template['service_name'] }}"
-                                            data-package-product="{{ $template['nama_barang'] }}"
-                                            data-package-status="{{ $template['is_active'] ? 'active' : 'inactive' }}"
-                                            data-detail-url="{{ route('admin.service-product-templates.show', ['templateId' => $template['id']]) }}"
-                                            data-edit-url="{{ route('admin.service-product-templates.edit', ['templateId' => $template['id']]) }}"
-                                            data-product-url="{{ route('admin.products.show', ['productId' => $template['product_id']]) }}"
-                                            data-service-url="{{ route('admin.services.edit', ['serviceId' => $template['service_catalog_item_id']]) }}"
-                                            data-deactivate-url="{{ route('admin.service-product-templates.deactivate', ['templateId' => $template['id']]) }}"
-                                            data-reactivate-url="{{ route('admin.service-product-templates.reactivate', ['templateId' => $template['id']]) }}"
-                                        >
-                                            Aksi
-                                        </button>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
-                                        Belum ada paket service.
-                                    </td>
-                                </tr>
-                            @endforelse
+                        <tbody id="package-table-body">
+                            <tr><td colspan="7" class="text-center text-muted py-4">Sedang memuat data...</td></tr>
                         </tbody>
                     </table>
                 </div>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-3">
+                    <small id="package-table-summary" class="text-muted">Menampilkan 0 sampai 0 dari 0 paket service</small>
+                    <div id="package-table-pagination"></div>
+                </div>
             </div>
         </div>
+
+        @include('admin.service_product_templates.partials.filter_drawer')
 
         <div
             class="modal fade"
@@ -177,5 +139,7 @@
 @endsection
 
 @push('scripts')
+    <script>window.AdminPackageTableConfig = { endpoint: @json(route('admin.service-product-templates.table')) };</script>
+    <script src="{{ asset('assets/static/js/pages/admin-service-product-templates-table.js') }}?v={{ config('app.asset_version') }}"></script>
     <script src="{{ asset('assets/static/js/pages/admin-package-service-actions.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

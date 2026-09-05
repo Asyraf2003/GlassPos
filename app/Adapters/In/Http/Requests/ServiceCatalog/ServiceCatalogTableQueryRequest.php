@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Adapters\In\Http\Requests\Procurement;
+namespace App\Adapters\In\Http\Requests\ServiceCatalog;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-final class SupplierTableQueryRequest extends FormRequest
+final class ServiceCatalogTableQueryRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -17,24 +17,21 @@ final class SupplierTableQueryRequest extends FormRequest
     {
         $this->merge([
             'q' => $this->trimOrNull('q'),
+            'status' => $this->trimOrNull('status') ?? 'all',
             'sort_by' => $this->trimOrNull('sort_by'),
             'sort_dir' => $this->trimOrNull('sort_dir'),
-            'status' => $this->trimOrNull('status') ?? 'all',
         ]);
     }
 
-    /**
-     * @return array<string, array<int, string>>
-     */
     public function rules(): array
     {
         return [
             'q' => ['nullable', 'string'],
+            'status' => ['nullable', 'in:all,active,inactive'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'in:10'],
-            'sort_by' => ['nullable', 'in:nama_pt_pengirim,invoice_count,outstanding_rupiah,invoice_unpaid_count,last_shipment_date'],
+            'sort_by' => ['nullable', 'in:name,normalized_name,default_price_rupiah,is_active'],
             'sort_dir' => ['nullable', 'in:asc,desc'],
-            'status' => ['nullable', 'in:all,outstanding,settled'],
         ];
     }
 

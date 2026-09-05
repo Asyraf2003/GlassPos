@@ -39,9 +39,21 @@ final class AdminNoteHistoryTableQuery implements AdminNoteHistoryTableReaderPor
         $builder = $this->filters->applySearch($builder, $criteria->search);
         $builder = $this->filters->applyLineStatusFilter($builder, $criteria->lineStatus);
 
-        $paginator = $builder
-            ->orderBy($this->sortColumn($criteria->sortBy), $criteria->sortDir)
-            ->orderByDesc('note_history_projection.note_id')
+        if ($criteria->sortBy === 'relevance' && $criteria->search !== '') {
+            $term = mb_strtolower($criteria->search, 'UTF-8');
+            $builder->orderByRaw(
+                'CASE WHEN LOWER(note_history_projection.note_id) = ? THEN 0 '
+                .'WHEN LOWER(note_history_projection.note_id) LIKE ? THEN 1 '
+                .'WHEN note_history_projection.customer_name_normalized = ? THEN 2 '
+                .'WHEN note_history_projection.customer_name_normalized LIKE ? THEN 3 '
+                .'WHEN note_history_projection.customer_phone = ? THEN 4 ELSE 5 END',
+                [$term, $term.'%', $term, $term.'%', $criteria->search],
+            )->orderByDesc('notes.created_at');
+        } else {
+            $builder->orderBy($this->sortColumn($criteria->sortBy), $criteria->sortDir);
+        }
+
+        $paginator = $builder->orderByDesc('note_history_projection.note_id')
             ->paginate($criteria->perPage, ['*'], 'page', $criteria->page);
 
         $items = array_map(
@@ -77,8 +89,11 @@ final class AdminNoteHistoryTableQuery implements AdminNoteHistoryTableReaderPor
 
     private function sortColumn(string $sortBy): string
     {
-        return $sortBy === 'created_at'
-            ? 'notes.created_at'
-            : 'note_history_projection.'.$sortBy;
+        return match ($sortBy) {
+            'created_at' => 'notes.created_at',
+            'note_number' => 'note_history_projection.note_id',
+            'customer_name' => 'note_history_projection.customer_name_normalized',
+            default => 'note_history_projection.'.$sortBy,
+        };
     }
 }

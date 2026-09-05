@@ -23,13 +23,15 @@ final class ProcurementInvoiceTableQuery
      */
     public static function fromValidated(array $data): self
     {
+        $q = self::nullableString($data['q'] ?? null);
+
         return new self(
-            self::nullableString($data['q'] ?? null),
+            $q,
             isset($data['payment_status']) ? (string) $data['payment_status'] : 'all',
             isset($data['page']) ? (int) $data['page'] : 1,
             isset($data['per_page']) ? (int) $data['per_page'] : 10,
-            isset($data['sort_by']) ? (string) $data['sort_by'] : 'shipment_date',
-            isset($data['sort_dir']) ? (string) $data['sort_dir'] : 'desc',
+            isset($data['sort_by']) ? (string) $data['sort_by'] : ($q !== null ? 'relevance' : 'shipment_date'),
+            isset($data['sort_dir']) ? (string) $data['sort_dir'] : ($q !== null ? 'asc' : 'desc'),
             self::nullableString($data['shipment_date_from'] ?? null),
             self::nullableString($data['shipment_date_to'] ?? null),
         );

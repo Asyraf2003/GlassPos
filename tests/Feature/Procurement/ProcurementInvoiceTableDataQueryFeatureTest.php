@@ -56,6 +56,22 @@ final class ProcurementInvoiceTableDataQueryFeatureTest extends TestCase
         $responseSnapshot->assertJsonPath('data.rows.0.supplier_invoice_id', 'invoice-1');
     }
 
+    public function test_default_search_prioritizes_exact_invoice_identity_over_newer_supplier_match(): void
+    {
+        $this->seedSupplier('supplier-exact-invoice', 'PT Lain');
+        $this->seedSupplier('supplier-broad-match', 'PT INV-FOCUS Distributor');
+        $this->seedInvoice('invoice-exact', 'supplier-exact-invoice', '2026-03-10', '2026-04-10', 100000, 'PT Lain', 'INV-FOCUS');
+        $this->seedInvoice('invoice-broad', 'supplier-broad-match', '2026-03-20', '2026-04-20', 100000, 'PT INV-FOCUS Distributor', 'OTHER-001');
+
+        $response = $this->actingAs($this->admin())->getJson(route('admin.procurement.supplier-invoices.table', [
+            'q' => 'INV-FOCUS',
+        ]));
+
+        $response->assertOk()
+            ->assertJsonPath('data.rows.0.supplier_invoice_id', 'invoice-exact')
+            ->assertJsonPath('data.meta.sort_by', 'relevance');
+    }
+
     public function test_admin_can_sort_procurement_invoice_table_by_outstanding_desc(): void
     {
         $this->seedSupplier('supplier-1', 'PT Alpha Motor');
@@ -185,7 +201,8 @@ final class ProcurementInvoiceTableDataQueryFeatureTest extends TestCase
         string $shipmentDate,
         string $dueDate,
         int $grandTotal,
-        string $supplierNamaPtPengirimSnapshot
+        string $supplierNamaPtPengirimSnapshot,
+        ?string $nomorFaktur = null,
     ): void {
         $this->seedMinimalSupplierInvoice(
             $id,
@@ -193,7 +210,8 @@ final class ProcurementInvoiceTableDataQueryFeatureTest extends TestCase
             $shipmentDate,
             $dueDate,
             $grandTotal,
-            $supplierNamaPtPengirimSnapshot
+            $supplierNamaPtPengirimSnapshot,
+            $nomorFaktur,
         );
     }
 

@@ -22,13 +22,16 @@ final class AdminNoteHistoryCriteria
      */
     public static function fromFilters(array $filters): self
     {
+        $search = self::resolveString($filters, 'search');
+        $hasExplicitSort = isset($filters['sort_by']) && is_string($filters['sort_by']) && trim($filters['sort_by']) !== '';
+
         return new self(
             self::resolveDate($filters, 'date_from'),
             self::resolveDate($filters, 'date_to'),
-            self::resolveString($filters, 'search'),
+            $search,
             self::resolveString($filters, 'line_status'),
-            self::resolveSortBy($filters['sort_by'] ?? null),
-            self::resolveSortDir($filters['sort_dir'] ?? null),
+            $hasExplicitSort ? self::resolveSortBy($filters['sort_by']) : ($search !== '' ? 'relevance' : 'created_at'),
+            $hasExplicitSort ? self::resolveSortDir($filters['sort_dir'] ?? null) : ($search !== '' ? 'asc' : 'desc'),
             self::resolvePositiveInt($filters, 'page', 1),
             self::resolvePositiveInt($filters, 'per_page', 10),
         );
@@ -38,7 +41,7 @@ final class AdminNoteHistoryCriteria
     {
         $sortBy = is_string($value) ? trim($value) : '';
 
-        return in_array($sortBy, ['created_at', 'total_rupiah', 'net_paid_rupiah', 'outstanding_rupiah'], true)
+        return in_array($sortBy, ['note_number', 'customer_name', 'created_at', 'total_rupiah', 'net_paid_rupiah', 'outstanding_rupiah'], true)
             ? $sortBy
             : 'created_at';
     }

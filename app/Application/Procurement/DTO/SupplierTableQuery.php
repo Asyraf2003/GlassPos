@@ -12,6 +12,7 @@ final class SupplierTableQuery
         private readonly int $perPage,
         private readonly string $sortBy,
         private readonly string $sortDir,
+        private readonly string $status,
     ) {
     }
 
@@ -26,6 +27,7 @@ final class SupplierTableQuery
             isset($data['per_page']) ? (int) $data['per_page'] : 10,
             isset($data['sort_by']) ? (string) $data['sort_by'] : 'nama_pt_pengirim',
             isset($data['sort_dir']) ? (string) $data['sort_dir'] : 'asc',
+            isset($data['status']) ? (string) $data['status'] : 'all',
         );
     }
 
@@ -52,6 +54,11 @@ final class SupplierTableQuery
     public function sortDir(): string
     {
         return $this->sortDir;
+    }
+
+    public function status(): string
+    {
+        return $this->status;
     }
 
     private static function nullableString(mixed $value): ?string
