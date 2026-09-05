@@ -29,14 +29,14 @@
 
         <aside class="note-detail-desktop-payment note-detail-surface">
           <div class="note-detail-section-heading">
-            <h4>Review &amp; Pembayaran</h4>
+            <h4>Pembayaran</h4>
           </div>
           @include('shared.notes.partials.payment-summary-actions')
         </aside>
       </div>
 
-      <section class="note-detail-desktop-history note-detail-surface">
-        <div class="note-detail-section-heading">
+      <section class="note-detail-desktop-history">
+        <div class="note-detail-history-title">
           <h4>Riwayat Nota</h4>
         </div>
         @include('shared.notes.partials.history-panel')
