@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Adapters\In\Http\Controllers\Admin;
 
+use App\Adapters\In\Http\Support\HandsetRequestDetector;
 use App\Adapters\In\Http\ViewData\Admin\AdminDashboardFilterDrawerViewData;
 use App\Adapters\In\Http\ViewData\Admin\AdminDashboardReportExportShortcuts;
+use App\Application\Procurement\UseCases\GetMobileSupplierHubPayloadHandler;
 use App\Application\Reporting\UseCases\GetAdminDashboardPagePayloadHandler;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -13,10 +15,24 @@ use Illuminate\Routing\Controller;
 
 final class AdminDashboardPageController extends Controller
 {
-    public function __invoke(Request $request, GetAdminDashboardPagePayloadHandler $useCase): View
-    {
-        $month = $request->query('month');
+    public function __invoke(
+        Request $request,
+        GetAdminDashboardPagePayloadHandler $useCase,
+        HandsetRequestDetector $handsets,
+        GetMobileSupplierHubPayloadHandler $mobileSupplierHub,
+    ): View {
+        if ($handsets->isHandset($request)) {
+            $tab = (string) $request->query('mobile_tab', '');
+            $payload = $mobileSupplierHub->handle();
 
+            return view('admin.dashboard.mobile_supplier_hub', [
+                'outstandingInvoices' => $payload['outstanding_invoices'],
+                'recentPaymentProofs' => $payload['recent_payment_proofs'],
+                'mobileTab' => in_array($tab, ['pay', 'history'], true) ? $tab : '',
+            ]);
+        }
+
+        $month = $request->query('month');
         $dashboard = $useCase->handle(is_string($month) ? $month : null);
         $stockStatusSegments = $dashboard['analytics']['charts']['stock_status_donut']['segments'] ?? [];
         $dashboardStockStatusSegments = array_map(static function ($segment): array {

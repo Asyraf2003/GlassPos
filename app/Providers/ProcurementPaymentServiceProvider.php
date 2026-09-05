@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Adapters\Out\Procurement\DatabaseMobileSupplierHubReaderAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierPayableReminderReaderAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierPaymentProofAttachmentReaderAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierPaymentProofAttachmentWriterAdapter;
@@ -16,6 +17,7 @@ use App\Adapters\Out\Procurement\LaravelSupplierPaymentProofDirectUploadAdapter;
 use App\Adapters\Out\Procurement\LaravelSupplierPaymentProofFailureReporterAdapter;
 use App\Adapters\Out\Procurement\LaravelSupplierPaymentProofFileStorageAdapter;
 use App\Adapters\Out\Procurement\LaravelSupplierPaymentProofObjectStorageAdapter;
+use App\Ports\Out\Procurement\MobileSupplierHubReaderPort;
 use App\Ports\Out\Procurement\SupplierPayableReminderReaderPort;
 use App\Ports\Out\Procurement\SupplierPaymentProofAttachmentReaderPort;
 use App\Ports\Out\Procurement\SupplierPaymentProofAttachmentWriterPort;
@@ -38,6 +40,7 @@ class ProcurementPaymentServiceProvider extends ServiceProvider
         $this->app->singleton(SupplierPaymentReaderPort::class, DatabaseSupplierPaymentReaderAdapter::class);
         $this->app->singleton(SupplierPaymentReversalWriterPort::class, DatabaseSupplierPaymentReversalWriterAdapter::class);
         $this->app->singleton(SupplierPayableReminderReaderPort::class, DatabaseSupplierPayableReminderReaderAdapter::class);
+        $this->app->singleton(MobileSupplierHubReaderPort::class, DatabaseMobileSupplierHubReaderAdapter::class);
         $this->app->singleton(SupplierPaymentProofAttachmentWriterPort::class, DatabaseSupplierPaymentProofAttachmentWriterAdapter::class);
         $this->app->singleton(SupplierPaymentProofAttachmentReaderPort::class, DatabaseSupplierPaymentProofAttachmentReaderAdapter::class);
         $this->app->singleton(SupplierPaymentProofFileStoragePort::class, LaravelSupplierPaymentProofFileStorageAdapter::class);
