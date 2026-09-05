@@ -128,6 +128,12 @@
 </style>
 
 <div class="note-detail-line-list">
+  @if (!empty($note['line_summary']['summary_label']))
+    <div class="d-flex justify-content-end">
+      <span class="badge border">{{ $note['line_summary']['summary_label'] }}</span>
+    </div>
+  @endif
+
   @forelse ($note['rows'] as $row)
     <div
       @if ((bool) ($row['can_refund'] ?? false))
