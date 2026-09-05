@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Application\Note\UseCases;
 
+use App\Application\Audit\DTO\AuditEventWrite;
 use App\Application\Note\Services\CreateTransactionWorkspaceExternalPurchaseLineMapper;
 use App\Application\Note\Services\CreateTransactionWorkspaceServiceWorkItemVariantResolver;
 use App\Application\Note\Services\CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer;
@@ -16,17 +17,24 @@ use App\Application\Note\Services\ServiceCatalogFromWorkItemSync;
 use App\Application\Note\Services\WorkItemFactory;
 use App\Application\Note\UseCases\CreateNoteRevisionPayloadNoteBuilder;
 use App\Application\Note\UseCases\CreateNoteRevisionPayloadWorkItemBuilder;
+use App\Application\ServiceCatalog\UseCases\CreateServiceCatalogItemHandler;
 use App\Core\Note\WorkItem\StoreStockLine;
 use App\Core\Note\WorkItem\WorkItem;
 use App\Core\ProductCatalog\Policies\MinSellingPricePolicy;
 use App\Core\ProductCatalog\Product\Product;
 use App\Core\ServiceCatalog\ServiceCatalogItem;
+use App\Core\ServiceCatalog\ServiceNameNormalizer;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Core\Shared\ValueObjects\Money;
+use App\Ports\Out\AuditEventWriterPort;
+use App\Ports\Out\ClockPort;
 use App\Ports\Out\ProductCatalog\ProductReaderPort;
+use App\Ports\Out\ServiceCatalog\ServiceCatalogReaderPort;
 use App\Ports\Out\ServiceCatalog\ServiceCatalogWriterPort;
 use App\Ports\Out\ServiceProductTemplate\ServiceProductTemplateLookupReaderPort;
+use App\Ports\Out\TransactionManagerPort;
 use App\Ports\Out\UuidPort;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
 final class CreateNoteRevisionPayloadNoteBuilderTest extends TestCase
@@ -196,9 +204,68 @@ final class CreateNoteRevisionPayloadNoteBuilderTest extends TestCase
             new CreateNoteRevisionPayloadWorkItemBuilder(
                 $mapper,
                 $factory,
-                new ServiceCatalogFromWorkItemSync($this->serviceCatalogWriter()),
+                new ServiceCatalogFromWorkItemSync($this->serviceCatalogHandler()),
             ),
             $this->trustMarker(),
+        );
+    }
+
+    private function serviceCatalogHandler(): CreateServiceCatalogItemHandler
+    {
+        $reader = new class implements ServiceCatalogReaderPort {
+            public function findByNormalizedName(string $normalizedName): ?ServiceCatalogItem
+            {
+                return null;
+            }
+
+            public function search(string $query, int $limit = 10): array
+            {
+                return [];
+            }
+        };
+
+        $audit = new class implements AuditEventWriterPort {
+            public function write(AuditEventWrite $event): void
+            {
+            }
+        };
+
+        $clock = new class implements ClockPort {
+            public function now(): DateTimeImmutable
+            {
+                return new DateTimeImmutable('2026-05-08 00:00:00');
+            }
+        };
+
+        $uuid = new class implements UuidPort {
+            public function generate(): string
+            {
+                return 'service-audit-test';
+            }
+        };
+
+        $transactions = new class implements TransactionManagerPort {
+            public function begin(): void
+            {
+            }
+
+            public function commit(): void
+            {
+            }
+
+            public function rollBack(): void
+            {
+            }
+        };
+
+        return new CreateServiceCatalogItemHandler(
+            $reader,
+            $this->serviceCatalogWriter(),
+            new ServiceNameNormalizer(),
+            $audit,
+            $clock,
+            $uuid,
+            $transactions,
         );
     }
 
@@ -217,7 +284,6 @@ final class CreateNoteRevisionPayloadNoteBuilderTest extends TestCase
             }
         };
     }
-
 
     private function trustMarker(): RevisionSnapshotStoreStockLineTrustMarker
     {
