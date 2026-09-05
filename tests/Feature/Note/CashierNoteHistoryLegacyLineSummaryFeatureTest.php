@@ -38,7 +38,8 @@ final class CashierNoteHistoryLegacyLineSummaryFeatureTest extends TestCase
             'customer_phone' => '08123',
             'transaction_date' => $today,
             'total_rupiah' => 50000,
-            'note_state' => 'open',
+            'note_state' => 'closed',
+            'closed_at' => $today.' 12:00:00',
         ]);
 
         DB::table('work_items')->insert([
@@ -65,7 +66,7 @@ final class CashierNoteHistoryLegacyLineSummaryFeatureTest extends TestCase
 
         $this->syncNoteProjectionForTest('note-legacy');
 
-        $response = $this->actingAs($user)->getJson(route('cashier.notes.table'));
+        $response = $this->actingAs($user)->getJson(route('cashier.notes.table', ['bucket' => 'completed']));
 
         $response->assertOk();
         $response->assertJsonPath('success', true);
@@ -75,7 +76,7 @@ final class CashierNoteHistoryLegacyLineSummaryFeatureTest extends TestCase
 
         $this->assertSame('1 Selesai', $items->get('note-legacy')['line_summary_label']);
         $this->assertSame('Lunas', $items->get('note-legacy')['payment_status_label']);
-        $this->assertSame('Pekerjaan aktif', $items->get('note-legacy')['focus_status_label']);
+        $this->assertSame('Belum Selesai: 1 • Selesai: 0 • Batal: 0', $items->get('note-legacy')['work_status_label']);
         $this->assertStringContainsString('/cashier/notes/note-legacy', (string) $items->get('note-legacy')['action_url']);
     }
 }

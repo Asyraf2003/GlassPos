@@ -21,6 +21,8 @@ final class AdminNoteTableQueryRequest extends FormRequest
             'date_to' => $this->trimOrNull('date_to'),
             'search' => $this->trimOrNull('search'),
             'line_status' => $this->trimOrNull('line_status'),
+            'sort_by' => $this->trimOrNull('sort_by'),
+            'sort_dir' => $this->trimOrNull('sort_dir'),
         ]);
     }
 
@@ -31,6 +33,8 @@ final class AdminNoteTableQueryRequest extends FormRequest
             'date_to' => ['nullable', 'date_format:Y-m-d'],
             'search' => ['nullable', 'string'],
             'line_status' => ['nullable', 'in:open,close,refund'],
+            'sort_by' => ['nullable', 'in:created_at,total_rupiah,net_paid_rupiah,outstanding_rupiah'],
+            'sort_dir' => ['nullable', 'in:asc,desc'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'in:10'],
         ];

@@ -34,16 +34,7 @@
     if (el) el.value = String(value ?? "");
   };
 
-  const selectedRows = () => {
-    const rows = rowSources();
-
-    if (state.mode === "full") {
-      return rows;
-    }
-
-    const serviceRows = rows.filter((row) => row.dataset.isServiceComponent === "1");
-    return serviceRows.length > 0 ? serviceRows : rows;
-  };
+  const selectedRows = () => rowSources();
 
   const selectedTotal = () =>
     selectedRows().reduce((sum, row) => sum + digits(row.dataset.outstandingRupiah), 0);
@@ -179,9 +170,11 @@
     const selected = selectedTotal();
     const payable = payableAmount();
     const received = digits(moneyInput("inline_payment_amount_received_display")?.value || "");
+    const credited = Math.min(received, selected);
 
     if (state.cashStep) {
       setValue("detail_payment_amount_received", received > 0 ? received : "");
+      setValue("detail_payment_amount_paid", credited > 0 ? credited : "");
     }
 
     if (!state.cashStep) {
@@ -191,8 +184,9 @@
     setText("detail-payment-selected-total", selected);
     setText("detail-payment-payable-text", payable);
     setText("detail-payment-remaining-text", Math.max(selected - payable, 0));
-    setText("workspace-cash-payable-text", payable);
-    setText("workspace-cash-change-text", Math.max(received - payable, 0));
+    setText("workspace-cash-payable-text", selected);
+    setText("workspace-cash-change-text", Math.max(received - selected, 0));
+    setText("workspace-cash-remaining-text", Math.max(selected - credited, 0));
 
     const hasRows = selectedRows().length > 0;
     const transfer = byId("detail-payment-submit-transfer");
@@ -201,7 +195,7 @@
 
     if (transfer) transfer.disabled = !hasRows || payable <= 0;
     if (openCash) openCash.disabled = !hasRows || payable <= 0;
-    if (submitCash) submitCash.disabled = !hasRows || payable <= 0 || received < payable;
+    if (submitCash) submitCash.disabled = !hasRows || selected <= 0 || received <= 0;
   };
 
   const applyMode = (mode) => {
@@ -264,6 +258,10 @@
         "detail_payment_amount_received",
         digits(moneyInput("inline_payment_amount_received_display")?.value || "")
       );
+      setValue("detail_payment_amount_paid", Math.min(
+        digits(moneyInput("inline_payment_amount_received_display")?.value || ""),
+        selectedTotal()
+      ));
       refresh();
     }
   });
@@ -313,6 +311,10 @@
         "detail_payment_amount_received",
         digits(moneyInput("inline_payment_amount_received_display")?.value || "")
       );
+      setValue("detail_payment_amount_paid", Math.min(
+        digits(moneyInput("inline_payment_amount_received_display")?.value || ""),
+        selectedTotal()
+      ));
       lockPaymentSubmit();
       return;
     }

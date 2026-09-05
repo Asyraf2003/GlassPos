@@ -8,8 +8,7 @@ final class AdminNoteHistoryProjectionItemMapper
 {
     public function __construct(
         private readonly CashierNoteHistoryValueFormatter $formatter,
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -27,6 +26,7 @@ final class AdminNoteHistoryProjectionItemMapper
         return [
             'note_id' => (string) $row->note_id,
             'transaction_date' => $this->formatter->date($row->transaction_date),
+            'created_at_text' => $this->formatter->dateTime($row->note_created_at ?? null, (string) $row->transaction_date),
             'note_number' => (string) $row->note_id,
             'customer_name' => $this->formatter->customerLabel(
                 (string) $row->customer_name,

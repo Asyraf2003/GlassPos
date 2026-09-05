@@ -45,6 +45,11 @@
                 <div class="small text-muted mb-2">Kembalian</div>
                 <div class="fs-1 fw-bold lh-sm" id="workspace-cash-change-text">0</div>
             </div>
+
+            <div class="workspace-gform-panel text-center">
+                <div class="small text-muted mb-2">Sisa Setelah Bayar</div>
+                <div class="fs-3 fw-bold lh-sm" id="workspace-cash-remaining-text">0</div>
+            </div>
         </div>
     </div>
 </div>

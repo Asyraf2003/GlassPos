@@ -77,16 +77,16 @@ final class CreateTransactionWorkspacePartialCashFeatureTest extends TestCase
 
         $this->assertDatabaseHas('customer_payments', [
             'id' => $paymentId,
-            'amount_rupiah' => 50000,
+            'amount_rupiah' => 100000,
             'payment_method' => CustomerPayment::METHOD_CASH,
             'paid_at' => '2026-03-15',
         ]);
 
         $this->assertDatabaseHas('customer_payment_cash_details', [
             'customer_payment_id' => $paymentId,
-            'amount_paid_rupiah' => 50000,
+            'amount_paid_rupiah' => 100000,
             'amount_received_rupiah' => 100000,
-            'change_rupiah' => 50000,
+            'change_rupiah' => 0,
         ]);
 
         $this->assertSame(1, DB::table('payment_component_allocations')
@@ -94,7 +94,7 @@ final class CreateTransactionWorkspacePartialCashFeatureTest extends TestCase
             ->where('note_id', $noteId)
             ->count());
 
-        $this->assertSame(50000, (int) DB::table('payment_component_allocations')
+        $this->assertSame(100000, (int) DB::table('payment_component_allocations')
             ->where('customer_payment_id', $paymentId)
             ->where('note_id', $noteId)
             ->sum('allocated_amount_rupiah'));

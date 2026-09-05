@@ -19,19 +19,19 @@ final class AdminNoteHistoryProjectionFilters
 
         return $query->where(function (Builder $builder) use ($search, $normalizedSearch): void {
             $builder
-                ->where('note_id', 'like', '%' . $search . '%')
-                ->orWhere('customer_name', 'like', '%' . $search . '%')
-                ->orWhere('customer_name_normalized', 'like', '%' . $normalizedSearch . '%')
-                ->orWhere('customer_phone', 'like', '%' . $search . '%');
+                ->where('note_history_projection.note_id', 'like', '%'.$search.'%')
+                ->orWhere('note_history_projection.customer_name', 'like', '%'.$search.'%')
+                ->orWhere('note_history_projection.customer_name_normalized', 'like', '%'.$normalizedSearch.'%')
+                ->orWhere('note_history_projection.customer_phone', 'like', '%'.$search.'%');
         });
     }
 
     public function applyLineStatusFilter(Builder $query, string $lineStatus): Builder
     {
         return match ($lineStatus) {
-            WorkItemOperationalStatusResolver::STATUS_OPEN => $query->where('has_open_lines', true),
-            WorkItemOperationalStatusResolver::STATUS_CLOSE => $query->where('has_close_lines', true),
-            WorkItemOperationalStatusResolver::STATUS_REFUND => $query->where('has_refund_lines', true),
+            WorkItemOperationalStatusResolver::STATUS_OPEN => $query->where('note_history_projection.has_open_lines', true),
+            WorkItemOperationalStatusResolver::STATUS_CLOSE => $query->where('note_history_projection.has_close_lines', true),
+            WorkItemOperationalStatusResolver::STATUS_REFUND => $query->where('note_history_projection.has_refund_lines', true),
             default => $query,
         };
     }

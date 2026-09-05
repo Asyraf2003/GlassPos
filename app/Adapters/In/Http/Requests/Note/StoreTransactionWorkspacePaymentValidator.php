@@ -9,7 +9,7 @@ use Illuminate\Validation\Validator;
 final class StoreTransactionWorkspacePaymentValidator
 {
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      */
     public static function validate(array $payload, Validator $validator): void
     {
@@ -17,6 +17,7 @@ final class StoreTransactionWorkspacePaymentValidator
 
         if (! is_array($payment)) {
             $validator->errors()->add('inline_payment', 'Format pembayaran workspace tidak valid.');
+
             return;
         }
 
@@ -42,8 +43,8 @@ final class StoreTransactionWorkspacePaymentValidator
                 $validator->errors()->add('inline_payment.amount_paid_rupiah', 'Nominal pembayaran sebagian wajib lebih dari 0.');
             }
 
-            if ($grandTotal > 0 && $amountPaid >= $grandTotal) {
-                $validator->errors()->add('inline_payment.amount_paid_rupiah', 'Nominal pembayaran sebagian harus lebih kecil dari grand total nota.');
+            if ($grandTotal > 0 && $amountPaid > $grandTotal) {
+                $validator->errors()->add('inline_payment.amount_paid_rupiah', 'Nominal pembayaran tidak boleh melebihi grand total nota.');
             }
         }
 
@@ -63,7 +64,7 @@ final class StoreTransactionWorkspacePaymentValidator
             $validator->errors()->add('inline_payment.amount_received_rupiah', 'Uang masuk cash wajib lebih dari 0.');
         }
 
-        if ($cashTargetAmount > 0 && $received < $cashTargetAmount) {
+        if ($decision === 'pay_full' && $cashTargetAmount > 0 && $received < $cashTargetAmount) {
             $validator->errors()->add('inline_payment.amount_received_rupiah', 'Uang masuk cash tidak boleh kurang dari total yang dibayar.');
         }
     }

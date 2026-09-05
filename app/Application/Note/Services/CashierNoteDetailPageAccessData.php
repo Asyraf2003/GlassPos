@@ -14,8 +14,8 @@ final readonly class CashierNoteDetailPageAccessData
         private NoteReaderPort $notes,
         private ClockPort $clock,
         private CashierNoteAccessGuard $guard,
-    ) {
-    }
+        private NoteOutstandingPaymentAmountResolver $outstanding,
+    ) {}
 
     public function ensureCanView(string $noteId): bool
     {
@@ -25,7 +25,11 @@ final readonly class CashierNoteDetailPageAccessData
             return false;
         }
 
-        $this->guard->assertCanView($note, $this->clock->now());
+        $this->guard->assertCanViewFinanceQueue(
+            $note,
+            $this->clock->now(),
+            $this->outstanding->resolveFull($noteId)->isSuccess(),
+        );
 
         return true;
     }

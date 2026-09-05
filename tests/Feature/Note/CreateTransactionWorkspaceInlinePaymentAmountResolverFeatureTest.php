@@ -89,19 +89,19 @@ final class CreateTransactionWorkspaceInlinePaymentAmountResolverFeatureTest ext
         $this->assertSame(50000, $amount);
     }
 
-    public function test_pay_partial_rejects_amount_equal_to_outstanding(): void
+    public function test_pay_partial_allows_amount_equal_to_outstanding_as_settlement(): void
     {
         $note = $this->seedNote('note-inline-amount-6', 100000);
         $this->seedPayment('payment-inline-amount-6', 40000);
         $this->seedLegacyAllocation('allocation-inline-amount-6', 'payment-inline-amount-6', 'note-inline-amount-6', 40000);
 
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('Nominal pembayaran sebagian harus lebih kecil dari sisa tagihan.');
-
-        app(CreateTransactionWorkspaceInlinePaymentAmountResolver::class)->resolve($note, [
+        $amount = app(CreateTransactionWorkspaceInlinePaymentAmountResolver::class)->resolve($note, [
             'decision' => 'pay_partial',
+            'payment_method' => 'transfer',
             'amount_paid_rupiah' => 60000,
         ]);
+
+        $this->assertSame(60000, $amount);
     }
 
     public function test_pay_partial_rejects_when_note_has_no_outstanding(): void
@@ -175,7 +175,7 @@ final class CreateTransactionWorkspaceInlinePaymentAmountResolverFeatureTest ext
 
     private function seedComponentAllocation(string $id, string $paymentId, string $noteId, int $amount): void
     {
-        $workItemId = 'wi-' . $id;
+        $workItemId = 'wi-'.$id;
 
         DB::table('work_items')->insert([
             'id' => $workItemId,
@@ -218,7 +218,7 @@ final class CreateTransactionWorkspaceInlinePaymentAmountResolverFeatureTest ext
         ]);
 
         DB::table('refund_component_allocations')->insert([
-            'id' => 'rca-' . $id,
+            'id' => 'rca-'.$id,
             'customer_refund_id' => $id,
             'customer_payment_id' => $paymentId,
             'note_id' => $noteId,

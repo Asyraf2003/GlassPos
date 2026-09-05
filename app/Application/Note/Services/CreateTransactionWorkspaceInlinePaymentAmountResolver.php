@@ -14,11 +14,10 @@ final class CreateTransactionWorkspaceInlinePaymentAmountResolver
     public function __construct(
         private readonly PaymentAllocationReaderPort $allocations,
         private readonly CustomerRefundReaderPort $refunds,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<string, mixed> $payment
+     * @param  array<string, mixed>  $payment
      */
     public function resolve(Note $note, array $payment): int
     {
@@ -42,11 +41,14 @@ final class CreateTransactionWorkspaceInlinePaymentAmountResolver
     }
 
     /**
-     * @param array<string, mixed> $payment
+     * @param  array<string, mixed>  $payment
      */
     private function resolvePartial(array $payment, int $outstandingAmount): int
     {
-        $amount = (int) ($payment['amount_paid_rupiah'] ?? 0);
+        $method = (string) ($payment['payment_method'] ?? '');
+        $amount = $method === 'cash'
+            ? (int) ($payment['amount_received_rupiah'] ?? 0)
+            : (int) ($payment['amount_paid_rupiah'] ?? 0);
 
         if ($amount <= 0) {
             throw new DomainException('Nominal pembayaran sebagian wajib lebih dari 0.');
@@ -56,11 +58,11 @@ final class CreateTransactionWorkspaceInlinePaymentAmountResolver
             throw new DomainException('Nota sudah tidak memiliki sisa tagihan.');
         }
 
-        if ($amount >= $outstandingAmount) {
-            throw new DomainException('Nominal pembayaran sebagian harus lebih kecil dari sisa tagihan.');
+        if ($method !== 'cash' && $amount > $outstandingAmount) {
+            throw new DomainException('Nominal pembayaran melebihi sisa tagihan.');
         }
 
-        return $amount;
+        return min($amount, $outstandingAmount);
     }
 
     private function outstandingAmount(Note $note): int

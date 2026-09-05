@@ -15,14 +15,18 @@ final class NotePaymentTimelineBuilder
     /** @return list<array<string, mixed>> */
     public function build(string $noteId, int $grandTotalRupiah): array
     {
-        $cumulativeAllocated = 0;
-        $remainingBefore = max($grandTotalRupiah, 0);
+        $cumulativePaid = 0;
         $timeline = [];
 
         foreach ($this->payments->findByNoteId($noteId) as $event) {
             $allocated = max((int) $event['allocated_amount_rupiah'], 0);
-            $cumulativeAllocated += $allocated;
-            $remainingAfter = max($grandTotalRupiah - $cumulativeAllocated, 0);
+            $eventPayable = max((int) ($event['payable_total_rupiah'] ?? $grandTotalRupiah), 0);
+            $refundedBefore = max((int) ($event['refunded_before_rupiah'] ?? 0), 0);
+            $netPaidBefore = max($cumulativePaid - $refundedBefore, 0);
+            $paymentAmount = max((int) $event['payment_amount_rupiah'], 0);
+            $remainingBefore = max($eventPayable - $netPaidBefore, 0);
+            $remainingAfter = max($eventPayable - $netPaidBefore - $paymentAmount, 0);
+            $cumulativePaid += $paymentAmount;
             $paymentMethod = (string) $event['payment_method'];
 
             $timeline[] = $event + [
@@ -37,8 +41,6 @@ final class NotePaymentTimelineBuilder
                 'remaining_after_rupiah' => $remainingAfter,
                 'show_allocated_amount' => (int) $event['payment_amount_rupiah'] !== $allocated,
             ];
-
-            $remainingBefore = $remainingAfter;
         }
 
         return array_reverse($timeline);

@@ -14,8 +14,7 @@ final class EnsureCashierNoteAccess
 {
     public function __construct(
         private readonly CashierNoteRouteAccessData $accessData,
-    ) {
-    }
+    ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -26,9 +25,11 @@ final class EnsureCashierNoteAccess
         }
 
         try {
-            if ($request->routeIs('cashier.notes.show')
-                || $request->routeIs('cashier.notes.payments.store')
-                || $request->routeIs('cashier.notes.refunds.store')) {
+            if ($request->routeIs('cashier.notes.show') || $request->routeIs('cashier.notes.prototype.show')) {
+                $canAccess = $this->accessData->ensureCanViewFinanceQueue($noteId);
+            } elseif ($request->routeIs('cashier.notes.payments.store')) {
+                $canAccess = $this->accessData->ensureCanCollectOutstanding($noteId);
+            } elseif ($request->routeIs('cashier.notes.refunds.store')) {
                 $canAccess = $this->accessData->ensureCanView($noteId);
             } elseif ($request->routeIs('cashier.notes.workspace.edit')) {
                 $canAccess = $this->accessData->ensureCanOpenWorkspaceEdit($noteId);

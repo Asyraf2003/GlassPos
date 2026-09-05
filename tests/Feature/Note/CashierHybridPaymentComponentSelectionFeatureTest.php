@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
-use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
@@ -17,13 +17,13 @@ final class CashierHybridPaymentComponentSelectionFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
-    public function test_payment_can_target_only_selected_product_component_on_mixed_line(): void
+    public function test_component_selection_does_not_override_note_level_allocation_priority(): void
     {
         $user = $this->seedKasir();
         $this->seedMixedNote();
 
         $response = $this->actingAs($user)->post(route('cashier.notes.payments.store', ['noteId' => 'note-1']), [
-            'selected_row_ids' => ['wi-1::service_store_stock_part::ssl-1'],
+            'selected_row_ids' => ['wi-1::service_fee::wi-1'],
             'payment_method' => 'cash',
             'paid_at' => date('Y-m-d'),
             'amount_paid' => '20000',

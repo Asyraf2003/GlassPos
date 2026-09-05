@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Payment;
 
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
-use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
@@ -17,7 +17,7 @@ final class RecordSelectedRowsNotePaymentFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
-    public function test_it_allocates_payment_only_to_selected_open_rows(): void
+    public function test_selected_row_input_does_not_override_note_level_allocation_order(): void
     {
         $user = $this->seedKasir();
         $today = date('Y-m-d');
@@ -94,13 +94,13 @@ final class RecordSelectedRowsNotePaymentFeatureTest extends TestCase
 
         $this->assertDatabaseHas('payment_component_allocations', [
             'note_id' => 'note-1',
-            'work_item_id' => 'wi-2',
+            'work_item_id' => 'wi-1',
             'allocated_amount_rupiah' => 30000,
         ]);
 
         $this->assertDatabaseMissing('payment_component_allocations', [
             'note_id' => 'note-1',
-            'work_item_id' => 'wi-1',
+            'work_item_id' => 'wi-2',
             'allocated_amount_rupiah' => 30000,
         ]);
     }

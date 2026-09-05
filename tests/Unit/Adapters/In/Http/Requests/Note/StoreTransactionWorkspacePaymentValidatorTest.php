@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 final class StoreTransactionWorkspacePaymentValidatorTest extends TestCase
 {
-    public function test_pay_partial_cash_received_must_cover_explicit_amount_paid(): void
+    public function test_pay_partial_cash_received_is_actual_payment_and_suggestion_is_not_a_cap(): void
     {
         $payload = [
             'items' => [
@@ -41,12 +41,45 @@ final class StoreTransactionWorkspacePaymentValidatorTest extends TestCase
 
         StoreTransactionWorkspacePaymentValidator::validate($payload, $validator);
 
-        $this->assertTrue(
+        $this->assertFalse(
             $validator->errors()->has('inline_payment.amount_received_rupiah'),
-            'Partial cash payment must still require received cash to cover the explicit amount paid.'
+            'Positive partial cash must be accepted even when it is below the suggested amount.'
         );
     }
 
+    public function test_pay_partial_cash_still_requires_positive_received_amount(): void
+    {
+        $payload = [
+            'items' => [
+                [
+                    'entry_mode' => 'service',
+                    'description' => null,
+                    'part_source' => 'none',
+                    'service' => [
+                        'name' => 'Servis Partial Zero',
+                        'price_rupiah' => 100000,
+                        'notes' => null,
+                    ],
+                    'product_lines' => [],
+                    'external_purchase_lines' => [],
+                ],
+            ],
+            'inline_payment' => [
+                'decision' => 'pay_partial',
+                'payment_method' => 'cash',
+                'paid_at' => date('Y-m-d'),
+                'amount_paid_rupiah' => 60000,
+                'amount_received_rupiah' => 0,
+                'notes' => null,
+            ],
+        ];
+
+        $validator = ValidatorFacade::make([], []);
+
+        StoreTransactionWorkspacePaymentValidator::validate($payload, $validator);
+
+        $this->assertTrue($validator->errors()->has('inline_payment.amount_received_rupiah'));
+    }
 
     public function test_pay_full_cash_received_must_cover_payload_grand_total(): void
     {
@@ -82,7 +115,7 @@ final class StoreTransactionWorkspacePaymentValidatorTest extends TestCase
         $this->assertTrue(
             $validator->errors()->has('inline_payment.amount_received_rupiah'),
             'Full cash payment must require received cash to cover the payload grand total. Errors: '
-                . $validator->errors()->toJson()
+                .$validator->errors()->toJson()
         );
     }
 }

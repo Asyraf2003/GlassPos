@@ -43,13 +43,14 @@ final class CashierNoteHistoryTableQuery implements CashierNoteHistoryTableReade
             ],
             'summary' => [
                 'label' => sprintf(
-                    '%s · %d nota · %s–%s',
+                    '%s · %d nota%s',
                     $criteria->bucket === CashierNoteHistoryCriteria::BUCKET_COMPLETED
-                        ? 'Selesai'
-                        : 'Belum Selesai',
+                        ? 'Selesai Hari Ini'
+                        : 'Belum Lunas',
                     $paginator->total(),
-                    $criteria->previousDateText,
-                    $criteria->anchorDateText,
+                    $criteria->bucket === CashierNoteHistoryCriteria::BUCKET_COMPLETED
+                        ? ' · '.$criteria->anchorDateText
+                        : '',
                 ),
             ],
         ];

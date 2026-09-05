@@ -17,6 +17,34 @@ final class CashierNoteAccessGuard
         }
     }
 
+    public function assertCanViewFinanceQueue(Note $note, DateTimeImmutable $today, bool $hasOutstanding): void
+    {
+        if ($this->isWithinCashierDateWindow($note, $today)) {
+            return;
+        }
+
+        $closedToday = $note->closedAt()?->format('Y-m-d') === $today->format('Y-m-d');
+
+        if (($hasOutstanding && ! $note->isRefunded()) || $closedToday) {
+            return;
+        }
+
+        throw new DomainException('Nota tidak termasuk antrean keuangan kasir yang aktif.');
+    }
+
+    public function assertCanCollectOutstanding(Note $note, DateTimeImmutable $today, bool $hasOutstanding): void
+    {
+        if ($this->isWithinCashierDateWindow($note, $today)) {
+            return;
+        }
+
+        if ($hasOutstanding && ! $note->isRefunded()) {
+            return;
+        }
+
+        throw new DomainException('Nota tidak termasuk antrean pembayaran kasir yang aktif.');
+    }
+
     public function assertCanMutateOpenNote(Note $note, DateTimeImmutable $today): void
     {
         $this->assertCanView($note, $today);

@@ -19,6 +19,8 @@ final class NoteHistoryPageController extends Controller
             'date_to' => $this->resolveString($request, 'date_to') ?? $today,
             'search' => $this->resolveString($request, 'search') ?? '',
             'line_status' => $this->resolveString($request, 'line_status') ?? '',
+            'sort_by' => $this->resolveString($request, 'sort_by') ?? 'created_at',
+            'sort_dir' => $this->resolveString($request, 'sort_dir') ?? 'desc',
         ];
 
         return view('admin.notes.index', [

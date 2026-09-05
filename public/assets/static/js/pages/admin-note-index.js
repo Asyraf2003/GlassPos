@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const openFilterButton = document.getElementById('open-admin-note-filter');
     const closeFilterButton = document.getElementById('close-admin-note-filter');
     const resetFilterButton = document.getElementById('reset-admin-note-filter');
+    const sortButtons = Array.from(document.querySelectorAll('[data-sort-by]'));
 
     if (
         !configNode
@@ -51,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         : {};
 
     const normalize = (value) => String(value ?? '').trim();
+    const allowedSortBy = new Set(['created_at', 'total_rupiah', 'net_paid_rupiah', 'outstanding_rupiah']);
     const intOrDefault = (value, fallback) => {
         const parsed = Number.parseInt(String(value ?? ''), 10);
         return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
@@ -68,6 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
             date_to: normalize(params.get('date_to') || filters.date_to),
             search: normalize(params.get('search') || filters.search),
             line_status: normalize(params.get('line_status') || filters.line_status),
+            sort_by: allowedSortBy.has(normalize(params.get('sort_by') || filters.sort_by))
+                ? normalize(params.get('sort_by') || filters.sort_by)
+                : 'created_at',
+            sort_dir: normalize(params.get('sort_dir') || filters.sort_dir) === 'asc' ? 'asc' : 'desc',
             page: intOrDefault(params.get('page'), 1),
             per_page: intOrDefault(params.get('per_page'), 10),
         };
@@ -84,6 +90,11 @@ document.addEventListener('DOMContentLoaded', () => {
         dateToInput.value = state.date_to;
         lineStatusInput.value = state.line_status;
         refreshDatePicker();
+        document.querySelectorAll('[data-sort-indicator]').forEach((node) => {
+            const active = node.dataset.sortIndicator === state.sort_by;
+            node.textContent = active ? (state.sort_dir === 'asc' ? '↑' : '↓') : '↕';
+            node.classList.toggle('text-muted', !active);
+        });
     };
 
     const syncFilterState = () => {
@@ -102,6 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const obj = {
             page: String(state.page),
             per_page: String(state.per_page),
+            sort_by: state.sort_by,
+            sort_dir: state.sort_dir,
         };
 
         ['date_from', 'date_to', 'search', 'line_status'].forEach((key) => {
@@ -209,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tableBody.innerHTML = items.map((item, index) => `
                 <tr>
                     <td>${((page - 1) * perPage) + index + 1}</td>
-                    <td>${escapeHtml(item.transaction_date ?? '-')}</td>
+                    <td>${escapeHtml(item.created_at_text ?? item.transaction_date ?? '-')}</td>
                     <td>
                         <div class="fw-semibold">${escapeHtml(item.customer_name ?? 'Nota Pelanggan')}</div>
                         <div class="small text-muted">${escapeHtml(item.transaction_date ?? '-')}</div>
@@ -336,6 +349,16 @@ document.addEventListener('DOMContentLoaded', () => {
         drawOpen(false);
         loadTable();
     });
+
+    sortButtons.forEach((button) => button.addEventListener('click', () => {
+        const sortBy = normalize(button.dataset.sortBy);
+        if (!allowedSortBy.has(sortBy)) return;
+        state.sort_dir = state.sort_by === sortBy && state.sort_dir === 'asc' ? 'desc' : 'asc';
+        state.sort_by = sortBy;
+        state.page = 1;
+        fillControlsFromState();
+        loadTable();
+    }));
 
     paginationNode.addEventListener('click', (event) => {
         const link = event.target.closest('[data-page]');

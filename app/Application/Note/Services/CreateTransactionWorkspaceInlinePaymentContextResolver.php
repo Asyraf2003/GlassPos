@@ -11,11 +11,9 @@ final class CreateTransactionWorkspaceInlinePaymentContextResolver
 {
     public function __construct(
         private readonly CreateTransactionWorkspaceInlinePaymentAmountResolver $amounts,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param mixed $payload
      * @return array{
      *   decision:string,
      *   method:string,
@@ -48,10 +46,6 @@ final class CreateTransactionWorkspaceInlinePaymentContextResolver
 
         $amount = $this->amounts->resolve($note, $payment);
         $received = (int) ($payment['amount_received_rupiah'] ?? 0);
-
-        if ($method === 'cash' && $received < $amount) {
-            throw new DomainException('Uang masuk cash tidak boleh kurang dari total yang dibayar.');
-        }
 
         return [
             'decision' => $decision,

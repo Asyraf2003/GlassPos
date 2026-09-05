@@ -41,17 +41,13 @@ final class CashierNoteHistoryBaseQuery
                 DB::raw('COALESCE(work_summary.done_count, 0) as done_count'),
                 DB::raw('COALESCE(work_summary.canceled_count, 0) as canceled_count'),
                 'notes.created_at',
-            ])
-            ->whereBetween('note_history_projection.transaction_date', [
-                $criteria->previousDateText,
-                $criteria->anchorDateText,
+                'notes.closed_at',
             ]);
 
         $query = $this->applySearch($query, $criteria->search);
         $query = $this->applyBucket($query, $criteria->bucket);
 
-        return $query
-            ->orderByDesc('notes.created_at')
+        return $this->applyOrdering($query, $criteria->bucket)
             ->orderByDesc('note_history_projection.note_id')
             ->paginate($criteria->perPage, ['*'], 'page', $criteria->page);
     }
@@ -76,23 +72,26 @@ final class CashierNoteHistoryBaseQuery
     private function applyBucket(Builder $query, string $bucket): Builder
     {
         if ($bucket === CashierNoteHistoryCriteria::BUCKET_COMPLETED) {
-            return $query->where(function (Builder $builder): void {
-                $builder
-                    ->where('note_history_projection.note_state', 'refunded')
-                    ->orWhere(function (Builder $settled): void {
-                        $settled
-                            ->where('note_history_projection.outstanding_rupiah', '<=', 0)
-                            ->whereRaw('COALESCE(work_summary.open_count, 0) = 0');
-                    });
-            });
+            return $query
+                ->whereDate('notes.closed_at', '=', date('Y-m-d'))
+                ->where(function (Builder $builder): void {
+                    $builder
+                        ->where('note_history_projection.outstanding_rupiah', '<=', 0)
+                        ->orWhere('note_history_projection.note_state', 'refunded');
+                });
         }
 
         return $query
             ->where('note_history_projection.note_state', '!=', 'refunded')
-            ->where(function (Builder $builder): void {
-                $builder
-                    ->where('note_history_projection.outstanding_rupiah', '>', 0)
-                    ->orWhereRaw('COALESCE(work_summary.open_count, 0) > 0');
-            });
+            ->where('note_history_projection.outstanding_rupiah', '>', 0);
+    }
+
+    private function applyOrdering(Builder $query, string $bucket): Builder
+    {
+        if ($bucket === CashierNoteHistoryCriteria::BUCKET_COMPLETED) {
+            return $query->orderByDesc('notes.closed_at')->orderByDesc('notes.created_at');
+        }
+
+        return $query->orderByDesc('notes.created_at');
     }
 }

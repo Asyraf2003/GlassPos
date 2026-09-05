@@ -34,6 +34,7 @@ This folder is only for active or latest handoffs. Once a session is closed, arc
 | `0019_cloudflare_r2_static_sync_direct_upload_handoff.md` | Cloudflare R2 static sync + private direct-upload migration | active: public CDN + privacy + repo verification + strict direct-upload adapter proven; private CORS next |
 | `0020_cashier_note_workspace_simple_detail_pos_hardening_handoff.md` | Cashier Note Workspace Simple/Detail POS hardening + financial/static delivery closure | closed locally; production/device verification next |
 | `0021_cashier_final_preproduction_ux_hardening_handoff.md` | Cashier UX hardening + chronological history + payment timeline | closed locally; production/device verification next |
+| `0022_cashier_note_level_payment_and_finance_work_queue_handoff.md` | Cashier note-level cash + finance work queue + admin sort | closed locally; release QA pending |
 
 ## Archive
 

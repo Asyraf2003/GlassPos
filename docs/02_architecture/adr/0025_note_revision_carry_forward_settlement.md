@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft for owner review.
+Accepted. Updated by the explicit owner decision on 2026-09-05 for automatic surplus refund and component allocation priority.
 
 ## Context
 
@@ -41,12 +41,14 @@ After edit/revision:
    - outstanding is zero
 
 3. If revised total is less than carry-forward money:
-   - the difference must be represented explicitly as overpaid/change/refund due/customer credit according to the next implementation decision
+   - the difference is returned through the existing automatic revision-surplus refund lifecycle
+   - it is not customer credit and does not require a new default approval flow
    - the system must not pretend the note is unpaid
 
 4. Carry-forward money must be allocated intelligently by priority:
-   - product components first
-   - service components after product components
+   - external purchase components first
+   - store product components second
+   - service components last
 
 5. Cashier edit remains allowed according to the earlier product decision.
    - Final fix must not remove cashier edit/revision capability.
@@ -82,18 +84,9 @@ The system needs an explicit boundary between:
 - current active settlement after revision
 - overpaid/change/refund-due state when carry-forward money exceeds revised total
 
-## Non-Decision
+## Superseded Surplus Non-Decision
 
-This ADR does not yet choose the final storage model for overpaid/change/refund-due.
-
-Possible future models:
-
-- immediate refund due
-- customer credit
-- explicit overpaid balance
-- forced refund workflow before final close
-
-The final model requires separate owner decision.
+The earlier open storage choice is closed by the 2026-09-05 owner decision. Downward-revision surplus uses the existing automatic surplus-refund lifecycle. It must not create customer credit, an overpaid wallet, or a new manual approval workflow.
 
 ## Immediate Fix Direction
 
@@ -118,11 +111,11 @@ Minimum test cases before production patch:
    - outstanding equals difference
 
 3. revised total less than carry-forward money:
-   - overpaid/change state is detected
+   - automatic surplus refund is recorded through the existing lifecycle
    - note is not marked unpaid because of double-subtracted refund
 
 4. allocation priority:
-   - carry-forward money fills product components before service components
+   - carry-forward money fills external purchase, then store product, then service components
 
 ## Files touched during audit before this ADR
 

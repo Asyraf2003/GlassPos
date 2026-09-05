@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
-use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -105,7 +105,7 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
 
         $response->assertRedirect(route('cashier.notes.show', ['noteId' => 'note-1']));
         $this->assertDatabaseHas('customer_payments', [
-            'amount_rupiah' => 50000,
+            'amount_rupiah' => 70000,
             'paid_at' => $today,
             'payment_method' => 'cash',
         ]);
@@ -115,9 +115,9 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
 
         $this->assertDatabaseHas('customer_payment_cash_details', [
             'customer_payment_id' => $paymentId,
-            'amount_paid_rupiah' => 50000,
+            'amount_paid_rupiah' => 70000,
             'amount_received_rupiah' => 70000,
-            'change_rupiah' => 20000,
+            'change_rupiah' => 0,
         ]);
 
         $this->assertDatabaseHas('payment_component_allocations', [
@@ -127,6 +127,13 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
             'component_type' => 'service_fee',
             'component_ref_id' => 'wi-1',
             'allocated_amount_rupiah' => 50000,
+        ]);
+        $this->assertDatabaseHas('payment_component_allocations', [
+            'customer_payment_id' => $paymentId,
+            'note_id' => 'note-1',
+            'work_item_id' => 'wi-2',
+            'component_type' => 'service_fee',
+            'allocated_amount_rupiah' => 20000,
         ]);
     }
 
@@ -327,9 +334,7 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
             'amount_received' => 50000,
         ]);
 
-        $response->assertSessionHasErrors([
-            'payment' => 'Hanya billing row outstanding yang boleh dipilih untuk pembayaran.',
-        ]);
+        $response->assertSessionHasErrors(['payment' => 'Nota sudah lunas.']);
 
         $this->assertSame(1, DB::table('customer_payments')->count());
         $this->assertSame(0, DB::table('payment_component_allocations')->count());
@@ -478,8 +483,7 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
         );
     }
 
-
-    public function test_rejects_selected_canceled_row_payment_and_keeps_payment_tables_unchanged(): void
+    public function test_component_selection_is_not_authority_and_payment_uses_active_note_components(): void
     {
         $this->loginAsKasir();
 
@@ -597,13 +601,20 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
             ]);
 
         $response->assertRedirect(route('cashier.notes.show', ['noteId' => 'note-canceled-selected-1']));
-        $response->assertSessionHasErrors(['payment']);
+        $response->assertSessionHasNoErrors();
 
-        $this->assertSame(0, DB::table('customer_payments')->count());
+        $this->assertSame(1, DB::table('customer_payments')->count());
         $this->assertSame(0, DB::table('payment_allocations')->count());
-        $this->assertSame(0, DB::table('payment_component_allocations')->count());
+        $this->assertDatabaseHas('payment_component_allocations', [
+            'note_id' => 'note-canceled-selected-1',
+            'work_item_id' => 'wi-active-selected-1',
+            'allocated_amount_rupiah' => 50000,
+        ]);
+        $this->assertDatabaseMissing('payment_component_allocations', [
+            'note_id' => 'note-canceled-selected-1',
+            'work_item_id' => 'wi-canceled-selected-1',
+        ]);
     }
-
 
     public function test_selected_row_payment_can_replace_refunded_component_amount_via_http(): void
     {
@@ -764,7 +775,4 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
                     ->sum('refunded_amount_rupiah')
         );
     }
-
-
-
 }

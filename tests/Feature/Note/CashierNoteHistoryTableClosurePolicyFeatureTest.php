@@ -14,7 +14,7 @@ final class CashierNoteHistoryTableClosurePolicyFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_two_focus_buckets_share_today_and_yesterday_window_without_mixing_results(): void
+    public function test_outstanding_focus_keeps_all_ages_and_completed_focus_uses_today_settlement(): void
     {
         $today = date('Y-m-d');
         $yesterday = date('Y-m-d', strtotime('-1 day'));
@@ -43,7 +43,7 @@ final class CashierNoteHistoryTableClosurePolicyFeatureTest extends TestCase
         $this->assertContains('note-today-open', $noteIds);
         $this->assertContains('note-yesterday-open', $noteIds);
         $this->assertNotContains('note-today-closed', $noteIds);
-        $this->assertNotContains('note-older-open', $noteIds);
+        $this->assertContains('note-older-open', $noteIds);
 
         $completed = app(CashierNoteHistoryTableQuery::class)->get([
             'bucket' => 'completed',
@@ -54,7 +54,7 @@ final class CashierNoteHistoryTableClosurePolicyFeatureTest extends TestCase
         $this->assertSame(['note-today-closed'], $completedIds);
     }
 
-    public function test_it_ignores_client_supplied_historical_date_when_building_cashier_window(): void
+    public function test_it_ignores_client_date_without_hiding_historical_outstanding_debt(): void
     {
         $today = date('Y-m-d');
         $yesterday = date('Y-m-d', strtotime('-1 day'));
@@ -80,10 +80,10 @@ final class CashierNoteHistoryTableClosurePolicyFeatureTest extends TestCase
         $this->assertSame($today, $result['filters']['date']);
         $this->assertContains('note-today-open', $noteIds);
         $this->assertContains('note-yesterday-open', $noteIds);
-        $this->assertNotContains('note-historical-closed', $noteIds);
+        $this->assertContains('note-historical-closed', $noteIds);
     }
 
-    public function test_cashier_table_endpoint_ignores_client_supplied_historical_date(): void
+    public function test_cashier_table_endpoint_ignores_client_date_and_keeps_historical_debt(): void
     {
         $today = date('Y-m-d');
         $yesterday = date('Y-m-d', strtotime('-1 day'));
@@ -106,7 +106,7 @@ final class CashierNoteHistoryTableClosurePolicyFeatureTest extends TestCase
         $response->assertJsonPath('data.filters.date', $today);
         $response->assertJsonFragment(['note_id' => 'note-today-open']);
         $response->assertJsonFragment(['note_id' => 'note-yesterday-open']);
-        $response->assertJsonMissing(['note_id' => 'note-historical-closed']);
+        $response->assertJsonFragment(['note_id' => 'note-historical-closed']);
     }
 
     private function cashierUser(): User
@@ -132,6 +132,7 @@ final class CashierNoteHistoryTableClosurePolicyFeatureTest extends TestCase
             'customer_name' => 'Budi',
             'transaction_date' => $transactionDate,
             'note_state' => $noteState,
+            'closed_at' => $noteState === 'closed' ? date('Y-m-d').' 12:00:00' : null,
             'total_rupiah' => $totalRupiah,
         ]);
     }

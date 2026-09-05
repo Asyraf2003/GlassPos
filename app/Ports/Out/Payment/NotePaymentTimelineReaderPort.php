@@ -17,7 +17,9 @@ interface NotePaymentTimelineReaderPort
      *   paid_at:string,
      *   occurred_at:string,
      *   amount_received_rupiah:?int,
-     *   change_rupiah:?int
+     *   change_rupiah:?int,
+     *   payable_total_rupiah:int,
+     *   refunded_before_rupiah:int
      * }>
      */
     public function findByNoteId(string $noteId): array;

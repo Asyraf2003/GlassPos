@@ -15,7 +15,7 @@ final class CashierNoteHistoryWorkQueueClassificationFeatureTest extends TestCas
 {
     use RefreshDatabase;
 
-    public function test_default_focus_keeps_financial_or_operational_attention_visible(): void
+    public function test_default_focus_contains_only_notes_with_financial_outstanding(): void
     {
         $this->seedProjectedNote('unpaid-done', 100000, 0, Note::STATE_OPEN, WorkItem::STATUS_DONE);
         $this->seedProjectedNote('partial-done', 100000, 60000, Note::STATE_OPEN, WorkItem::STATUS_DONE);
@@ -26,25 +26,26 @@ final class CashierNoteHistoryWorkQueueClassificationFeatureTest extends TestCas
         $items = collect($result['items'])->keyBy('note_id');
 
         self::assertSame('unfinished', $result['filters']['bucket']);
-        self::assertEqualsCanonicalizing(['unpaid-done', 'partial-done', 'paid-open-work'], $items->keys()->all());
+        self::assertEqualsCanonicalizing(['unpaid-done', 'partial-done'], $items->keys()->all());
         self::assertSame('Sisa tagihan', $items['unpaid-done']['focus_status_label']);
         self::assertSame('Sisa tagihan', $items['partial-done']['focus_status_label']);
-        self::assertSame('Pekerjaan aktif', $items['paid-open-work']['focus_status_label']);
+        self::assertArrayNotHasKey('paid-open-work', $items->all());
         self::assertArrayNotHasKey('paid-done', $items->all());
     }
 
-    public function test_completed_focus_requires_no_open_work_but_refund_is_terminal_override(): void
+    public function test_completed_today_keeps_operational_and_terminal_domain_status_as_context(): void
     {
-        $this->seedProjectedNote('paid-done', 100000, 100000, Note::STATE_CLOSED, WorkItem::STATUS_DONE);
-        $this->seedProjectedNote('paid-open-work', 100000, 100000, Note::STATE_CLOSED, WorkItem::STATUS_OPEN);
-        $this->seedProjectedNote('refunded-terminal', 100000, 0, Note::STATE_REFUNDED, WorkItem::STATUS_OPEN);
-        $this->seedProjectedNote('canceled-work', 100000, 100000, Note::STATE_CLOSED, WorkItem::STATUS_CANCELED);
+        $closedAt = date('Y-m-d').' 15:00:00';
+        $this->seedProjectedNote('paid-done', 100000, 100000, Note::STATE_CLOSED, WorkItem::STATUS_DONE, closedAt: $closedAt);
+        $this->seedProjectedNote('paid-open-work', 100000, 100000, Note::STATE_CLOSED, WorkItem::STATUS_OPEN, closedAt: $closedAt);
+        $this->seedProjectedNote('refunded-terminal', 100000, 0, Note::STATE_REFUNDED, WorkItem::STATUS_OPEN, closedAt: $closedAt);
+        $this->seedProjectedNote('canceled-work', 100000, 100000, Note::STATE_CLOSED, WorkItem::STATUS_CANCELED, closedAt: $closedAt);
 
         $result = app(CashierNoteHistoryTableQuery::class)->get(['bucket' => 'completed']);
         $items = collect($result['items'])->keyBy('note_id');
 
-        self::assertEqualsCanonicalizing(['paid-done', 'refunded-terminal', 'canceled-work'], $items->keys()->all());
-        self::assertArrayNotHasKey('paid-open-work', $items->all());
+        self::assertEqualsCanonicalizing(['paid-done', 'paid-open-work', 'refunded-terminal', 'canceled-work'], $items->keys()->all());
+        self::assertSame('Belum Selesai: 1 • Selesai: 0 • Batal: 0', $items['paid-open-work']['work_status_label']);
         self::assertSame('Dikembalikan', $items['refunded-terminal']['domain_status_label']);
         self::assertFalse($items['refunded-terminal']['can_edit']);
         self::assertNull($items['refunded-terminal']['edit_url']);
@@ -55,7 +56,15 @@ final class CashierNoteHistoryWorkQueueClassificationFeatureTest extends TestCas
     public function test_search_is_scoped_inside_selected_bucket(): void
     {
         $this->seedProjectedNote('needle-unfinished', 50000, 0, Note::STATE_OPEN, WorkItem::STATUS_DONE, 'Needle Customer');
-        $this->seedProjectedNote('needle-completed', 50000, 50000, Note::STATE_CLOSED, WorkItem::STATUS_DONE, 'Needle Customer');
+        $this->seedProjectedNote(
+            'needle-completed',
+            50000,
+            50000,
+            Note::STATE_CLOSED,
+            WorkItem::STATUS_DONE,
+            'Needle Customer',
+            closedAt: date('Y-m-d').' 14:00:00',
+        );
 
         $unfinished = app(CashierNoteHistoryTableQuery::class)->get(['search' => 'Needle']);
         $completed = app(CashierNoteHistoryTableQuery::class)->get(['bucket' => 'completed', 'search' => 'Needle']);
@@ -114,6 +123,47 @@ final class CashierNoteHistoryWorkQueueClassificationFeatureTest extends TestCas
         );
     }
 
+    public function test_old_outstanding_debt_remains_in_unfinished_focus_without_date_window(): void
+    {
+        $oldDate = date('Y-m-d', strtotime('-21 days'));
+        $this->seedProjectedNote(
+            'old-outstanding-debt',
+            500000,
+            149000,
+            Note::STATE_OPEN,
+            WorkItem::STATUS_DONE,
+            transactionDate: $oldDate,
+            createdAt: $oldDate.' 09:00:00',
+        );
+
+        $result = app(CashierNoteHistoryTableQuery::class)->get([]);
+
+        self::assertSame(['old-outstanding-debt'], array_column($result['items'], 'note_id'));
+        self::assertSame('Rp 351.000', $result['items'][0]['outstanding_text']);
+    }
+
+    public function test_financially_settled_today_is_completed_even_when_work_remains_open(): void
+    {
+        $oldDate = date('Y-m-d', strtotime('-10 days'));
+        $this->seedProjectedNote(
+            'old-settled-today-open-work',
+            100000,
+            100000,
+            Note::STATE_CLOSED,
+            WorkItem::STATUS_OPEN,
+            transactionDate: $oldDate,
+            createdAt: $oldDate.' 08:00:00',
+            closedAt: date('Y-m-d').' 15:00:00',
+        );
+
+        $unfinished = app(CashierNoteHistoryTableQuery::class)->get([]);
+        $completed = app(CashierNoteHistoryTableQuery::class)->get(['bucket' => 'completed']);
+
+        self::assertNotContains('old-settled-today-open-work', array_column($unfinished['items'], 'note_id'));
+        self::assertSame(['old-settled-today-open-work'], array_column($completed['items'], 'note_id'));
+        self::assertSame('Belum Selesai: 1 • Selesai: 0 • Batal: 0', $completed['items'][0]['work_status_label']);
+    }
+
     public function test_history_reads_projection_and_get_does_not_mutate_business_tables(): void
     {
         $this->seedNoteOnly('without-projection', 25000, Note::STATE_OPEN);
@@ -143,8 +193,11 @@ final class CashierNoteHistoryWorkQueueClassificationFeatureTest extends TestCas
         string $workStatus,
         string $customer = 'Customer Queue',
         ?string $createdAt = null,
+        ?string $transactionDate = null,
+        ?string $closedAt = null,
     ): void {
-        $this->seedNoteOnly($id, $total, $noteState, $customer, $createdAt);
+        $transactionDate ??= date('Y-m-d');
+        $this->seedNoteOnly($id, $total, $noteState, $customer, $createdAt, $transactionDate, $closedAt);
         DB::table('work_items')->insert([
             'id' => $id.'-work',
             'note_id' => $id,
@@ -155,7 +208,7 @@ final class CashierNoteHistoryWorkQueueClassificationFeatureTest extends TestCas
         ]);
         DB::table('note_history_projection')->insert([
             'note_id' => $id,
-            'transaction_date' => date('Y-m-d'),
+            'transaction_date' => $transactionDate,
             'note_state' => $noteState,
             'customer_name' => $customer,
             'customer_name_normalized' => mb_strtolower($customer),
@@ -181,13 +234,16 @@ final class CashierNoteHistoryWorkQueueClassificationFeatureTest extends TestCas
         string $noteState,
         string $customer = 'Customer Queue',
         ?string $createdAt = null,
+        ?string $transactionDate = null,
+        ?string $closedAt = null,
     ): void {
         DB::table('notes')->insert([
             'id' => $id,
             'customer_name' => $customer,
             'customer_phone' => null,
-            'transaction_date' => date('Y-m-d'),
+            'transaction_date' => $transactionDate ?? date('Y-m-d'),
             'note_state' => $noteState,
+            'closed_at' => $closedAt,
             'total_rupiah' => $total,
             'created_at' => $createdAt ?? now(),
         ]);

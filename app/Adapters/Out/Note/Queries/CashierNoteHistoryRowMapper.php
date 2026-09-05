@@ -34,6 +34,7 @@ final class CashierNoteHistoryRowMapper
             $workDoneCount = (int) ($row->done_count ?? 0);
             $workCanceledCount = (int) ($row->canceled_count ?? 0);
             $noteState = (string) ($row->note_state ?? Note::STATE_OPEN);
+            $canEdit = $noteState !== Note::STATE_REFUNDED && $this->isWithinEditWindow($transactionDate);
 
             $items[] = [
                 'note_id' => (string) $row->id,
@@ -68,15 +69,20 @@ final class CashierNoteHistoryRowMapper
                 'focus_status_label' => $this->formatter->focusStatus($noteState, $outstanding, $workOpenCount),
                 'domain_status_label' => $this->formatter->domainStatus($noteState, $workCanceledCount),
                 'detail_url' => route('cashier.notes.show', ['noteId' => (string) $row->id]),
-                'edit_url' => $noteState === Note::STATE_REFUNDED
+                'edit_url' => ! $canEdit
                     ? null
                     : route('cashier.notes.workspace.edit', ['noteId' => (string) $row->id]),
-                'can_edit' => $noteState !== Note::STATE_REFUNDED,
+                'can_edit' => $canEdit,
                 'action_label' => 'Detail',
                 'action_url' => route('cashier.notes.show', ['noteId' => (string) $row->id]),
             ];
         }
 
         return $items;
+    }
+
+    private function isWithinEditWindow(string $transactionDate): bool
+    {
+        return in_array($transactionDate, [date('Y-m-d'), date('Y-m-d', strtotime('-1 day'))], true);
     }
 }

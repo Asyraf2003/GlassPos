@@ -634,10 +634,17 @@
 
     const payable = payableAmount(total);
     const received = digits(hiddenValue("inline_payment_amount_received_rupiah"));
+    const outstanding = effectivePaymentTotal(total);
+    const credited = Math.min(received, outstanding);
+
+    if (NS.paymentState.cashStep && NS.paymentState.mode === "partial") {
+      updateHidden("inline_payment_amount_paid_rupiah", credited > 0 ? credited : "");
+    }
 
     setText("workspace-modal-total-text", total);
-    setText("workspace-cash-payable-text", payable);
-    setText("workspace-cash-change-text", Math.max(received - payable, 0));
+    setText("workspace-cash-payable-text", outstanding);
+    setText("workspace-cash-change-text", Math.max(received - outstanding, 0));
+    setText("workspace-cash-remaining-text", Math.max(outstanding - credited, 0));
 
     toggle("workspace-payment-standard-view", !NS.paymentState.cashStep);
     toggle("workspace-payment-cash-view", NS.paymentState.cashStep);
@@ -663,7 +670,7 @@
       !["full", "partial"].includes(NS.paymentState.mode) ||
       partialInvalid;
     const receivedInvalid =
-      payable <= 0 || received < payable || hiddenValue("inline_payment_method_hidden") !== "cash";
+      outstanding <= 0 || received <= 0 || hiddenValue("inline_payment_method_hidden") !== "cash";
 
     if (skipButton) {
       skipButton.classList.toggle("d-none", NS.paymentState.mode !== "skip");
@@ -850,6 +857,15 @@
 
     if (event.target.closest("#workspace-payment-submit-cash")) {
       updateHidden("inline_payment_method_hidden", "cash");
+      if (NS.paymentState.mode === "partial") {
+        updateHidden(
+          "inline_payment_amount_paid_rupiah",
+          Math.min(
+            digits(hiddenValue("inline_payment_amount_received_rupiah")),
+            effectivePaymentTotal(grandTotal())
+          )
+        );
+      }
     }
   });
 

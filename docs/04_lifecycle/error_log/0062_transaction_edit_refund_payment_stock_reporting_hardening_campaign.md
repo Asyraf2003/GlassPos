@@ -4,7 +4,7 @@
 
 In progress for the broader edit/refund/payment/stock/reporting campaign.
 
-Sub-slices A-Q are closed with automated proof.
+Sub-slices A-R are closed with automated proof.
 
 ## Context
 
@@ -403,6 +403,58 @@ Fix:
 - the default detail UI removes obsolete manual surplus actions while retaining the existing automatic settlement, refund, audit, and compatibility backend paths.
 
 The campaign's earlier no-migration constraint applied to its original financial/reporting correction slices. Sub-slice Q adds only the payment-event chronology column required by the browser-reproduced timestamp collision; it does not change payment amounts, allocation semantics, or refund policy.
+
+### 0062-R - Note-level Cash, Finance Work Queue, And Lifecycle Timeline
+
+Confirmed defects:
+
+- detail payment treated a component suggestion/selected row as financial authority, so cash Rp100.000 could be recorded as payment Rp65.000 plus bogus Rp35.000 change while the note still had Rp265.000 outstanding;
+- payment allocation priority did not match the locked external purchase -> store product -> service order;
+- cashier history limited work to the current date window and used operational state in primary finance classification;
+- admin history did not use true creation chronology or server-side money sorting;
+- timeline initially used the current revision total/current rebuilt allocation, and then gross cumulative payment, so revisions or a refund before a later payment could rewrite the visible historical remaining balance.
+
+Root causes were distinct:
+
+- **wrong encoded contract:** selected UI rows and partial suggestion were treated as payment authority;
+- **missing scenario coverage:** no adversarial received-below-outstanding case disproved suggestion-based change;
+- **integration-chain gap:** tests did not drive multiple payments, revision/refund, projection, and timeline on the same note;
+- **human-visible acceptance gap:** prior green tests did not require debt-age visibility, settlement transition, exact cash/change, or server-backed chronology from the rendered UI.
+
+The correction keeps `customer_payments` as actual money events and makes the cashier endpoint note-level. Cash credit is capped only by current outstanding; component allocation remains internal and deterministic. Timeline context is read from official revision, refund, surplus-refund, payment, allocation, and cash-detail records at the adapter boundary.
+
+Captured RED before the corresponding production fixes:
+
+```text
+CashierNoteLevelCashPaymentContractFeatureTest
+- cash 149000 against suggestion 200000 was rejected as received below suggested amount
+- cash 100000 against outstanding 265000 persisted payment 65000/change 35000
+- settlement tender 200000 against outstanding 165000 persisted suggested 65000
+- same-note chain could not reconcile under the old selected-component authority/priority
+
+CashierNoteHistoryWorkQueueClassificationFeatureTest
+- old outstanding debt was absent from Belum Lunas
+- old note settled today was absent from Selesai Hari Ini
+
+AdminNoteHistoryTableDataFeatureTest
+- same-date rows rendered zzz/mmm/aaa rather than 16:00/12:00/08:00
+- page-two money sort operated on the wrong server order
+- an unknown sort key did not fail validation
+
+PaymentTimelineRevisionTruthFeatureTest
+- upward revision changed historical remaining from 351000 to 501000
+- downward revision changed historical remaining from 300000 to 0
+- payment after a 100000 refund showed remaining 0 instead of 50000
+```
+
+Obsolete contract tests exposed after the production fixes were replaced explicitly rather than used to revert the implementation:
+
+- a Payment feature test required allocation only to a selected second service row;
+- a request-validator Unit test required received cash to cover the suggestion;
+- an inline-payment Unit test rejected payment equal to current outstanding;
+- an allocation Unit test expected store product before external purchase.
+
+The replacement assertions lock note-level deterministic allocation, positive actual cash independent of suggestion, the inclusive `<= outstanding` boundary, and external -> store product -> service priority. The final same tests passed, and `make verify` completed with 1,600 tests / 10,228 assertions.
 
 ## Failing Test Proof
 
@@ -1001,4 +1053,4 @@ No remaining backlog for this campaign.
 
 ## Final Status
 
-Sub-slices A-Q are closed with automated proof.
+Sub-slices A-R are closed with automated proof.

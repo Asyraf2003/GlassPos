@@ -72,7 +72,7 @@
                         placeholder="Masukkan nominal pembayaran sebagian"
                     >
                     <div class="form-text">
-                        Nominal akan dibatasi maksimal sebesar total nota.
+                        Suggestion dapat diganti. Sistem mencatat nominal aktual selama tidak melebihi sisa tagihan.
                     </div>
                 </div>
             </div>

@@ -13,11 +13,10 @@ final class AdminNoteHistoryTableQuery implements AdminNoteHistoryTableReaderPor
         private readonly AdminNoteHistoryProjectionFilters $filters,
         private readonly AdminNoteHistoryProjectionItemMapper $mapper,
         private readonly CashierNoteHistoryValueFormatter $formatter,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      * @return array{
      *   filters: array<string, mixed>,
      *   items: list<array<string, mixed>>,
@@ -30,14 +29,19 @@ final class AdminNoteHistoryTableQuery implements AdminNoteHistoryTableReaderPor
         $criteria = AdminNoteHistoryCriteria::fromFilters($filters);
 
         $builder = DB::table('note_history_projection')
-            ->whereBetween('transaction_date', [$criteria->dateFromText, $criteria->dateToText]);
+            ->leftJoin('notes', 'notes.id', '=', 'note_history_projection.note_id')
+            ->whereBetween('note_history_projection.transaction_date', [$criteria->dateFromText, $criteria->dateToText])
+            ->select([
+                'note_history_projection.*',
+                'notes.created_at as note_created_at',
+            ]);
 
         $builder = $this->filters->applySearch($builder, $criteria->search);
         $builder = $this->filters->applyLineStatusFilter($builder, $criteria->lineStatus);
 
         $paginator = $builder
-            ->orderByDesc('transaction_date')
-            ->orderByDesc('note_id')
+            ->orderBy($this->sortColumn($criteria->sortBy), $criteria->sortDir)
+            ->orderByDesc('note_history_projection.note_id')
             ->paginate($criteria->perPage, ['*'], 'page', $criteria->page);
 
         $items = array_map(
@@ -51,6 +55,8 @@ final class AdminNoteHistoryTableQuery implements AdminNoteHistoryTableReaderPor
                 'date_to' => $criteria->dateToText,
                 'search' => $criteria->search,
                 'line_status' => $criteria->lineStatus,
+                'sort_by' => $criteria->sortBy,
+                'sort_dir' => $criteria->sortDir,
             ],
             'items' => $items,
             'pagination' => [
@@ -67,5 +73,12 @@ final class AdminNoteHistoryTableQuery implements AdminNoteHistoryTableReaderPor
                 ),
             ],
         ];
+    }
+
+    private function sortColumn(string $sortBy): string
+    {
+        return $sortBy === 'created_at'
+            ? 'notes.created_at'
+            : 'note_history_projection.'.$sortBy;
     }
 }

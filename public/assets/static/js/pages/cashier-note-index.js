@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderItems = (items) => {
         if (!Array.isArray(items) || items.length === 0) {
-            renderState(state.bucket === 'completed' ? 'Belum ada nota selesai.' : 'Tidak ada nota yang perlu ditangani.');
+            renderState(state.bucket === 'completed' ? 'Belum ada nota yang lunas hari ini.' : 'Tidak ada sisa tagihan.');
             return;
         }
 

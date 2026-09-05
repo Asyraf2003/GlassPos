@@ -183,12 +183,14 @@ Rules:
    - outstanding is zero
 
 3. revised total < carry-forward:
-   - surplus must become explicit overpaid/kembalian/refund-due/customer-credit according to separate decision
+   - surplus is returned through the existing automatic revision-surplus refund lifecycle
+   - surplus is not customer credit and does not introduce a new default approval flow
    - system must not pretend note is unpaid
 
 4. allocation priority:
-   - product components first
-   - service components after products
+   - external purchase components first
+   - store product components second
+   - service components last
 
 ### Refund Engine Caution
 
@@ -206,17 +208,11 @@ Required for:
 - downward revision where carry-forward exceeds revised total
 - any flow where previous money exceeds current total
 
-Options:
-
-A. immediate refund due
-B. customer credit
-C. explicit overpaid balance
-D. forced refund workflow before final close
-
 Current status:
 
-- not decided in final storage/workflow form
-- implementation must stop before production patch if it needs final surplus storage
+- decided by the explicit 2026-09-05 owner decision;
+- use the existing automatic revision-surplus refund lifecycle;
+- do not introduce customer credit, an overpaid wallet, or a new default approval flow.
 
 Temporary characterization may assert:
 

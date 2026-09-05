@@ -14,7 +14,6 @@ final class CashierNoteHistoryCriteria
 
     public function __construct(
         public readonly string $anchorDateText,
-        public readonly string $previousDateText,
         public readonly string $search,
         public readonly string $bucket,
         public readonly int $page,
@@ -30,7 +29,6 @@ final class CashierNoteHistoryCriteria
 
         return new self(
             anchorDateText: $anchorDate->format('Y-m-d'),
-            previousDateText: $anchorDate->modify('-1 day')->format('Y-m-d'),
             search: self::normalizeString($filters['search'] ?? null),
             bucket: self::resolveBucket($filters['bucket'] ?? null),
             page: max((int) ($filters['page'] ?? 1), 1),

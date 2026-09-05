@@ -7,7 +7,7 @@ namespace App\Adapters\In\Http\Controllers\Note;
 use App\Adapters\In\Http\Controllers\Note\Support\NotePaymentRedirectMessageBuilder;
 use App\Adapters\In\Http\Controllers\Note\Support\NoteRouteAreaResolver;
 use App\Adapters\In\Http\Requests\Note\RecordNotePaymentRequest;
-use App\Application\Note\Services\SelectedNoteRowsPaymentAmountResolver;
+use App\Application\Note\Services\NotePaymentAmountResolver;
 use App\Application\Payment\Services\RecordNotePaymentIdempotencyService;
 use App\Application\Payment\UseCases\RecordAndAllocateNotePaymentHandler;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +18,7 @@ final class RecordNotePaymentController extends Controller
     public function __invoke(
         string $noteId,
         RecordNotePaymentRequest $request,
-        SelectedNoteRowsPaymentAmountResolver $selectedRowsResolver,
+        NotePaymentAmountResolver $amounts,
         RecordAndAllocateNotePaymentHandler $flow,
         RecordNotePaymentIdempotencyService $idempotency,
         NoteRouteAreaResolver $routes,
@@ -44,14 +44,16 @@ final class RecordNotePaymentController extends Controller
                 ->with('success', $replayed->message() ?? 'Pembayaran berhasil dicatat.');
         }
 
-        $selectedRowIds = is_array($data['selected_row_ids'] ?? null)
-            ? array_values($data['selected_row_ids'])
-            : [];
+        $paymentMethod = (string) ($data['payment_method'] ?? 'unknown');
+        $amountReceived = $paymentMethod === 'cash'
+            ? (int) ($data['amount_received'] ?? 0)
+            : null;
 
-        $amountResult = $selectedRowsResolver->resolve(
+        $amountResult = $amounts->resolve(
             $noteId,
-            $selectedRowIds,
+            $paymentMethod,
             (int) ($data['amount_paid'] ?? 0),
+            $amountReceived,
         );
 
         if ($amountResult->isFailure()) {
@@ -59,20 +61,12 @@ final class RecordNotePaymentController extends Controller
         }
 
         $amount = (int) ($amountResult->data()['amount_rupiah'] ?? 0);
-        $paymentMethod = (string) ($data['payment_method'] ?? 'unknown');
-        $amountReceived = $paymentMethod === 'cash'
-            ? (int) ($data['amount_received'] ?? 0)
-            : null;
-
-        if ($paymentMethod === 'cash' && (int) ($data['amount_received'] ?? 0) < $amount) {
-            return back()->withErrors(['payment' => 'Uang masuk cash tidak boleh kurang dari total yang dibayar.'])->withInput();
-        }
 
         $result = $flow->handle(
             $noteId,
             $amount,
             (string) $data['paid_at'],
-            $selectedRowIds,
+            [],
             $paymentMethod,
             $amountReceived,
             $idempotencyPayload,

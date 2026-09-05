@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
-use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -36,7 +36,7 @@ final class CashierProtectedNoteRoutesAccessGuardFeatureTest extends TestCase
             ->assertSee('Edit Nota');
     }
 
-    public function test_cashier_cannot_view_note_older_than_two_days_even_if_closed(): void
+    public function test_cashier_can_view_old_closed_note_when_money_is_still_outstanding(): void
     {
         $user = $this->seedKasir();
         $oldDate = date('Y-m-d', strtotime('-2 day'));
@@ -44,7 +44,7 @@ final class CashierProtectedNoteRoutesAccessGuardFeatureTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('cashier.notes.show', ['noteId' => 'note-old-closed']))
-            ->assertForbidden();
+            ->assertOk();
     }
 
     public function test_cashier_cannot_post_rows_to_refunded_note(): void
@@ -102,7 +102,7 @@ final class CashierProtectedNoteRoutesAccessGuardFeatureTest extends TestCase
         ]);
     }
 
-    public function test_cashier_cannot_post_payment_for_open_note_older_than_two_days(): void
+    public function test_cashier_can_collect_outstanding_for_open_note_older_than_two_days(): void
     {
         $user = $this->seedKasir();
         $oldDate = date('Y-m-d', strtotime('-2 day'));
@@ -115,7 +115,10 @@ final class CashierProtectedNoteRoutesAccessGuardFeatureTest extends TestCase
                 'paid_at' => $oldDate,
                 'amount_received' => 50000,
             ])
-            ->assertForbidden();
+            ->assertRedirect(route('cashier.notes.show', ['noteId' => 'note-old']))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('customer_payments', ['amount_rupiah' => 50000]);
     }
 
     private function seedKasir(): User
@@ -147,7 +150,7 @@ final class CashierProtectedNoteRoutesAccessGuardFeatureTest extends TestCase
         ]);
 
         DB::table('work_items')->insert([
-            'id' => 'wi-' . $noteId,
+            'id' => 'wi-'.$noteId,
             'note_id' => $noteId,
             'line_no' => 1,
             'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
@@ -156,7 +159,7 @@ final class CashierProtectedNoteRoutesAccessGuardFeatureTest extends TestCase
         ]);
 
         DB::table('work_item_service_details')->insert([
-            'work_item_id' => 'wi-' . $noteId,
+            'work_item_id' => 'wi-'.$noteId,
             'service_name' => 'Servis A',
             'service_price_rupiah' => 50000,
             'part_source' => ServiceDetail::PART_SOURCE_NONE,

@@ -33,8 +33,8 @@
         </div>
 
         <nav class="cashier-note-focus" aria-label="Fokus riwayat nota">
-            <button type="button" data-history-bucket="unfinished" aria-pressed="true">Belum Selesai</button>
-            <button type="button" data-history-bucket="completed" aria-pressed="false">Selesai</button>
+            <button type="button" data-history-bucket="unfinished" aria-pressed="true">Belum Lunas</button>
+            <button type="button" data-history-bucket="completed" aria-pressed="false">Selesai Hari Ini</button>
         </nav>
 
         <div id="cashier-note-list" class="cashier-note-list" aria-live="polite" aria-busy="true">

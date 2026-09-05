@@ -127,11 +127,35 @@ Assembles the existing `pay_full` decision with cash, exact payable amount as re
 
 ### Bayar Sebagian
 
-Assembles the existing `pay_partial` decision with cash and only asks for the current paid nominal. Zero and full-or-greater boundaries remain rejected by the canonical rule.
+Assembles the existing `pay_partial` decision with cash and only asks for the money actually paid now. A displayed component/DP amount is a suggestion, never a financial cap. The valid note-level boundary is:
+
+```text
+0 < actual payment <= current outstanding
+```
+
+Simple sends received amount equal to that actual payment, so it creates no change while the amount is within outstanding.
 
 ### Detail payment
 
-The existing advanced skip/full/partial, cash/transfer, received amount, and paid-date flow remains available through the same form and backend contract.
+The existing advanced skip/full/partial, cash/transfer, received amount, and paid-date flow remains available through the same form and backend contract. Cash uses the customer tender as truth:
+
+```text
+credited payment = min(cash received, current outstanding)
+change           = max(cash received - current outstanding, 0)
+remaining        = current outstanding - credited payment
+```
+
+A partial suggestion never creates change while outstanding can still absorb the received cash. Transfer has no cash received/change semantics and cannot exceed current outstanding.
+
+### Internal allocation
+
+Cashiers pay a note, not a selected component. The backend retains deterministic internal allocation priority:
+
+```text
+external purchase -> store product -> service
+```
+
+Component controls or suggestions may explain the allocation but cannot override payment amount or priority. After every event, note outstanding must equal the sum of component outstanding.
 
 ## Note Detail Payment Transparency
 
@@ -141,13 +165,14 @@ Note detail keeps the aggregate settlement summary, but the summary must not rep
 - Each event shows recorded date/time, paid amount, method, cash received/change when a cash-detail row exists, and remaining balance after that event.
 - Events are presented newest first. `recorded_at` with microsecond precision is the operational ordering source for new payments; legacy rows fall back to `created_at`, then `paid_at`, with payment ID only as a deterministic final tie-breaker.
 - `Bayar Sebagian` and `Pelunasan` are derived from the event's position against the note payable lifecycle. Repeated partial payment remains available while authoritative outstanding remains positive.
+- The event-time note revision total and refunds that occurred before a later payment are read at the adapter boundary, so a revision/refund does not rewrite an earlier event and a post-refund payment still shows the correct net remaining balance.
 - Component allocations remain authoritative when both component and legacy allocation rows describe the same payment. The timeline must not double count compatibility rows.
 - Aggregate `Total Nota`, `Sudah Dibayar`, `Total Refund`, `Sisa Tagihan`, and payment status remain visible and reconcile with the event history.
 
 Three financial concepts remain distinct in wording and data source:
 
 1. cash received above the payment amount is ordinary cash change;
-2. a requested payment above authoritative outstanding remains rejected by the existing domain guard;
+2. a non-cash requested payment above authoritative outstanding remains rejected, while cash received above outstanding is credited only up to outstanding and the excess is ordinary change;
 3. a downward-revision surplus is returned through the existing automatic surplus refund lifecycle, never presented as customer credit or a default manual approval action.
 
 ## Architecture Boundary
@@ -208,8 +233,8 @@ Implementation cannot close until there is proof for:
 - Browser interaction covered all four row types, remove, Detail on/off, product/service/package search, keyboard navigation, selected stamp, explicit release and reselection, product quantity, partial open/cancel/submit, skip, real full cash, Detail transfer, edit PATCH, and refund surface.
 - Product, service, and package release plus rapid/stale lookup behavior were exercised against canonical hidden identity/decomposition state; no released selection was revived by a delayed response.
 - All ten assets loaded by the workspace resolved from the local application origin during browser proof.
-- The payment-transparency continuation passed the combined Note/Payment regression with 453 tests and 3,525 assertions.
-- Final repository `make verify` passed: PHPStan analyzed 2,023 files with no errors, contract audits passed, and 1,585 tests completed with 10,135 assertions.
+- The note-level payment continuation passed the complete Note and Payment feature suites with 466 tests and 3,615 assertions. The same-note browser chain preserved four independent events and reconciled Rp500.000 paid with Rp0 outstanding.
+- Final repository `make verify` passed: PHPStan analyzed 2,027 files with no errors, contract audits passed, and 1,600 tests completed with 10,228 assertions.
 
 ## Remaining GAP
 

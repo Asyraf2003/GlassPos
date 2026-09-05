@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
-use App\Core\Note\WorkItem\WorkItem;
 use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
+use App\Core\Note\WorkItem\WorkItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SeedsMinimalProductFixture;
@@ -36,14 +36,14 @@ final class CashierNoteDetailAccessGuardFeatureTest extends TestCase
             ->assertOk();
     }
 
-    public function test_cashier_cannot_access_open_note_older_than_two_days(): void
+    public function test_cashier_can_access_old_open_note_with_outstanding_debt(): void
     {
         $user = $this->seedKasir();
         $this->seedMinimalNote('note-3', date('Y-m-d', strtotime('-2 day')), 'open');
 
         $this->actingAs($user)
             ->get(route('cashier.notes.show', ['noteId' => 'note-3']))
-            ->assertForbidden();
+            ->assertOk();
     }
 
     public function test_cashier_can_access_closed_note_if_still_within_date_window(): void
@@ -94,7 +94,7 @@ final class CashierNoteDetailAccessGuardFeatureTest extends TestCase
         ]);
 
         DB::table('work_items')->insert([
-            'id' => 'wi-' . $noteId,
+            'id' => 'wi-'.$noteId,
             'note_id' => $noteId,
             'line_no' => 1,
             'transaction_type' => WorkItem::TYPE_STORE_STOCK_SALE_ONLY,
@@ -103,8 +103,8 @@ final class CashierNoteDetailAccessGuardFeatureTest extends TestCase
         ]);
 
         DB::table('work_item_store_stock_lines')->insert([
-            'id' => 'sto-' . $noteId,
-            'work_item_id' => 'wi-' . $noteId,
+            'id' => 'sto-'.$noteId,
+            'work_item_id' => 'wi-'.$noteId,
             'product_id' => 'product-1',
             'qty' => 1,
             'line_total_rupiah' => 10000,

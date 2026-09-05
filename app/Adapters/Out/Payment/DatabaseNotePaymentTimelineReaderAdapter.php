@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Adapters\Out\Payment;
 
 use App\Adapters\Out\Payment\Queries\DatabaseNotePaymentTimelineAllocationAmountsQuery;
+use App\Adapters\Out\Payment\Queries\DatabaseNotePaymentTimelineLifecycleContextQuery;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Ports\Out\Payment\NotePaymentTimelineReaderPort;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,7 @@ final class DatabaseNotePaymentTimelineReaderAdapter implements NotePaymentTimel
 {
     public function __construct(
         private readonly DatabaseNotePaymentTimelineAllocationAmountsQuery $allocations,
+        private readonly DatabaseNotePaymentTimelineLifecycleContextQuery $lifecycleContext,
     ) {}
 
     public function findByNoteId(string $noteId): array
@@ -50,6 +52,16 @@ final class DatabaseNotePaymentTimelineReaderAdapter implements NotePaymentTimel
 
         usort($events, static fn (array $left, array $right): int => [$left['occurred_at'], $left['payment_id']] <=> [$right['occurred_at'], $right['payment_id']]
         );
+
+        $contexts = $this->lifecycleContext->byPaymentId($noteId, $events);
+
+        foreach ($events as &$event) {
+            $event += $contexts[$event['payment_id']] ?? [
+                'payable_total_rupiah' => 0,
+                'refunded_before_rupiah' => 0,
+            ];
+        }
+        unset($event);
 
         return $events;
     }

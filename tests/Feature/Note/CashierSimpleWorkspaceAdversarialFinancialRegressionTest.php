@@ -172,9 +172,28 @@ final class CashierSimpleWorkspaceAdversarialFinancialRegressionTest extends Tes
     {
         return [
             'zero' => [0],
-            'equal payable' => [100000],
             'greater than payable' => [120000],
         ];
+    }
+
+    public function test_partial_amount_equal_to_payable_is_a_valid_settlement(): void
+    {
+        $this->loginAsKasir();
+        $payment = [
+            'decision' => 'pay_partial',
+            'payment_method' => 'cash',
+            'paid_at' => '2026-09-04',
+            'amount_paid_rupiah' => 100000,
+            'amount_received_rupiah' => 100000,
+        ];
+
+        $this->post(
+            route('notes.workspace.store'),
+            $this->payload('adversarial-partial-equal', $this->serviceItem(), $payment),
+        )->assertRedirect(route('cashier.notes.index'));
+
+        $this->assertDatabaseHas('customer_payments', ['amount_rupiah' => 100000]);
+        $this->assertDatabaseHas('note_history_projection', ['outstanding_rupiah' => 0]);
     }
 
     public function test_detail_transfer_full_payment_keeps_cash_detail_empty(): void

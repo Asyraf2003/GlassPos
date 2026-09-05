@@ -45,17 +45,17 @@ Goal:
 
 - revised notes preserve existing valid money as carry-forward
 - refund is not double-subtracted
-- product-first allocation priority is preserved
+- allocation follows external purchase -> store product -> service
 
 Tests:
 
 1. previous payment 300000, refund 100000, revised total 200000 => paid/outstanding 0
 2. carry-forward 200000, revised total 250000 => partial/outstanding 50000
 3. carry-forward 200000, revised total 150000 => surplus detected, not unpaid
-4. carry-forward allocation fills product before service
+4. carry-forward allocation fills external purchase, then store product, then service
 5. existing payment is not silently lost during workspace edit
 
-Stop before final surplus storage if owner decision is still missing.
+Downward-revision surplus uses the existing automatic surplus-refund lifecycle; no customer credit or new approval model is introduced.
 
 ### Slice 3 — Current-Only Payable Components
 
