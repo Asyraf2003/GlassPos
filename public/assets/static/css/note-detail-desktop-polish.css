@@ -1,0 +1,68 @@
+body[data-note-device="desktop"] .note-detail-desktop {
+    gap: 1.15rem;
+}
+
+body[data-note-device="desktop"] .note-detail-section-heading {
+    min-height: 3rem;
+    padding: .8rem 1rem;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-main {
+    gap: 1rem;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-history {
+    padding: .15rem 0 1rem;
+}
+
+body[data-note-device="desktop"] .note-detail-history-title {
+    display: flex;
+    align-items: center;
+    min-height: 2.6rem;
+    margin-bottom: .55rem;
+    padding: 0 .1rem;
+}
+
+body[data-note-device="desktop"] .note-detail-history-title h4 {
+    margin: 0;
+    color: var(--note-detail-text);
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-history > .note-detail-history-grid {
+    gap: .85rem;
+    padding: 0;
+}
+
+body[data-note-device="desktop"] .note-detail-history-section {
+    background: var(--note-detail-card);
+    border-radius: .65rem;
+    padding: .95rem;
+}
+
+body[data-note-device="desktop"] .note-detail-history-section .card-header {
+    margin-bottom: .7rem;
+    padding-bottom: .7rem;
+}
+
+body[data-note-device="desktop"] .note-detail-history-section .card-title,
+body[data-note-device="desktop"] .note-payment-timeline__title,
+body[data-note-device="desktop"] .note-detail-history-heading h5 {
+    font-size: .95rem;
+}
+
+body[data-note-device="desktop"] .note-detail-history-section--payments,
+body[data-note-device="desktop"] .note-detail-history-section--refunds {
+    align-self: start;
+}
+
+body[data-note-device="desktop"] .note-detail-payment-card .btn {
+    min-height: 2.65rem;
+}
+
+@media (max-width: 1100px) {
+    body[data-note-device="desktop"] .note-detail-desktop-history > .note-detail-history-grid {
+        gap: .75rem;
+    }
+}
