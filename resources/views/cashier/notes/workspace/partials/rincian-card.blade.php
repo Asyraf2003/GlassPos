@@ -1,10 +1,6 @@
-<section class="workspace-panel workspace-entry-panel">
+<section class="workspace-panel workspace-entry-panel" aria-label="Rincian transaksi">
     <div class="workspace-panel-heading" data-detail-only>
-        <div>
-            <div class="workspace-panel-eyebrow">Transaksi</div>
-            <h4 class="workspace-panel-title">Pilih jenis transaksi</h4>
-            <p class="workspace-panel-help mb-0">Pilihan langsung menambahkan satu rincian ke nota aktif.</p>
-        </div>
+        <h4 class="workspace-panel-title">Jenis transaksi</h4>
     </div>
 
     <div class="workspace-type-grid" id="workspace-type-selector">
@@ -20,10 +16,7 @@
     </div>
 
     <div class="workspace-lines-heading" data-detail-only>
-        <div>
-            <div class="workspace-panel-eyebrow">Rincian aktif</div>
-            <div class="small text-muted">Cari lalu pilih item yang akan masuk ke nota.</div>
-        </div>
+        <h4 class="workspace-panel-title">Rincian</h4>
         <span class="workspace-line-count" id="workspace-line-count">0 item</span>
     </div>
 

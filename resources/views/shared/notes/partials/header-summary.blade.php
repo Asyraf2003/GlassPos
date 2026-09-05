@@ -1,20 +1,20 @@
 <div class="note-detail-readonly-grid">
   <div class="note-detail-readonly-field">
-    <div class="note-detail-readonly-label">No. Nota</div>
+    <div class="note-detail-readonly-label">ID Nota</div>
     <div class="note-detail-readonly-control">
-      {{ $note['customer_name'] ?? ($note['note_header']['customer_name'] ?? 'Nota Pelanggan') }}
+      {{ $note['id'] }}
     </div>
   </div>
 
   <div class="note-detail-readonly-field">
-      <div class="note-detail-readonly-label">Pelanggan</div>
+    <div class="note-detail-readonly-label">Pelanggan</div>
     <div class="note-detail-readonly-control">
       {{ $note['customer_name'] }}
     </div>
   </div>
 
   <div class="note-detail-readonly-field">
-      <div class="note-detail-readonly-label">No. HP Pelanggan</div>
+    <div class="note-detail-readonly-label">No. HP</div>
     <div class="note-detail-readonly-control">
       {{ !empty($note['customer_phone']) ? $note['customer_phone'] : '-' }}
     </div>
@@ -29,7 +29,7 @@
 
   @if (!empty($note['operational_note']))
     <div class="note-detail-readonly-field">
-      <div class="note-detail-readonly-label">Alasan Nota</div>
+      <div class="note-detail-readonly-label">Keterangan</div>
       <div class="note-detail-readonly-control">
         {{ $note['operational_note'] }}
       </div>
@@ -37,25 +37,11 @@
   @endif
 
   <div class="note-detail-readonly-field">
-    <div class="note-detail-readonly-label">Status Operasional</div>
+    <div class="note-detail-readonly-label">Status</div>
     <div class="note-detail-readonly-control">
       <span class="badge border text-uppercase">
         {{ $note['operational_status'] ?? $note['payment_status'] ?? '-' }}
       </span>
-    </div>
-  </div>
-
-  <div class="note-detail-readonly-field">
-      <div class="note-detail-readonly-label">Jumlah Rincian</div>
-      <div class="note-detail-readonly-control">
-      {{ count($note['rows']) }} Rincian
-      </div>
-  </div>
-
-  <div class="note-detail-readonly-field">
-    <div class="note-detail-readonly-label">Ringkasan Rincian</div>
-    <div class="note-detail-readonly-control">
-      {{ $note['line_summary']['summary_label'] ?? 'Belum ada rincian.' }}
     </div>
   </div>
 </div>

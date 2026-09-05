@@ -1,11 +1,4 @@
-<section class="workspace-panel workspace-detail-panel">
-    <div class="workspace-panel-heading">
-        <div>
-            <div class="workspace-panel-eyebrow">Detail</div>
-            <h4 class="workspace-panel-title">Keterangan nota</h4>
-        </div>
-    </div>
-
+<section class="workspace-panel workspace-detail-panel" aria-label="Keterangan nota">
     @if (($workspaceMode ?? 'create') === 'edit')
         <div class="workspace-field mb-3">
             <label for="note_revision_reason" class="form-label">Alasan Perubahan Nota</label>
@@ -20,7 +13,7 @@
             @error('reason')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
-            <div class="form-text">Akan tampil di Riwayat Perubahan Nota.</div>
+            <div class="visually-hidden" aria-hidden="true">Akan tampil di Riwayat Perubahan Nota.</div>
         </div>
     @endif
 

@@ -50,12 +50,12 @@
             >
 
             <div class="modal-header">
-                <div>
-                    <h5 class="modal-title mb-1" id="workspace-payment-modal-title">Proses Nota</h5>
-                    <p class="mb-0 text-muted small" id="workspace-payment-modal-subtitle">
-                        Cek ringkasan transaksi, lalu lanjutkan dengan metode pembayaran.
-                    </p>
-                </div>
+                <h5 class="modal-title mb-0" id="workspace-payment-modal-title">Proses Nota</h5>
+                <p
+                    class="visually-hidden"
+                    id="workspace-payment-modal-subtitle"
+                    aria-hidden="true"
+                >Cek ringkasan transaksi, lalu lanjutkan dengan metode pembayaran.</p>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
 

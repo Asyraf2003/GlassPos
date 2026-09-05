@@ -10,12 +10,12 @@
   <div class="modal-dialog modal-xl modal-dialog-centered" id="note-payment-modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <div>
-          <h5 class="modal-title mb-1" id="detail-payment-title">Proses Nota</h5>
-          <p class="mb-0 text-muted small" id="detail-payment-subtitle">
-            Pilih aksi pembayaran, cek nominal, lalu bayar transfer atau tunai.
-          </p>
-        </div>
+        <h5 class="modal-title mb-0" id="detail-payment-title">Proses Nota</h5>
+        <p
+          class="visually-hidden"
+          id="detail-payment-subtitle"
+          aria-hidden="true"
+        >Pilih aksi pembayaran, cek nominal, lalu bayar transfer atau tunai.</p>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
       </div>
 
@@ -60,12 +60,7 @@
               <div class="col-12 col-lg-7">
                 <div class="border rounded p-3 h-100">
                   <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
-                    <div>
-                      <div class="fw-semibold">Ringkasan Pembayaran</div>
-                      <div class="small text-muted">
-                        Tagihan aktif dipilih otomatis. Rincian tagihan dikirim otomatis agar pembayaran tercatat sesuai urutan.
-                      </div>
-                    </div>
+                    <div class="fw-semibold">Tagihan</div>
                     <span class="badge border" id="detail-payment-mode-text">
                       {{ ($note['can_show_partial_payment_action'] ?? false) ? 'Bayar Sebagian' : 'Lunasi' }}
                     </span>
@@ -79,7 +74,6 @@
 
               <div class="col-12 col-lg-5">
                 <div class="border rounded p-3 mb-3">
-                  <div class="small text-muted mb-2">Ringkasan Nominal</div>
                   <div class="d-flex justify-content-between py-2 border-bottom">
                     <span class="text-muted">Sisa Tagihan Terpilih</span>
                     <strong id="detail-payment-selected-total">0</strong>
@@ -92,7 +86,7 @@
 
                 @if ($note['can_show_partial_payment_action'] ?? false)
                   <div class="border rounded p-3 mb-3" id="detail-payment-partial-panel">
-                    <label class="form-label">Nominal Bayar Sebagian</label>
+                    <label for="detail_payment_amount_paid_display" class="form-label">Nominal Bayar Sebagian</label>
                     <input
                       type="text"
                       class="form-control"
@@ -100,20 +94,13 @@
                       value="{{ old('amount_paid') }}"
                       placeholder="Contoh: 50.000"
                     >
-                    <div class="small text-muted mt-2">
-                      Suggestion dapat diganti. Pembayaran diterapkan ke nota sesuai nominal aktual.
-                    </div>
                   </div>
                 @endif
 
                 <div class="border rounded p-3">
-                  <div class="d-flex justify-content-between py-2 border-bottom">
+                  <div class="d-flex justify-content-between py-2">
                     <span class="text-muted">Sisa Setelah Bayar</span>
                     <strong id="detail-payment-remaining-text">0</strong>
-                  </div>
-                  <div class="d-flex justify-content-between pt-2">
-                    <span class="text-muted">Tanggal Bayar</span>
-                    <strong>{{ $paymentModalConfig['date_default'] ?? $paymentDateDefault }}</strong>
                   </div>
                 </div>
               </div>
@@ -123,20 +110,9 @@
           <div id="detail-payment-cash-view" class="d-none">
             <div style="max-width: 460px; margin: 0 auto;">
               <div class="border rounded p-4">
-                <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
-                  <div>
-                    <div class="fw-semibold fs-4">Kalkulator Tunai</div>
-                    <div class="text-muted">
-                      Hanya tiga angka utama. Angka tengah langsung bisa diisi.
-                    </div>
-                  </div>
-
-                  <div class="text-end">
-                    <div class="small text-muted">Mode Pembayaran</div>
-                    <div class="fw-semibold fs-5" id="workspace-cash-mode-text">
-                      {{ ($note['can_show_partial_payment_action'] ?? false) ? 'Bayar Sebagian' : 'Bayar Penuh' }}
-                    </div>
-                  </div>
+                <div class="visually-hidden">Kalkulator Tunai</div>
+                <div class="visually-hidden" id="workspace-cash-mode-text" aria-hidden="true">
+                  {{ ($note['can_show_partial_payment_action'] ?? false) ? 'Bayar Sebagian' : 'Bayar Penuh' }}
                 </div>
 
                 <div class="d-grid gap-3">
@@ -146,7 +122,7 @@
                   </div>
 
                   <div class="border rounded p-4 text-center" data-money-input-group>
-                    <div class="small text-muted mb-2">Uang Pelanggan</div>
+                    <label for="inline_payment_amount_received_display" class="small text-muted mb-2">Uang Pelanggan</label>
 
                     <input type="hidden" value="" data-money-raw data-cash-received-raw>
 
@@ -160,10 +136,6 @@
                       data-money-display
                       autocomplete="off"
                     >
-
-                    <div class="form-text mt-3">
-                      Ketik nominal, cek kembalian, lalu simpan tunai saat jumlah cukup.
-                    </div>
                   </div>
 
                   <div class="border rounded p-4 text-center">
@@ -172,7 +144,7 @@
                   </div>
 
                   <div class="border rounded p-4 text-center">
-                    <div class="small text-muted mb-2">Sisa Setelah Bayar</div>
+                    <div class="small text-muted mb-2">Sisa</div>
                     <div class="fs-3 fw-bold lh-sm" id="workspace-cash-remaining-text">0</div>
                   </div>
                 </div>

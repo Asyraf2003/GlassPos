@@ -1,9 +1,6 @@
-<section class="workspace-panel workspace-checkout-panel">
+<section class="workspace-panel workspace-checkout-panel" aria-label="Review dan pembayaran">
     <div class="workspace-checkout-heading" data-detail-only>
-        <div>
-            <div class="workspace-panel-eyebrow">Nota Aktif</div>
-            <h4 class="workspace-panel-title">Review & Pembayaran</h4>
-        </div>
+        <h4 class="workspace-panel-title">Review & Pembayaran</h4>
         <span class="workspace-line-count" id="workspace-summary-line-count">0 item</span>
     </div>
 
@@ -60,8 +57,4 @@
             </button>
         @endif
     </div>
-
-    <a href="{{ $cancelAction ?? route('cashier.notes.index') }}" class="workspace-cancel-link" data-detail-only>
-        Batal dan kembali
-    </a>
 </section>

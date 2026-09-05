@@ -1,9 +1,6 @@
 <section class="note-payment-timeline" aria-labelledby="note-payment-timeline-title" data-payment-timeline>
   <div class="note-payment-timeline__header">
-    <div>
-      <h5 id="note-payment-timeline-title" class="note-payment-timeline__title">Riwayat Pembayaran</h5>
-      <p class="note-payment-timeline__subtitle">Setiap penerimaan uang dicatat sebagai transaksi terpisah.</p>
-    </div>
+    <h5 id="note-payment-timeline-title" class="note-payment-timeline__title">Riwayat Pembayaran</h5>
     <span class="note-payment-timeline__count">{{ count($note['payment_timeline'] ?? []) }} transaksi</span>
   </div>
 

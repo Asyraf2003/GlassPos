@@ -1,14 +1,4 @@
-<section class="workspace-panel workspace-detail-panel">
-    <div class="workspace-panel-heading">
-        <div>
-            <div class="workspace-panel-eyebrow">Info Nota</div>
-            <h4 class="workspace-panel-title">Pelanggan & tanggal</h4>
-        </div>
-        <span class="workspace-mode-badge">
-            {{ ($workspaceMode ?? 'create') === 'edit' ? 'Mode Edit' : 'Mode Buat' }}
-        </span>
-    </div>
-
+<section class="workspace-panel workspace-detail-panel" aria-label="Info nota">
     <div class="workspace-field-grid">
         <div class="workspace-field workspace-field-wide">
             <label for="note_customer_name" class="form-label">Nama Pelanggan</label>

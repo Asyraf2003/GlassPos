@@ -1,8 +1,4 @@
 <div class="card">
-  <div class="card-header">
-    <h4 class="card-title mb-0">Status & Aksi Nota</h4>
-  </div>
-
   <div class="card-body">
     <div class="d-grid gap-2 mb-3">
       @if ($note['can_edit_workspace'] ?? false)
@@ -48,7 +44,7 @@
     </div>
 
     <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-      <span class="text-muted">Total Pengembalian Dana</span>
+      <span class="text-muted">Pengembalian</span>
       <strong
         class="text-body"
         data-payment-aggregate="refunded"
@@ -65,22 +61,11 @@
       >{{ number_format($note['outstanding_rupiah'], 0, ',', '.') }}</strong>
     </div>
 
-    <div class="border rounded p-3 bg-body mb-3">
-      <div class="small text-muted mb-1">Status Operasional</div>
-      <div class="fw-bold text-uppercase text-body" data-payment-aggregate="status">
-        {{ $note['payment_status_label'] ?? '-' }}
-      </div>
-    </div>
-
     @include('shared.notes.partials.payment-timeline')
 
     @if (! empty($note['surplus_disposition_audit_timeline'] ?? []))
       <div class="border rounded p-3 bg-body mb-3">
-        <div class="small text-muted mb-1">Pengembalian Surplus Revisi</div>
-        <div class="fw-semibold text-body mb-2">Riwayat Pengembalian Otomatis</div>
-        <p class="small text-muted mb-3">
-          Surplus akibat penurunan total revisi dikembalikan melalui lifecycle pengembalian dana, bukan saldo pelanggan.
-        </p>
+        <div class="fw-semibold text-body mb-2">Pengembalian Surplus Revisi</div>
         <div class="d-grid gap-2">
           @foreach (($note['surplus_disposition_audit_timeline'] ?? []) as $auditItem)
             <div class="border rounded p-2 bg-body">

@@ -56,7 +56,8 @@ body:has(.cashier-note-workspace[data-device-class="handset"]) .layout-page-head
     }
 }
 
-body[data-note-device="handset"] .note-detail-mobile-help {
+body[data-note-device] .note-detail-mobile-help,
+body[data-note-device] .note-detail-line-list > .small.text-muted {
     display: none;
 }
 
@@ -71,23 +72,31 @@ body[data-note-device="desktop"] .note-detail-mobile-stack {
 body[data-note-device="desktop"] .note-detail-mobile-stack-list {
     align-items: start;
     display: grid;
-    grid-template-columns: minmax(0, 1.55fr) minmax(22rem, 0.75fr);
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1.6fr) minmax(22rem, 0.72fr);
 }
 
-body[data-note-device="desktop"] .note-detail-mobile-step:nth-child(1),
+body[data-note-device="desktop"] .note-detail-mobile-step:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1;
+}
+
 body[data-note-device="desktop"] .note-detail-mobile-step:nth-child(2) {
     grid-column: 1;
+    grid-row: 2;
 }
 
 body[data-note-device="desktop"] .note-detail-mobile-step:nth-child(3) {
+    align-self: start;
     grid-column: 2;
-    grid-row: 1 / span 2;
+    grid-row: 1 / span 3;
     position: sticky;
     top: 1rem;
 }
 
 body[data-note-device="desktop"] .note-detail-mobile-step:nth-child(4) {
-    grid-column: 1 / -1;
+    grid-column: 1;
+    grid-row: 3;
 }
 
 @media (display-mode: standalone) {
