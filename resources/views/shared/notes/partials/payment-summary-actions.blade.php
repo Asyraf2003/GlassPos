@@ -51,30 +51,32 @@
         </a>
       @endif
 
-      @if ($note['can_show_partial_payment_action'] ?? false)
-        <button
-          type="button"
-          class="btn btn-primary js-open-payment-intent"
-          data-bs-toggle="modal"
-          data-bs-target="#note-payment-modal"
-          data-payment-intent="pay"
-          data-payment-preset="manual"
-        >
-          Bayar Sebagian
-        </button>
-      @endif
+      @if ($note['can_show_payment_form'] ?? false)
+        @if ($note['can_show_partial_payment_action'] ?? false)
+          <button
+            type="button"
+            class="btn btn-primary js-open-payment-intent"
+            data-bs-toggle="modal"
+            data-bs-target="#note-payment-modal"
+            data-payment-intent="pay"
+            data-payment-preset="manual"
+          >
+            Bayar Sebagian
+          </button>
+        @endif
 
-      @if ($note['can_show_settle_payment_action'] ?? false)
-        <button
-          type="button"
-          class="btn btn-outline-primary js-open-payment-intent"
-          data-bs-toggle="modal"
-          data-bs-target="#note-payment-modal"
-          data-payment-intent="settle"
-          data-payment-preset="manual"
-        >
-          Lunasi
-        </button>
+        @if ($note['can_show_settle_payment_action'] ?? false)
+          <button
+            type="button"
+            class="btn btn-outline-primary js-open-payment-intent"
+            data-bs-toggle="modal"
+            data-bs-target="#note-payment-modal"
+            data-payment-intent="settle"
+            data-payment-preset="manual"
+          >
+            Lunasi
+          </button>
+        @endif
       @endif
 
       @if ($note['can_show_refund_form'] ?? false)
