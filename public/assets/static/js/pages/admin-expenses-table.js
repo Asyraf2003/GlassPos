@@ -12,7 +12,7 @@
     date_to: ""
   };
 
-  const allowedSortBy = new Set(["expense_date", "amount_rupiah"]);
+  const allowedSortBy = new Set(["expense_date", "category_name_snapshot", "description", "amount_rupiah", "payment_method"]);
   const allowedSortDir = new Set(["asc", "desc"]);
 
   const $ = (id) => document.getElementById(id);
@@ -41,6 +41,7 @@
 
   let searchDebounceTimer = null;
   let requestCounter = 0;
+  let activeController = null;
 
   const esc = (v) => String(v ?? "").replace(/[&<>\"']/g, (m) => ({
 
@@ -85,10 +86,13 @@
     const sortBy = trimValue(p.get("sort_by"));
     const sortDir = trimValue(p.get("sort_dir"));
 
+    const query = trimValue(p.get("q"));
+    const hasExplicitSort = allowedSortBy.has(sortBy);
+
     return {
-      q: trimValue(p.get("q")),
+      q: query,
       page: intOrDefault(p.get("page"), 1),
-      sort_by: allowedSortBy.has(sortBy) ? sortBy : defaults.sort_by,
+      sort_by: query.length >= 2 && !hasExplicitSort ? "relevance" : (hasExplicitSort ? sortBy : defaults.sort_by),
       sort_dir: allowedSortDir.has(sortDir) ? sortDir : defaults.sort_dir,
       category_id: trimValue(p.get("category_id")),
       date_from: trimValue(p.get("date_from")),
@@ -144,9 +148,10 @@
     const obj = {
       page: String(s.page),
       per_page: "10",
-      sort_by: s.sort_by,
       sort_dir: s.sort_dir
     };
+
+    if (s.sort_by !== "relevance") obj.sort_by = s.sort_by;
 
     ["q", "category_id", "date_from", "date_to"].forEach((k) => {
       if (s[k]) obj[k] = s[k];
@@ -237,7 +242,9 @@
   };
 
   const renderSummary = (meta) => {
-    summary.textContent = `Total: ${meta.total} pengeluaran`;
+    const total = Number(meta.total || 0), page = Number(meta.page || 1), perPage = Number(meta.per_page || 10);
+    const from = total ? ((page - 1) * perPage) + 1 : 0;
+    summary.textContent = `Menampilkan ${from} sampai ${Math.min(page * perPage, total)} dari ${total} pengeluaran`;
   };
 
   const renderSortIndicators = () => {
@@ -255,28 +262,33 @@
   };
 
   const load = async (replaceUrl = false) => {
+    activeController?.abort();
+    const controller = new AbortController();
+    activeController = controller;
     const currentRequest = ++requestCounter;
     body.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">Memuat data...</td></tr>`;
 
-    const res = await fetch(`${c.endpoint}?${paramsString()}`, {
-      headers: { Accept: "application/json" }
-    });
+    try {
+      const res = await fetch(`${c.endpoint}?${paramsString()}`, {
+        headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
+        signal: controller.signal
+      });
+      const json = await res.json();
+      if (currentRequest !== requestCounter) return;
+      if (!res.ok || !json.success) throw new Error("expense-table-response");
 
-    const json = await res.json();
-
-    if (currentRequest !== requestCounter) return;
-
-    if (!res.ok || !json.success) {
+      renderRows(json.data.rows || [], json.data.meta || {});
+      renderSummary(json.data.meta || {});
+      renderPager(json.data.meta || {});
+      renderSortIndicators();
+      syncInputsFromState();
+      updateUrl(replaceUrl);
+    } catch (error) {
+      if (error.name === "AbortError" || currentRequest !== requestCounter) return;
       body.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Gagal memuat data.</td></tr>`;
-      return;
+      pager.innerHTML = "";
+      summary.textContent = "Data pengeluaran gagal dimuat.";
     }
-
-    renderRows(json.data.rows || [], json.data.meta || {});
-    renderSummary(json.data.meta || {});
-    renderPager(json.data.meta || {});
-    renderSortIndicators();
-    syncInputsFromState();
-    updateUrl(replaceUrl);
   };
 
   searchForm?.addEventListener("submit", (e) => {
@@ -286,6 +298,7 @@
 
     if (value.length === 0) {
       s.q = "";
+      if (s.sort_by === "relevance") { s.sort_by = defaults.sort_by; s.sort_dir = defaults.sort_dir; }
       s.page = 1;
       load();
       return;
@@ -293,6 +306,7 @@
 
     if (value.length >= 2) {
       s.q = value;
+      s.sort_by = "relevance";
       s.page = 1;
       load();
     }
@@ -303,20 +317,20 @@
 
     clearTimeout(searchDebounceTimer);
 
-    if (value.length === 0) {
+    if (value.length < 2) {
       s.q = "";
+      if (s.sort_by === "relevance") { s.sort_by = defaults.sort_by; s.sort_dir = defaults.sort_dir; }
       s.page = 1;
-      searchDebounceTimer = setTimeout(() => load(), 250);
+      searchDebounceTimer = setTimeout(() => load(), 160);
       return;
     }
 
-    if (value.length < 2) return;
-
     searchDebounceTimer = setTimeout(() => {
       s.q = value;
+      s.sort_by = "relevance";
       s.page = 1;
       load();
-    }, 300);
+    }, 220);
   });
 
   [fallbackFromInput, fallbackToInput].forEach((input) => {

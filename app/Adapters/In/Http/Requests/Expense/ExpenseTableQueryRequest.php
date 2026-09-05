@@ -9,7 +9,10 @@ use Illuminate\Validation\Validator;
 
 final class ExpenseTableQueryRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     protected function prepareForValidation(): void
     {
@@ -29,7 +32,7 @@ final class ExpenseTableQueryRequest extends FormRequest
             'q' => ['nullable', 'string'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'in:10'],
-            'sort_by' => ['nullable', 'in:expense_date,amount_rupiah'],
+            'sort_by' => ['nullable', 'in:expense_date,category_name_snapshot,description,amount_rupiah,payment_method'],
             'sort_dir' => ['nullable', 'in:asc,desc'],
             'category_id' => ['nullable', 'string'],
             'date_from' => ['nullable', 'date_format:Y-m-d'],

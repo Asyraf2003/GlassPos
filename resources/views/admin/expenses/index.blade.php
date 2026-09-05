@@ -57,8 +57,8 @@
                                         <span class="ms-1 text-muted" data-sort-indicator="expense_date">↕</span>
                                     </button>
                                 </th>
-                                <th>Kategori</th>
-                                <th>Deskripsi</th>
+                                <th><button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="category_name_snapshot">Kategori <span class="ms-1 text-muted" data-sort-indicator="category_name_snapshot">↕</span></button></th>
+                                <th><button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="description">Deskripsi <span class="ms-1 text-muted" data-sort-indicator="description">↕</span></button></th>
                                 <th class="text-end">
                                     <button
                                         type="button"
@@ -69,7 +69,7 @@
                                         <span class="ms-1 text-muted" data-sort-indicator="amount_rupiah">↕</span>
                                     </button>
                                 </th>
-                                <th>Metode Bayar</th>
+                                <th><button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="payment_method">Metode Bayar <span class="ms-1 text-muted" data-sort-indicator="payment_method">↕</span></button></th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -82,7 +82,7 @@
                 </div>
 
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-3">
-                    <small id="expense-table-summary" class="text-muted">Total: -</small>
+                    <small id="expense-table-summary" class="text-muted">Menampilkan 0 sampai 0 dari 0 pengeluaran</small>
                     <div id="expense-table-pagination"></div>
                 </div>
             </div>

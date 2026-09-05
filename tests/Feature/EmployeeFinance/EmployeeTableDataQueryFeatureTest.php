@@ -43,13 +43,43 @@ final class EmployeeTableDataQueryFeatureTest extends TestCase
         $response->assertJsonPath('data.rows.1.employee_name', 'Budi');
     }
 
+    public function test_admin_can_filter_employee_status_and_salary_basis(): void
+    {
+        $this->seedEmployeeRow('emp-active-weekly', 'Budi Mingguan', '0811', 3000000, 'weekly', 'active');
+        $this->seedEmployeeRow('emp-inactive-weekly', 'Andi Mingguan', '0822', 3000000, 'weekly', 'inactive');
+        $this->seedEmployeeRow('emp-active-monthly', 'Cici Bulanan', '0833', 3000000, 'monthly', 'active');
+
+        $response = $this->actingAs($this->admin())->getJson(route('admin.employees.table', [
+            'employment_status' => 'active',
+            'salary_basis_type' => 'weekly',
+        ]));
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data.rows')
+            ->assertJsonPath('data.rows.0.id', 'emp-active-weekly')
+            ->assertJsonPath('data.meta.filters.employment_status', 'active')
+            ->assertJsonPath('data.meta.filters.salary_basis_type', 'weekly');
+    }
+
+    public function test_default_search_prioritizes_exact_employee_name_over_phone_contains_match(): void
+    {
+        $this->seedEmployeeRow('emp-exact', 'Budi', '0800', 3000000, 'weekly', 'active');
+        $this->seedEmployeeRow('emp-phone', 'Zaki', '0812-Budi', 3000000, 'weekly', 'active');
+
+        $response = $this->actingAs($this->admin())->getJson(route('admin.employees.table', ['q' => 'Budi']));
+
+        $response->assertOk()
+            ->assertJsonPath('data.rows.0.id', 'emp-exact')
+            ->assertJsonPath('data.meta.sort_by', 'relevance');
+    }
+
     public function test_admin_can_access_second_page_of_employee_table(): void
     {
         for ($i = 1; $i <= 11; $i++) {
             $this->seedEmployeeRow(
-                'emp-' . $i,
-                'Employee ' . str_pad((string) $i, 2, '0', STR_PAD_LEFT),
-                '08' . $i,
+                'emp-'.$i,
+                'Employee '.str_pad((string) $i, 2, '0', STR_PAD_LEFT),
+                '08'.$i,
                 1000000 + $i,
                 'monthly',
                 'active'

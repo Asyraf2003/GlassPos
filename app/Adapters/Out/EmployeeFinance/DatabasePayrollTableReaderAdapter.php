@@ -48,6 +48,22 @@ final class DatabasePayrollTableReaderAdapter implements PayrollTableReaderPort
             }
         }
 
+        if ($query->mode() !== null) {
+            $builder->where('payroll_disbursements.mode', $query->mode());
+        }
+        if ($query->status() === 'active') {
+            $builder->whereNull('payroll_disbursement_reversals.id');
+        }
+        if ($query->status() === 'reversed') {
+            $builder->whereNotNull('payroll_disbursement_reversals.id');
+        }
+        if ($query->dateFrom() !== null) {
+            $builder->whereDate('payroll_disbursements.disbursement_date', '>=', $query->dateFrom());
+        }
+        if ($query->dateTo() !== null) {
+            $builder->whereDate('payroll_disbursements.disbursement_date', '<=', $query->dateTo());
+        }
+
         $column = match ($query->sortBy()) {
             'employee_name' => 'employees.employee_name',
             'amount' => 'payroll_disbursements.amount',
@@ -55,8 +71,17 @@ final class DatabasePayrollTableReaderAdapter implements PayrollTableReaderPort
             default => 'payroll_disbursements.disbursement_date',
         };
 
-        $paginator = $builder->orderBy($column, $query->sortDir())
-            ->orderByDesc('payroll_disbursements.created_at')
+        if ($query->sortBy() === 'relevance' && $query->q() !== null) {
+            $term = mb_strtolower($query->q(), 'UTF-8');
+            $builder->orderByRaw('CASE WHEN LOWER(employees.employee_name) = ? THEN 0 WHEN LOWER(employees.employee_name) LIKE ? THEN 1 WHEN LOWER(payroll_disbursements.mode) = ? THEN 2 WHEN LOWER(payroll_disbursements.notes) LIKE ? THEN 3 ELSE 4 END', [$term, $term.'%', $term, '%'.$term.'%']);
+        } elseif ($query->sortBy() === 'status') {
+            $builder->orderByRaw('CASE WHEN payroll_disbursement_reversals.id IS NULL THEN 0 ELSE 1 END '.$query->sortDir());
+        } else {
+            $builder->orderBy($column, $query->sortDir());
+        }
+
+        $paginator = $builder->orderByDesc('payroll_disbursements.created_at')
+            ->orderBy('payroll_disbursements.id')
             ->paginate($query->perPage(), ['*'], 'page', $query->page());
 
         return [
@@ -87,7 +112,7 @@ final class DatabasePayrollTableReaderAdapter implements PayrollTableReaderPort
                 'last_page' => $paginator->lastPage(),
                 'sort_by' => $query->sortBy(),
                 'sort_dir' => $query->sortDir(),
-                'filters' => ['q' => $query->q()],
+                'filters' => ['q' => $query->q(), 'mode' => $query->mode(), 'status' => $query->status(), 'date_from' => $query->dateFrom(), 'date_to' => $query->dateTo()],
             ],
         ];
     }

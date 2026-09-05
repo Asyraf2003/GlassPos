@@ -71,19 +71,36 @@ final class ExpenseTableDataQueryFeatureTest extends TestCase
         $response->assertJsonPath('data.rows.1.amount_rupiah', 250000);
     }
 
+    public function test_free_text_search_prioritizes_exact_category_identity_before_newer_broad_description_match(): void
+    {
+        $this->seedCategory('expense-category-focus', 'FOCUS', 'Biaya Fokus');
+        $this->seedCategory('expense-category-other', 'OTHER', 'Biaya Lain');
+
+        $this->seedExpense('expense-exact', 'expense-category-focus', 'FOCUS', 'Biaya Fokus', 250000, '2026-03-20', 'Pembelian rutin', 'cash');
+        $this->seedExpense('expense-broad', 'expense-category-other', 'OTHER', 'Biaya Lain', 450000, '2026-03-24', 'Pembelian focus mendesak', 'transfer');
+
+        $response = $this->actingAs($this->admin())->get(route('admin.expenses.table', [
+            'q' => 'FOCUS',
+        ]));
+
+        $response->assertOk();
+        $response->assertJsonPath('data.rows.0.id', 'expense-exact');
+        $response->assertJsonPath('data.meta.sort_by', 'relevance');
+    }
+
     public function test_admin_can_access_second_page_of_expense_table(): void
     {
         $this->seedCategory('expense-category-1', 'EXP-ELEC', 'Listrik Bengkel');
 
         for ($i = 1; $i <= 11; $i++) {
             $this->seedExpense(
-                'expense-' . $i,
+                'expense-'.$i,
                 'expense-category-1',
                 'EXP-ELEC',
                 'Listrik Bengkel',
                 10000 + $i,
-                '2026-03-' . str_pad((string) min($i, 28), 2, '0', STR_PAD_LEFT),
-                'Expense ' . $i,
+                '2026-03-'.str_pad((string) min($i, 28), 2, '0', STR_PAD_LEFT),
+                'Expense '.$i,
                 'cash',
             );
         }

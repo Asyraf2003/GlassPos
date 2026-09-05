@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Adapters\Out\Audit;
 
+use App\Application\Audit\DTO\AuditLogTableQuery;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -11,21 +12,21 @@ use Illuminate\Support\Facades\DB;
 final class AuditLogAdminListQuery
 {
     public function __construct(
-        private readonly AuditLogAdminQueryFilters $filters = new AuditLogAdminQueryFilters(),
-        private readonly AuditLogAdminEntrySorter $sorter = new AuditLogAdminEntrySorter(),
-        private readonly AuditLogAdminRowsQuery $rows = new AuditLogAdminRowsQuery(),
-    ) {
-    }
+        private readonly AuditLogAdminQueryFilters $filters = new AuditLogAdminQueryFilters,
+        private readonly AuditLogAdminEntrySorter $sorter = new AuditLogAdminEntrySorter,
+        private readonly AuditLogAdminRowsQuery $rows = new AuditLogAdminRowsQuery,
+    ) {}
 
-    public function paginate(string $search, int $perPage, AuditLogAdminRowMapper $mapper): LengthAwarePaginator
+    public function paginate(AuditLogTableQuery $criteria, AuditLogAdminRowMapper $mapper): LengthAwarePaginator
     {
-        $safePerPage = max(1, min($perPage, 100));
-        $page = max(1, LengthAwarePaginator::resolveCurrentPage());
+        $safePerPage = 20;
+        $page = max(1, $criteria->page());
         $take = $page * $safePerPage;
-        $legacyQuery = $this->legacyQuery(trim($search));
-        $eventQuery = $this->eventQuery(trim($search));
-        $total = (clone $legacyQuery)->count() + (clone $eventQuery)->count();
-        $entries = $this->entries($legacyQuery, $eventQuery, $take, $mapper);
+        $legacyQuery = $criteria->source() === 'audit_events' ? null : $this->legacyQuery($criteria->q() ?? '');
+        $eventQuery = $criteria->source() === 'audit_logs' ? null : $this->eventQuery($criteria->q() ?? '');
+        $total = ($legacyQuery === null ? 0 : (clone $legacyQuery)->count())
+            + ($eventQuery === null ? 0 : (clone $eventQuery)->count());
+        $entries = $this->entries($legacyQuery, $eventQuery, $take, $mapper, $criteria);
 
         return (new LengthAwarePaginator(
             array_slice($entries, ($page - 1) * $safePerPage, $safePerPage),
@@ -50,22 +51,27 @@ final class AuditLogAdminListQuery
      * @return list<array{id:string,source:string,event:string,reason:string,actor_id:?string,actor_role:?string,entity_type:?string,entity_id:?string,bounded_context:?string,context:array<string,mixed>,context_json:string,created_at:string}>
      */
     private function entries(
-        QueryBuilder $legacyQuery,
-        QueryBuilder $eventQuery,
+        ?QueryBuilder $legacyQuery,
+        ?QueryBuilder $eventQuery,
         int $take,
         AuditLogAdminRowMapper $mapper,
+        AuditLogTableQuery $criteria,
     ): array {
         $entries = [];
 
-        foreach ($this->rows->legacyRows($legacyQuery, $take) as $row) {
-            $entries[] = $mapper->mapLegacy($row);
+        if ($legacyQuery !== null) {
+            foreach ($this->rows->legacyRows($legacyQuery, $take, $criteria) as $row) {
+                $entries[] = $mapper->mapLegacy($row);
+            }
         }
 
-        foreach ($this->rows->eventRows($eventQuery, $take) as $row) {
-            $entries[] = $mapper->mapEvent($row);
+        if ($eventQuery !== null) {
+            foreach ($this->rows->eventRows($eventQuery, $take, $criteria) as $row) {
+                $entries[] = $mapper->mapEvent($row);
+            }
         }
 
-        $this->sorter->sortNewestFirst($entries);
+        $this->sorter->sort($entries, $criteria);
 
         return $entries;
     }

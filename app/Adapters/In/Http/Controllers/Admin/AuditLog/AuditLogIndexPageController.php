@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Adapters\In\Http\Controllers\Admin\AuditLog;
 
+use App\Application\Audit\DTO\AuditLogTableQuery;
 use App\Application\Audit\Services\AuditLogIndexPageData;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -17,7 +18,13 @@ final class AuditLogIndexPageController extends Controller
         $queryValue = $request->query('q', '');
         $search = is_string($queryValue) ? trim($queryValue) : '';
 
-        $page = $pageData->listForAdmin($search, 20);
+        $page = $pageData->tableForAdmin(AuditLogTableQuery::fromValidated([
+            'q' => $search,
+            'page' => $request->integer('page', 1),
+            'sort_by' => $request->query('sort_by'),
+            'sort_dir' => $request->query('sort_dir'),
+            'source' => $request->query('source'),
+        ]));
 
         $logs = new LengthAwarePaginator(
             $page->items,
@@ -33,6 +40,7 @@ final class AuditLogIndexPageController extends Controller
         return view('admin.audit_logs.index', [
             'logs' => $logs,
             'search' => $search,
+            'source' => is_string($request->query('source')) ? $request->query('source') : '',
         ]);
     }
 }

@@ -23,6 +23,8 @@
                             >
                         </form>
 
+                        <button type="button" id="open-employee-debt-filter" class="btn btn-primary py-2">Filter</button>
+
                         <a href="{{ route('admin.employee-debts.create') }}" class="btn btn-primary py-2 d-inline-flex align-items-center">
                             Catat Hutang Karyawan
                         </a>
@@ -66,7 +68,7 @@
                                         <span class="ms-1 text-muted" data-sort-indicator="total_remaining_balance">↕</span>
                                     </button>
                                 </th>
-                                <th>Status Hutang</th>
+                                <th><button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="status">Status Hutang <span class="ms-1 text-muted" data-sort-indicator="status">↕</span></button></th>
                                 <th class="text-center">Aksi</th>
                             </tr>
                         </thead>
@@ -76,11 +78,13 @@
                     </table>
                 </div>
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-3">
-                    <small id="employee-debt-table-summary" class="text-muted">Total: -</small>
+                    <small id="employee-debt-table-summary" class="text-muted">Menampilkan 0 sampai 0 dari 0 karyawan dengan hutang</small>
                     <div id="employee-debt-table-pagination"></div>
                 </div>
             </div>
         </div>
+
+        @include('admin.employee_debts.partials.filter_drawer')
 
         <div
             class="modal fade"

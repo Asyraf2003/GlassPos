@@ -23,6 +23,8 @@
                             >
                         </form>
 
+                        <button type="button" id="open-payroll-filter" class="btn btn-primary py-2">Filter</button>
+
                         <a href="{{ route('admin.payrolls.create') }}" class="btn btn-primary py-2 d-inline-flex align-items-center">
                             Catat Gaji
                         </a>
@@ -40,24 +42,27 @@
                                 <th><button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="employee_name">Nama Karyawan <span class="ms-1 text-muted" data-sort-indicator="employee_name">↕</span></button></th>
                                 <th><button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="amount">Nominal <span class="ms-1 text-muted" data-sort-indicator="amount">↕</span></button></th>
                                 <th><button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="mode">Mode Pencairan <span class="ms-1 text-muted" data-sort-indicator="mode">↕</span></button></th>
+                                <th><button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="status">Status <span class="ms-1 text-muted" data-sort-indicator="status">↕</span></button></th>
                                 <th>Catatan</th>
                                 <th class="text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="payroll-table-body">
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-4">Sedang memuat data...</td>
+                                <td colspan="8" class="text-center text-muted py-4">Sedang memuat data...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-3">
-                    <small id="payroll-table-summary" class="text-muted">Total: -</small>
+                    <small id="payroll-table-summary" class="text-muted">Menampilkan 0 sampai 0 dari 0 pencairan gaji</small>
                     <div id="payroll-table-pagination"></div>
                 </div>
             </div>
         </div>
+
+        @include('admin.payrolls.partials.filter_drawer')
 
         <div
             class="modal fade"

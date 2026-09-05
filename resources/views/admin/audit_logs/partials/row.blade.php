@@ -29,7 +29,5 @@
         @endif
     </td>
     <td>{{ $entry['reason'] }}</td>
-    <td>
-        <pre class="mb-0 small text-muted" style="white-space: pre-wrap;">{{ $entry['context_json'] }}</pre>
-    </td>
+    <td><a href="{{ route('admin.audit-logs.show', ['source' => $entry['source'], 'auditId' => $entry['id']]) }}" class="btn btn-sm btn-light-primary">Detail</a></td>
 </tr>

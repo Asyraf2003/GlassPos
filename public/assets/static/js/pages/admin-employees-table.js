@@ -8,9 +8,13 @@
   const body = $('employee-table-body');
   const sum = $('employee-table-summary');
   const pag = $('employee-table-pagination');
+  const filterForm = $('employee-filter-form');
+  const filterDrawer = $('employee-filter-drawer');
+  const filterBackdrop = $('employee-filter-backdrop');
 
   const allowedSortBy = new Set([
     'employee_name',
+    'phone',
     'default_salary_amount',
     'salary_basis_type',
     'employment_status',
@@ -19,6 +23,7 @@
 
   let timer = null;
   let req = 0;
+  let activeController = null;
 
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (m) => ({
     '&': '&amp;',
@@ -39,12 +44,16 @@
     const p = new URLSearchParams(window.location.search);
     const sortBy = trim(p.get('sort_by'));
     const sortDir = trim(p.get('sort_dir'));
+    const query = trim(p.get('q'));
+    const hasExplicitSort = allowedSortBy.has(sortBy);
 
     return {
-      q: trim(p.get('q')),
+      q: query,
       page: intOr(p.get('page'), 1),
-      sort_by: allowedSortBy.has(sortBy) ? sortBy : 'employee_name',
+      sort_by: query.length >= 2 && !hasExplicitSort ? 'relevance' : (hasExplicitSort ? sortBy : 'employee_name'),
       sort_dir: allowedSortDir.has(sortDir) ? sortDir : 'asc',
+      employment_status: ['active', 'inactive'].includes(trim(p.get('employment_status'))) ? trim(p.get('employment_status')) : '',
+      salary_basis_type: ['daily', 'weekly', 'monthly', 'manual'].includes(trim(p.get('salary_basis_type'))) ? trim(p.get('salary_basis_type')) : '',
     };
   };
 
@@ -54,11 +63,14 @@
     const out = {
       page: String(s.page),
       per_page: '10',
-      sort_by: s.sort_by,
       sort_dir: s.sort_dir,
     };
 
+    if (s.sort_by !== 'relevance') out.sort_by = s.sort_by;
+
     if (s.q) out.q = s.q;
+    if (s.employment_status) out.employment_status = s.employment_status;
+    if (s.salary_basis_type) out.salary_basis_type = s.salary_basis_type;
 
     return out;
   };
@@ -78,7 +90,9 @@
   };
 
   const renderSummary = (m) => {
-    sum.textContent = `Total: ${m.total} karyawan`;
+    const total = Number(m.total || 0), page = Number(m.page || 1), perPage = Number(m.per_page || 10);
+    const from = total ? ((page - 1) * perPage) + 1 : 0;
+    sum.textContent = `Menampilkan ${from} sampai ${Math.min(page * perPage, total)} dari ${total} karyawan`;
   };
 
   const renderSort = () => {
@@ -151,37 +165,42 @@
   };
 
   const load = async (replace = false) => {
+    activeController?.abort();
+    const controller = new AbortController();
+    activeController = controller;
     const current = ++req;
     body.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Memuat data...</td></tr>';
 
-    const res = await fetch(`${c.endpoint}?${paramsString()}`, {
-      headers: { Accept: 'application/json' },
-    });
-    const json = await res.json();
+    try {
+      const res = await fetch(`${c.endpoint}?${paramsString()}`, {
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, signal: controller.signal,
+      });
+      const json = await res.json();
+      if (current !== req) return;
+      if (!res.ok || !json.success) throw new Error('employee-table-response');
 
-    if (current !== req) return;
-
-    if (!res.ok || !json.success) {
+      renderRows(json.data.rows || [], json.data.meta || {});
+      renderSummary(json.data.meta || {});
+      renderPager(json.data.meta || {});
+      renderSort();
+      updateUrl(replace);
+    } catch (error) {
+      if (error?.name === 'AbortError' || current !== req) return;
       body.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Gagal memuat data.</td></tr>';
-      return;
+      sum.textContent = 'Menampilkan 0 sampai 0 dari 0 karyawan';
+      pag.innerHTML = '';
+    } finally {
+      if (activeController === controller) activeController = null;
     }
-
-    renderRows(json.data.rows || [], json.data.meta || {});
-    renderSummary(json.data.meta || {});
-    renderPager(json.data.meta || {});
-    renderSort();
-
-    if (q) q.value = s.q;
-
-    updateUrl(replace);
   };
 
   form?.addEventListener('submit', (e) => {
     e.preventDefault();
     const value = trim(q?.value);
 
-    if (value.length === 0) {
+    if (value.length < 2) {
       s.q = '';
+      if (s.sort_by === 'relevance') { s.sort_by = 'employee_name'; s.sort_dir = 'asc'; }
       s.page = 1;
       load();
       return;
@@ -189,6 +208,8 @@
 
     if (value.length >= 2) {
       s.q = value;
+      s.sort_by = 'relevance';
+      s.sort_dir = 'asc';
       s.page = 1;
       load();
     }
@@ -198,28 +219,42 @@
     const value = trim(q.value);
     clearTimeout(timer);
 
-    if (value.length === 0) {
+    if (value.length < 2) {
       s.q = '';
+      if (s.sort_by === 'relevance') { s.sort_by = 'employee_name'; s.sort_dir = 'asc'; }
       s.page = 1;
-      timer = setTimeout(() => load(), 250);
+      timer = setTimeout(() => load(), 160);
       return;
     }
 
-    if (value.length < 2) return;
-
     timer = setTimeout(() => {
       s.q = value;
+      s.sort_by = 'relevance';
+      s.sort_dir = 'asc';
       s.page = 1;
       load();
-    }, 300);
+    }, 220);
   });
 
   document.querySelectorAll('[data-sort-by]').forEach((b) => b.addEventListener('click', () => {
     const key = b.dataset.sortBy;
     s.sort_dir = s.sort_by === key && s.sort_dir === 'asc' ? 'desc' : 'asc';
     s.sort_by = key;
+    s.page = 1;
     load();
   }));
+
+  const syncControls = () => {
+    q.value = s.q;
+    if (filterForm?.elements.employment_status) filterForm.elements.employment_status.value = s.employment_status;
+    if (filterForm?.elements.salary_basis_type) filterForm.elements.salary_basis_type.value = s.salary_basis_type;
+  };
+  const drawFilter = (open) => { filterDrawer?.classList.toggle('d-none', !open); filterBackdrop?.classList.toggle('d-none', !open); };
+  $('open-employee-filter')?.addEventListener('click', () => drawFilter(true));
+  $('close-employee-filter')?.addEventListener('click', () => drawFilter(false));
+  filterBackdrop?.addEventListener('click', () => drawFilter(false));
+  filterForm?.addEventListener('submit', (e) => { e.preventDefault(); s.employment_status = filterForm.elements.employment_status.value; s.salary_basis_type = filterForm.elements.salary_basis_type.value; s.page = 1; drawFilter(false); load(); });
+  $('reset-employee-filter')?.addEventListener('click', () => { s.employment_status = ''; s.salary_basis_type = ''; s.page = 1; syncControls(); drawFilter(false); load(); });
 
   pag?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-page]');
@@ -228,5 +263,8 @@
     load();
   });
 
+  window.addEventListener('popstate', () => { Object.assign(s, stateFromUrl()); syncControls(); load(true); });
+
+  syncControls();
   load(true);
 })();

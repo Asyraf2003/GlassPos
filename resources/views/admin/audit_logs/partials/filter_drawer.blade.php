@@ -1,0 +1,5 @@
+<div id="audit-log-filter-backdrop" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none" style="z-index:1040;"></div>
+<aside id="audit-log-filter-drawer" class="position-fixed top-0 end-0 h-100 bg-white shadow p-4 d-none" style="z-index:1050;width:min(420px,100vw);">
+    <div class="d-flex justify-content-between align-items-center mb-4"><h4 class="mb-0">Filter Audit Log</h4><button type="button" id="close-audit-log-filter" class="btn-close" aria-label="Tutup"></button></div>
+    <form id="audit-log-filter-form"><label for="audit-log-source" class="form-label">Sumber</label><select id="audit-log-source" name="source" class="form-select"><option value="">Semua sumber</option><option value="audit_logs">Legacy audit_logs</option><option value="audit_events">V2 audit_events</option></select><div class="d-flex justify-content-end gap-2 mt-4"><button type="button" id="reset-audit-log-filter" class="btn btn-light-secondary">Reset</button><button type="submit" class="btn btn-primary">Terapkan</button></div></form>
+</aside>

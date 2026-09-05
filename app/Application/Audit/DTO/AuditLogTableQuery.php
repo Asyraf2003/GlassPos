@@ -2,18 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Application\EmployeeFinance\DTO;
+namespace App\Application\Audit\DTO;
 
-final class EmployeeTableQuery
+final class AuditLogTableQuery
 {
     public function __construct(
         private readonly ?string $q,
         private readonly int $page,
-        private readonly int $perPage,
         private readonly string $sortBy,
         private readonly string $sortDir,
-        private readonly ?string $employmentStatus,
-        private readonly ?string $salaryBasisType,
+        private readonly ?string $source,
     ) {}
 
     public static function fromValidated(array $data): self
@@ -23,11 +21,9 @@ final class EmployeeTableQuery
         return new self(
             $q,
             isset($data['page']) ? (int) $data['page'] : 1,
-            isset($data['per_page']) ? (int) $data['per_page'] : 10,
-            isset($data['sort_by']) ? (string) $data['sort_by'] : ($q !== null ? 'relevance' : 'employee_name'),
-            isset($data['sort_dir']) ? (string) $data['sort_dir'] : 'asc',
-            self::nullableString($data['employment_status'] ?? null),
-            self::nullableString($data['salary_basis_type'] ?? null),
+            isset($data['sort_by']) ? (string) $data['sort_by'] : ($q !== null ? 'relevance' : 'created_at'),
+            isset($data['sort_dir']) ? (string) $data['sort_dir'] : 'desc',
+            self::nullableString($data['source'] ?? null),
         );
     }
 
@@ -43,7 +39,7 @@ final class EmployeeTableQuery
 
     public function perPage(): int
     {
-        return $this->perPage;
+        return 20;
     }
 
     public function sortBy(): string
@@ -56,14 +52,9 @@ final class EmployeeTableQuery
         return $this->sortDir;
     }
 
-    public function employmentStatus(): ?string
+    public function source(): ?string
     {
-        return $this->employmentStatus;
-    }
-
-    public function salaryBasisType(): ?string
-    {
-        return $this->salaryBasisType;
+        return $this->source;
     }
 
     private static function nullableString(mixed $value): ?string
@@ -71,9 +62,8 @@ final class EmployeeTableQuery
         if (! is_string($value)) {
             return null;
         }
+        $value = trim($value);
 
-        $normalized = trim($value);
-
-        return $normalized === '' ? null : $normalized;
+        return $value === '' || $value === 'all' ? null : $value;
     }
 }

@@ -7,6 +7,9 @@
   const body = $('employee-debt-table-body');
   const sum = $('employee-debt-table-summary');
   const pag = $('employee-debt-table-pagination');
+  const filterForm = $('employee-debt-filter-form');
+  const filterDrawer = $('employee-debt-filter-drawer');
+  const filterBackdrop = $('employee-debt-filter-backdrop');
 
   const allowedSortBy = new Set([
     'employee_name',
@@ -14,6 +17,7 @@
     'total_debt_records',
     'total_debt_amount',
     'total_remaining_balance',
+    'status',
   ]);
   const allowedSortDir = new Set(['asc', 'desc']);
 
@@ -40,12 +44,14 @@
       page: intOr(p.get('page'), 1),
       sort_by: allowedSortBy.has(s) ? s : 'latest_recorded_at',
       sort_dir: allowedSortDir.has(d) ? d : 'desc',
+      status: ['active', 'paid'].includes(trim(p.get('status'))) ? trim(p.get('status')) : 'all',
     };
   };
 
   const s = state();
   let timer = null;
   let req = 0;
+  let activeController = null;
 
   const params = () => {
     const out = {
@@ -56,6 +62,7 @@
     };
 
     if (s.q) out.q = s.q;
+    if (s.status !== 'all') out.status = s.status;
 
     return out;
   };
@@ -75,7 +82,9 @@
   };
 
   const renderSummary = (m) => {
-    sum.textContent = `Total: ${m.total} karyawan dengan hutang`;
+    const total = Number(m.total || 0), page = Number(m.page || 1), perPage = Number(m.per_page || 10);
+    const from = total ? ((page - 1) * perPage) + 1 : 0;
+    sum.textContent = `Menampilkan ${from} sampai ${Math.min(page * perPage, total)} dari ${total} karyawan dengan hutang`;
   };
 
   const renderSort = () => {
@@ -110,7 +119,7 @@
 
   const renderRows = (rows, m) => {
     if (!rows.length) {
-      body.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Belum ada data hutang karyawan.</td></tr>';
+      body.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Tidak ada data hutang karyawan yang cocok.</td></tr>';
       return;
     }
 
@@ -145,46 +154,48 @@
   };
 
   const load = async (replace = false) => {
+    activeController?.abort();
+    const controller = new AbortController(); activeController = controller;
     const current = ++req;
-    body.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Memuat data...</td></tr>';
-
-    const res = await fetch(`${c.endpoint}?${paramsString()}`, {
-      headers: { Accept: 'application/json' },
-    });
-    const json = await res.json();
-
-    if (current !== req) return;
-
-    if (!res.ok || !json.success) {
+    body.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Sedang memuat data...</td></tr>';
+    try {
+      const res = await fetch(`${c.endpoint}?${paramsString()}`, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, signal: controller.signal });
+      const json = await res.json();
+      if (current !== req) return;
+      if (!res.ok || !json.success) throw new Error('employee-debt-table-response');
+      renderRows(json.data.rows || [], json.data.meta || {}); renderSummary(json.data.meta || {}); renderPager(json.data.meta || {}); renderSort(); updateUrl(replace);
+    } catch (error) {
+      if (error?.name === 'AbortError' || current !== req) return;
       body.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat data.</td></tr>';
-      return;
-    }
-
-    renderRows(json.data.rows || [], json.data.meta || {});
-    renderSummary(json.data.meta || {});
-    renderPager(json.data.meta || {});
-    renderSort();
-
-    if (q) q.value = s.q;
-
-    updateUrl(replace);
+      sum.textContent = 'Menampilkan 0 sampai 0 dari 0 karyawan dengan hutang'; pag.innerHTML = '';
+    } finally { if (activeController === controller) activeController = null; }
   };
 
   q?.addEventListener('input', (e) => {
     clearTimeout(timer);
+    const value = trim(e.target.value);
+    s.q = value.length >= 2 ? value : '';
+    s.page = 1;
     timer = setTimeout(() => {
-      s.q = e.target.value.trim();
-      s.page = 1;
       load();
-    }, 300);
+    }, value.length >= 2 ? 220 : 160);
   });
 
   document.querySelectorAll('[data-sort-by]').forEach((b) => b.addEventListener('click', () => {
     const key = b.dataset.sortBy;
     s.sort_dir = s.sort_by === key && s.sort_dir === 'asc' ? 'desc' : 'asc';
     s.sort_by = key;
+    s.page = 1;
     load();
   }));
+
+  const syncControls = () => { q.value = s.q; if (filterForm?.elements.status) filterForm.elements.status.value = s.status; };
+  const drawFilter = (open) => { filterDrawer?.classList.toggle('d-none', !open); filterBackdrop?.classList.toggle('d-none', !open); };
+  $('open-employee-debt-filter')?.addEventListener('click', () => drawFilter(true));
+  $('close-employee-debt-filter')?.addEventListener('click', () => drawFilter(false));
+  filterBackdrop?.addEventListener('click', () => drawFilter(false));
+  filterForm?.addEventListener('submit', (e) => { e.preventDefault(); s.status = filterForm.elements.status.value; s.page = 1; drawFilter(false); load(); });
+  $('reset-employee-debt-filter')?.addEventListener('click', () => { s.status = 'all'; s.page = 1; syncControls(); drawFilter(false); load(); });
 
   pag?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-page]');
@@ -193,5 +204,8 @@
     load();
   });
 
+  window.addEventListener('popstate', () => { Object.assign(s, state()); syncControls(); load(true); });
+
+  syncControls();
   load(true);
 })();

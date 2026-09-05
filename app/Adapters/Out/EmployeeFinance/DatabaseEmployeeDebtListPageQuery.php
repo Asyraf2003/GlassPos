@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Adapters\Out\EmployeeFinance;
 
 use App\Application\EmployeeFinance\DTO\EmployeeDebtTableQuery;
-use Illuminate\Support\Carbon;
+use App\Ports\Out\EmployeeFinance\EmployeeDebtTableReaderPort;
 use Illuminate\Support\Facades\DB;
 
-final class DatabaseEmployeeDebtListPageQuery implements \App\Ports\Out\EmployeeFinance\EmployeeDebtTableReaderPort
+final class DatabaseEmployeeDebtListPageQuery implements EmployeeDebtTableReaderPort
 {
+    public function __construct(private readonly EmployeeDebtTablePayload $payload = new EmployeeDebtTablePayload) {}
+
     public function search(EmployeeDebtTableQuery $query): array
     {
         $builder = DB::table('employee_debts')
@@ -56,45 +58,25 @@ final class DatabaseEmployeeDebtListPageQuery implements \App\Ports\Out\Employee
             'total_debt_records' => 'total_debt_records',
             'total_debt_amount' => 'total_debt_amount',
             'total_remaining_balance' => 'total_remaining_balance',
+            'status' => 'active_debt_count',
             default => 'latest_recorded_at',
         };
 
-        $paginator = $builder->groupBy('employee_debts.employee_id', 'employees.employee_name')
+        $builder->groupBy('employee_debts.employee_id', 'employees.employee_name');
+
+        if ($query->status() === 'active') {
+            $builder->havingRaw("SUM(CASE WHEN employee_debts.status = 'unpaid' THEN 1 ELSE 0 END) > 0");
+        }
+        if ($query->status() === 'paid') {
+            $builder->havingRaw("SUM(CASE WHEN employee_debts.status = 'unpaid' THEN 1 ELSE 0 END) = 0");
+        }
+
+        $paginator = $builder
             ->orderBy($column, $query->sortDir())
             ->orderBy('employee_name')
+            ->orderBy('employee_debts.employee_id')
             ->paginate($query->perPage(), ['*'], 'page', $query->page());
 
-        return [
-            'rows' => collect($paginator->items())->map(function (object $row): array {
-                $statusLabel = ((int) $row->active_debt_count) > 0 ? 'Aktif' : 'Lunas';
-
-                return [
-                    'employee_id' => (string) $row->employee_id,
-                    'employee_name' => (string) $row->employee_name,
-                    'debt_detail_id' => $row->debt_detail_id !== null
-                        ? (string) $row->debt_detail_id
-                        : null,
-                    'latest_unpaid_debt_id' => $row->latest_unpaid_debt_id !== null
-                        ? (string) $row->latest_unpaid_debt_id
-                        : null,
-                    'total_debt_records' => (int) $row->total_debt_records,
-                    'total_debt_amount_formatted' => number_format((int) $row->total_debt_amount, 0, ',', '.'),
-                    'total_remaining_balance_formatted' => number_format((int) $row->total_remaining_balance, 0, ',', '.'),
-                    'active_debt_count' => (int) $row->active_debt_count,
-                    'paid_debt_count' => (int) $row->paid_debt_count,
-                    'status_label' => $statusLabel,
-                    'latest_recorded_at' => Carbon::parse((string) $row->latest_recorded_at)->format('Y-m-d'),
-                ];
-            })->values()->all(),
-            'meta' => [
-                'page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'last_page' => $paginator->lastPage(),
-                'sort_by' => $query->sortBy(),
-                'sort_dir' => $query->sortDir(),
-                'filters' => ['q' => $query->q()],
-            ],
-        ];
+        return $this->payload->fromPaginator($paginator, $query);
     }
 }

@@ -12,8 +12,8 @@
                         <h4 class="card-title mb-1">Tabel karyawan interaktif untuk admin</h4>
                     </div>
 
-                    <div class="d-flex flex-column flex-md-row gap-2">
-                        <form id="employee-search-form" class="d-flex flex-column gap-1">
+                    <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+                        <form id="employee-search-form" class="m-0 d-flex">
                             <input
                                 type="text"
                                 id="employee-search-input"
@@ -22,7 +22,8 @@
                                 autocomplete="off"
                             >
                         </form>
-                        <a href="{{ route('admin.employees.create') }}" class="btn btn-primary">Tambah Karyawan</a>
+                        <button type="button" id="open-employee-filter" class="btn btn-primary py-2">Filter</button>
+                        <a href="{{ route('admin.employees.create') }}" class="btn btn-primary py-2 d-inline-flex align-items-center">Tambah Karyawan</a>
                     </div>
                 </div>
             </div>
@@ -39,7 +40,7 @@
                                         <span class="ms-1 text-muted" data-sort-indicator="employee_name">↕</span>
                                     </button>
                                 </th>
-                                <th>Telepon</th>
+                                <th><button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="phone">Telepon <span class="ms-1 text-muted" data-sort-indicator="phone">↕</span></button></th>
                                 <th>
                                     <button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="default_salary_amount">
                                         Default Gaji
@@ -70,11 +71,13 @@
                 </div>
 
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-3">
-                    <small id="employee-table-summary" class="text-muted">Total: -</small>
+                    <small id="employee-table-summary" class="text-muted">Menampilkan 0 sampai 0 dari 0 karyawan</small>
                     <div id="employee-table-pagination"></div>
                 </div>
             </div>
         </div>
+
+        @include('admin.employees.partials.filter_drawer')
 
         <div
             class="modal fade"

@@ -8,6 +8,9 @@
   const body = $("payroll-table-body");
   const sum = $("payroll-table-summary");
   const pag = $("payroll-table-pagination");
+  const filterForm = $("payroll-filter-form");
+  const filterDrawer = $("payroll-filter-drawer");
+  const filterBackdrop = $("payroll-filter-backdrop");
 
   const actionModalEl = $("payroll-action-modal");
   const actionModalSubtitle = $("payroll-action-modal-subtitle");
@@ -29,11 +32,12 @@
     ? new window.bootstrap.Modal(reversalModalEl)
     : null;
 
-  const sortKeys = new Set(["disbursement_date", "employee_name", "amount", "mode"]);
+  const sortKeys = new Set(["disbursement_date", "employee_name", "amount", "mode", "status"]);
   const sortDirs = new Set(["asc", "desc"]);
 
   let timer = null;
   let req = 0;
+  let activeController = null;
 
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (m) => ({
 
@@ -80,11 +84,17 @@
     const s = trim(p.get("sort_by"));
     const d = trim(p.get("sort_dir"));
 
+    const query = trim(p.get("q"));
+    const explicitSort = sortKeys.has(s);
     return {
-      q: trim(p.get("q")),
+      q: query,
       page: intOr(p.get("page"), 1),
-      sort_by: sortKeys.has(s) ? s : "disbursement_date",
-      sort_dir: sortDirs.has(d) ? d : "desc",
+      sort_by: query.length >= 2 && !explicitSort ? "relevance" : (explicitSort ? s : "disbursement_date"),
+      sort_dir: query.length >= 2 && !explicitSort ? "asc" : (sortDirs.has(d) ? d : "desc"),
+      mode: ["daily", "weekly", "monthly"].includes(trim(p.get("mode"))) ? trim(p.get("mode")) : "",
+      status: ["active", "reversed"].includes(trim(p.get("status"))) ? trim(p.get("status")) : "all",
+      date_from: trim(p.get("date_from")),
+      date_to: trim(p.get("date_to")),
     };
   };
 
@@ -94,11 +104,15 @@
     const o = {
       page: String(s.page),
       per_page: "10",
-      sort_by: s.sort_by,
       sort_dir: s.sort_dir,
     };
 
+    if (s.sort_by !== "relevance") o.sort_by = s.sort_by;
+
     if (s.q) o.q = s.q;
+    ["mode", "status", "date_from", "date_to"].forEach((key) => {
+      if (s[key] && !(key === "status" && s[key] === "all")) o[key] = s[key];
+    });
 
     return o;
   };
@@ -118,7 +132,9 @@
   };
 
   const renderSummary = (m) => {
-    sum.textContent = `Total: ${m.total} pencairan`;
+    const total = Number(m.total || 0), page = Number(m.page || 1), perPage = Number(m.per_page || 10);
+    const from = total ? ((page - 1) * perPage) + 1 : 0;
+    sum.textContent = `Menampilkan ${from} sampai ${Math.min(page * perPage, total)} dari ${total} pencairan gaji`;
   };
 
   const renderSort = () => {
@@ -191,7 +207,7 @@
 
   const renderRows = (rows, m) => {
     if (!rows.length) {
-      body.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Belum ada pencairan gaji.</td></tr>';
+      body.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Tidak ada pencairan gaji yang cocok.</td></tr>';
       return;
     }
 
@@ -210,7 +226,8 @@
         <td>${esc(tanggalId(r.disbursement_date))}</td>
         <td>${esc(r.employee_name)}</td>
         <td>Rp${esc(r.amount_formatted)}</td>
-        <td>${esc(r.mode_label)}${statusHtml}</td>
+        <td>${esc(r.mode_label)}</td>
+        <td>${statusHtml}</td>
         <td>${notesHtml}</td>
         <td class="text-center">
           <button
@@ -232,40 +249,31 @@
   };
 
   const load = async (replace = false) => {
+    activeController?.abort();
+    const controller = new AbortController();
+    activeController = controller;
     const current = ++req;
-    body.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Memuat data...</td></tr>';
-
-    const res = await fetch(`${c.endpoint}?${paramsString()}`, {
-      headers: { Accept: "application/json" },
-    });
-
-    const json = await res.json();
-
-    if (current !== req) return;
-
-    if (!res.ok || !json.success) {
-      body.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Gagal memuat data.</td></tr>';
-      return;
-    }
-
-    renderRows(json.data.rows || [], json.data.meta || {});
-    renderSummary(json.data.meta || {});
-    renderPager(json.data.meta || {});
-    renderSort();
-
-    if (q) {
-      q.value = s.q;
-    }
-
-    updateUrl(replace);
+    body.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Sedang memuat data...</td></tr>';
+    try {
+      const res = await fetch(`${c.endpoint}?${paramsString()}`, { headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" }, signal: controller.signal });
+      const json = await res.json();
+      if (current !== req) return;
+      if (!res.ok || !json.success) throw new Error("payroll-table-response");
+      renderRows(json.data.rows || [], json.data.meta || {}); renderSummary(json.data.meta || {}); renderPager(json.data.meta || {}); renderSort(); updateUrl(replace);
+    } catch (error) {
+      if (error?.name === "AbortError" || current !== req) return;
+      body.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat data.</td></tr>';
+      sum.textContent = "Menampilkan 0 sampai 0 dari 0 pencairan gaji"; pag.innerHTML = "";
+    } finally { if (activeController === controller) activeController = null; }
   };
 
   form?.addEventListener("submit", (e) => {
     e.preventDefault();
     const value = trim(q.value);
 
-    if (value.length === 0) {
+    if (value.length < 2) {
       s.q = "";
+      if (s.sort_by === "relevance") { s.sort_by = "disbursement_date"; s.sort_dir = "desc"; }
       s.page = 1;
       load();
       return;
@@ -273,6 +281,7 @@
 
     if (value.length >= 2) {
       s.q = value;
+      s.sort_by = "relevance"; s.sort_dir = "asc";
       s.page = 1;
       load();
     }
@@ -282,32 +291,34 @@
     const value = trim(q.value);
     clearTimeout(timer);
 
-    if (value.length === 0) {
+    if (value.length < 2) {
       s.q = "";
+      if (s.sort_by === "relevance") { s.sort_by = "disbursement_date"; s.sort_dir = "desc"; }
       s.page = 1;
-      timer = setTimeout(() => load(), 250);
+      timer = setTimeout(() => load(), 160);
       return;
     }
 
-    if (value.length < 2) return;
-
     timer = setTimeout(() => {
       s.q = value;
+      s.sort_by = "relevance"; s.sort_dir = "asc";
       s.page = 1;
       load();
-    }, 300);
+    }, 220);
   });
 
   document.querySelectorAll("[data-sort-by]").forEach((b) => b.addEventListener("click", () => {
     const key = b.dataset.sortBy;
     s.sort_dir = s.sort_by === key && s.sort_dir === "asc" ? "desc" : "asc";
     s.sort_by = key;
+    s.page = 1;
     load();
   }));
 
   pag?.addEventListener("click", (e) => {
     const b = e.target.closest("[data-page]");
-    if (!b) return;
+    if (!b || b.parentElement.classList.contains("disabled")) return;
+    e.preventDefault();
     s.page = Number(b.dataset.page);
     load();
   });
@@ -359,5 +370,18 @@
     }
   });
 
+  const syncControls = () => {
+    q.value = s.q;
+    ["mode", "status", "date_from", "date_to"].forEach((key) => { if (filterForm?.elements[key]) filterForm.elements[key].value = s[key]; });
+  };
+  const drawFilter = (open) => { filterDrawer?.classList.toggle("d-none", !open); filterBackdrop?.classList.toggle("d-none", !open); };
+  $("open-payroll-filter")?.addEventListener("click", () => drawFilter(true));
+  $("close-payroll-filter")?.addEventListener("click", () => drawFilter(false));
+  filterBackdrop?.addEventListener("click", () => drawFilter(false));
+  filterForm?.addEventListener("submit", (e) => { e.preventDefault(); ["mode", "status", "date_from", "date_to"].forEach((key) => { s[key] = trim(filterForm.elements[key].value); }); s.page = 1; drawFilter(false); load(); });
+  $("reset-payroll-filter")?.addEventListener("click", () => { s.mode = ""; s.status = "all"; s.date_from = ""; s.date_to = ""; s.page = 1; syncControls(); drawFilter(false); load(); });
+  window.addEventListener("popstate", () => { Object.assign(s, stateFromUrl()); syncControls(); load(true); });
+
+  syncControls();
   load(true);
 })();

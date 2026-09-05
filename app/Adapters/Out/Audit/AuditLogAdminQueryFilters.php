@@ -14,7 +14,7 @@ final class AuditLogAdminQueryFilters
             return $query;
         }
 
-        $like = '%' . $search . '%';
+        $like = '%'.$search.'%';
 
         return $query->where(function (QueryBuilder $query) use ($like): void {
             $query
@@ -29,7 +29,7 @@ final class AuditLogAdminQueryFilters
             return $query;
         }
 
-        $like = '%' . $search . '%';
+        $like = '%'.$search.'%';
 
         return $query->where(function (QueryBuilder $query) use ($like): void {
             $query
@@ -40,7 +40,8 @@ final class AuditLogAdminQueryFilters
                 ->orWhere('actor_id', 'like', $like)
                 ->orWhere('actor_role', 'like', $like)
                 ->orWhere('reason', 'like', $like)
-                ->orWhere('source_channel', 'like', $like);
+                ->orWhere('source_channel', 'like', $like)
+                ->orWhere('metadata_json', 'like', $like);
         });
     }
 }

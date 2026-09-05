@@ -2,7 +2,7 @@
 
 ## Status
 
-Active implementation contract for the major admin index and investigation surfaces.
+Complete. Implemented and verified on 2026-09-05.
 
 ## Reference
 
@@ -118,14 +118,14 @@ Each target must be exercised at desktop and mobile widths for header layout, ho
 | Slice | RED | GREEN | Browser | Status |
 | --- | --- | --- | --- | --- |
 | Blueprint/baseline | n/a | repository and route/read-side audit | pending | complete |
-| Jasa | pending | pending | pending | pending |
-| Paket Service | pending | pending | pending | pending |
-| Pemasok | pending | pending | pending | pending |
-| Pengadaan | pending | pending | pending | pending |
-| Nota Pelanggan | pending | pending | pending | pending |
-| Data Karyawan | pending | pending | pending | pending |
-| Gaji Karyawan | pending | pending | pending | pending |
-| Hutang Karyawan | pending | pending | pending | pending |
-| Biaya Operasional | pending | pending | pending | pending |
-| Audit Log | pending | pending | pending | pending |
-| Final gates | n/a | pending | pending | pending |
+| Jasa | missing JSON table route | ServiceCatalog suite: 9 tests / 52 assertions | Chromium desktop/mobile | complete |
+| Paket Service | missing JSON table route | ServiceProductTemplate suite: 17 tests / 132 assertions | Chromium desktop/mobile | complete |
+| Pemasok | outstanding filter absent | focused supplier suite GREEN | Chromium desktop/mobile | complete |
+| Pengadaan | broad newer supplier match outranked exact invoice | focused invoice suite GREEN | Chromium desktop/mobile | complete |
+| Nota Pelanggan | broad newer customer match outranked exact nota | focused admin-note suite GREEN | Chromium desktop/mobile | complete |
+| Data Karyawan | filters/relevance absent | focused Employee table suite GREEN | Chromium desktop/mobile | complete |
+| Gaji Karyawan | filters/relevance absent | focused Payroll table suite GREEN | Chromium desktop/mobile | complete |
+| Hutang Karyawan | grouped status filter absent | focused Debt table suite GREEN | Chromium desktop/mobile | complete |
+| Biaya Operasional | newer broad description outranked exact category | Expense query: 4 tests / 15 assertions | Chromium desktop/mobile | complete |
+| Audit Log | table/detail routes absent and context inline | AuditLog suite: 25 tests / 136 assertions | Chromium desktop/mobile | complete |
+| Final gates | n/a | focused campaign: 140 tests / 724 assertions; full verify: 1,634 tests / 10,354 assertions | 20 viewport-route combinations GREEN | complete |
