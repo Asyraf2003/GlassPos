@@ -3,7 +3,7 @@
 <div id="admin-note-filter-drawer" class="position-fixed top-0 end-0 h-100 bg-body border-start shadow d-none" style="width: 360px; z-index: 1050; overflow-y: auto;">
     <div class="p-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Filter Daftar Nota Admin</h5>
+            <h5 class="mb-0">Filter Nota</h5>
             <button type="button" id="close-admin-note-filter" class="btn btn-sm btn-light-secondary">Tutup</button>
         </div>
 
