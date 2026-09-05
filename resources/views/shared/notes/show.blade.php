@@ -6,6 +6,7 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/static/css/cashier-note-payment-timeline.css') }}?v={{ config('app.asset_version') }}">
+<link rel="stylesheet" href="{{ asset('assets/static/css/note-detail-desktop-polish.css') }}?v={{ config('app.asset_version') }}">
 @endpush
 
 @section('content')
