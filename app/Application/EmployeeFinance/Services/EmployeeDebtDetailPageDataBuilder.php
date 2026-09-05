@@ -20,8 +20,13 @@ final class EmployeeDebtDetailPageDataBuilder
     /**
      * @return array{
      *     detail: array<string, mixed>,
+     *     payments: list<array<string, mixed>>,
      *     adjustments: list<array<string, mixed>>,
-     *     paymentReversals: list<array<string, mixed>>
+     *     paymentReversals: list<array<string, mixed>>,
+     *     hasPayments: bool,
+     *     hasAdjustments: bool,
+     *     hasPaymentReversals: bool,
+     *     hasHistory: bool
      * }|null
      */
     public function build(string $debtId): ?array
@@ -32,10 +37,21 @@ final class EmployeeDebtDetailPageDataBuilder
             return null;
         }
 
+        $payments = is_array($detail['payments'] ?? null)
+            ? array_values($detail['payments'])
+            : [];
+        $adjustments = $this->adjustments->findByDebtId($debtId);
+        $paymentReversals = $this->paymentReversals->findByDebtId($debtId);
+
         return [
             'detail' => $detail,
-            'adjustments' => $this->adjustments->findByDebtId($debtId),
-            'paymentReversals' => $this->paymentReversals->findByDebtId($debtId),
+            'payments' => $payments,
+            'adjustments' => $adjustments,
+            'paymentReversals' => $paymentReversals,
+            'hasPayments' => $payments !== [],
+            'hasAdjustments' => $adjustments !== [],
+            'hasPaymentReversals' => $paymentReversals !== [],
+            'hasHistory' => $payments !== [] || $adjustments !== [] || $paymentReversals !== [],
         ];
     }
 }
