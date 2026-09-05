@@ -2,6 +2,7 @@
   const c = window.productTableConfig;
   if (!c) return;
 
+  const SEARCH_RELEVANCE_SORT = "relevance";
   const defaults = {
     q: "",
     page: 1,
@@ -42,6 +43,7 @@
 
   let searchDebounceTimer = null;
   let requestCounter = 0;
+  let activeRequestController = null;
 
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (m) => ({
     "&": "&amp;",
@@ -68,16 +70,25 @@
 
   const stateFromUrl = () => {
     const p = new URLSearchParams(window.location.search);
-
+    const q = trimValue(p.get("q"));
     const sortBy = trimValue(p.get("sort_by"));
     const sortDir = trimValue(p.get("sort_dir"));
     const status = trimValue(p.get("status"));
+    const hasExplicitSort = allowedSortBy.has(sortBy);
 
     return {
-      q: trimValue(p.get("q")),
+      q,
       page: intOrDefault(p.get("page"), 1),
-      sort_by: allowedSortBy.has(sortBy) ? sortBy : defaults.sort_by,
-      sort_dir: allowedSortDir.has(sortDir) ? sortDir : defaults.sort_dir,
+      sort_by: q.length >= 2 && !hasExplicitSort
+        ? SEARCH_RELEVANCE_SORT
+        : hasExplicitSort
+          ? sortBy
+          : defaults.sort_by,
+      sort_dir: q.length >= 2 && !hasExplicitSort
+        ? "asc"
+        : allowedSortDir.has(sortDir)
+          ? sortDir
+          : defaults.sort_dir,
       status: allowedStatus.has(status) ? status : defaults.status,
       merek: trimValue(p.get("merek")),
       ukuran_min: trimValue(p.get("ukuran_min")),
@@ -117,12 +128,17 @@
     const obj = {
       page: String(s.page),
       per_page: "10",
-      sort_by: s.sort_by,
-      sort_dir: s.sort_dir,
       status: s.status
     };
 
-    ["q", "merek", "ukuran_min", "ukuran_max", "harga_min", "harga_max"].forEach((k) => {
+    if (s.sort_by !== SEARCH_RELEVANCE_SORT) {
+      obj.sort_by = s.sort_by;
+      obj.sort_dir = s.sort_dir;
+    }
+
+    if (s.q.length >= 2) obj.q = s.q;
+
+    ["merek", "ukuran_min", "ukuran_max", "harga_min", "harga_max"].forEach((k) => {
       if (s[k]) obj[k] = s[k];
     });
 
@@ -225,6 +241,16 @@
   };
 
   const renderSummary = (meta) => {
+    if (s.q.length === 1) {
+      summary.textContent = `Total: ${meta.total} product • ketik 1 huruf lagi untuk mencari`;
+      return;
+    }
+
+    if (s.q.length >= 2 && s.sort_by === SEARCH_RELEVANCE_SORT) {
+      summary.textContent = `Total: ${meta.total} hasil • urut relevansi`;
+      return;
+    }
+
     summary.textContent = `Total: ${meta.total} product`;
   };
 
@@ -242,52 +268,91 @@
     });
   };
 
+  const cancelActiveRequest = () => {
+    requestCounter += 1;
+
+    if (activeRequestController) {
+      activeRequestController.abort();
+      activeRequestController = null;
+    }
+  };
+
   const load = async (replaceUrl = false) => {
+    cancelActiveRequest();
+
     const currentRequest = ++requestCounter;
+    const controller = new AbortController();
+    activeRequestController = controller;
 
     body.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">Memuat data...</td></tr>`;
 
-    const res = await fetch(`${c.endpoint}?${paramsString()}`, {
-      headers: { Accept: "application/json" }
-    });
+    try {
+      const res = await fetch(`${c.endpoint}?${paramsString()}`, {
+        headers: { Accept: "application/json" },
+        signal: controller.signal
+      });
+      const json = await res.json();
 
-    const json = await res.json();
+      if (currentRequest !== requestCounter) {
+        return;
+      }
 
-    if (currentRequest !== requestCounter) {
+      if (!res.ok || !json.success) {
+        body.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat data.</td></tr>`;
+        return;
+      }
+
+      renderRows(json.data.rows || [], json.data.meta || {});
+      renderSummary(json.data.meta || {});
+      renderPager(json.data.meta || {});
+      renderSortIndicators();
+      syncInputsFromState();
+      updateUrl(replaceUrl);
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        return;
+      }
+
+      if (currentRequest === requestCounter) {
+        body.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat data.</td></tr>`;
+      }
+    } finally {
+      if (activeRequestController === controller) {
+        activeRequestController = null;
+      }
+    }
+  };
+
+  const resetRelevanceSortIfNeeded = () => {
+    if (s.sort_by !== SEARCH_RELEVANCE_SORT) {
       return;
     }
 
-    if (!res.ok || !json.success) {
-      body.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat data.</td></tr>`;
+    s.sort_by = defaults.sort_by;
+    s.sort_dir = defaults.sort_dir;
+  };
+
+  const applySearchValue = (value) => {
+    s.q = value;
+    s.page = 1;
+
+    if (value.length >= 2) {
+      s.sort_by = SEARCH_RELEVANCE_SORT;
+      s.sort_dir = "asc";
       return;
     }
 
-    renderRows(json.data.rows || [], json.data.meta || {});
-    renderSummary(json.data.meta || {});
-    renderPager(json.data.meta || {});
-    renderSortIndicators();
-    syncInputsFromState();
-    updateUrl(replaceUrl);
+    resetRelevanceSortIfNeeded();
   };
 
   if (searchForm) {
     searchForm.addEventListener("submit", (e) => {
       e.preventDefault();
+      clearTimeout(searchDebounceTimer);
 
       const value = trimValue(searchInput?.value);
-
-      if (value.length === 0) {
-        s.q = "";
-        s.page = 1;
-        load();
-        return;
-      }
-
-      if (value.length >= 2) {
-        s.q = value;
-        s.page = 1;
-        load();
-      }
+      applySearchValue(value);
+      load();
     });
   }
 
@@ -296,23 +361,13 @@
       const value = trimValue(searchInput.value);
 
       clearTimeout(searchDebounceTimer);
+      cancelActiveRequest();
+      applySearchValue(value);
 
-      if (value.length === 0) {
-        s.q = "";
-        s.page = 1;
-        searchDebounceTimer = setTimeout(() => load(), 250);
-        return;
-      }
-
-      if (value.length < 2) {
-        return;
-      }
-
-      searchDebounceTimer = setTimeout(() => {
-        s.q = value;
-        s.page = 1;
-        load();
-      }, 300);
+      searchDebounceTimer = setTimeout(
+        () => load(),
+        value.length >= 2 ? 220 : 160
+      );
     });
   }
 

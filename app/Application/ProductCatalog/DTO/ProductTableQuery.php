@@ -26,11 +26,13 @@ final class ProductTableQuery
      */
     public static function fromValidated(array $data): self
     {
+        $q = self::nullableString($data['q'] ?? null);
+
         return new self(
-            self::nullableString($data['q'] ?? null),
+            $q,
             isset($data['page']) ? (int) $data['page'] : 1,
             isset($data['per_page']) ? (int) $data['per_page'] : 10,
-            isset($data['sort_by']) ? (string) $data['sort_by'] : 'nama_barang',
+            isset($data['sort_by']) ? (string) $data['sort_by'] : ($q !== null ? 'relevance' : 'nama_barang'),
             isset($data['sort_dir']) ? (string) $data['sort_dir'] : 'asc',
             isset($data['status']) ? (string) $data['status'] : 'active',
             self::nullableString($data['merek'] ?? null),

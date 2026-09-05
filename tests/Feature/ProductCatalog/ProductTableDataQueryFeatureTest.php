@@ -27,6 +27,54 @@ final class ProductTableDataQueryFeatureTest extends TestCase
         $response->assertJsonPath('data.meta.filters.merek', 'Federal');
     }
 
+    public function test_search_defaults_to_relevance_order(): void
+    {
+        $this->seedProductRow('code-exact', 'OL', 'ZZ Code Exact', 'Federal', null, 90000, 1);
+        $this->seedProductRow('code-prefix', 'OL-001', 'AA Code Prefix', 'Federal', null, 80000, 1);
+        $this->seedProductRow('code-contains', 'X-OL-9', 'BB Code Contains', 'Federal', null, 70000, 1);
+        $this->seedProductRow('name-exact', 'ZZ-001', 'Ol', 'Federal', null, 60000, 1);
+        $this->seedProductRow('name-prefix', 'ZZ-002', 'Oli Federal', 'Federal', null, 50000, 1);
+        $this->seedProductRow('brand-exact', 'ZZ-003', 'CC Brand Exact', 'Ol', null, 40000, 1);
+        $this->seedProductRow('brand-prefix', 'ZZ-004', 'DD Brand Prefix', 'Oli Brand', null, 30000, 1);
+        $this->seedProductRow('name-contains', 'ZZ-005', 'Filter Oli Mesin', 'Federal', null, 20000, 1);
+        $this->seedProductRow('brand-contains', 'ZZ-006', 'EE Brand Contains', 'Federal Oli Group', null, 10000, 1);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.products.table', ['q' => 'ol']));
+
+        $response->assertOk();
+        $response->assertJsonPath('data.meta.sort_by', 'relevance');
+        self::assertSame(
+            [
+                'code-exact',
+                'code-prefix',
+                'code-contains',
+                'name-exact',
+                'name-prefix',
+                'brand-exact',
+                'brand-prefix',
+                'name-contains',
+                'brand-contains',
+            ],
+            array_column($response->json('data.rows'), 'id'),
+        );
+    }
+
+    public function test_explicit_sort_overrides_search_relevance(): void
+    {
+        $this->seedProductRow('expensive', 'OL-EXPENSIVE', 'Oli Mahal', 'Federal', null, 90000, 1);
+        $this->seedProductRow('cheap', 'ZZ-CHEAP', 'Filter Oli Murah', 'Federal', null, 10000, 1);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.products.table', [
+            'q' => 'ol',
+            'sort_by' => 'harga_jual',
+            'sort_dir' => 'asc',
+        ]));
+
+        $response->assertOk();
+        $response->assertJsonPath('data.meta.sort_by', 'harga_jual');
+        self::assertSame(['cheap', 'expensive'], array_column($response->json('data.rows'), 'id'));
+    }
+
     public function test_admin_can_sort_product_table_by_stok_saat_ini_desc(): void
     {
         $this->seedProductRow('product-1', 'KB-001', 'Ban Luar', 'Federal', 90, 35000, 2);
