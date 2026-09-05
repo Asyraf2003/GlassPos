@@ -7,8 +7,8 @@ namespace Tests\Feature\Note;
 use App\Adapters\Out\Note\Queries\CashierNoteHistoryTableQuery;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
+use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
 use Tests\TestCase;
@@ -18,18 +18,12 @@ final class CashierOldDebtSettlementWorkQueueFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
-    protected function tearDown(): void
-    {
-        Carbon::setTestNow();
-        parent::tearDown();
-    }
-
     public function test_cashier_can_settle_old_debt_and_it_moves_to_completed_today(): void
     {
-        Carbon::setTestNow('2026-09-05 14:00:00');
         $cashier = $this->loginAsKasir();
         $noteId = 'old-debt-settled-today';
-        $oldDate = '2026-08-15';
+        $today = date('Y-m-d');
+        $oldDate = (new DateTimeImmutable($today))->modify('-21 days')->format('Y-m-d');
         $workItemId = $noteId.'-work';
 
         $this->seedNoteBase($noteId, 'Pelanggan Utang Lama', $oldDate, 165000);
@@ -54,7 +48,7 @@ final class CashierOldDebtSettlementWorkQueueFeatureTest extends TestCase
                 'payment_method' => 'cash',
                 'amount_paid' => 165000,
                 'amount_received' => 200000,
-                'paid_at' => '2026-09-05',
+                'paid_at' => $today,
                 'idempotency_key' => 'old-debt-settlement-payment',
             ])
             ->assertRedirect(route('cashier.notes.show', ['noteId' => $noteId]))
@@ -68,7 +62,7 @@ final class CashierOldDebtSettlementWorkQueueFeatureTest extends TestCase
         ]);
         $this->assertDatabaseHas('notes', ['id' => $noteId, 'note_state' => 'closed']);
         self::assertStringStartsWith(
-            '2026-09-05 ',
+            $today.' ',
             (string) DB::table('notes')->where('id', $noteId)->value('closed_at'),
         );
 
