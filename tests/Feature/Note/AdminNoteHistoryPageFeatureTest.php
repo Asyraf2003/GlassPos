@@ -18,7 +18,9 @@ final class AdminNoteHistoryPageFeatureTest extends TestCase
         $response = $this->actingAs($user)->get(route('admin.notes.index'));
 
         $response->assertOk();
-        $response->assertSee('Daftar Nota Admin');
+        $response->assertSee('Daftar Nota');
+        $response->assertDontSee('Daftar Nota Admin');
+        $response->assertSee('Cari pelanggan, no. HP, atau rincian');
         $response->assertSee('admin-note-search-input', false);
         $response->assertSee('admin-note-table-body', false);
         $response->assertSee('admin-note-date-range', false);
