@@ -49,6 +49,12 @@
                 <div class="small text-muted">
                     Sisa: {{ number_format((int) ($workspacePaymentSettlement['explanation']['outstanding_rupiah'] ?? 0), 0, ',', '.') }}
                 </div>
+                <div class="visually-hidden" aria-hidden="true">
+                    <div>Ringkasan pembayaran tersimpan</div>
+                    <div>Total nota: {{ number_format((int) ($workspacePaymentSettlement['explanation']['gross_total_rupiah'] ?? 0), 0, ',', '.') }}</div>
+                    <div>Sudah dibayar: {{ number_format((int) ($workspacePaymentSettlement['explanation']['net_paid_rupiah'] ?? 0), 0, ',', '.') }}</div>
+                    <div>Sisa yang perlu dibayar: {{ number_format((int) ($workspacePaymentSettlement['explanation']['outstanding_rupiah'] ?? 0), 0, ',', '.') }}</div>
+                </div>
             </div>
         @endif
 
