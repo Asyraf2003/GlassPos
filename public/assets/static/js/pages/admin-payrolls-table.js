@@ -166,7 +166,7 @@
   };
 
   const configureActionModal = (row) => {
-    if (!actionModalSubtitle || !actionDetailEmployeeLink || !actionDetailPayrollLink || !actionReversalButton || !actionReversalNote) {
+    if (!actionModalSubtitle || !actionDetailEmployeeLink || !actionDetailPayrollLink || !actionReversalButton) {
       return;
     }
 
@@ -180,7 +180,9 @@
       actionReversalButton.dataset.employeeName = "";
       actionReversalButton.dataset.disbursementDate = "";
       actionReversalButton.dataset.amountFormatted = "";
-      actionReversalNote.textContent = "Riwayat ini sudah dibatalkan.";
+      if (actionReversalNote) {
+        actionReversalNote.textContent = "Riwayat ini sudah dibatalkan.";
+      }
       return;
     }
 
@@ -189,7 +191,9 @@
     actionReversalButton.dataset.employeeName = row.employeeName;
     actionReversalButton.dataset.disbursementDate = row.disbursementDate;
     actionReversalButton.dataset.amountFormatted = row.amountFormatted;
-    actionReversalNote.textContent = "Buka form pembatalan dengan alasan yang jelas.";
+    if (actionReversalNote) {
+      actionReversalNote.textContent = "Buka form pembatalan dengan alasan yang jelas.";
+    }
   };
 
   const openReversalModal = (payload) => {
