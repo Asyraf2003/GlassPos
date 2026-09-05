@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         : {};
 
     const normalize = (value) => String(value ?? '').trim();
-    const allowedSortBy = new Set(['note_number', 'customer_name', 'created_at', 'total_rupiah', 'net_paid_rupiah', 'outstanding_rupiah']);
+    const allowedSortBy = new Set(['customer_name', 'created_at', 'total_rupiah', 'net_paid_rupiah', 'outstanding_rupiah']);
     const intOrDefault = (value, fallback) => {
         const parsed = Number.parseInt(String(value ?? ''), 10);
         return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
@@ -159,20 +159,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderLoading = () => {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="9" class="text-center text-muted py-4">Sedang memuat daftar nota admin...</td>
+                <td colspan="8" class="text-center text-muted py-4">Sedang memuat daftar nota...</td>
             </tr>
         `;
-        summaryNode.textContent = 'Memuat ringkasan daftar nota admin...';
+        summaryNode.textContent = 'Memuat ringkasan daftar nota...';
         paginationNode.innerHTML = '<span class="text-muted small">Memuat pagination...</span>';
     };
 
     const renderError = () => {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="9" class="text-center text-danger py-4">Daftar nota admin gagal dimuat.</td>
+                <td colspan="8" class="text-center text-danger py-4">Daftar nota gagal dimuat.</td>
             </tr>
         `;
-        summaryNode.textContent = 'Gagal memuat ringkasan daftar nota admin.';
+        summaryNode.textContent = 'Gagal memuat ringkasan daftar nota.';
         paginationNode.innerHTML = '<span class="text-muted small">Pagination belum tersedia.</span>';
     };
 
@@ -185,10 +185,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderAction = (item) => {
         if (typeof item.action_url === 'string' && item.action_url !== '') {
-            return `<a href="${escapeHtml(item.action_url)}" class="btn btn-sm btn-outline-primary">${escapeHtml(item.action_label ?? 'Pilih')}</a>`;
+            return `<a href="${escapeHtml(item.action_url)}" class="btn btn-sm btn-outline-primary">Buka</a>`;
         }
 
-        return escapeHtml(item.action_label ?? '-');
+        return '-';
     };
 
     const renderPager = (pagination) => {
@@ -220,8 +220,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!Array.isArray(items) || items.length === 0) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="text-center text-muted py-4">
-                        ${escapeHtml(summaryLabel || 'Belum ada data daftar nota admin.')}
+                    <td colspan="8" class="text-center text-muted py-4">
+                        ${escapeHtml(summaryLabel || 'Belum ada data nota.')}
                     </td>
                 </tr>
             `;
@@ -232,17 +232,13 @@ document.addEventListener('DOMContentLoaded', () => {
             tableBody.innerHTML = items.map((item, index) => `
                 <tr>
                     <td>${((page - 1) * perPage) + index + 1}</td>
-                    <td>${escapeHtml(item.created_at_text ?? item.transaction_date ?? '-')}</td>
-                    <td>
-                        <div class="fw-semibold">${escapeHtml(item.note_number ?? item.note_id ?? 'Nota Pelanggan')}</div>
-                        <div class="small text-muted">${escapeHtml(item.transaction_date ?? '-')}</div>
-                    </td>
-                    <td>${escapeHtml(item.customer_name ?? '-')}</td>
+                    <td class="fw-semibold">${escapeHtml(item.customer_name ?? 'Pelanggan')}</td>
+                    <td>${escapeHtml(item.created_at_text ?? '-')}</td>
+                    <td>${escapeHtml(item.line_summary_label ?? '-')}</td>
                     <td class="text-end">${escapeHtml(item.grand_total_text ?? '-')}</td>
                     <td class="text-end">${escapeHtml(item.total_paid_text ?? '-')}</td>
                     <td class="text-end">${escapeHtml(item.outstanding_text ?? '-')}</td>
-                    <td>${escapeHtml(item.line_summary_label ?? '-')}</td>
-                    <td>${renderAction(item)}</td>
+                    <td class="text-center">${renderAction(item)}</td>
                 </tr>
             `).join('');
         }
@@ -252,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const perPage = Number(pagination?.per_page || 10);
         const from = total === 0 ? 0 : ((page - 1) * perPage) + 1;
         const to = Math.min(page * perPage, total);
-        summaryNode.textContent = `Menampilkan ${from} sampai ${to} dari ${total} nota pelanggan`;
+        summaryNode.textContent = `Menampilkan ${from} sampai ${to} dari ${total} nota`;
         renderPager(pagination);
     };
 
@@ -299,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const items = Array.isArray(data.items) ? data.items : [];
             const summaryLabel = typeof data?.summary?.label === 'string'
                 ? data.summary.label
-                : 'Daftar nota admin siap.';
+                : 'Daftar nota siap.';
             const pagination = typeof data.pagination === 'object' && data.pagination !== null
                 ? data.pagination
                 : { page: 1, per_page: 10, total: 0, last_page: 1 };
@@ -367,9 +363,10 @@ document.addEventListener('DOMContentLoaded', () => {
         loadTable();
     });
 
-    sortButtons.forEach((button) => button.addEventListener('click', () => {
+    sortButtons.forEach((button) => button.addEventListener('click', (event) => {
         const sortBy = normalize(button.dataset.sortBy);
         if (!allowedSortBy.has(sortBy)) return;
+        event.preventDefault();
         state.sort_dir = state.sort_by === sortBy && state.sort_dir === 'asc' ? 'desc' : 'asc';
         state.sort_by = sortBy;
         state.page = 1;
