@@ -52,14 +52,14 @@ final class ServicePackageProfitBreakdownExcelDetailSheetWriter
             'Total Sparepart',
             'HPP Sparepart',
             'Margin Sparepart',
-            'Service Price',
-            'Base Service',
-            'Service Extra',
-            'Profit Paket',
-            'Total Komponen Service',
+            'Bagian Jasa 20%',
+            'Base Service Snapshot',
+            'Service Extra Snapshot',
+            'Keuntungan Toko dari Jasa 80%',
+            'Total Nilai Jasa',
             'Refund Komponen Produk',
             'Refund Komponen Service',
-            'Laba Kotor Paket',
+            'Laba Kotor Paket untuk Toko',
         ], $values);
 
         $this->tables->autosize($sheet, 17);
