@@ -4,6 +4,9 @@
     --ui-card-radius: 1rem;
     --ui-control-radius: 0.875rem;
     --ui-soft-radius: 0.875rem;
+    --ui-badge-neutral-bg: var(--bs-tertiary-bg);
+    --ui-badge-neutral-color: var(--bs-body-color);
+    --ui-badge-neutral-border: var(--bs-border-color);
     --cashier-page-bg: var(--bs-body-bg);
     --cashier-surface: var(--bs-body-bg);
     --cashier-surface-subtle: rgba(67, 94, 190, 0.08);
@@ -21,6 +24,9 @@
 }
 
 html[data-bs-theme="dark"] {
+    --ui-badge-neutral-bg: var(--bs-tertiary-bg);
+    --ui-badge-neutral-color: var(--bs-body-color);
+    --ui-badge-neutral-border: var(--bs-border-color);
     --cashier-page-bg: var(--bs-body-bg);
     --cashier-surface: #1b1b29;
     --cashier-surface-subtle: rgba(255, 255, 255, 0.04);
@@ -158,6 +164,12 @@ html[data-bs-theme="dark"] {
     padding: 0.5rem 0.75rem;
 }
 
+.badge.border:not([class*="bg-"]):not(.text-primary):not(.text-secondary):not(.text-success):not(.text-danger):not(.text-warning):not(.text-info):not(.text-light):not(.text-dark) {
+    color: var(--ui-badge-neutral-color);
+    background-color: var(--ui-badge-neutral-bg);
+    border-color: var(--ui-badge-neutral-border) !important;
+}
+
 .border.rounded,
 .rounded,
 .rounded-3 {
@@ -215,13 +227,14 @@ textarea.form-control {
 }
 
 a:not(.btn):not(.sidebar-link):not(.dropdown-item) {
-    text-underline-offset: 0.18em;
-    text-decoration-thickness: 0.08em;
+    text-decoration: none;
+    transition: color .15s ease;
 }
 
 a:not(.btn):not(.sidebar-link):not(.dropdown-item):hover,
 a:not(.btn):not(.sidebar-link):not(.dropdown-item):focus-visible {
-    text-decoration: underline;
+    color: var(--bs-link-hover-color);
+    text-decoration: none;
 }
 
 .modal-content {
