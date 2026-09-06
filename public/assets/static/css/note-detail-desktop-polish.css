@@ -60,6 +60,13 @@ body[data-note-device="desktop"] .note-detail-desktop-summary:hover {
     background: var(--note-detail-surface-subtle);
 }
 
+body[data-note-device="desktop"] .note-detail-desktop-summary h4,
+body[data-note-device="desktop"] .note-detail-desktop-summary span {
+    margin: 0;
+    color: inherit;
+    font: inherit;
+}
+
 body[data-note-device="desktop"] .note-detail-desktop-summary i {
     color: var(--note-detail-muted);
     font-size: .8rem;
