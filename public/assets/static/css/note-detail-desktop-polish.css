@@ -1,68 +1,158 @@
-body[data-note-device="desktop"] .note-detail-desktop {
-    gap: 1.15rem;
+body[data-note-device="desktop"] .note-detail-desktop-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(19rem, 23rem);
+    grid-template-areas:
+        "info info"
+        "lines payment"
+        "history-main history-finance";
+    gap: .9rem;
+    align-items: start;
 }
 
-body[data-note-device="desktop"] .note-detail-section-heading {
-    min-height: 3rem;
-    padding: .8rem 1rem;
+body[data-note-device="desktop"] .note-detail-desktop-panel {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--note-detail-border);
+    border-radius: .7rem;
+    background: var(--note-detail-card);
 }
 
-body[data-note-device="desktop"] .note-detail-desktop-main {
-    gap: 1rem;
+body[data-note-device="desktop"] .note-detail-desktop-panel--info {
+    grid-area: info;
 }
 
-body[data-note-device="desktop"] .note-detail-desktop-history {
-    padding: .15rem 0 1rem;
+body[data-note-device="desktop"] .note-detail-desktop-panel--lines {
+    grid-area: lines;
 }
 
-body[data-note-device="desktop"] .note-detail-history-title {
+body[data-note-device="desktop"] .note-detail-desktop-panel--payment {
+    grid-area: payment;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-panel--history-main {
+    grid-area: history-main;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-panel--history-finance {
+    grid-area: history-finance;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-summary {
     display: flex;
     align-items: center;
-    min-height: 2.6rem;
-    margin-bottom: .55rem;
-    padding: 0 .1rem;
-}
-
-body[data-note-device="desktop"] .note-detail-history-title h4 {
-    margin: 0;
+    justify-content: space-between;
+    gap: .75rem;
+    min-height: 2.85rem;
+    padding: .72rem .9rem;
     color: var(--note-detail-text);
-    font-size: 1rem;
+    cursor: pointer;
     font-weight: 800;
+    list-style: none;
+    user-select: none;
+    transition: background-color .16s ease;
 }
 
-body[data-note-device="desktop"] .note-detail-desktop-history > .note-detail-history-grid {
-    gap: .85rem;
+body[data-note-device="desktop"] .note-detail-desktop-summary::-webkit-details-marker {
+    display: none;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-summary:hover {
+    background: var(--note-detail-surface-subtle);
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-summary i {
+    color: var(--note-detail-muted);
+    font-size: .8rem;
+    transition: transform .18s ease;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-panel[open] > .note-detail-desktop-summary {
+    border-bottom: 1px solid var(--note-detail-border);
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-panel[open] > .note-detail-desktop-summary i {
+    transform: rotate(180deg);
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-body {
+    min-width: 0;
+    padding: .9rem;
+    animation: note-detail-panel-reveal .16s ease-out;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-history-body {
+    padding: .85rem;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-panel .note-detail-payment-card {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-panel .note-detail-payment-card > .card-body {
     padding: 0;
 }
 
-body[data-note-device="desktop"] .note-detail-history-section {
-    background: var(--note-detail-card);
-    border-radius: .65rem;
-    padding: .95rem;
+body[data-note-device="desktop"] .note-detail-history-stack {
+    display: grid;
+    gap: .8rem;
 }
 
-body[data-note-device="desktop"] .note-detail-history-section .card-header {
-    margin-bottom: .7rem;
-    padding-bottom: .7rem;
+body[data-note-device="desktop"] .note-detail-history-stack .card,
+body[data-note-device="desktop"] .note-detail-history-stack .note-detail-history-section {
+    margin: 0;
+    border-color: var(--note-detail-border);
+    border-radius: .55rem;
+    box-shadow: none;
 }
 
-body[data-note-device="desktop"] .note-detail-history-section .card-title,
-body[data-note-device="desktop"] .note-payment-timeline__title,
-body[data-note-device="desktop"] .note-detail-history-heading h5 {
-    font-size: .95rem;
+body[data-note-device="desktop"] .note-detail-history-stack .card-header {
+    padding: .75rem .8rem;
 }
 
-body[data-note-device="desktop"] .note-detail-history-section--payments,
+body[data-note-device="desktop"] .note-detail-history-stack .card-body {
+    padding: .8rem;
+}
+
+body[data-note-device="desktop"] .note-detail-history-stack--financial .note-payment-timeline,
+body[data-note-device="desktop"] .note-detail-history-stack--financial .note-detail-history-section--refunds {
+    min-width: 0;
+}
+
 body[data-note-device="desktop"] .note-detail-history-section--refunds {
-    align-self: start;
+    padding: .8rem;
+}
+
+body[data-note-device="desktop"] .note-detail-history-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .65rem;
+    margin-bottom: .75rem;
 }
 
 body[data-note-device="desktop"] .note-detail-payment-card .btn {
-    min-height: 2.65rem;
+    min-height: 2.55rem;
 }
 
-@media (max-width: 1100px) {
-    body[data-note-device="desktop"] .note-detail-desktop-history > .note-detail-history-grid {
+@keyframes note-detail-panel-reveal {
+    from {
+        opacity: 0;
+        transform: translateY(-2px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 1180px) {
+    body[data-note-device="desktop"] .note-detail-desktop-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(18rem, 21rem);
         gap: .75rem;
     }
 }
