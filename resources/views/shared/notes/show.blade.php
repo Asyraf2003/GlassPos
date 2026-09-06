@@ -15,7 +15,7 @@
     <div class="note-detail-desktop note-detail-desktop-grid">
       <details class="note-detail-desktop-panel note-detail-desktop-panel--info" data-note-desktop-panel="info" open>
         <summary class="note-detail-desktop-summary">
-          <span>Info Nota</span>
+          <h4>Info Nota</h4>
           <i class="bi bi-chevron-down" aria-hidden="true"></i>
         </summary>
         <div class="note-detail-desktop-body">
@@ -25,7 +25,7 @@
 
       <details class="note-detail-desktop-panel note-detail-desktop-panel--lines" data-note-desktop-panel="lines" open>
         <summary class="note-detail-desktop-summary">
-          <span>Rincian Nota</span>
+          <h4>Rincian Nota</h4>
           <i class="bi bi-chevron-down" aria-hidden="true"></i>
         </summary>
         <div class="note-detail-desktop-body">
@@ -35,7 +35,7 @@
 
       <details class="note-detail-desktop-panel note-detail-desktop-panel--payment" data-note-desktop-panel="payment" open>
         <summary class="note-detail-desktop-summary">
-          <span>Pembayaran</span>
+          <h4>Pembayaran</h4>
           <i class="bi bi-chevron-down" aria-hidden="true"></i>
         </summary>
         <div class="note-detail-desktop-body">
@@ -45,7 +45,7 @@
 
       <details class="note-detail-desktop-panel note-detail-desktop-panel--history-main" data-note-desktop-panel="history-main" open>
         <summary class="note-detail-desktop-summary">
-          <span>Riwayat Nota</span>
+          <h4>Riwayat Nota</h4>
           <i class="bi bi-chevron-down" aria-hidden="true"></i>
         </summary>
         <div class="note-detail-desktop-body note-detail-desktop-history-body">
@@ -55,7 +55,7 @@
 
       <details class="note-detail-desktop-panel note-detail-desktop-panel--history-finance" data-note-desktop-panel="history-finance" open>
         <summary class="note-detail-desktop-summary">
-          <span>Riwayat Finansial</span>
+          <h4>Riwayat Finansial</h4>
           <i class="bi bi-chevron-down" aria-hidden="true"></i>
         </summary>
         <div class="note-detail-desktop-body note-detail-desktop-history-body">
