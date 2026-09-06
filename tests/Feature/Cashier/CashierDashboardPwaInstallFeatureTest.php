@@ -19,6 +19,7 @@ final class CashierDashboardPwaInstallFeatureTest extends TestCase
             ->get(route('cashier.dashboard'));
 
         $response->assertOk()
+            ->assertSee('data-cashier-dashboard-device="desktop"', false)
             ->assertDontSee('Download App PWA')
             ->assertDontSee('data-pwa-install-button', false)
             ->assertDontSee('assets/static/js/pages/cashier-dashboard/pwa-install.js', false);
@@ -32,6 +33,7 @@ final class CashierDashboardPwaInstallFeatureTest extends TestCase
             ->get(route('cashier.dashboard'));
 
         $response->assertOk()
+            ->assertSee('data-cashier-dashboard-device="handset"', false)
             ->assertSee('Download App PWA')
             ->assertSee('data-pwa-install-button', false)
             ->assertSee('assets/static/js/pages/cashier-dashboard/pwa-install.js', false);
