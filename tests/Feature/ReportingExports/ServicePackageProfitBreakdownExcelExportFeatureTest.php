@@ -44,7 +44,7 @@ final class ServicePackageProfitBreakdownExcelExportFeatureTest extends TestCase
         $this->assertSame(0, $summary->getCell('B4')->getValue());
 
         $this->assertSame('ID Nota', $detail->getCell('B1')->getValue());
-        $this->assertSame('Laba Kotor Paket', $detail->getCell('Q1')->getValue());
+        $this->assertSame('Laba Kotor Paket untuk Toko', $detail->getCell('Q1')->getValue());
         $this->assertNull($detail->getCell('B2')->getValue());
 
         unlink($path);
