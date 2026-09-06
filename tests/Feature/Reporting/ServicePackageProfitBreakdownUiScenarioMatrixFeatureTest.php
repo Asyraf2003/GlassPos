@@ -39,10 +39,12 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         $response->assertSee('Rp 250.000');
         $response->assertSee('Rp 105.000');
         $response->assertSee('Rp 145.000');
+        $response->assertSee('Rp 40.000');
+        $response->assertSee('Rp 160.000');
         $response->assertSee('Rp 200.000');
         $response->assertSee('Rp 15.000');
         $response->assertSee('Rp 5.000');
-        $response->assertSee('Rp 345.000');
+        $response->assertSee('Rp 305.000');
 
         $response->assertDontSee('matrix-main-note');
         $response->assertDontSee('matrix-main-wi');
@@ -98,10 +100,12 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         $this->assertSame(250000, $summary->getCell('B6')->getValue());
         $this->assertSame(105000, $summary->getCell('B7')->getValue());
         $this->assertSame(145000, $summary->getCell('B8')->getValue());
-        $this->assertSame(200000, $summary->getCell('B9')->getValue());
-        $this->assertSame(15000, $summary->getCell('B10')->getValue());
-        $this->assertSame(5000, $summary->getCell('B11')->getValue());
-        $this->assertSame(345000, $summary->getCell('B12')->getValue());
+        $this->assertSame(40000, $summary->getCell('B9')->getValue());
+        $this->assertSame(160000, $summary->getCell('B10')->getValue());
+        $this->assertSame(200000, $summary->getCell('B11')->getValue());
+        $this->assertSame(15000, $summary->getCell('B12')->getValue());
+        $this->assertSame(5000, $summary->getCell('B13')->getValue());
+        $this->assertSame(305000, $summary->getCell('B14')->getValue());
 
         $this->assertSame('matrix-export-note', $detail->getCell('B2')->getValue());
         $this->assertSame('Excel Matrix Customer', $detail->getCell('E2')->getValue());
@@ -109,14 +113,14 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         $this->assertSame(250000, $detail->getCell('G2')->getValue());
         $this->assertSame(105000, $detail->getCell('H2')->getValue());
         $this->assertSame(145000, $detail->getCell('I2')->getValue());
-        $this->assertSame(150000, $detail->getCell('J2')->getValue());
-        $this->assertSame(100000, $detail->getCell('K2')->getValue());
-        $this->assertSame(50000, $detail->getCell('L2')->getValue());
-        $this->assertSame(50000, $detail->getCell('M2')->getValue());
+        $this->assertSame(40000, $detail->getCell('J2')->getValue());
+        $this->assertSame(0, $detail->getCell('K2')->getValue());
+        $this->assertSame(0, $detail->getCell('L2')->getValue());
+        $this->assertSame(160000, $detail->getCell('M2')->getValue());
         $this->assertSame(200000, $detail->getCell('N2')->getValue());
         $this->assertSame(15000, $detail->getCell('O2')->getValue());
         $this->assertSame(5000, $detail->getCell('P2')->getValue());
-        $this->assertSame(345000, $detail->getCell('Q2')->getValue());
+        $this->assertSame(305000, $detail->getCell('Q2')->getValue());
 
         unlink($path);
         $spreadsheet->disconnectWorksheets();
@@ -154,16 +158,16 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         $this->seedServiceDetailBase(
             $workItemId,
             'Paket Ekstrem ' . $prefix,
-            150000,
+            40000,
             ServiceDetail::PART_SOURCE_NONE
         );
 
         DB::table('work_item_service_details')
             ->where('work_item_id', $workItemId)
             ->update([
-                'package_base_service_price_rupiah' => 100000,
-                'package_service_extra_rupiah' => 50000,
-                'package_profit_rupiah' => 50000,
+                'package_base_service_price_rupiah' => null,
+                'package_service_extra_rupiah' => 0,
+                'package_profit_rupiah' => 160000,
             ]);
 
         $this->seedStoreStockLineBase($lineA, $workItemId, $productA, 2, 120000);
