@@ -58,9 +58,7 @@ body[data-note-device="desktop"] .note-detail-desktop-panel[open] > .note-detail
     border-bottom: 1px solid var(--note-detail-border);
 }
 
-body[data-note-device="desktop"] .note-detail-desktop-panel[open] > .note-detail-desktop-summary i {
-    transform: rotate(180deg);
-}
+body[data-note-device="desktop"] .note-detail-desktop-panel[open] > .note-detail-desktop-summary i { transform: rotate(180deg); }
 
 body[data-note-device="desktop"] .note-detail-desktop-body {
     min-width: 0;
