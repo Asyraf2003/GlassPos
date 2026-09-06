@@ -154,6 +154,7 @@
     if (!status) return;
 
     status.textContent = message;
+    status.classList.toggle('d-none', message === '');
     status.classList.toggle('text-danger', failed);
     status.classList.toggle('text-muted', !failed);
   };
@@ -173,7 +174,37 @@
     const state = cameraState(form);
     if (!state.preview) return;
 
+    const input = form.querySelector('input[type="file"]');
+    const pickerFiles = Array.from(input?.files || []);
+    const files = [...pickerFiles, ...state.files];
+    const count = state.root?.querySelector('[data-selected-file-count]');
+    if (count) count.textContent = `${files.length} / 3`;
+
     state.preview.replaceChildren();
+    if (!files.length) {
+      const empty = document.createElement('div');
+      empty.className = 'small text-muted';
+      empty.textContent = 'Belum ada bukti dipilih.';
+      state.preview.append(empty);
+      return;
+    }
+
+    pickerFiles.forEach((file) => {
+      const row = document.createElement('div');
+      row.className = 'd-flex align-items-center justify-content-between gap-2 border rounded px-2 py-2';
+
+      const label = document.createElement('span');
+      label.className = 'small text-truncate';
+      label.textContent = file.name;
+
+      const source = document.createElement('span');
+      source.className = 'badge bg-light text-dark flex-shrink-0';
+      source.textContent = 'File / Galeri';
+
+      row.append(label, source);
+      state.preview.append(row);
+    });
+
     state.files.forEach((file, index) => {
       const row = document.createElement('div');
       row.className = 'd-flex align-items-center justify-content-between gap-2 border rounded px-2 py-2';
@@ -182,13 +213,21 @@
       label.className = 'small text-truncate';
       label.textContent = file.name;
 
+      const actions = document.createElement('div');
+      actions.className = 'd-flex align-items-center gap-2 flex-shrink-0';
+
+      const source = document.createElement('span');
+      source.className = 'badge bg-light text-dark';
+      source.textContent = 'Kamera';
+
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.className = 'btn btn-sm btn-outline-danger';
       remove.textContent = 'Hapus';
       remove.dataset.cameraRemove = String(index);
 
-      row.append(label, remove);
+      actions.append(source, remove);
+      row.append(label, actions);
       state.preview.append(row);
     });
   };
@@ -271,7 +310,9 @@
 
   const resetCameraFiles = (form) => {
     const state = cameraState(form);
+    const input = form.querySelector('input[type="file"]');
     state.files = [];
+    if (input) input.value = '';
     resetIdempotency(form);
     renderCameraFiles(form);
   };
@@ -281,21 +322,51 @@
     if (!input || form.querySelector('[data-direct-upload-camera]')) return;
 
     input.required = false;
+    input.classList.add('visually-hidden');
+    if (!input.id) input.id = `supplier-proof-files-${Math.random().toString(16).slice(2)}`;
 
     const root = document.createElement('div');
-    root.className = 'border rounded p-3 mt-3 bg-light-subtle';
+    root.className = 'mt-2';
     root.dataset.directUploadCamera = '';
     root.innerHTML = `
-      <div class="d-flex flex-wrap gap-2 mb-2">
-        <button type="button" class="btn btn-outline-primary" data-camera-start>Gunakan Kamera</button>
-        <button type="button" class="btn btn-outline-secondary d-none" data-camera-close>Tutup Kamera</button>
+      <div class="row g-2" data-proof-source-actions>
+        <div class="col-12 col-sm-6">
+          <label for="${input.id}" class="btn btn-outline-primary w-100 h-100 p-3 text-start d-flex align-items-center gap-3">
+            <span class="fs-4 lh-1 flex-shrink-0"><i class="bi bi-images"></i></span>
+            <span>
+              <span class="d-block fw-semibold">Pilih File / Galeri</span>
+              <span class="d-block small opacity-75 mt-1">Foto atau PDF dari perangkat</span>
+            </span>
+          </label>
+        </div>
+        <div class="col-12 col-sm-6">
+          <button type="button" class="btn btn-outline-primary w-100 h-100 p-3 text-start d-flex align-items-center gap-3" data-camera-start>
+            <span class="fs-4 lh-1 flex-shrink-0"><i class="bi bi-camera"></i></span>
+            <span>
+              <span class="d-block fw-semibold">Gunakan Kamera</span>
+              <span class="d-block small opacity-75 mt-1">Ambil foto bukti sekarang</span>
+            </span>
+          </button>
+        </div>
       </div>
-      <div class="d-none mb-3" data-camera-live>
+
+      <div class="d-none border rounded-3 p-3 mt-3 bg-light-subtle" data-camera-live>
         <video class="w-100 rounded border bg-dark" style="max-height: 320px; object-fit: contain;" autoplay playsinline muted></video>
-        <button type="button" class="btn btn-primary mt-2" data-camera-capture>Ambil Foto</button>
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          <button type="button" class="btn btn-primary" data-camera-capture><i class="bi bi-camera-fill me-1"></i>Ambil Foto</button>
+          <button type="button" class="btn btn-light-secondary d-none" data-camera-close>Tutup Kamera</button>
+        </div>
       </div>
-      <div class="small text-muted mb-2" data-camera-status aria-live="polite">Kamera bersifat opsional. File atau galeri tetap dapat digunakan.</div>
-      <div class="d-flex flex-column gap-2" data-camera-preview></div>
+
+      <div class="small text-muted mt-2 d-none" data-camera-status aria-live="polite"></div>
+
+      <div class="border rounded-3 p-3 mt-3 bg-light-subtle">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+          <span class="small fw-semibold">Bukti dipilih</span>
+          <span class="badge bg-light text-dark" data-selected-file-count>0 / 3</span>
+        </div>
+        <div class="d-flex flex-column gap-2" data-camera-preview></div>
+      </div>
     `;
     input.insertAdjacentElement('afterend', root);
 
@@ -304,6 +375,7 @@
     state.video = root.querySelector('video');
     state.preview = root.querySelector('[data-camera-preview]');
     state.status = root.querySelector('[data-camera-status]');
+    renderCameraFiles(form);
 
     root.querySelector('[data-camera-start]')?.addEventListener('click', async () => {
       await startCamera(form);
@@ -333,7 +405,7 @@
       stopCamera(form);
       resetCameraFiles(form);
       root.querySelector('[data-camera-close]')?.classList.add('d-none');
-      setCameraStatus(form, 'Kamera bersifat opsional. File atau galeri tetap dapat digunakan.');
+      setCameraStatus(form, '');
     });
   };
 
@@ -431,7 +503,12 @@
     const defaultLabel = button?.textContent?.trim() || 'Kirim Bukti';
 
     installCamera(form);
-    input?.addEventListener('change', () => resetIdempotency(form));
+    input?.addEventListener('change', () => {
+      resetIdempotency(form);
+      renderCameraFiles(form);
+      const validationFailure = validateFiles(selectedFiles(form));
+      setCameraStatus(form, validationFailure ? publicMessages[validationFailure] : '', Boolean(validationFailure));
+    });
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
