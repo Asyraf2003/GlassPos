@@ -75,13 +75,13 @@
                         </div>
 
                         <div class="ui-key-value mb-3">
-                            <small>Minimum Total</small>
-                            <div>{{ number_format($template['minimum_total'], 0, ',', '.') }}</div>
+                            <small>Total Produk</small>
+                            <div>{{ number_format(max(0, $template['package_total'] - $template['service_total']), 0, ',', '.') }}</div>
                         </div>
 
                         <div class="ui-key-value mb-3">
-                            <small>Selisih Paket</small>
-                            <div>{{ number_format($template['package_margin'], 0, ',', '.') }}</div>
+                            <small>Total Jasa</small>
+                            <div>{{ number_format($template['service_total'], 0, ',', '.') }}</div>
                         </div>
 
                         <div class="ui-key-value mb-3">
@@ -115,45 +115,32 @@
                 <div class="ui-card-stack">
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="card-title mb-0">Pecahan 80/20 Selisih Paket</h5>
+                            <h5 class="card-title mb-0">Pecahan Jasa 80/20</h5>
                         </div>
 
                         <div class="card-body">
-                            @if ($template['package_margin'] <= 0)
-                                <p class="text-muted mb-0">
-                                    Total paket sama dengan minimum produk + jasa. Belum ada selisih untuk dipecah.
-                                </p>
-                            @else
-                                <div class="row g-3">
-                                    <div class="col-12 col-md-6">
-                                        <div class="ui-key-value">
-                                            <small>Selisih Di Atas Produk + Jasa</small>
-                                            <div>{{ number_format($template['package_margin'], 0, ',', '.') }}</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-12 col-md-6">
-                                        <div class="ui-key-value">
-                                            <small>Keuntungan Paket 80%</small>
-                                            <div class="fw-semibold">{{ number_format($template['package_profit'], 0, ',', '.') }}</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-12 col-md-6">
-                                        <div class="ui-key-value">
-                                            <small>Tambahan Jasa 20%</small>
-                                            <div>{{ number_format($template['package_service_extra'], 0, ',', '.') }}</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-12 col-md-6">
-                                        <div class="ui-key-value">
-                                            <small>Jasa Efektif</small>
-                                            <div>{{ number_format($template['effective_service_price'], 0, ',', '.') }}</div>
-                                        </div>
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <div class="ui-key-value">
+                                        <small>Total Nilai Jasa</small>
+                                        <div>{{ number_format($template['service_total'], 0, ',', '.') }}</div>
                                     </div>
                                 </div>
-                            @endif
+
+                                <div class="col-12 col-md-6">
+                                    <div class="ui-key-value">
+                                        <small>Keuntungan Toko 80%</small>
+                                        <div class="fw-semibold">{{ number_format($template['service_store_profit'], 0, ',', '.') }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <div class="ui-key-value">
+                                        <small>Bagian Jasa 20%</small>
+                                        <div>{{ number_format($template['service_fee'], 0, ',', '.') }}</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
