@@ -125,10 +125,11 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let page = Math.max(1, current - 2); page <= Math.min(last, current + 2); page += 1) {
             pages.push(`<li class="page-item${page === current ? ' active' : ''}"><button type="button" class="page-link" data-page="${page}">${page}</button></li>`);
         }
-        pagination.innerHTML = `<nav aria-label="Halaman riwayat"><ul class="pagination pagination-primary">
-            <li class="page-item${current === 1 ? ' disabled' : ''}"><button type="button" class="page-link" data-page="${current - 1}" aria-label="Sebelumnya">‹</button></li>
+
+        pagination.innerHTML = `<nav aria-label="Halaman riwayat"><ul class="pagination pagination-primary mb-0">
+            <li class="page-item${current === 1 ? ' disabled' : ''}"><button type="button" class="page-link" data-page="${current - 1}" aria-label="Sebelumnya"><i class="bi bi-chevron-left"></i></button></li>
             ${pages.join('')}
-            <li class="page-item${current === last ? ' disabled' : ''}"><button type="button" class="page-link" data-page="${current + 1}" aria-label="Berikutnya">›</button></li>
+            <li class="page-item${current === last ? ' disabled' : ''}"><button type="button" class="page-link" data-page="${current + 1}" aria-label="Berikutnya"><i class="bi bi-chevron-right"></i></button></li>
         </ul></nav>`;
     };
 
