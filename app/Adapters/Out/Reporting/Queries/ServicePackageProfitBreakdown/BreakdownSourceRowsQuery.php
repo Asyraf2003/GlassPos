@@ -51,10 +51,12 @@ final class BreakdownSourceRowsQuery
             ->selectRaw('COALESCE(SUM(COALESCE(parts_totals.parts_total_rupiah, 0)), 0) as parts_total_rupiah')
             ->selectRaw('COALESCE(SUM(COALESCE(issued_cogs.issued_cogs_rupiah, 0) - COALESCE(returned_cogs.returned_cogs_rupiah, 0)), 0) as sparepart_cogs_rupiah')
             ->selectRaw('COALESCE(SUM(COALESCE(parts_totals.parts_total_rupiah, 0) - (COALESCE(issued_cogs.issued_cogs_rupiah, 0) - COALESCE(returned_cogs.returned_cogs_rupiah, 0))), 0) as sparepart_margin_rupiah')
+            ->selectRaw('COALESCE(SUM(work_item_service_details.service_price_rupiah), 0) as service_fee_rupiah')
+            ->selectRaw('COALESCE(SUM(COALESCE(work_item_service_details.package_profit_rupiah, 0)), 0) as package_profit_rupiah')
             ->selectRaw('COALESCE(SUM(work_item_service_details.service_price_rupiah + COALESCE(work_item_service_details.package_profit_rupiah, 0)), 0) as total_service_component_rupiah')
             ->selectRaw('COALESCE(SUM(COALESCE(refunded_product_components.refunded_product_component_rupiah, 0)), 0) as refunded_product_component_rupiah')
             ->selectRaw('COALESCE(SUM(COALESCE(refunded_service_components.refunded_service_component_rupiah, 0)), 0) as refunded_service_component_rupiah')
-            ->selectRaw('COALESCE(SUM((COALESCE(parts_totals.parts_total_rupiah, 0) - (COALESCE(issued_cogs.issued_cogs_rupiah, 0) - COALESCE(returned_cogs.returned_cogs_rupiah, 0))) + work_item_service_details.service_price_rupiah + COALESCE(work_item_service_details.package_profit_rupiah, 0)), 0) as total_package_gross_profit_rupiah')
+            ->selectRaw('COALESCE(SUM((COALESCE(parts_totals.parts_total_rupiah, 0) - (COALESCE(issued_cogs.issued_cogs_rupiah, 0) - COALESCE(returned_cogs.returned_cogs_rupiah, 0))) + COALESCE(work_item_service_details.package_profit_rupiah, 0)), 0) as total_package_gross_profit_rupiah')
             ->first();
     }
 
