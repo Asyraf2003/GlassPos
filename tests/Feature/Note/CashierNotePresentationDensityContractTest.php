@@ -76,9 +76,10 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         self::assertStringContainsString('payment_status_label', $payment);
         self::assertStringNotContainsString("@include('shared.notes.partials.payment-timeline')", $payment);
         self::assertStringNotContainsString('Riwayat Pengembalian Otomatis', $payment);
+        self::assertStringContainsString("@include('shared.notes.partials.versioning-compact'", $history);
+        self::assertStringContainsString("@include('cashier.notes.partials.correction-history')", $history);
         self::assertStringContainsString("@include('shared.notes.partials.payment-timeline')", $history);
         self::assertStringContainsString('Riwayat Pengembalian Otomatis', $history);
-        self::assertStringContainsString('Riwayat Perubahan Nota', $history);
         self::assertStringNotContainsString('Setiap penerimaan uang dicatat sebagai transaksi terpisah.', $timeline);
         self::assertStringContainsString('<div class="visually-hidden">Kalkulator Tunai</div>', $paymentModal);
         self::assertStringNotContainsString('Hanya tiga angka utama. Angka tengah langsung bisa diisi.', $paymentModal);
