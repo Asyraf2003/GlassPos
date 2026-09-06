@@ -24,14 +24,8 @@ final class CashierNoteDesktopLayoutV2ContractTest extends TestCase
     {
         $view = $this->readViewSource('shared/notes/show.blade.php');
 
-        self::assertStringContainsString(
-            "@include('shared.notes.partials.history-operational')",
-            $view,
-        );
-        self::assertStringContainsString(
-            "@include('shared.notes.partials.history-financial')",
-            $view,
-        );
+        self::assertStringContainsString("@include('shared.notes.partials.history-operational')", $view);
+        self::assertStringContainsString("@include('shared.notes.partials.history-financial')", $view);
         self::assertSame(
             1,
             substr_count($view, "@include('shared.notes.partials.history-panel')"),
