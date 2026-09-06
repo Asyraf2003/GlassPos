@@ -26,11 +26,7 @@ final class CashierNoteDesktopLayoutV2ContractTest extends TestCase
 
         self::assertStringContainsString("@include('shared.notes.partials.history-operational')", $view);
         self::assertStringContainsString("@include('shared.notes.partials.history-financial')", $view);
-        self::assertSame(
-            1,
-            substr_count($view, "@include('shared.notes.partials.history-panel')"),
-            'Legacy combined history panel is reserved for the handset path only.',
-        );
+        self::assertSame(1, substr_count($view, "@include('shared.notes.partials.history-panel')"));
     }
 
     public function test_desktop_grid_keeps_left_and_right_columns_symmetric_without_row_spans(): void
