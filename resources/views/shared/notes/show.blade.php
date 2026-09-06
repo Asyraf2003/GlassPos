@@ -12,36 +12,56 @@
 @section('content')
 <section class="section note-detail-shell">
   @if (($noteDetailLayout ?? 'desktop') === 'desktop')
-    <div class="note-detail-desktop">
-      <section class="note-detail-desktop-info note-detail-surface">
-        <div class="note-detail-section-heading">
-          <h4>Info Nota</h4>
+    <div class="note-detail-desktop note-detail-desktop-grid">
+      <details class="note-detail-desktop-panel note-detail-desktop-panel--info" data-note-desktop-panel="info" open>
+        <summary class="note-detail-desktop-summary">
+          <span>Info Nota</span>
+          <i class="bi bi-chevron-down" aria-hidden="true"></i>
+        </summary>
+        <div class="note-detail-desktop-body">
+          @include('shared.notes.partials.header-summary')
         </div>
-        @include('shared.notes.partials.header-summary')
-      </section>
+      </details>
 
-      <div class="note-detail-desktop-main">
-        <section class="note-detail-desktop-lines note-detail-surface">
-          <div class="note-detail-section-heading">
-            <h4>Rincian Nota</h4>
-          </div>
+      <details class="note-detail-desktop-panel note-detail-desktop-panel--lines" data-note-desktop-panel="lines" open>
+        <summary class="note-detail-desktop-summary">
+          <span>Rincian Nota</span>
+          <i class="bi bi-chevron-down" aria-hidden="true"></i>
+        </summary>
+        <div class="note-detail-desktop-body">
           @include('shared.notes.partials.line-workspace')
-        </section>
-
-        <aside class="note-detail-desktop-payment note-detail-surface">
-          <div class="note-detail-section-heading">
-            <h4>Pembayaran</h4>
-          </div>
-          @include('shared.notes.partials.payment-summary-actions')
-        </aside>
-      </div>
-
-      <section class="note-detail-desktop-history">
-        <div class="note-detail-history-title">
-          <h4>Riwayat Nota</h4>
         </div>
-        @include('shared.notes.partials.history-panel')
-      </section>
+      </details>
+
+      <details class="note-detail-desktop-panel note-detail-desktop-panel--payment" data-note-desktop-panel="payment" open>
+        <summary class="note-detail-desktop-summary">
+          <span>Pembayaran</span>
+          <i class="bi bi-chevron-down" aria-hidden="true"></i>
+        </summary>
+        <div class="note-detail-desktop-body">
+          @include('shared.notes.partials.payment-summary-actions')
+        </div>
+      </details>
+
+      <details class="note-detail-desktop-panel note-detail-desktop-panel--history-main" data-note-desktop-panel="history-main" open>
+        <summary class="note-detail-desktop-summary">
+          <span>Riwayat Nota</span>
+          <i class="bi bi-chevron-down" aria-hidden="true"></i>
+        </summary>
+        <div class="note-detail-desktop-body note-detail-desktop-history-body">
+          @include('shared.notes.partials.history-operational')
+        </div>
+      </details>
+
+      <details class="note-detail-desktop-panel note-detail-desktop-panel--history-finance" data-note-desktop-panel="history-finance" open>
+        <summary class="note-detail-desktop-summary">
+          <span>Riwayat Finansial</span>
+          <i class="bi bi-chevron-down" aria-hidden="true"></i>
+        </summary>
+        <div class="note-detail-desktop-body note-detail-desktop-history-body">
+          @include('shared.notes.partials.history-financial')
+        </div>
+      </details>
     </div>
   @else
     <div class="note-detail-mobile-stack note-detail-handset">
