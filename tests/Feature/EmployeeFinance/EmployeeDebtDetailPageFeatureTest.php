@@ -175,7 +175,7 @@ final class EmployeeDebtDetailPageFeatureTest extends TestCase
         $response->assertSee('Salah input pembayaran');
         $response->assertSee('Pembayaran salah input');
         $response->assertSee('Rp250.000');
-        $response->assertSee('Riwayat Pembayaran');
+        $response->assertDontSee('Riwayat Pembayaran');
         $response->assertDontSee('Riwayat Koreksi Hutang');
 
         $response->assertDontSee('Belum ada pembayaran hutang aktif.');
