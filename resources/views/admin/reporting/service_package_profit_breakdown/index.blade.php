@@ -53,7 +53,6 @@
             <div class="fs-5 fw-bold text-danger">Rp {{ number_format($summary['sparepart_cogs_rupiah'] ?? 0, 0, ',', '.') }}</div>
         </div></div>
     </div>
-
 </div>
 
 <div class="mb-3">
@@ -70,7 +69,21 @@
 
     <div class="col-12 col-md-6 col-xl-3">
         <div class="card"><div class="card-body">
-            <div class="text-muted small">Komponen Service</div>
+            <div class="text-muted small">Bagian Jasa 20%</div>
+            <div class="fs-5 fw-bold">Rp {{ number_format($summary['service_fee_rupiah'] ?? 0, 0, ',', '.') }}</div>
+        </div></div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card"><div class="card-body">
+            <div class="text-muted small">Keuntungan Toko dari Jasa 80%</div>
+            <div class="fs-5 fw-bold text-success">Rp {{ number_format($summary['package_profit_rupiah'] ?? 0, 0, ',', '.') }}</div>
+        </div></div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card"><div class="card-body">
+            <div class="text-muted small">Total Nilai Jasa</div>
             <div class="fs-5 fw-bold">Rp {{ number_format($summary['total_service_component_rupiah'] ?? 0, 0, ',', '.') }}</div>
         </div></div>
     </div>
@@ -91,7 +104,8 @@
 
     <div class="col-12">
         <div class="card"><div class="card-body">
-            <div class="text-muted small">Laba Kotor Paket</div>
+            <div class="text-muted small">Laba Kotor Paket untuk Toko</div>
+            <div class="small text-muted mb-1">Margin sparepart + keuntungan toko dari jasa 80%</div>
             <div class="fs-5 fw-bold text-success">Rp {{ number_format($summary['total_package_gross_profit_rupiah'] ?? 0, 0, ',', '.') }}</div>
         </div></div>
     </div>
