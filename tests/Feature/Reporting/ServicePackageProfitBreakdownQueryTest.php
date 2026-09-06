@@ -178,7 +178,7 @@ final class ServicePackageProfitBreakdownQueryTest extends TestCase
             ->update(['harga_jual' => 999999]);
 
         DB::table('product_inventory_costing')
-            ->whereIn('id', ['product-phase6-a', 'product-phase6-b'])
+            ->whereIn('product_id', ['product-phase6-a', 'product-phase6-b'])
             ->update([
                 'avg_cost_rupiah' => 999999,
                 'inventory_value_rupiah' => 9999990,
