@@ -181,7 +181,10 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
         $page->assertSee('Rp 130.000');
         $page->assertSee('Rp 90.000');
         $page->assertSee('Rp 40.000');
-        $page->assertSee('Rp 160.000');
+        $page->assertSee('Rp 24.000');
+        $page->assertSee('Rp 96.000');
+        $page->assertSee('Rp 120.000');
+        $page->assertSee('Rp 136.000');
         $page->assertDontSee('Rp 999.999');
 
         $export = $this->get(route('admin.reports.service_package_profit_breakdown.export_excel', [
@@ -206,8 +209,10 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
         $this->assertSame(130000, $summary->getCell('B6')->getValue());
         $this->assertSame(90000, $summary->getCell('B7')->getValue());
         $this->assertSame(40000, $summary->getCell('B8')->getValue());
-        $this->assertSame(120000, $summary->getCell('B9')->getValue());
-        $this->assertSame(160000, $summary->getCell('B12')->getValue());
+        $this->assertSame(24000, $summary->getCell('B9')->getValue());
+        $this->assertSame(96000, $summary->getCell('B10')->getValue());
+        $this->assertSame(120000, $summary->getCell('B11')->getValue());
+        $this->assertSame(136000, $summary->getCell('B14')->getValue());
 
         $this->assertSame($noteId, $detail->getCell('B2')->getValue());
         $this->assertSame($workItemId, $detail->getCell('C2')->getValue());
@@ -217,7 +222,9 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
         $this->assertSame(90000, $detail->getCell('H2')->getValue());
         $this->assertSame(40000, $detail->getCell('I2')->getValue());
         $this->assertSame(24000, $detail->getCell('J2')->getValue());
-        $this->assertSame(160000, $detail->getCell('Q2')->getValue());
+        $this->assertSame(96000, $detail->getCell('M2')->getValue());
+        $this->assertSame(120000, $detail->getCell('N2')->getValue());
+        $this->assertSame(136000, $detail->getCell('Q2')->getValue());
 
         unlink($path);
         $spreadsheet->disconnectWorksheets();
@@ -414,7 +421,10 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
         $page->assertSee('Rp 130.000');
         $page->assertSee('Rp 90.000');
         $page->assertSee('Rp 40.000');
-        $page->assertSee('Rp 210.000');
+        $page->assertSee('Rp 34.000');
+        $page->assertSee('Rp 136.000');
+        $page->assertSee('Rp 170.000');
+        $page->assertSee('Rp 176.000');
         $page->assertDontSee('HTTP Revision Package Customer</td>', false);
         $page->assertDontSee('Rp 999.999');
 
@@ -440,8 +450,10 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
         $this->assertSame(130000, $summary->getCell('B6')->getValue());
         $this->assertSame(90000, $summary->getCell('B7')->getValue());
         $this->assertSame(40000, $summary->getCell('B8')->getValue());
-        $this->assertSame(170000, $summary->getCell('B9')->getValue());
-        $this->assertSame(210000, $summary->getCell('B12')->getValue());
+        $this->assertSame(34000, $summary->getCell('B9')->getValue());
+        $this->assertSame(136000, $summary->getCell('B10')->getValue());
+        $this->assertSame(170000, $summary->getCell('B11')->getValue());
+        $this->assertSame(176000, $summary->getCell('B14')->getValue());
 
         $this->assertSame($noteId, $detail->getCell('B2')->getValue());
         $this->assertSame($workItemId, $detail->getCell('C2')->getValue());
@@ -451,7 +463,9 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
         $this->assertSame(90000, $detail->getCell('H2')->getValue());
         $this->assertSame(40000, $detail->getCell('I2')->getValue());
         $this->assertSame(34000, $detail->getCell('J2')->getValue());
-        $this->assertSame(210000, $detail->getCell('Q2')->getValue());
+        $this->assertSame(136000, $detail->getCell('M2')->getValue());
+        $this->assertSame(170000, $detail->getCell('N2')->getValue());
+        $this->assertSame(176000, $detail->getCell('Q2')->getValue());
         $this->assertNull($detail->getCell('B3')->getValue());
 
         unlink($xlsx);
