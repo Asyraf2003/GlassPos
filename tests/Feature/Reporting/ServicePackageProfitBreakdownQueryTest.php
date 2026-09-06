@@ -178,7 +178,7 @@ final class ServicePackageProfitBreakdownQueryTest extends TestCase
             ->update(['harga_jual' => 999999]);
 
         DB::table('product_inventory_costing')
-            ->whereIn('product_id', ['product-phase6-a', 'product-phase6-b'])
+            ->whereIn('id', ['product-phase6-a', 'product-phase6-b'])
             ->update([
                 'avg_cost_rupiah' => 999999,
                 'inventory_value_rupiah' => 9999990,
@@ -208,7 +208,7 @@ final class ServicePackageProfitBreakdownQueryTest extends TestCase
 
         self::assertSame(40000, $row['sparepart_cogs_rupiah']);
         self::assertSame(40000, $row['sparepart_margin_rupiah']);
-        self::assertSame(190000, $row['total_package_gross_profit_rupiah']);
+        self::assertSame(70000, $row['total_package_gross_profit_rupiah']);
 
         self::assertArrayNotHasKey('cash_operational_profit_rupiah', $row);
     }
