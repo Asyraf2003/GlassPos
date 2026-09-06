@@ -32,9 +32,10 @@ final class CashierNoteDesktopLayoutV2ContractTest extends TestCase
             "@include('shared.notes.partials.history-financial')",
             $view,
         );
-        self::assertStringNotContainsString(
-            "@include('shared.notes.partials.history-panel')",
-            $view,
+        self::assertSame(
+            1,
+            substr_count($view, "@include('shared.notes.partials.history-panel')"),
+            'Legacy combined history panel is reserved for the handset path only.',
         );
     }
 
