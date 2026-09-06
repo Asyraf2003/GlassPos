@@ -64,7 +64,7 @@
     }
     body.innerHTML = rows.map((r, i) => {
       const active = Boolean(r.is_active), margin = Number(r.package_margin || 0);
-      const marginText = margin > 0 ? ` · Selisih Rp${money(margin)}` : " · Tanpa selisih";
+      const marginText = margin > 0 ? ` · Selisih Rp${money(margin)}` : " · Tanpa margin tambahan";
       const splitText = margin > 0 ? `<div class="small text-muted mt-1">80% keuntungan Rp${money(r.package_profit)} · 20% jasa Rp${money(r.package_service_extra)}</div>` : "";
       return `<tr>
         <td>${((Number(m.page) - 1) * Number(m.per_page)) + i + 1}</td>
