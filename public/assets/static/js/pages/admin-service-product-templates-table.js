@@ -63,15 +63,14 @@
       return;
     }
     body.innerHTML = rows.map((r, i) => {
-      const active = Boolean(r.is_active), margin = Number(r.package_margin || 0);
-      const marginText = margin > 0 ? ` · Selisih Rp${money(margin)}` : " · Tanpa margin tambahan";
-      const splitText = margin > 0 ? `<div class="small text-muted mt-1">80% keuntungan Rp${money(r.package_profit)} · 20% jasa Rp${money(r.package_service_extra)}</div>` : "";
+      const active = Boolean(r.is_active);
+      const splitText = `<div class="small text-muted mt-1">Jasa Rp${money(r.service_total)} · 80% keuntungan toko Rp${money(r.service_store_profit)} · 20% jasa Rp${money(r.service_fee)}</div>`;
       return `<tr>
         <td>${((Number(m.page) - 1) * Number(m.per_page)) + i + 1}</td>
         <td><div class="fw-semibold">${esc(r.service_name)}</div><small class="text-muted">Service</small></td>
         <td><div class="fw-semibold">${esc(r.nama_barang)}</div><small class="text-muted">${esc(r.kode_barang || "-")} · harga jual Rp${money(r.harga_jual)}</small></td>
         <td>Rp${money(r.default_service_price_rupiah)}</td>
-        <td><div class="fw-semibold">Rp${money(r.package_total)}</div><small class="text-muted">Min Rp${money(r.minimum_total)}${marginText}</small>${splitText}</td>
+        <td><div class="fw-semibold">Rp${money(r.package_total)}</div>${splitText}</td>
         <td><span class="badge ${active ? "bg-success" : "bg-secondary"}">${active ? "Aktif" : "Nonaktif"}</span></td>
         <td class="text-center"><button type="button" class="btn btn-sm btn-outline-primary" data-package-action="open"
           data-package-name="${esc(r.service_name)}" data-package-product="${esc(r.nama_barang)}" data-package-status="${active ? "active" : "inactive"}"
