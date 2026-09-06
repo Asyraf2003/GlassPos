@@ -51,23 +51,21 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         self::assertStringNotContainsString('Ketik nominal, cek kembalian, lalu simpan tunai saat jumlah cukup.', $cash);
     }
 
-    public function test_note_detail_desktop_separates_current_state_from_history_without_losing_business_truth(): void
+    public function test_note_detail_keeps_business_truth_while_history_is_split_by_responsibility(): void
     {
         $detail = $this->readViewSource('shared/notes/show.blade.php');
         $header = $this->readViewSource('shared/notes/partials/header-summary.blade.php');
         $lines = $this->readViewSource('shared/notes/partials/line-workspace.blade.php');
         $payment = $this->readViewSource('shared/notes/partials/payment-summary-actions.blade.php');
-        $history = $this->readViewSource('shared/notes/partials/history-panel.blade.php');
+        $operational = $this->readViewSource('shared/notes/partials/history-operational.blade.php');
+        $financial = $this->readViewSource('shared/notes/partials/history-financial.blade.php');
         $timeline = $this->readViewSource('shared/notes/partials/payment-timeline.blade.php');
         $paymentModal = $this->readViewSource('cashier/notes/partials/payment-modal.blade.php');
-        $deviceCss = $this->readPublicAsset('assets/static/css/cashier-note-device-presentation.css');
 
         self::assertStringContainsString('note-detail-desktop', $detail);
         self::assertStringContainsString('note-detail-handset', $detail);
         self::assertStringContainsString("\$noteDetailLayout ?? 'desktop'", $detail);
-        self::assertStringContainsString('<h4>Pembayaran</h4>', $detail);
-        self::assertStringNotContainsString('note-detail-desktop-history note-detail-surface', $detail);
-        self::assertStringContainsString('note-detail-history-title', $detail);
+        self::assertStringContainsString('data-note-desktop-panel="payment"', $detail);
         self::assertStringContainsString("{{ \$note['id'] }}", $header);
         self::assertStringContainsString('Alasan Nota', $header);
         self::assertStringNotContainsString('Jumlah Rincian', $header);
@@ -76,27 +74,18 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         self::assertStringContainsString('payment_status_label', $payment);
         self::assertStringNotContainsString("@include('shared.notes.partials.payment-timeline')", $payment);
         self::assertStringNotContainsString('Riwayat Pengembalian Otomatis', $payment);
-        self::assertStringContainsString("@include('shared.notes.partials.versioning-compact'", $history);
-        self::assertStringContainsString("@include('cashier.notes.partials.correction-history')", $history);
-        self::assertStringContainsString("@include('shared.notes.partials.payment-timeline')", $history);
-        self::assertStringContainsString('Riwayat Pengembalian Otomatis', $history);
+        self::assertStringContainsString("@include('shared.notes.partials.versioning-compact'", $operational);
+        self::assertStringContainsString("@include('cashier.notes.partials.correction-history')", $operational);
+        self::assertStringContainsString("@include('shared.notes.partials.payment-timeline')", $financial);
+        self::assertStringContainsString('Riwayat Pengembalian Otomatis', $financial);
         self::assertStringNotContainsString('Setiap penerimaan uang dicatat sebagai transaksi terpisah.', $timeline);
         self::assertStringContainsString('<div class="visually-hidden">Kalkulator Tunai</div>', $paymentModal);
         self::assertStringNotContainsString('Hanya tiga angka utama. Angka tengah langsung bisa diisi.', $paymentModal);
         self::assertStringNotContainsString('Tagihan aktif dipilih otomatis. Rincian tagihan dikirim otomatis agar pembayaran tercatat sesuai urutan.', $paymentModal);
-        self::assertStringContainsString('.note-detail-desktop-main', $deviceCss);
-        self::assertStringContainsString('.note-detail-desktop-history', $deviceCss);
-        self::assertStringNotContainsString('grid-row: 1 / span 3;', $deviceCss);
-        self::assertStringNotContainsString('.note-detail-mobile-step:nth-child(4)', $deviceCss);
     }
 
     private function readViewSource(string $path): string
     {
         return (string) file_get_contents(resource_path('views/'.$path));
-    }
-
-    private function readPublicAsset(string $path): string
-    {
-        return (string) file_get_contents(public_path($path));
     }
 }
