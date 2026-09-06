@@ -26,10 +26,12 @@ final class ServicePackageProfitBreakdownExcelSummarySheetWriter
             ['Total Sparepart', (int) ($summary['parts_total_rupiah'] ?? 0)],
             ['HPP Sparepart', (int) ($summary['sparepart_cogs_rupiah'] ?? 0)],
             ['Margin Sparepart', (int) ($summary['sparepart_margin_rupiah'] ?? 0)],
-            ['Komponen Service', (int) ($summary['total_service_component_rupiah'] ?? 0)],
+            ['Bagian Jasa 20%', (int) ($summary['service_fee_rupiah'] ?? 0)],
+            ['Keuntungan Toko dari Jasa 80%', (int) ($summary['package_profit_rupiah'] ?? 0)],
+            ['Total Nilai Jasa', (int) ($summary['total_service_component_rupiah'] ?? 0)],
             ['Refund Komponen Produk', (int) ($summary['refunded_product_component_rupiah'] ?? 0)],
             ['Refund Komponen Service', (int) ($summary['refunded_service_component_rupiah'] ?? 0)],
-            ['Laba Kotor Paket', (int) ($summary['total_package_gross_profit_rupiah'] ?? 0)],
+            ['Laba Kotor Paket untuk Toko', (int) ($summary['total_package_gross_profit_rupiah'] ?? 0)],
         ]);
 
         $this->tables->autosize($sheet, 2);
