@@ -12,31 +12,60 @@
 @section('content')
 <section class="section note-detail-shell">
   @if (($noteDetailLayout ?? 'desktop') === 'desktop')
-    <div class="note-detail-desktop note-detail-desktop-grid">
-      <details class="note-detail-desktop-panel note-detail-desktop-panel--info" data-note-desktop-panel="info" open>
-        <summary class="note-detail-desktop-summary"><h4>Info Nota</h4><i class="bi bi-chevron-down" aria-hidden="true"></i></summary>
-        <div class="note-detail-desktop-body">@include('shared.notes.partials.header-summary')</div>
-      </details>
+    <div class="note-detail-desktop note-detail-desktop-columns">
+      <div class="note-detail-desktop-stack note-detail-desktop-stack--main" data-note-desktop-stack="main">
+        <details class="note-detail-desktop-panel" data-note-desktop-panel="info" open>
+          <summary class="note-detail-desktop-summary">
+            <h4>Info Nota</h4>
+            <i class="bi bi-chevron-down" aria-hidden="true"></i>
+          </summary>
+          <div class="note-detail-desktop-body">
+            @include('shared.notes.partials.header-summary')
+          </div>
+        </details>
 
-      <details class="note-detail-desktop-panel note-detail-desktop-panel--lines" data-note-desktop-panel="lines" open>
-        <summary class="note-detail-desktop-summary"><h4>Rincian Nota</h4><i class="bi bi-chevron-down" aria-hidden="true"></i></summary>
-        <div class="note-detail-desktop-body">@include('shared.notes.partials.line-workspace')</div>
-      </details>
+        <details class="note-detail-desktop-panel" data-note-desktop-panel="lines" open>
+          <summary class="note-detail-desktop-summary">
+            <h4>Rincian Nota</h4>
+            <i class="bi bi-chevron-down" aria-hidden="true"></i>
+          </summary>
+          <div class="note-detail-desktop-body">
+            @include('shared.notes.partials.line-workspace')
+          </div>
+        </details>
 
-      <details class="note-detail-desktop-panel note-detail-desktop-panel--payment" data-note-desktop-panel="payment" open>
-        <summary class="note-detail-desktop-summary"><h4>Pembayaran</h4><i class="bi bi-chevron-down" aria-hidden="true"></i></summary>
-        <div class="note-detail-desktop-body">@include('shared.notes.partials.payment-summary-actions')</div>
-      </details>
+        <details class="note-detail-desktop-panel" data-note-desktop-panel="history-main" open>
+          <summary class="note-detail-desktop-summary">
+            <h4>Riwayat Nota</h4>
+            <i class="bi bi-chevron-down" aria-hidden="true"></i>
+          </summary>
+          <div class="note-detail-desktop-body note-detail-desktop-history-body">
+            @include('shared.notes.partials.history-operational')
+          </div>
+        </details>
+      </div>
 
-      <details class="note-detail-desktop-panel note-detail-desktop-panel--history-main" data-note-desktop-panel="history-main" open>
-        <summary class="note-detail-desktop-summary"><h4>Riwayat Nota</h4><i class="bi bi-chevron-down" aria-hidden="true"></i></summary>
-        <div class="note-detail-desktop-body note-detail-desktop-history-body">@include('shared.notes.partials.history-operational')</div>
-      </details>
+      <aside class="note-detail-desktop-stack note-detail-desktop-stack--finance" data-note-desktop-stack="finance">
+        <details class="note-detail-desktop-panel" data-note-desktop-panel="payment" open>
+          <summary class="note-detail-desktop-summary">
+            <h4>Pembayaran</h4>
+            <i class="bi bi-chevron-down" aria-hidden="true"></i>
+          </summary>
+          <div class="note-detail-desktop-body">
+            @include('shared.notes.partials.payment-summary-actions')
+          </div>
+        </details>
 
-      <details class="note-detail-desktop-panel note-detail-desktop-panel--history-finance" data-note-desktop-panel="history-finance" open>
-        <summary class="note-detail-desktop-summary"><h4>Riwayat Finansial</h4><i class="bi bi-chevron-down" aria-hidden="true"></i></summary>
-        <div class="note-detail-desktop-body note-detail-desktop-history-body">@include('shared.notes.partials.history-financial')</div>
-      </details>
+        <details class="note-detail-desktop-panel" data-note-desktop-panel="history-finance" open>
+          <summary class="note-detail-desktop-summary">
+            <h4>Riwayat Finansial</h4>
+            <i class="bi bi-chevron-down" aria-hidden="true"></i>
+          </summary>
+          <div class="note-detail-desktop-body note-detail-desktop-history-body">
+            @include('shared.notes.partials.history-financial')
+          </div>
+        </details>
+      </aside>
     </div>
   @else
     <div class="note-detail-mobile-stack note-detail-handset">
