@@ -1,12 +1,16 @@
-body[data-note-device="desktop"] .note-detail-desktop-grid {
+body[data-note-device="desktop"] .note-detail-desktop-columns {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(19rem, 23rem);
-    grid-template-areas:
-        "info info"
-        "lines payment"
-        "history-main history-finance";
     gap: .9rem;
     align-items: start;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-stack {
+    display: flex;
+    flex-direction: column;
+    gap: .9rem;
+    min-width: 0;
+    align-self: start;
 }
 
 body[data-note-device="desktop"] .note-detail-desktop-panel {
@@ -16,12 +20,6 @@ body[data-note-device="desktop"] .note-detail-desktop-panel {
     border-radius: .65rem;
     background: var(--note-detail-card);
 }
-
-body[data-note-device="desktop"] .note-detail-desktop-panel--info { grid-area: info; }
-body[data-note-device="desktop"] .note-detail-desktop-panel--lines { grid-area: lines; }
-body[data-note-device="desktop"] .note-detail-desktop-panel--payment { grid-area: payment; }
-body[data-note-device="desktop"] .note-detail-desktop-panel--history-main { grid-area: history-main; }
-body[data-note-device="desktop"] .note-detail-desktop-panel--history-finance { grid-area: history-finance; }
 
 body[data-note-device="desktop"] .note-detail-desktop-summary {
     display: flex;
@@ -38,8 +36,13 @@ body[data-note-device="desktop"] .note-detail-desktop-summary {
     transition: background-color .16s ease;
 }
 
-body[data-note-device="desktop"] .note-detail-desktop-summary::-webkit-details-marker { display: none; }
-body[data-note-device="desktop"] .note-detail-desktop-summary:hover { background: var(--note-detail-surface-subtle); }
+body[data-note-device="desktop"] .note-detail-desktop-summary::-webkit-details-marker {
+    display: none;
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-summary:hover {
+    background: var(--note-detail-surface-subtle);
+}
 
 body[data-note-device="desktop"] .note-detail-desktop-summary h4,
 body[data-note-device="desktop"] .note-detail-desktop-summary span {
@@ -58,7 +61,9 @@ body[data-note-device="desktop"] .note-detail-desktop-panel[open] > .note-detail
     border-bottom: 1px solid var(--note-detail-border);
 }
 
-body[data-note-device="desktop"] .note-detail-desktop-panel[open] > .note-detail-desktop-summary i { transform: rotate(180deg); }
+body[data-note-device="desktop"] .note-detail-desktop-panel[open] > .note-detail-desktop-summary i {
+    transform: rotate(180deg);
+}
 
 body[data-note-device="desktop"] .note-detail-desktop-body {
     min-width: 0;
@@ -66,7 +71,9 @@ body[data-note-device="desktop"] .note-detail-desktop-body {
     animation: note-detail-panel-reveal .16s ease-out;
 }
 
-body[data-note-device="desktop"] .note-detail-desktop-history-body { padding: .78rem; }
+body[data-note-device="desktop"] .note-detail-desktop-history-body {
+    padding: .78rem;
+}
 
 body[data-note-device="desktop"] .note-detail-desktop-panel .note-detail-payment-card {
     margin: 0;
@@ -76,8 +83,15 @@ body[data-note-device="desktop"] .note-detail-desktop-panel .note-detail-payment
     box-shadow: none;
 }
 
-body[data-note-device="desktop"] .note-detail-desktop-panel .note-detail-payment-card > .card-body { padding: 0; }
-body[data-note-device="desktop"] .note-detail-history-stack { display: grid; gap: .75rem; }
+body[data-note-device="desktop"] .note-detail-desktop-panel .note-detail-payment-card > .card-body {
+    padding: 0;
+}
+
+body[data-note-device="desktop"] .note-detail-history-stack {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+}
 
 body[data-note-device="desktop"] .note-detail-history-stack .card,
 body[data-note-device="desktop"] .note-detail-history-stack .note-detail-history-section {
@@ -87,13 +101,22 @@ body[data-note-device="desktop"] .note-detail-history-stack .note-detail-history
     box-shadow: none;
 }
 
-body[data-note-device="desktop"] .note-detail-history-stack .card-header { padding: .7rem .75rem; }
-body[data-note-device="desktop"] .note-detail-history-stack .card-body { padding: .75rem; }
+body[data-note-device="desktop"] .note-detail-history-stack .card-header {
+    padding: .7rem .75rem;
+}
+
+body[data-note-device="desktop"] .note-detail-history-stack .card-body {
+    padding: .75rem;
+}
 
 body[data-note-device="desktop"] .note-detail-history-stack--financial .note-payment-timeline,
-body[data-note-device="desktop"] .note-detail-history-stack--financial .note-detail-history-section--refunds { min-width: 0; }
+body[data-note-device="desktop"] .note-detail-history-stack--financial .note-detail-history-section--refunds {
+    min-width: 0;
+}
 
-body[data-note-device="desktop"] .note-detail-history-section--refunds { padding: .75rem; }
+body[data-note-device="desktop"] .note-detail-history-section--refunds {
+    padding: .75rem;
+}
 
 body[data-note-device="desktop"] .note-detail-history-heading {
     display: flex;
@@ -103,16 +126,29 @@ body[data-note-device="desktop"] .note-detail-history-heading {
     margin-bottom: .7rem;
 }
 
-body[data-note-device="desktop"] .note-detail-payment-card .btn { min-height: 2.5rem; }
+body[data-note-device="desktop"] .note-detail-payment-card .btn {
+    min-height: 2.5rem;
+}
 
 @keyframes note-detail-panel-reveal {
-    from { opacity: 0; transform: translateY(-2px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-2px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @media (max-width: 1180px) {
-    body[data-note-device="desktop"] .note-detail-desktop-grid {
+    body[data-note-device="desktop"] .note-detail-desktop-columns {
         grid-template-columns: minmax(0, 1fr) minmax(18rem, 21rem);
+        gap: .75rem;
+    }
+
+    body[data-note-device="desktop"] .note-detail-desktop-stack {
         gap: .75rem;
     }
 }
