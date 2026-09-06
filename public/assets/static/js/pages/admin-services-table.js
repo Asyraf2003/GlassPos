@@ -91,12 +91,18 @@
       pagination.innerHTML = "";
       return;
     }
-    pagination.innerHTML = `
-      <nav aria-label="Pagination jasa"><ul class="pagination pagination-sm mb-0">
-        <li class="page-item ${page <= 1 ? "disabled" : ""}"><button class="page-link" type="button" data-page="${page - 1}">Sebelumnya</button></li>
-        <li class="page-item disabled"><span class="page-link">${page} / ${lastPage}</span></li>
-        <li class="page-item ${page >= lastPage ? "disabled" : ""}"><button class="page-link" type="button" data-page="${page + 1}">Berikutnya</button></li>
-      </ul></nav>`;
+
+    const start = Math.max(1, page - 2);
+    const end = Math.min(lastPage, page + 2);
+    let html = '<nav aria-label="Pagination jasa"><ul class="pagination pagination-primary mb-0">';
+    html += `<li class="page-item ${page === 1 ? "disabled" : ""}"><button class="page-link" type="button" data-page="${page - 1}" aria-label="Sebelumnya"><i class="bi bi-chevron-left"></i></button></li>`;
+
+    for (let current = start; current <= end; current += 1) {
+      html += `<li class="page-item ${current === page ? "active" : ""}"><button class="page-link" type="button" data-page="${current}">${current}</button></li>`;
+    }
+
+    html += `<li class="page-item ${page === lastPage ? "disabled" : ""}"><button class="page-link" type="button" data-page="${page + 1}" aria-label="Berikutnya"><i class="bi bi-chevron-right"></i></button></li></ul></nav>`;
+    pagination.innerHTML = html;
   };
 
   const renderSort = () => {
