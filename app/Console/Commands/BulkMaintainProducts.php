@@ -15,6 +15,7 @@ final class BulkMaintainProducts extends Command
     protected $signature = 'products:bulk-maintain
         {file : CSV manifest path}
         {--actor= : Actor ID recorded in audit}
+        {--uppercase-master : Uppercase code, product name, and brand during maintenance}
         {--apply : Apply changes; without this option the command is dry-run}';
 
     protected $description = 'Validate and apply audited bulk product maintenance from CSV';
@@ -28,7 +29,6 @@ final class BulkMaintainProducts extends Command
 
         if ($actorId === '') {
             $this->error('--actor wajib diisi.');
-
             return self::FAILURE;
         }
 
@@ -37,7 +37,6 @@ final class BulkMaintainProducts extends Command
             $validation = $validator->validate($rows, $actorId);
         } catch (Throwable $e) {
             $this->error($e->getMessage());
-
             return self::FAILURE;
         }
 
@@ -50,9 +49,7 @@ final class BulkMaintainProducts extends Command
             foreach ($validation['errors'] as $error) {
                 $this->error($error);
             }
-
             $this->error('VALIDATION FAILED. Tidak ada perubahan dilakukan.');
-
             return self::FAILURE;
         }
 
@@ -60,7 +57,6 @@ final class BulkMaintainProducts extends Command
 
         if (! $this->option('apply')) {
             $this->warn('DRY RUN: tidak ada perubahan database.');
-
             return self::SUCCESS;
         }
 
@@ -69,16 +65,15 @@ final class BulkMaintainProducts extends Command
                 $rows,
                 $actorId,
                 (string) $validation['actor_role'],
+                (bool) $this->option('uppercase-master'),
             );
         } catch (Throwable $e) {
             $this->error('APPLY FAILED: '.$e->getMessage());
             $this->error('Seluruh batch di-rollback.');
-
             return self::FAILURE;
         }
 
         $this->info('APPLY SUCCESS: seluruh mutation row tersimpan.');
-
         return self::SUCCESS;
     }
 
