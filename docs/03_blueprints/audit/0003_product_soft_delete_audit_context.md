@@ -36,7 +36,7 @@ For example, a row classified as `DELETE` may supply a business reason such as:
 
 The sentence above is audit context only. It does not mean the soft-delete path creates or migrates a Service record.
 
-Rows that do not mutate production state, such as unknown-price or unchanged rows, should not emit fake product revisions or audit events.
+Rows that do not mutate production state, such as unknown-price or unchanged rows, should not emit fake product revisions or audit events. Exception: when `--uppercase-master` is explicitly used, those rows may write a real product revision only when `kode_barang`, `nama_barang`, or `merek` actually needs uppercase normalization.
 
 ## Proof
 
