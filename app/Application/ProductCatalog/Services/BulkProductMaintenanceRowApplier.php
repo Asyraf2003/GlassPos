@@ -16,8 +16,7 @@ final class BulkProductMaintenanceRowApplier
         private readonly UpdateProductHandler $updates,
         private readonly SoftDeleteProductHandler $deletes,
         private readonly ProductChangeContext $context,
-    ) {
-    }
+    ) {}
 
     /** @param array<string,string> $row */
     public function apply(
@@ -87,12 +86,7 @@ final class BulkProductMaintenanceRowApplier
 
     private function setContext(string $actorId, string $actorRole, string $reason): void
     {
-        $this->context->set(
-            $actorId,
-            $actorRole,
-            'cli_bulk_product_maintenance',
-            $reason,
-        );
+        $this->context->set($actorId, $actorRole, 'cli_bulk_product_maintenance', $reason);
     }
 
     private function assertSuccess(Result $result, string $productId): void
