@@ -9,15 +9,8 @@ use InvalidArgumentException;
 final class BulkProductMaintenanceManifestReader
 {
     private const REQUIRED = [
-        'product_id',
-        'kode_barang',
-        'nama_barang',
-        'merek',
-        'ukuran',
-        'expected_old_price',
-        'new_price',
-        'action',
-        'reason',
+        'product_id', 'kode_barang', 'nama_barang', 'merek', 'ukuran',
+        'expected_old_price', 'new_price', 'action', 'reason',
     ];
 
     /** @return array<int, array<string, string>> */
@@ -44,13 +37,10 @@ final class BulkProductMaintenanceManifestReader
                 static fn (string $value): string => trim(str_replace("\xEF\xBB\xBF", '', $value)),
                 $header,
             );
-
             $missing = array_diff(self::REQUIRED, $header);
 
             if ($missing !== []) {
-                throw new InvalidArgumentException(
-                    'Kolom manifest kurang: '.implode(', ', $missing)
-                );
+                throw new InvalidArgumentException('Kolom manifest kurang: '.implode(', ', $missing));
             }
 
             return $this->readRows($handle, $header);
@@ -79,10 +69,10 @@ final class BulkProductMaintenanceManifestReader
                 throw new InvalidArgumentException("Jumlah kolom tidak cocok pada baris {$line}.");
             }
 
-            $row = array_combine($header, array_map(
-                static fn ($value): string => trim((string) $value),
-                $values,
-            ));
+            $row = array_combine(
+                $header,
+                array_map(static fn ($value): string => trim((string) $value), $values),
+            );
 
             if ($row === false) {
                 throw new InvalidArgumentException("Manifest gagal dibaca pada baris {$line}.");
