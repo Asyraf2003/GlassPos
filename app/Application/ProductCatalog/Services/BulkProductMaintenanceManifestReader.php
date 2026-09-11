@@ -74,10 +74,6 @@ final class BulkProductMaintenanceManifestReader
                 array_map(static fn ($value): string => trim((string) $value), $values),
             );
 
-            if ($row === false) {
-                throw new InvalidArgumentException("Manifest gagal dibaca pada baris {$line}.");
-            }
-
             $row['__line'] = (string) $line;
             $rows[] = $row;
         }
