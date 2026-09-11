@@ -12,6 +12,12 @@ trait SoftDeletesProducts
     public function softDelete(string $productId, ?string $actorId): bool
     {
         $started = false;
+        $context = $this->changeContext->snapshot();
+
+        $auditActorId = $context['actor_id'] ?? $actorId;
+        $auditActorRole = $context['actor_role'];
+        $auditReason = $context['reason'];
+        $auditSourceChannel = $context['source_channel'] ?? 'web_admin';
 
         try {
             $this->transactions->begin();
@@ -43,14 +49,14 @@ trait SoftDeletesProducts
                 ->where('id', $productId)
                 ->update([
                     'deleted_at' => $occurredAt,
-                    'deleted_by_actor_id' => $actorId,
+                    'deleted_by_actor_id' => $auditActorId,
                 ]);
 
             $revisionNo = $this->nextRevisionNo($productId);
             $snapshot = $this->toDeletedSnapshot(
                 $row,
                 $occurredAt->toDateTimeString(),
-                $actorId,
+                $auditActorId,
             );
 
             $this->recordProductVersion(
@@ -58,8 +64,8 @@ trait SoftDeletesProducts
                 $revisionNo,
                 'product_soft_deleted',
                 $occurredAt,
-                $actorId,
-                null,
+                $auditActorId,
+                $auditReason,
                 $snapshot,
             );
 
@@ -68,10 +74,10 @@ trait SoftDeletesProducts
                 $revisionNo,
                 'product_soft_deleted',
                 $occurredAt,
-                $actorId,
-                null,
-                null,
-                'web_admin',
+                $auditActorId,
+                $auditActorRole,
+                $auditReason,
+                $auditSourceChannel,
                 $snapshot,
             );
 
@@ -84,6 +90,8 @@ trait SoftDeletesProducts
             }
 
             throw $e;
+        } finally {
+            $this->changeContext->clear();
         }
     }
 }
