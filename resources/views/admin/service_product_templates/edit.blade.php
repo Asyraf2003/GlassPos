@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Service')
-@section('heading', 'Edit Service')
+@section('title', 'Edit Paket Service')
+@section('heading', 'Edit Paket Service')
 
 @section('content')
     <section class="section">
@@ -16,7 +16,7 @@
                         @include('admin.service_product_templates.partials.form', [
                             'action' => route('admin.service-product-templates.update', ['templateId' => $template['id']]),
                             'method' => 'PUT',
-                            'submitLabel' => 'Update Paket',
+                            'submitLabel' => 'Simpan Paket Service',
                         ])
                     </div>
                 </div>

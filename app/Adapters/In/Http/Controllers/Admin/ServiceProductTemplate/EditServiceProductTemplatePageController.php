@@ -18,7 +18,7 @@ final class EditServiceProductTemplatePageController extends Controller
         if ($template === null) {
             return redirect()
                 ->route('admin.service-product-templates.index')
-                ->with('error', 'Service tidak ditemukan.');
+                ->with('error', 'Paket Service tidak ditemukan.');
         }
 
         return view('admin.service_product_templates.edit', [

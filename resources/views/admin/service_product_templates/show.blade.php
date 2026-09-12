@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Service')
-@section('heading', 'Detail Service')
+@section('title', 'Detail Paket Service')
+@section('heading', 'Detail Paket Service')
 @section('back_url', route('admin.service-product-templates.index'))
 
 @section('content')
@@ -15,7 +15,7 @@
 
                 <div class="d-flex flex-wrap gap-2">
                     <a href="{{ route('admin.service-product-templates.edit', ['templateId' => $template['id']]) }}" class="btn btn-primary">
-                        Edit Paket
+                        Edit Paket Service
                     </a>
 
                     <a href="{{ route('admin.products.show', ['productId' => $template['product_id']]) }}" class="btn btn-light-primary">
@@ -65,7 +65,7 @@
                         </div>
 
                         <div class="ui-key-value mb-3">
-                            <small>Nama Paket/Jasa</small>
+                            <small>Nama Jasa</small>
                             <div>{{ $template['service_name'] }}</div>
                         </div>
 

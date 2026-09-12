@@ -7,7 +7,7 @@
   const drawer = $("package-filter-drawer"), backdrop = $("package-filter-backdrop");
   if (!c.endpoint || !body || !sum || !pag || !input) return;
 
-  const sorts = new Set(["product_name", "service_name", "default_service_price_rupiah", "package_total", "is_active"]);
+  const sorts = new Set(["product_name", "service_name", "package_total", "is_active"]);
   const trim = (v) => String(v || "").trim();
   const esc = (v) => String(v ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
   const money = (v) => new Intl.NumberFormat("id-ID").format(Number(v || 0));
@@ -70,21 +70,21 @@
   });
   const renderRows = (rows, m) => {
     if (!rows.length) {
-      body.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Tidak ada paket service yang cocok.</td></tr>';
+      body.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Tidak ada paket service yang cocok.</td></tr>';
       return;
     }
     body.innerHTML = rows.map((r, i) => {
       const active = Boolean(r.is_active);
-      const splitText = `<div class="small text-muted mt-1">Jasa Rp${money(r.service_total)} · 80% keuntungan toko Rp${money(r.service_store_profit)} · 20% jasa Rp${money(r.service_fee)}</div>`;
+      const products = r.product_lines?.length ? r.product_lines : [{ name: r.nama_barang }];
+      const productNames = products.map((product) => product.name).join(", ");
       return `<tr>
         <td>${((Number(m.page) - 1) * Number(m.per_page)) + i + 1}</td>
-        <td><div class="fw-semibold">${esc(r.service_name)}</div><small class="text-muted">Service</small></td>
-        <td><div class="fw-semibold">${esc(r.nama_barang)}</div><small class="text-muted">${esc(r.kode_barang || "-")} · harga jual Rp${money(r.harga_jual)}</small></td>
-        <td>Rp${money(r.default_service_price_rupiah)}</td>
-        <td><div class="fw-semibold">Rp${money(r.package_total)}</div>${splitText}</td>
+        <td><div class="fw-semibold">${esc(r.service_name)}</div></td>
+        <td>${products.map((product) => `<div class="fw-semibold">${esc(product.name)}</div>`).join("")}</td>
+        <td><div class="fw-semibold">Rp${money(r.package_total)}</div></td>
         <td><span class="badge ${active ? "bg-success" : "bg-secondary"}">${active ? "Aktif" : "Nonaktif"}</span></td>
         <td class="text-center"><button type="button" class="btn btn-sm btn-outline-primary" data-package-action="open"
-          data-package-name="${esc(r.service_name)}" data-package-product="${esc(r.nama_barang)}" data-package-status="${active ? "active" : "inactive"}"
+          data-package-name="${esc(r.service_name)}" data-package-product="${esc(productNames)}" data-package-status="${active ? "active" : "inactive"}"
           data-detail-url="${esc(r.actions.detail_url)}" data-edit-url="${esc(r.actions.edit_url)}" data-product-url="${esc(r.actions.product_url)}"
           data-service-url="${esc(r.actions.service_url)}" data-deactivate-url="${esc(r.actions.deactivate_url)}" data-reactivate-url="${esc(r.actions.reactivate_url)}">Aksi</button></td>
       </tr>`;
@@ -95,7 +95,7 @@
     activeController?.abort();
     const controller = new AbortController(); activeController = controller;
     const request = ++counter;
-    body.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Sedang memuat data...</td></tr>';
+    body.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Sedang memuat data...</td></tr>';
     try {
       const response = await fetch(`${c.endpoint}?${params()}`, { headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" }, signal: controller.signal });
       const payload = await response.json();
@@ -105,7 +105,7 @@
       renderRows(Array.isArray(data.rows) ? data.rows : [], meta); renderSummary(meta); renderPager(meta); renderSort(); url(replace);
     } catch (error) {
       if (error?.name === "AbortError" || request !== counter) return;
-      body.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Gagal memuat data.</td></tr>';
+      body.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Gagal memuat data.</td></tr>';
       sum.textContent = "Menampilkan 0 sampai 0 dari 0 paket service"; pag.innerHTML = "";
     } finally { if (activeController === controller) activeController = null; }
   };

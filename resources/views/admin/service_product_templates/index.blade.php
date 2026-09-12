@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Service')
-@section('heading', 'Service')
+@section('title', 'Paket Service')
+@section('heading', 'Paket Service')
 
 @section('content')
     <section class="section">
@@ -19,7 +19,7 @@
                         </form>
                         <button type="button" id="open-package-filter" class="btn btn-primary py-2">Filter</button>
                         <a href="{{ route('admin.service-product-templates.create') }}" class="btn btn-primary py-2 d-inline-flex align-items-center">
-                            Tambah Paket
+                            Tambah Paket Service
                         </a>
                     </div>
                 </div>
@@ -44,10 +44,9 @@
                             <tr class="text-nowrap">
                                 <th style="width: 64px;">No</th>
                                 @foreach ([
-                                    'service_name' => 'Paket',
+                                    'service_name' => 'Jasa',
                                     'product_name' => 'Produk',
-                                    'default_service_price_rupiah' => 'Jasa',
-                                    'package_total' => 'Total',
+                                    'package_total' => 'Total Paket',
                                     'is_active' => 'Status',
                                 ] as $sortKey => $label)
                                     <th><button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="{{ $sortKey }}">
@@ -58,7 +57,7 @@
                             </tr>
                         </thead>
                         <tbody id="package-table-body">
-                            <tr><td colspan="7" class="text-center text-muted py-4">Sedang memuat data...</td></tr>
+                            <tr><td colspan="6" class="text-center text-muted py-4">Sedang memuat data...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -82,7 +81,7 @@
                 <div class="modal-content border-0 shadow-lg">
                     <div class="modal-header border-0 pb-0 px-4 pt-4">
                         <div class="w-100">
-                            <h3 class="modal-title fw-bold mb-1" id="package-service-action-modal-title">Aksi Service</h3>
+                            <h3 class="modal-title fw-bold mb-1" id="package-service-action-modal-title">Aksi Paket Service</h3>
                             <p class="mb-0 text-muted fs-6" id="package-service-action-modal-subtitle">
                                 Pilih tindakan untuk paket service.
                             </p>
@@ -100,7 +99,7 @@
 
                             <div class="col-12 col-md-6">
                                 <a href="#" id="package-service-action-edit-link" class="btn btn-outline-primary w-100 text-start py-3 px-4 h-100">
-                                    <div class="fw-bold fs-5 mb-1">Edit Paket</div>
+                                    <div class="fw-bold fs-5 mb-1">Edit Paket Service</div>
                                 </a>
                             </div>
 

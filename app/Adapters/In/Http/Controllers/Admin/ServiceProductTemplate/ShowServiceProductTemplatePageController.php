@@ -21,7 +21,7 @@ final class ShowServiceProductTemplatePageController extends Controller
         if ($row === null) {
             return redirect()
                 ->route('admin.service-product-templates.index')
-                ->with('error', 'Service tidak ditemukan.');
+                ->with('error', 'Paket Service tidak ditemukan.');
         }
 
         return view('admin.service_product_templates.show', [

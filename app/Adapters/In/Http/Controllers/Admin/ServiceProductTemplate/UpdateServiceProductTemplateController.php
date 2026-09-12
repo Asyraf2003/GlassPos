@@ -30,7 +30,7 @@ final class UpdateServiceProductTemplateController extends Controller
         if ($template === null) {
             return redirect()
                 ->route('admin.service-product-templates.index')
-                ->with('error', 'Service tidak ditemukan.');
+                ->with('error', 'Paket Service tidak ditemukan.');
         }
 
         $data = $this->validated($request);
@@ -66,6 +66,6 @@ final class UpdateServiceProductTemplateController extends Controller
 
         return redirect()
             ->route('admin.service-product-templates.index')
-            ->with('success', 'Service berhasil diperbarui.');
+            ->with('success', 'Paket Service berhasil diperbarui.');
     }
 }

@@ -1,0 +1,59 @@
+<!doctype html>
+<meta charset="utf-8">
+<form id="package-search-form"><input id="package-search-input"></form>
+<button data-sort-by="service_name"></button>
+<button data-sort-by="product_name"></button>
+<button data-sort-by="package_total"></button>
+<button data-sort-by="is_active"></button>
+<table><tbody id="package-table-body"></tbody></table>
+<div id="package-table-summary"></div><div id="package-table-pagination"></div>
+<script>
+const assert = (condition, message) => { if (!condition) throw new Error(message); };
+const body = document.querySelector("tbody");
+let mode = "rows";
+let requested;
+const actions = { detail_url: "/detail", edit_url: "/edit", product_url: "/product", service_url: "/service", deactivate_url: "/deactivate", reactivate_url: "/reactivate" };
+const rows = [
+  { service_name: "Kolter kecil", nama_barang: "PISTON", product_lines: [{ name: "PISTON" }, { name: "RING PISTON" }, { name: "SEAL <test>" }], package_total: 275000, is_active: true, actions },
+  { service_name: "Ganti oli", nama_barang: "OLI", package_total: 50000, is_active: false, actions },
+].map((row) => ({ ...row, default_service_price_rupiah: 75000, harga_jual: 125000, service_total: 75000, service_store_profit: 60000, service_fee: 15000 }));
+window.AdminPackageTableConfig = { endpoint: "https://example.test/packages" };
+// File fixtures have an opaque origin; URL state is verified through request parameters here.
+history.replaceState = history.pushState = () => {};
+window.fetch = async (url) => {
+  assert(body.querySelector("td").colSpan === 6 && body.textContent.includes("Sedang memuat"), "loading spans six columns");
+  requested = new URL(url);
+  return { ok: mode !== "error", json: async () => ({ success: mode !== "error", data: { rows: mode === "empty" ? [] : rows, meta: { page: 1, per_page: 10, total: mode === "empty" ? 0 : 2, last_page: 1 } } }) };
+};
+</script>
+<script src="../../public/assets/static/js/pages/admin-service-product-templates-table.js"></script>
+<script>
+(async () => {
+  const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+  await tick();
+  assert(body.rows.length === 2 && [...body.rows].every((row) => row.cells.length === 6), "six visible cells per row");
+  const cells = body.rows[0].cells;
+  assert(cells[1].textContent === "Kolter kecil", "service name only");
+  assert(cells[2].textContent === "PISTONRING PISTONSEAL <test>", "all three products represented and escaped");
+  assert(!cells[2].querySelector("test"), "product names cannot inject markup");
+  assert(cells[3].textContent === "Rp275.000", "package total only");
+  assert(!/80%|20%|Jasa Rp|harga jual|75\.000|125\.000/.test(body.textContent.replace("275.000", "")), "no component prices or splits");
+  assert(body.rows[1].cells[2].textContent === "OLI", "legacy single product fallback");
+  assert(cells[4].textContent === "Aktif" && body.rows[1].cells[4].textContent === "Nonaktif", "statuses preserved");
+  const action = cells[5].querySelector("button");
+  assert(action.dataset.packageAction === "open" && action.dataset.packageProduct === "PISTON, RING PISTON, SEAL <test>", "action includes products");
+  for (const [key, value] of Object.entries(actions)) {
+    const camel = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+    assert(action.dataset[camel] === value, `action ${key} preserved`);
+  }
+  for (const button of document.querySelectorAll("[data-sort-by]")) {
+    button.click(); await tick();
+    assert(requested.searchParams.get("sort_by") === button.dataset.sortBy, "visible sort preserved");
+  }
+  mode = "empty"; document.querySelector("[data-sort-by]").click(); await tick();
+  assert(body.querySelector("td").colSpan === 6 && body.textContent.includes("Tidak ada"), "empty spans six columns");
+  mode = "error"; document.querySelector("[data-sort-by]").click(); await tick();
+  assert(body.querySelector("td").colSpan === 6 && body.textContent.includes("Gagal memuat"), "error spans six columns");
+  document.body.dataset.testResult = "PASS";
+})().catch((error) => { document.body.dataset.testResult = "FAIL: " + error.message; });
+</script>

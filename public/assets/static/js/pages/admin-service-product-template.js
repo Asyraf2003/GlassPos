@@ -80,7 +80,12 @@
       active = -1;
       input.removeAttribute("aria-activedescendant");
       const query = input.value.trim().toLocaleLowerCase("id-ID");
-      const matches = available().filter((item) => item.label.toLocaleLowerCase("id-ID").includes(query));
+      if (query.length < 2) {
+        list.replaceChildren();
+        close();
+        return;
+      }
+      const matches = available().filter((item) => item.label.toLocaleLowerCase("id-ID").includes(query)).slice(0, 50);
       list.replaceChildren(...matches.map((item, index) => {
         const button = document.createElement("button");
         button.type = "button";

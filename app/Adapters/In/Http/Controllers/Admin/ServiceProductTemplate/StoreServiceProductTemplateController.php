@@ -38,12 +38,12 @@ final class StoreServiceProductTemplateController extends Controller
             $field = array_key_first($errors) ?? 'service_catalog_item_id';
 
             return back()
-                ->withErrors([$field => $result->message() ?? 'Service gagal dibuat.'])
+                ->withErrors([$field => $result->message() ?? 'Paket Service gagal dibuat.'])
                 ->withInput();
         }
 
         return redirect()
             ->route('admin.service-product-templates.index')
-            ->with('success', $result->message() ?? 'Service berhasil dibuat.');
+            ->with('success', 'Paket Service berhasil dibuat.');
     }
 }

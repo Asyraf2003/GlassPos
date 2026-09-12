@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Tambah Service')
-@section('heading', 'Tambah Service')
+@section('title', 'Tambah Paket Service')
+@section('heading', 'Tambah Paket Service')
 
 @section('content')
     <section class="section">
@@ -9,14 +9,14 @@
             <div class="col-12 col-lg-7">
                 <div class="card">
                     <div class="card-header">
-                        <h4 class="card-title mb-1">Paket ini dipakai kasir untuk autofill servis + produk dari template aktif</h4>
+                        <h4 class="card-title mb-1">Paket ini dipakai kasir untuk mengisi jasa dan produk dari paket aktif</h4>
                     </div>
 
                     <div class="card-body">
                         @include('admin.service_product_templates.partials.form', [
                             'action' => route('admin.service-product-templates.store'),
                             'method' => 'POST',
-                            'submitLabel' => 'Simpan Template',
+                            'submitLabel' => 'Simpan Paket Service',
                         ])
                     </div>
                 </div>

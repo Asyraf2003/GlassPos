@@ -8,6 +8,7 @@ import { join } from "node:path";
 
 const scenarios = [
   "admin-package-picker.html",
+  "admin-package-table.html",
   "admin-employee-debt-picker.html",
   "admin-payroll-picker.html",
   "admin-expense-picker.html",

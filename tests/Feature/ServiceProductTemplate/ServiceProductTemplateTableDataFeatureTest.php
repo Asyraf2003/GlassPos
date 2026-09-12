@@ -29,6 +29,7 @@ final class ServiceProductTemplateTableDataFeatureTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.meta.total', 2)
             ->assertJsonPath('data.rows.0.id', 'package-exact')
+            ->assertJsonPath('data.rows.0.product_lines', [['product_id' => 'product-exact', 'name' => 'Paket Oli']])
             ->assertJsonPath('data.rows.1.id', 'package-contains');
     }
 

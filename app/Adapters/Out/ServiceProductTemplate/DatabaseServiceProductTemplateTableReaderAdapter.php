@@ -50,8 +50,22 @@ final class DatabaseServiceProductTemplateTableReaderAdapter implements ServiceP
         $this->orderer->apply($builder, $query);
         $paginator = $builder->paginate($query->perPage, ['*'], 'page', $query->page);
 
+        $items = $paginator->items();
+        $lines = DB::table('service_product_template_lines as lines')
+            ->join('products', 'products.id', '=', 'lines.product_id')
+            ->whereIn('lines.service_product_template_id', array_map(static fn (object $row): string => (string) $row->id, $items))
+            ->orderBy('lines.sort_order')
+            ->orderBy('lines.id')
+            ->get(['lines.service_product_template_id', 'lines.product_id', 'products.nama_barang as name'])
+            ->groupBy('service_product_template_id');
+
         return [
-            'rows' => array_map($this->rows->map(...), $paginator->items()),
+            'rows' => array_map(fn (object $row): array => $this->rows->map($row) + [
+                'product_lines' => $lines->get((string) $row->id)?->map(static fn (object $line): array => [
+                    'product_id' => (string) $line->product_id,
+                    'name' => (string) $line->name,
+                ])->all() ?: [['product_id' => (string) $row->product_id, 'name' => (string) $row->nama_barang]],
+            ], $items),
             'meta' => [
                 'page' => $paginator->currentPage(),
                 'per_page' => $paginator->perPage(),

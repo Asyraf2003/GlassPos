@@ -13,6 +13,11 @@
  <div data-service-search-stage><input data-package-service-search><div id="services" role="listbox" data-package-service-results></div></div>
  <div data-package-service-selected></div><output data-package-total></output>
 </div>
+<script>
+const root = document.querySelector("[data-package-picker]");
+root.dataset.products = JSON.stringify([...JSON.parse(root.dataset.products), ...Array.from({ length: 60 }, (_, i) =>
+  ({ id: `bulk-${i}`, name: `Bulk ${i}`, label: `Bulk ${i}`, price_rupiah: 1000 }))]);
+</script>
 <script src="../../public/assets/static/js/pages/admin-service-product-template.js"></script>
 <script>
 try {
@@ -30,7 +35,25 @@ try {
   assert(ids() === "b,c,", "removing primary reindexes payload");
   assert(document.activeElement === product, "remove restores focus");
   assert(!q("[data-product-search-stage]").classList.contains("d-none"), "remove restores search");
-  product.dispatchEvent(new Event("input"));
+  const results = q("[data-package-product-results]");
+  const search = (input, value) => { input.value = value; input.dispatchEvent(new Event("input")); };
+  const closed = (input, list) => list.children.length === 0 && list.classList.contains("d-none") && input.getAttribute("aria-expanded") === "false";
+  assert(closed(product, results), "empty focus renders no catalog");
+  search(product, "B");
+  assert(closed(product, results), "one character renders no catalog or empty state");
+  product.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown" }));
+  assert(closed(product, results), "arrow cannot open short query");
+  search(product, "Bu");
+  assert(results.querySelectorAll("button").length === 50, "two characters capped at 50 of 60 matches");
+  product.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown" }));
+  product.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown" }));
+  product.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp" }));
+  assert(product.getAttribute("aria-activedescendant") === results.firstElementChild.id && results.firstElementChild.getAttribute("aria-selected") === "true", "arrow navigation and ARIA");
+  search(product, "zzyy");
+  assert(results.textContent === "Tidak ditemukan." && product.getAttribute("aria-expanded") === "true", "no matches after minimum");
+  search(product, "");
+  assert(closed(product, results) && !product.hasAttribute("aria-activedescendant"), "clearing removes stale results and ARIA");
+  search(product, "Product");
   assert(q("[data-package-product-results]").querySelectorAll("button").length === 1, "duplicates excluded");
   product.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
   product.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
@@ -39,10 +62,13 @@ try {
   q("[data-package-service-selected] button").click();
   assert(q("[data-package-service-id]").value === "", "service remove clears ID");
   assert(document.activeElement === service, "service remove focuses query");
-  service.dispatchEvent(new Event("input"));
+  assert(closed(service, q("[data-package-service-results]")), "empty service focus stays closed");
+  search(service, "S");
+  assert(closed(service, q("[data-package-service-results]")), "one character service stays closed");
+  search(service, "Se");
   service.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
   assert(q("[data-package-service-results]").classList.contains("d-none"), "escape closes");
-  service.dispatchEvent(new Event("input"));
+  search(service, "Se");
   service.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
   assert(q("[data-package-service-id]").value === "s" && service.value === "", "service keyboard select");
   document.body.dataset.testResult = "PASS";

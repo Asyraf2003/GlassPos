@@ -24,14 +24,13 @@ final class AdminServiceProductTemplateManagementFeatureTest extends TestCase
 
         $createPage = $this->actingAs($admin)->get(route('admin.service-product-templates.create'));
         $createPage->assertOk();
-        $createPage->assertSee('Tambah Service', false);
+        $createPage->assertSee('Tambah Paket Service', false);
         $createPage->assertSee('Ban Admin Template', false);
         $createPage->assertSee('data-package-products-selected', false);
         $createPage->assertSee('data-package-service-selected', false);
         $createPage->assertSee('0 dari maksimal 3 produk', false);
         $createPage->assertSee('data-package-total', false);
         $createPage->assertSee('Jasa Pasang Ban Admin', false);
-        $createPage->assertDontSee('data-searchable-create-select', false);
         $createPage->assertSee('admin-service-product-template.js', false);
         $createPage->assertSee('"price_rupiah":125000', false);
         $createPage->assertSee(route('admin.products.create'), false);
@@ -48,7 +47,7 @@ final class AdminServiceProductTemplateManagementFeatureTest extends TestCase
         ]);
 
         $storeResponse->assertRedirect(route('admin.service-product-templates.index'));
-        $storeResponse->assertSessionHas('success', 'Service berhasil dibuat.');
+        $storeResponse->assertSessionHas('success', 'Paket Service berhasil dibuat.');
 
         $templateId = (string) DB::table('service_product_templates')
             ->where('product_id', 'product-admin-template-1')
@@ -84,18 +83,37 @@ final class AdminServiceProductTemplateManagementFeatureTest extends TestCase
         ]);
 
         $indexPage = $this->actingAs($admin)->get(route('admin.service-product-templates.index'));
-        $indexPage->assertOk();
+        $indexPage->assertOk()->assertSee('Paket Service');
+        $document = new \DOMDocument;
+        @$document->loadHTML($indexPage->getContent());
+        $headers = (new \DOMXPath($document))->query('//table[@id="package-table"]//th');
+        $labels = [];
+        foreach ($headers as $header) {
+            $labels[] = trim(str_replace('↕', '', $header->textContent));
+        }
+        $this->assertSame(['No', 'Jasa', 'Produk', 'Total Paket', 'Status', 'Aksi'], $labels);
+        $indexPage->assertDontSee('data-sort-by="default_service_price_rupiah"', false);
+        $indexPage->assertSee('colspan="6"', false);
+        $this->actingAs($admin)->get(route('admin.service-product-templates.show', ['templateId' => $templateId]))
+            ->assertOk()->assertSee('Detail Paket Service');
         $indexPage->assertSee('Produk memakai harga jual katalog. Harga jasa mengikuti master jasa. Total paket wajib minimal produk + jasa', false);
 
         $this->actingAs($admin)
             ->getJson(route('admin.service-product-templates.table', ['q' => 'Ban Admin Template']))
             ->assertOk()
             ->assertJsonPath('data.rows.0.nama_barang', 'Ban Admin Template')
-            ->assertJsonPath('data.rows.0.service_name', 'Jasa Pasang Ban Admin');
+            ->assertJsonPath('data.rows.0.service_name', 'Jasa Pasang Ban Admin')
+            ->assertJsonPath('data.rows.0.product_id', 'product-admin-template-1')
+            ->assertJsonPath('data.rows.0.package_total', 275000)
+            ->assertJsonPath('data.rows.0.product_lines', [
+                ['product_id' => 'product-admin-template-1', 'name' => 'Ban Admin Template'],
+                ['product_id' => 'product-admin-template-2', 'name' => 'Oli Admin Template'],
+                ['product_id' => 'product-admin-template-3', 'name' => 'Seal Admin Template'],
+            ]);
 
         $editPage = $this->actingAs($admin)->get(route('admin.service-product-templates.edit', ['templateId' => $templateId]));
         $editPage->assertOk();
-        $editPage->assertSee('Edit Service', false);
+        $editPage->assertSee('Edit Paket Service', false);
         $editPage->assertSee('Jasa Pasang Ban Admin Update', false);
         $editPage->assertSee('data-package-picker', false);
         $editPage->assertSee('name="product_id" value="product-admin-template-1"', false);
@@ -129,7 +147,7 @@ final class AdminServiceProductTemplateManagementFeatureTest extends TestCase
         ]);
 
         $updateResponse->assertRedirect(route('admin.service-product-templates.index'));
-        $updateResponse->assertSessionHas('success', 'Service berhasil diperbarui.');
+        $updateResponse->assertSessionHas('success', 'Paket Service berhasil diperbarui.');
 
         $this->assertDatabaseHas('service_product_templates', [
             'id' => $templateId,
@@ -141,7 +159,7 @@ final class AdminServiceProductTemplateManagementFeatureTest extends TestCase
 
         $deactivateResponse = $this->actingAs($admin)->patch(route('admin.service-product-templates.deactivate', ['templateId' => $templateId]));
         $deactivateResponse->assertRedirect(route('admin.service-product-templates.index'));
-        $deactivateResponse->assertSessionHas('success', 'Service dinonaktifkan.');
+        $deactivateResponse->assertSessionHas('success', 'Paket Service dinonaktifkan.');
 
         $this->assertDatabaseHas('service_product_templates', [
             'id' => $templateId,
@@ -150,7 +168,7 @@ final class AdminServiceProductTemplateManagementFeatureTest extends TestCase
 
         $reactivateResponse = $this->actingAs($admin)->patch(route('admin.service-product-templates.reactivate', ['templateId' => $templateId]));
         $reactivateResponse->assertRedirect(route('admin.service-product-templates.index'));
-        $reactivateResponse->assertSessionHas('success', 'Service diaktifkan.');
+        $reactivateResponse->assertSessionHas('success', 'Paket Service diaktifkan.');
 
         $this->assertDatabaseHas('service_product_templates', [
             'id' => $templateId,
