@@ -41,7 +41,6 @@
                                 <th style="width: 64px;">No</th>
                                 @foreach ([
                                     'name' => 'Nama Jasa',
-                                    'normalized_name' => 'Nama Normal',
                                     'default_price_rupiah' => 'Default Harga',
                                     'is_active' => 'Status',
                                 ] as $sortKey => $label)
@@ -55,7 +54,7 @@
                             </tr>
                         </thead>
                         <tbody id="service-table-body">
-                            <tr><td colspan="6" class="text-center text-muted py-4">Sedang memuat data...</td></tr>
+                            <tr><td colspan="5" class="text-center text-muted py-4">Sedang memuat data...</td></tr>
                         </tbody>
                     </table>
                 </div>

@@ -95,6 +95,7 @@ final class ServiceCatalogTableDataFeatureTest extends TestCase
         $response = $this->actingAs($admin)->getJson(route('admin.services.table', ['q' => 'Tune Up']));
 
         $response->assertOk()
+            ->assertJsonPath('data.rows.0.normalized_name', 'tune up')
             ->assertJsonPath('data.rows.0.actions.edit_url', route('admin.services.edit', ['serviceId' => 'service-actions']))
             ->assertJsonPath('data.rows.0.actions.activate_url', route('admin.services.activate', ['serviceId' => 'service-actions']))
             ->assertJsonPath('data.rows.0.actions.deactivate_url', route('admin.services.deactivate', ['serviceId' => 'service-actions']));

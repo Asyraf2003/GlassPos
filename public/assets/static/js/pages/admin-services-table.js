@@ -14,7 +14,7 @@
 
   if (!config.endpoint || !body || !summary || !pagination || !searchInput) return;
 
-  const allowedSorts = new Set(["name", "normalized_name", "default_price_rupiah", "is_active"]);
+  const allowedSorts = new Set(["name", "default_price_rupiah", "is_active"]);
   const trim = (value) => String(value || "").trim();
   const escapeHtml = (value) => String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -115,7 +115,7 @@
 
   const renderRows = (rows, meta) => {
     if (!rows.length) {
-      body.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Tidak ada jasa yang cocok.</td></tr>';
+      body.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Tidak ada jasa yang cocok.</td></tr>';
       return;
     }
     body.innerHTML = rows.map((row, index) => {
@@ -123,13 +123,11 @@
       return `<tr>
         <td>${((Number(meta.page) - 1) * Number(meta.per_page)) + index + 1}</td>
         <td class="fw-semibold">${escapeHtml(row.name)}</td>
-        <td><small class="text-muted">${escapeHtml(row.normalized_name)}</small></td>
         <td>Rp${rupiah(row.default_price_rupiah)}</td>
         <td><span class="badge ${active ? "bg-success" : "bg-secondary"}">${active ? "Aktif" : "Nonaktif"}</span></td>
         <td class="text-center"><button type="button" class="btn btn-sm btn-outline-primary"
           data-service-action="open"
           data-service-name="${escapeHtml(row.name)}"
-          data-service-normalized="${escapeHtml(row.normalized_name)}"
           data-service-status="${active ? "active" : "inactive"}"
           data-edit-url="${escapeHtml(row.actions.edit_url)}"
           data-deactivate-url="${escapeHtml(row.actions.deactivate_url)}"
@@ -143,7 +141,7 @@
     const controller = new AbortController();
     activeController = controller;
     const currentRequest = ++requestCounter;
-    body.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Sedang memuat data...</td></tr>';
+    body.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Sedang memuat data...</td></tr>';
 
     try {
       const response = await fetch(`${config.endpoint}?${requestParams()}`, {
@@ -162,7 +160,7 @@
       syncUrl(replaceUrl);
     } catch (error) {
       if (error?.name === "AbortError" || currentRequest !== requestCounter) return;
-      body.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Gagal memuat data.</td></tr>';
+      body.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Gagal memuat data.</td></tr>';
       summary.textContent = "Menampilkan 0 sampai 0 dari 0 jasa";
       pagination.innerHTML = "";
     } finally {

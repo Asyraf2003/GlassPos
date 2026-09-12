@@ -20,7 +20,7 @@
     const isActive = status === "active";
 
     if (subtitle) {
-      subtitle.textContent = `${button.dataset.serviceName || "Jasa"} • ${button.dataset.serviceNormalized || "-"}`;
+      subtitle.textContent = button.dataset.serviceName || "Jasa";
     }
 
     if (editLink) editLink.href = button.dataset.editUrl || "#";
