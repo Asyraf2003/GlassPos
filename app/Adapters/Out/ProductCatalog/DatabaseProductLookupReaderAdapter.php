@@ -4,42 +4,45 @@ declare(strict_types=1);
 
 namespace App\Adapters\Out\ProductCatalog;
 
-use App\Application\ProductCatalog\DTO\ProductLookupRow;
 use App\Ports\Out\ProductCatalog\ProductLookupReaderPort;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 final class DatabaseProductLookupReaderAdapter implements ProductLookupReaderPort
 {
-    /**
-     * @return list<ProductLookupRow>
-     */
+    public function __construct(
+        private readonly ProductLookupRowMapper $rowMapper,
+    ) {}
+
     public function search(string $query, int $limit = self::DEFAULT_LIMIT, bool $onlyInStock = false): array
     {
-        $normalizedQuery = trim($query);
-        $boundedLimit = $this->boundedLimit($limit);
-
         $builder = $this->baseQuery();
+        $query = trim($query);
 
-        if ($normalizedQuery !== '') {
-            $this->applySearch($builder, $normalizedQuery);
+        if ($query !== '') {
+            $this->applySearch($builder, $query);
         }
 
         if ($onlyInStock) {
             $builder->where('product_inventory.qty_on_hand', '>', 0);
         }
 
-        $rows = $this->applyOrdering($builder)->limit($boundedLimit)->get();
+        $rows = $this->applyOrdering($builder)
+            ->limit($this->boundedLimit($limit))
+            ->get()
+            ->all();
 
-        return $this->mapRows($rows->all());
+        return array_map($this->rowMapper->map(...), $rows);
     }
 
-    /** @param list<string> $ids
-     * @return list<ProductLookupRow>
-     */
     public function findByIds(array $ids): array
     {
-        return $this->mapRows($this->baseQuery()->whereIn('products.id', $ids)->get()->all());
+        $rows = $this->baseQuery()
+            ->whereIn('products.id', $ids)
+            ->get()
+            ->all();
+
+        return array_map($this->rowMapper->map(...), $rows);
     }
 
     private function baseQuery(): Builder
@@ -58,38 +61,17 @@ final class DatabaseProductLookupReaderAdapter implements ProductLookupReaderPor
             ]);
     }
 
-    /** @param list<object> $rows
-     * @return list<ProductLookupRow>
-     */
-    private function mapRows(array $rows): array
-    {
-        return array_map(
-            static fn (object $row): ProductLookupRow => new ProductLookupRow(
-                id: (string) $row->id,
-                kodeBarang: $row->kode_barang !== null ? (string) $row->kode_barang : null,
-                namaBarang: (string) $row->nama_barang,
-                merek: (string) $row->merek,
-                ukuran: $row->ukuran !== null ? (int) $row->ukuran : null,
-                availableStock: (int) $row->available_stock,
-                defaultUnitPriceRupiah: (int) $row->harga_jual,
-                minimumUnitPriceRupiah: (int) $row->harga_jual,
-            ),
-            $rows,
-        );
-    }
-
     private function applySearch(Builder $query, string $keyword): void
     {
-        $rawKeyword = $keyword;
-        $normalizedKeyword = $this->normalizeForSearch($keyword);
+        $normalized = $this->normalizeForSearch($keyword);
 
-        $query->where(function (Builder $builder) use ($rawKeyword, $normalizedKeyword): void {
+        $query->where(function (Builder $builder) use ($keyword, $normalized): void {
             $builder
-                ->where('products.kode_barang', 'like', '%'.$rawKeyword.'%')
-                ->orWhere('products.nama_barang', 'like', '%'.$rawKeyword.'%')
-                ->orWhere('products.merek', 'like', '%'.$rawKeyword.'%')
-                ->orWhere('products.nama_barang_normalized', 'like', '%'.$normalizedKeyword.'%')
-                ->orWhere('products.merek_normalized', 'like', '%'.$normalizedKeyword.'%');
+                ->where('products.kode_barang', 'like', '%'.$keyword.'%')
+                ->orWhere('products.nama_barang', 'like', '%'.$keyword.'%')
+                ->orWhere('products.merek', 'like', '%'.$keyword.'%')
+                ->orWhere('products.nama_barang_normalized', 'like', '%'.$normalized.'%')
+                ->orWhere('products.merek_normalized', 'like', '%'.$normalized.'%');
         });
     }
 
@@ -109,8 +91,6 @@ final class DatabaseProductLookupReaderAdapter implements ProductLookupReaderPor
 
     private function normalizeForSearch(string $value): string
     {
-        $normalized = preg_replace('/\s+/', ' ', trim($value)) ?? trim($value);
-
-        return mb_strtolower($normalized);
+        return mb_strtolower(preg_replace('/\\s+/', ' ', trim($value)) ?? trim($value));
     }
 }
