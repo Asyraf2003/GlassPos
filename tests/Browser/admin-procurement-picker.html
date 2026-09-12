@@ -19,7 +19,7 @@
  <input type="hidden" name="lines[__INDEX__][line_no]" data-line-no value="__LINE_NO__">
  <input type="hidden" name="lines[__INDEX__][product_id]" data-product-id>
 
- <div data-product-selected class="d-none"><strong data-selected-product-label></strong><button type="button" data-product-remove>×</button></div>
+ <div data-product-selected class="d-none"><strong data-selected-product-label></strong></div>
  <input name="lines[__INDEX__][qty_pcs]" data-qty-input value="1">
  <input type="hidden" name="lines[__INDEX__][line_total_rupiah]" data-money-raw>
  <input data-money-display>
@@ -80,6 +80,8 @@ try {
   assert(search.value === "", "hydration query empty");
   assert(q("[data-selected-product-label]").textContent.includes("NPP | 0 | sisa: 10 stok"), "hydration current metadata");
   assert(q("[data-selected-product-price]").textContent === "Harga jual Rp170.000 / pcs", "selling price secondary");
+  assert(!selected.querySelector("[data-product-remove]"), "selected card has no redundant remove action");
+  assert(selected.querySelector("[data-remove-line]"), "line trash remains the removal action");
   if (params.has("reloaded")) {
     assert(q("[data-product-id]").value === "server" && q("[data-money-raw]").value === "20000", "reload restores persisted state");
     document.body.dataset.testResult = "PASS edit reload"; return;

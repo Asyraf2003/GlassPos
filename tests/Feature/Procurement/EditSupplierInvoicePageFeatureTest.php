@@ -66,7 +66,8 @@ final class EditSupplierInvoicePageFeatureTest extends TestCase
         $response->assertSee('data-product-selected', false);
         $this->assertSame(1, substr_count($response->getContent(), 'data-procurement-product-search'));
         $response->assertDontSee('onclick="window.localStorage', false);
-        $response->assertSee('data-product-remove', false);
+        $response->assertDontSee('data-product-remove', false);
+        $response->assertSee('data-remove-line', false);
         $response->assertSee('name="lines[0][product_id]"', false);
         $response->assertSee('value="product-1"', false);
         $response->assertSee('data-selected-product-label>Ban Luar', false);

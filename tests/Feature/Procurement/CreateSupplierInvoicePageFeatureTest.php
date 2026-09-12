@@ -48,7 +48,8 @@ final class CreateSupplierInvoicePageFeatureTest extends TestCase
         $response->assertSee('data-product-selected', false);
         $this->assertSame(1, substr_count($response->getContent(), 'data-procurement-product-search'));
         $response->assertDontSee('onclick="window.localStorage', false);
-        $response->assertSee('data-product-remove', false);
+        $response->assertDontSee('data-product-remove', false);
+        $response->assertSee('data-remove-line', false);
         $response->assertSee('admin-lookup.css', false);
         $response->assertSee('data-supplier-search', false);
         $response->assertSee('data-supplier-results', false);
