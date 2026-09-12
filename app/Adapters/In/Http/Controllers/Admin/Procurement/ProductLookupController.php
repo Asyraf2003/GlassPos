@@ -18,7 +18,10 @@ final class ProductLookupController extends Controller
     ): JsonResponse {
         $query = trim((string) $request->query('q', ''));
 
-        if (mb_strlen($query) < 2) {
+        $validated = $request->validate(['ids' => ['sometimes', 'array', 'max:50'], 'ids.*' => ['required', 'string', 'max:100']]);
+        $ids = $validated['ids'] ?? [];
+
+        if ($ids === [] && mb_strlen($query) < 2) {
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -29,7 +32,7 @@ final class ProductLookupController extends Controller
 
         $rows = array_map(
             $this->toRow(...),
-            $lookupData->search($query),
+            $ids !== [] ? $lookupData->findByIds($ids) : $lookupData->search($query),
         );
 
         return response()->json([
@@ -41,7 +44,7 @@ final class ProductLookupController extends Controller
     }
 
     /**
-     * @return array{id:string,label:string,kode_barang:?string,nama_barang:string,merek:string,ukuran:?int}
+     * @return array<string, mixed>
      */
     private function toRow(ProductLookupRow $product): array
     {
@@ -52,6 +55,8 @@ final class ProductLookupController extends Controller
             'nama_barang' => $product->namaBarang,
             'merek' => $product->merek,
             'ukuran' => $product->ukuran,
+            'available_stock' => $product->availableStock,
+            'default_unit_price_rupiah' => $product->defaultUnitPriceRupiah,
         ];
     }
 }

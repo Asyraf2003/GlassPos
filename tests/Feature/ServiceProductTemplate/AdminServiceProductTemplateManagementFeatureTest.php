@@ -25,14 +25,15 @@ final class AdminServiceProductTemplateManagementFeatureTest extends TestCase
         $createPage = $this->actingAs($admin)->get(route('admin.service-product-templates.create'));
         $createPage->assertOk();
         $createPage->assertSee('Tambah Paket Service', false);
-        $createPage->assertSee('Ban Admin Template', false);
+        $createPage->assertDontSee('Ban Admin Template', false);
+        $createPage->assertSee("data-products='[]'", false);
+        $createPage->assertSee(route('admin.procurement.products.lookup'), false);
         $createPage->assertSee('data-package-products-selected', false);
         $createPage->assertSee('data-package-service-selected', false);
         $createPage->assertSee('0 dari maksimal 3 produk', false);
         $createPage->assertSee('data-package-total', false);
         $createPage->assertSee('Jasa Pasang Ban Admin', false);
         $createPage->assertSee('admin-service-product-template.js', false);
-        $createPage->assertSee('"price_rupiah":125000', false);
         $createPage->assertSee(route('admin.products.create'), false);
         $createPage->assertSee(route('admin.services.create'), false);
 

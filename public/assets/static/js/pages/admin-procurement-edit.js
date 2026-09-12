@@ -2,12 +2,13 @@
   const config = window.procurementCreateConfig;
   const form = document.querySelector("[data-procurement-edit-form='1']");
   const container = document.getElementById("procurement-line-items");
-  const addButton = document.getElementById("add-procurement-line");
+  const productSearch = document.querySelector("[data-procurement-product-search]");
+  const productResults = document.querySelector("[data-procurement-product-results]");
   const template = document.getElementById("procurement-line-template");
   const tanggalTerimaInput = document.getElementById("tanggal_terima");
   const autoReceiveInputs = document.querySelectorAll('input[name="auto_receive"]');
 
-  if (!config || !form || !container || !addButton || !template) return;
+  if (!config || !form || !container || !productSearch || !productResults || !template) return;
 
   const DRAFT_KEY = form?.dataset.procurementDraftKey || "admin.procurement.edit-supplier-invoice.draft.v1";
 
@@ -282,9 +283,7 @@
       .filter((field) => field instanceof HTMLElement);
 
   const getLineFields = (item) => ({
-    product: item.querySelector("[data-product-id]")?.value
-      ? item.querySelector("[data-product-remove]")
-      : item.querySelector("[data-product-search]"),
+    product: productSearch,
     qty: item.querySelector("[data-qty-input]"),
     total: item.querySelector("[data-money-display]"),
     tax: item.querySelector("[data-tax-line-input]")
@@ -333,7 +332,7 @@
     items.forEach((item) => {
       const button = item.querySelector("[data-remove-line]");
       if (!button) return;
-      button.disabled = items.length === 1;
+      button.disabled = false;
     });
   };
 
@@ -544,23 +543,20 @@
       .replaceAll("__LINE_NO__", String(lineNo));
 
   const applySelectedProductState = (item, row) => {
-    const hiddenInput = item.querySelector("[data-product-id]");
-    const searchInput = item.querySelector("[data-product-search]");
+    const id = String(row?.id ?? "").trim();
+    item.dataset.selectedProductId = id;
+    item.dataset.selectedProductLabel = id ? window.ProductDisplay.identity(row) : "";
+    item.querySelector("[data-product-id]").value = id;
     const card = item.querySelector("[data-product-selected]");
+    card?.classList.toggle("d-none", !id);
     const label = item.querySelector("[data-selected-product-label]");
-    if (!hiddenInput || !searchInput || !card || !label) return;
-
-    const selectedProductId = String(row?.id ?? "").trim();
-    const selectedProductLabel = selectedProductId
-      ? String(row?.label ?? row?.nama_barang ?? "").trim() || "Produk terpilih"
-      : "";
-    item.dataset.selectedProductId = selectedProductId;
-    item.dataset.selectedProductLabel = selectedProductLabel;
-    hiddenInput.value = selectedProductId;
-    searchInput.value = "";
-    searchInput.classList.toggle("d-none", selectedProductId !== "");
-    card.classList.toggle("d-none", selectedProductId === "");
-    label.textContent = selectedProductLabel;
+    if (label) label.textContent = item.dataset.selectedProductLabel;
+    let price = item.querySelector("[data-selected-product-price]");
+    if (!price && label) {
+      price = document.createElement("small"); price.className = "d-block text-muted fw-normal";
+      price.dataset.selectedProductPrice = "1"; label.append(price);
+    }
+    if (price) { price.textContent = row && window.ProductDisplay.price(row) ? `Harga jual ${window.ProductDisplay.price(row)}` : ""; label?.append(price); }
   };
 
   const populateLineItem = (item, line) => {
@@ -643,16 +639,7 @@
 
   const getTopLine = () => lineItems()[0] || null;
 
-  const ensureTopWorkingLine = () => {
-    const topLine = getTopLine();
-
-    if (topLine && isLineCompletelyEmpty(topLine)) {
-      setActiveLine(topLine);
-      return topLine;
-    }
-
-    return insertLine(null, "top");
-  };
+  const ensureTopWorkingLine = () => getTopLine() || container;
 
   const removeCurrentLineIfEmpty = (item) => {
     const items = lineItems();
@@ -846,7 +833,7 @@
     nextIndex = 0;
 
     if (lines.length === 0) {
-      insertLine(null, "bottom");
+      // No empty block: selection appends the next line.
     } else {
       lines.forEach((line) => insertLine(line, "bottom"));
     }
@@ -897,280 +884,30 @@
     });
   };
 
-  const initProductLookup = (item) => {
-    const searchInput = item.querySelector("[data-product-search]");
-    const hiddenInput = item.querySelector("[data-product-id]");
-    const resultsBox = item.querySelector("[data-product-results]");
-    const qtyInput = item.querySelector("[data-qty-input]");
-
-    if (!searchInput || !hiddenInput || !resultsBox) return;
-
-    let debounceTimer = null;
-    let requestCounter = 0;
-    let activeChoiceIndex = -1;
-
-    const choiceButtons = () => Array.from(resultsBox.querySelectorAll("[data-product-choice]"));
-    const createProductButton = () => resultsBox.querySelector("[data-create-product-action]");
-
-    const openCreateProduct = () => {
-      const href = String(config.createProductUrl ?? "").trim();
-      if (href === "") return;
-
-      window.location.assign(href);
-    };
-
-    const syncActiveChoice = () => {
-      choiceButtons().forEach((button, index) => {
-        const isActive = index === activeChoiceIndex;
-        button.classList.toggle("active", isActive);
-
-        const meta = button.querySelector("small");
-        if (meta) {
-          meta.classList.toggle("text-white", isActive);
-          meta.classList.toggle("text-muted", !isActive);
-        }
-      });
-    };
-
-    const hideResults = () => {
-      resultsBox.innerHTML = "";
-      resultsBox.classList.add("d-none");
-      activeChoiceIndex = -1;
-    };
-
-    const selectProduct = (row) => {
-      clearTimeout(debounceTimer);
-      requestCounter += 1;
-      const productId = String(row.id ?? "").trim();
-      const currentLineNo = lineNoOfItem(item);
-      const duplicateLineNo = findDuplicateProductLineNo(item, productId);
-      const previousSelectedProductId = String(item.dataset.selectedProductId ?? "").trim();
-      const previousSelectedLabel = String(item.dataset.selectedProductLabel ?? "").trim();
-
-      if (duplicateLineNo !== null) {
-        hideResults();
-        searchInput.classList.add("is-invalid");
-
-        const feedback = ensureProductDuplicateFeedback(item);
-        feedback.textContent = duplicateProductMessage(duplicateLineNo, currentLineNo);
-
-        applySelectedProductState(item, { id: previousSelectedProductId, label: previousSelectedLabel });
-
-        scheduleDraftSave();
-        focusField(getLineFields(item).product, false);
-        return;
-      }
-
-      clearProductDuplicateFeedback(item, searchInput);
-      applySelectedProductState(item, row);
-      hideResults();
-      scheduleDraftSave();
-      focusField(qtyInput);
-    };
-
-    const renderResults = (rows) => {
-      if (!rows.length) {
-        const createHref = String(config.createProductUrl ?? "").trim();
-
-        resultsBox.innerHTML = createHref !== ""
-          ? '<button type="button" class="list-group-item list-group-item-action" data-create-product-action><div class="fw-semibold">Produk tidak ditemukan</div><small class="text-muted">Tekan Enter untuk buat product baru.</small></button>'
-          : '<div class="list-group-item text-muted">Produk tidak ditemukan.</div>';
-
-        resultsBox.classList.remove("d-none");
-        activeChoiceIndex = -1;
-
-        const button = createProductButton();
-        if (button) {
-          button.addEventListener("click", openCreateProduct);
-        }
-
-        return;
-      }
-
-      resultsBox.innerHTML = rows.map((row) => `
-        <button type="button" class="list-group-item list-group-item-action" data-product-choice='${JSON.stringify(row).replace(/'/g, "&apos;")}'>
-          <div class="fw-semibold">${esc(row.nama_barang)}</div>
-          <small class="text-muted">${esc(row.merek)}${row.ukuran !== null ? " - " + esc(row.ukuran) : ""}${row.kode_barang ? " (" + esc(row.kode_barang) + ")" : ""}</small>
-        </button>
-      `).join("");
-
-      resultsBox.classList.remove("d-none");
-      activeChoiceIndex = 0;
-      syncActiveChoice();
-
-      choiceButtons().forEach((button) => {
-        button.addEventListener("click", () => {
-          const raw = button.getAttribute("data-product-choice");
-          if (!raw) return;
-
-          selectProduct(JSON.parse(raw.replace(/&apos;/g, "'")));
-        });
-      });
-    };
-
-    const fetchResults = async () => {
-      const query = searchInput.value.trim();
-      if (hiddenInput.value) return;
-
-      if (query.length < 2) {
-        hideResults();
-        scheduleDraftSave();
-        return;
-      }
-
-      const currentRequest = ++requestCounter;
-      const response = await fetch(`${config.lookupEndpoint}?q=${encodeURIComponent(query)}`, {
-        headers: { Accept: "application/json" }
-      });
-
-      const json = await response.json();
-
-      if (currentRequest !== requestCounter) {
-        return;
-      }
-
-      if (!response.ok || !json.success) {
-        resultsBox.innerHTML = '<div class="list-group-item text-danger">Gagal memuat produk.</div>';
-        resultsBox.classList.remove("d-none");
-        activeChoiceIndex = -1;
-        return;
-      }
-
-      renderResults(json.data?.rows || []);
-    };
-
-    item.querySelector("[data-product-remove]")?.addEventListener("click", () => {
-      clearTimeout(debounceTimer);
-      requestCounter += 1;
-      applySelectedProductState(item, null);
-      clearProductDuplicateFeedback(item, searchInput);
-      hideResults();
-      scheduleDraftSave();
-      focusField(searchInput);
-    });
-
-    const removeButton = item.querySelector("[data-product-remove]");
-    removeButton?.addEventListener("focus", () => setActiveLine(item));
-    removeButton?.addEventListener("keydown", (event) => {
-      if (event.ctrlKey || event.metaKey || (event.shiftKey && event.key === "Enter")) {
-        const forwarded = new KeyboardEvent("keydown", {
-          key: event.key, ctrlKey: event.ctrlKey, metaKey: event.metaKey,
-          shiftKey: event.shiftKey, altKey: event.altKey, cancelable: true,
-        });
-        searchInput.dispatchEvent(forwarded);
-        if (forwarded.defaultPrevented) event.preventDefault();
-      }
-    });
-
-    searchInput.addEventListener("input", () => {
-      if (hiddenInput.value) return;
-      clearProductDuplicateFeedback(item, searchInput);
-      requestCounter += 1;
-      hideResults();
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(fetchResults, 250);
-    });
-
-    searchInput.addEventListener("focus", () => {
-      setActiveLine(item);
-
-      if (searchInput.value.trim().length >= 2) {
-        fetchResults();
-      }
-    });
-
-    searchInput.addEventListener("keydown", (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
-        event.preventDefault();
-        form.requestSubmit();
-        return;
-      }
-
-      if (event.ctrlKey && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        openCreateProduct();
-        return;
-      }
-
-      if (event.ctrlKey && event.key === "Enter") {
-        event.preventDefault();
-        const workingLine = ensureTopWorkingLine();
-        if (workingLine) {
-          focusField(getLineFields(workingLine).product);
-        }
-        scheduleDraftSave();
-        return;
-      }
-
-      if (event.ctrlKey && event.key === "Backspace") {
-        event.preventDefault();
-        removeCurrentLineIfEmpty(item);
-        return;
-      }
-
-      const buttons = choiceButtons();
-      const createButton = createProductButton();
-
-      if (event.key === "ArrowDown" && buttons.length) {
-        event.preventDefault();
-        activeChoiceIndex = Math.min(activeChoiceIndex + 1, buttons.length - 1);
-        syncActiveChoice();
-        return;
-      }
-
-      if (event.key === "ArrowUp" && buttons.length) {
-        event.preventDefault();
-        activeChoiceIndex = Math.max(activeChoiceIndex - 1, 0);
-        syncActiveChoice();
-        return;
-      }
-
-      if (event.key === "Escape") {
-        event.preventDefault();
-        clearTimeout(debounceTimer);
-        requestCounter += 1;
-        hideResults();
-        return;
-      }
-
-      if (event.key !== "Enter") return;
-      if (event.ctrlKey || event.altKey || event.metaKey) return;
-
-      event.preventDefault();
-
-      if (buttons.length && activeChoiceIndex >= 0 && buttons[activeChoiceIndex]) {
-        buttons[activeChoiceIndex].click();
-        return;
-      }
-
-      if (createButton instanceof HTMLElement) {
-        createButton.click();
-        return;
-      }
-
-      if (event.shiftKey) {
-        moveLineFocus(item, "product", -1);
-        return;
-      }
-
-      if (hiddenInput.value.trim() !== "") {
-        moveLineFocus(item, "product", 1);
-        return;
-      }
-
-      if (searchInput.value.trim().length >= 2) {
-        fetchResults();
-      }
-    });
-  };
-
   const initLineItem = (item) => {
     applySelectedProductState(item, {
       id: item.querySelector("[data-product-id]")?.value,
       label: item.querySelector("[data-selected-product-label]")?.textContent,
     });
-    initProductLookup(item);
+    const remove = item.querySelector("[data-product-remove]");
+    remove?.addEventListener("click", () => removeLine(item));
+    remove?.addEventListener("keydown", (event) => {
+      if (event.ctrlKey && event.key === "Enter") { event.preventDefault(); focusField(productSearch); }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") { event.preventDefault(); form.requestSubmit(); }
+    });
     initQtyInput(item);
+    const quantity = item.querySelector("[data-qty-input]");
+    if (quantity && !item.querySelector("[data-qty-step]")) {
+      const group = document.createElement("div"); group.className = "input-group";
+      quantity.before(group); group.append(quantity);
+      [-1, 1].forEach((step) => {
+        const button = document.createElement("button"); button.type = "button"; button.className = "btn btn-outline-secondary";
+        button.textContent = step < 0 ? "−" : "+"; button.dataset.qtyStep = String(step);
+        button.setAttribute("aria-label", step < 0 ? "Kurangi jumlah" : "Tambah jumlah");
+        button.addEventListener("click", () => { quantity.value = String(Math.max(1, parsePositiveInt(quantity.value) + step)); quantity.dispatchEvent(new Event("input", { bubbles: true })); });
+        if (step < 0) group.prepend(button); else group.append(button);
+      });
+    }
     initMoneyInput(item);
     attachTaxModeHandlers(item);
 
@@ -1195,32 +932,29 @@
     });
   });
 
-  addButton.addEventListener("click", () => {
-    const workingLine = ensureTopWorkingLine();
-    if (workingLine) {
-      focusField(getLineFields(workingLine).product);
-    }
-    scheduleDraftSave();
+  const removeLine = (item) => {
+    item.remove(); syncLineNumbers(); updateRemoveButtons(); updateTaxModeFields();
+    resetTaxRoundingResidueConfirmation(); scheduleDraftSave(); focusField(productSearch);
+  };
+  const lookup = window.bindProcurementProductSearch({
+    input: productSearch, results: productResults, config, save: scheduleDraftSave,
+    submit: () => form.requestSubmit(),
+    previous: () => focusField(headerFields().at(-1)),
+    select: (row) => {
+      if (lineItems().some((item) => item.querySelector("[data-product-id]").value === String(row.id))) return false;
+      const item = insertLine({ product_id: row.id, product_label: row.label, qty_pcs: "1" }, "bottom");
+      applySelectedProductState(item, row); resetTaxRoundingResidueConfirmation();
+      focusField(item.querySelector("[data-qty-input]")); return true;
+    },
   });
-
   container.addEventListener("click", (event) => {
     const button = event.target.closest("[data-remove-line]");
-    if (!button) return;
-
-    const item = button.closest("[data-line-item]");
-    if (!item) return;
-
-    if (lineItems().length <= 1) return;
-
-    item.remove();
-    syncLineNumbers();
-    updateRemoveButtons();
-    scheduleDraftSave();
-
-    const topLine = getTopLine();
-    if (topLine) {
-      setActiveLine(topLine);
-    }
+    if (button) removeLine(button.closest("[data-line-item]"));
+  });
+  document.getElementById("procurement-start-new")?.addEventListener("click", () => {
+    if (!window.confirm("Buang perubahan yang belum disimpan?")) return;
+    clearTimeout(saveTimer); clearDraft(); lookup.close();
+    window.location.replace(config.reloadUrl || window.location.href);
   });
 
   document.addEventListener("click", (event) => {
@@ -1300,5 +1034,21 @@
     restoreDraft();
   } else {
     focusField(document.getElementById("nomor_faktur"));
+  }
+  lineItems().filter(isLineCompletelyEmpty).forEach((item) => item.remove());
+  syncLineNumbers(); updateRemoveButtons();
+  const hydratedItems = lineItems();
+  for (let offset = 0; offset < hydratedItems.length; offset += 50) {
+    const batch = hydratedItems.slice(offset, offset + 50);
+    const params = new URLSearchParams();
+    batch.forEach((item) => params.append("ids[]", item.querySelector("[data-product-id]").value));
+    fetch(`${config.lookupEndpoint}?${params}`, { headers: { Accept: "application/json" } })
+      .then(async (response) => { if (!response.ok) throw new Error("metadata"); return response.json(); })
+      .then((payload) => {
+        batch.forEach((item) => {
+          const row = payload.data?.rows?.find((row) => String(row.id) === item.querySelector("[data-product-id]").value);
+          if (row && item.isConnected) applySelectedProductState(item, row);
+        });
+      }).catch(() => { /* Keep restored identities and financial inputs on lookup failure. */ });
   }
 })();

@@ -43,9 +43,11 @@ final class CreateSupplierInvoicePageFeatureTest extends TestCase
         $response->assertSee('name="lines[0][line_no]"', false);
         $response->assertSee('data-line-no', false);
         $response->assertSee('Ketik minimal 2 huruf untuk mencari produk');
-        $response->assertSee('add-procurement-line', false);
-        $response->assertSee('data-product-search', false);
+        $response->assertDontSee('add-procurement-line', false);
+        $response->assertDontSee('data-product-search', false);
         $response->assertSee('data-product-selected', false);
+        $this->assertSame(1, substr_count($response->getContent(), 'data-procurement-product-search'));
+        $response->assertDontSee('onclick="window.localStorage', false);
         $response->assertSee('data-product-remove', false);
         $response->assertSee('admin-lookup.css', false);
         $response->assertSee('data-supplier-search', false);

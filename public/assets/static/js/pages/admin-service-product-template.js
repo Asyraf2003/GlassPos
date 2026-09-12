@@ -11,16 +11,17 @@
   const productSearch = root.querySelector("[data-package-product-search]");
   const serviceSearch = root.querySelector("[data-package-service-search]");
 
-  const card = (item, remove) => {
+  const cancelSearches = [];
+  const card = (item, remove, product = false) => {
     const block = document.createElement("div");
     block.className = "admin-selected-card";
     const copy = document.createElement("strong");
     copy.className = "admin-selected-copy";
-    copy.textContent = item.name;
-    if (item.code) {
+    copy.textContent = product ? window.ProductDisplay.identity(item) : item.name;
+    {
       const meta = document.createElement("small");
       meta.className = "admin-selected-meta";
-      meta.textContent = item.code;
+      meta.textContent = product ? window.ProductDisplay.price(item) : `Rp${Number(item.price_rupiah).toLocaleString("id-ID")}`;
       copy.append(meta);
     }
     const button = document.createElement("button");
@@ -35,6 +36,7 @@
 
   // All selection mutations and hydration rebuild the legacy ordered payload here.
   const syncSelection = () => {
+    cancelSearches.forEach((cancel) => cancel());
     ids.forEach((input, index) => { input.value = selectedProducts[index]?.id || ""; });
     serviceId.value = selectedService?.id || "";
     productSearch.value = "";
@@ -46,7 +48,7 @@
         selectedProducts = selectedProducts.filter((product) => product.id !== item.id);
         syncSelection();
         productSearch.focus();
-      })
+      }, true)
     ));
     root.querySelector("[data-package-service-selected]").replaceChildren(...(selectedService ? [
       card(selectedService, () => {
@@ -68,15 +70,22 @@
     });
   };
 
-  const bindSearch = (input, list, available, select) => {
+  const bindSearch = (input, list, available, select, product = false) => {
+    let request = 0;
+    let timer;
+    let controller;
     let active = -1;
     const close = () => {
+      request += 1;
+      clearTimeout(timer);
+      controller?.abort();
       list.classList.add("d-none");
       input.setAttribute("aria-expanded", "false");
       input.removeAttribute("aria-activedescendant");
       active = -1;
     };
-    const render = () => {
+    cancelSearches.push(close);
+    const render = async () => {
       active = -1;
       input.removeAttribute("aria-activedescendant");
       const query = input.value.trim().toLocaleLowerCase("id-ID");
@@ -85,7 +94,23 @@
         close();
         return;
       }
-      const matches = available().filter((item) => item.label.toLocaleLowerCase("id-ID").includes(query)).slice(0, 50);
+      const token = ++request;
+      controller?.abort();
+      controller = new AbortController();
+      let matches;
+      try {
+        matches = (await available(query, controller.signal)).slice(0, 50);
+      } catch (error) {
+        if (token !== request || error.name === "AbortError") return;
+        list.replaceChildren();
+        const message = document.createElement("div");
+        message.textContent = "Gagal memuat produk.";
+        list.append(message);
+        list.classList.remove("d-none");
+        input.setAttribute("aria-expanded", "true");
+        return;
+      }
+      if (token !== request) return;
       list.replaceChildren(...matches.map((item, index) => {
         const button = document.createElement("button");
         button.type = "button";
@@ -93,7 +118,12 @@
         button.id = `${list.id}-${index}`;
         button.setAttribute("role", "option");
         button.setAttribute("aria-selected", "false");
-        button.textContent = item.label;
+        const name = document.createElement("div");
+        name.textContent = product ? window.ProductDisplay.identity(item) : item.name;
+        const price = document.createElement("small");
+        price.className = "d-block text-muted";
+        price.textContent = product ? window.ProductDisplay.price(item) : `Rp${Number(item.price_rupiah).toLocaleString("id-ID")}`;
+        button.append(name, price);
         button.addEventListener("click", () => { select(item); close(); });
         return button;
       }));
@@ -106,7 +136,11 @@
       list.classList.remove("d-none");
       input.setAttribute("aria-expanded", "true");
     };
-    input.addEventListener("input", render);
+    input.addEventListener("input", () => {
+      close();
+      list.replaceChildren();
+      if (input.value.trim().length >= 2) timer = setTimeout(render, 200);
+    });
     input.addEventListener("focus", render);
     input.addEventListener("keydown", (event) => {
       if (event.key === "Escape") { event.preventDefault(); close(); return; }
@@ -136,14 +170,20 @@
     }, 0));
   };
   bindSearch(productSearch, root.querySelector("[data-package-product-results]"),
-    () => products.filter((item) => !selectedProducts.some((selected) => selected.id === item.id)),
+    async (query, signal) => {
+      const response = await fetch(`${root.dataset.productEndpoint}?q=${encodeURIComponent(query)}`, { signal, headers: { Accept: "application/json" } });
+      const payload = await response.json();
+      if (!response.ok || !payload.success) throw new Error("product lookup");
+      return (payload.data?.rows || []).filter((item) => !selectedProducts.some((selected) => selected.id === item.id))
+        .map((item) => ({ ...item, name: item.nama_barang, price_rupiah: item.default_unit_price_rupiah }));
+    },
     (item) => {
       if (selectedProducts.length >= 3 || selectedProducts.some((selected) => selected.id === item.id)) return;
       selectedProducts.push(item);
       syncSelection();
       (selectedProducts.length < 3 ? productSearch : selectedService ? root.querySelector(".admin-selected-remove") : serviceSearch).focus();
-    });
-  bindSearch(serviceSearch, root.querySelector("[data-package-service-results]"), () => services,
+    }, true);
+  bindSearch(serviceSearch, root.querySelector("[data-package-service-results]"), (query) => services.filter((item) => item.label.toLocaleLowerCase("id-ID").includes(query)),
     (item) => { selectedService = item; syncSelection(); root.querySelector("[data-package-service-selected] button").focus(); });
   syncSelection();
 })();

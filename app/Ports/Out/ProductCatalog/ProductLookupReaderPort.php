@@ -9,10 +9,14 @@ use App\Application\ProductCatalog\DTO\ProductLookupRow;
 interface ProductLookupReaderPort
 {
     public const DEFAULT_LIMIT = 20;
+
     public const MAX_LIMIT = 50;
 
-    /**
+    /** @param list<string> $ids
      * @return list<ProductLookupRow>
      */
+    public function findByIds(array $ids): array;
+
+    /** @return list<ProductLookupRow> */
     public function search(string $query, int $limit = self::DEFAULT_LIMIT, bool $onlyInStock = false): array;
 }

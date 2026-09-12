@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Adapters\Out\ServiceProductTemplate;
 
 use App\Application\ServiceProductTemplate\Services\ServiceProductTemplatePackageSplitCalculator;
+use App\Ports\Out\ProductCatalog\ProductLookupReaderPort;
 use Illuminate\Support\Facades\DB;
 
 final class DatabaseServiceProductTemplateAdminPageData
@@ -15,6 +16,7 @@ final class DatabaseServiceProductTemplateAdminPageData
     public function __construct(
         private readonly ServiceProductTemplatePackageSplitCalculator $split,
         private readonly DatabaseServiceProductTemplateAdminLineRows $lines,
+        private readonly ProductLookupReaderPort $products,
     ) {}
 
     /** @return list<array<string, mixed>> */

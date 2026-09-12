@@ -87,6 +87,7 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('assets/static/js/shared/product-display.js') }}?v={{ config('app.asset_version') }}"></script>
     <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}?v={{ config('app.asset_version') }}"></script>
     <script src="{{ asset('assets/static/js/pages/cashier-note-workspace/rows.js') }}?v={{ config('app.asset_version') }}"></script>
     <script src="{{ asset('assets/static/js/pages/cashier-note-workspace/search.js') }}?v={{ config('app.asset_version') }}"></script>

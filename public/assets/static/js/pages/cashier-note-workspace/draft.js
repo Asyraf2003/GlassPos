@@ -21,6 +21,7 @@
   const hasBlockingServerOldInput = (config) => config?.hasOldInput === true;
 
   const mergeProductLine = (draftLine, baseLine) => ({
+    display_metadata: draftLine?.display_metadata ?? (draftLine?.product_id === baseLine?.product_id ? baseLine?.display_metadata : undefined),
     product_id: draftLine?.product_id || baseLine?.product_id || "",
     qty: draftLine?.qty || baseLine?.qty || "1",
     unit_price_rupiah:
@@ -191,6 +192,7 @@
 
 	  const productLinesFromRow = (row) =>
 	    productLineScopes(row).map((scope) => ({
+          display_metadata: JSON.parse(scope.dataset.productDisplay || "null"),
 	      product_id: valueOf("[data-product-id]", scope),
 	      qty: numberText(valueOf("[data-qty-input]", scope)) || "1",
 	      unit_price_rupiah: numberText(valueOf('input[name$="[unit_price_rupiah]"]', scope)),

@@ -92,11 +92,28 @@ final class ProductLookupFeatureTest extends TestCase
         $response->assertJsonPath('data.rows.19.id', 'product-020');
     }
 
+    public function test_lookup_and_selected_ids_expose_current_stock_and_selling_price_including_zero_stock(): void
+    {
+        $this->seedProduct('live-product', 'LIVE', 'Live Product', 'NPP', 0, 170000);
+        $this->actingAs($this->user('admin'));
+        $this->getJson(route('admin.procurement.products.lookup', ['q' => 'LIVE']))
+            ->assertOk()->assertJsonPath('data.rows.0.available_stock', 0)
+            ->assertJsonPath('data.rows.0.default_unit_price_rupiah', 170000);
+        DB::table('product_inventory')->insert(['product_id' => 'live-product', 'qty_on_hand' => 10]);
+        DB::table('products')->where('id', 'live-product')->update(['harga_jual' => 180000]);
+        $this->getJson(route('admin.procurement.products.lookup', ['ids' => ['live-product']]))
+            ->assertOk()->assertJsonPath('data.rows.0.available_stock', 10)
+            ->assertJsonPath('data.rows.0.default_unit_price_rupiah', 180000)
+            ->assertJsonPath('data.rows.0.ukuran', 0);
+        $this->getJson(route('admin.procurement.products.lookup', ['ids' => array_fill(0, 51, 'live-product')]))
+            ->assertUnprocessable();
+    }
+
     private function user(string $role): User
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '@example.test',
+            'email' => $role.'@example.test',
             'password' => 'password123',
         ]);
 

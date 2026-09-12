@@ -34,7 +34,7 @@
     const nameText = selected.querySelector("[data-selected-service-name]");
     const priceText = selected.querySelector("[data-selected-service-price]");
     if (nameText) nameText.textContent = name || "Servis terpilih";
-    if (priceText) priceText.textContent = price > 0 ? `Rp${format(price)}` : "Harga belum diisi";
+    if (priceText) priceText.textContent = `Rp${format(price)}`;
   };
 
   const clearServiceSelectedState = (row) => {

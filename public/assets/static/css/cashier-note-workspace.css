@@ -454,8 +454,10 @@
 }
 
 .workspace-package-product {
-    align-items: center;
+    align-items: flex-start;
     display: flex;
+    flex-direction: column;
+    overflow-wrap: anywhere;
     font-size: 0.76rem;
     gap: 0.45rem;
     justify-content: space-between;

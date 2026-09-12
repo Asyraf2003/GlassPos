@@ -11,7 +11,14 @@ final class ProcurementProductLookupData
 {
     public function __construct(
         private readonly ProductLookupReaderPort $products,
-    ) {
+    ) {}
+
+    /** @param list<string> $ids
+     * @return list<ProductLookupRow>
+     */
+    public function findByIds(array $ids): array
+    {
+        return $this->products->findByIds($ids);
     }
 
     /**

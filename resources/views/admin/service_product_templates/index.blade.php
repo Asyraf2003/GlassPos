@@ -19,7 +19,7 @@
                         </form>
                         <button type="button" id="open-package-filter" class="btn btn-primary py-2">Filter</button>
                         <a href="{{ route('admin.service-product-templates.create') }}" class="btn btn-primary py-2 d-inline-flex align-items-center">
-                            Tambah Paket Service
+                            Tambah Paket
                         </a>
                     </div>
                 </div>

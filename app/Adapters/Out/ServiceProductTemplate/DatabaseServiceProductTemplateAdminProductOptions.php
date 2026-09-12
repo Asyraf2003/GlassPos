@@ -4,36 +4,24 @@ declare(strict_types=1);
 
 namespace App\Adapters\Out\ServiceProductTemplate;
 
-use Illuminate\Support\Facades\DB;
+use App\Application\ProductCatalog\DTO\ProductLookupRow;
 
 trait DatabaseServiceProductTemplateAdminProductOptions
 {
-    /** @return list<array{id:string,code:string,name:string,price_rupiah:int,label:string}> */
-    public function productOptions(): array
+    /** @param list<string> $ids
+     * @return list<array<string, mixed>>
+     */
+    public function productOptions(array $ids = []): array
     {
-        return DB::table('products')
-            ->whereNull('deleted_at')
-            ->select(['id', 'kode_barang', 'nama_barang', 'harga_jual'])
-            ->orderBy('nama_barang')
-            ->orderBy('kode_barang')
-            ->get()
-            ->map(fn (object $row): array => [
-                'id' => (string) $row->id,
-                'code' => (string) $row->kode_barang,
-                'name' => (string) $row->nama_barang,
-                'price_rupiah' => (int) $row->harga_jual,
-                'label' => $this->productLabel($row),
-            ])
-            ->all();
-    }
-
-    private function productLabel(object $row): string
-    {
-        return trim(sprintf(
-            '%s%s · Harga jual %s',
-            $row->kode_barang !== null && $row->kode_barang !== '' ? (string) $row->kode_barang.' - ' : '',
-            (string) $row->nama_barang,
-            number_format((int) $row->harga_jual, 0, ',', '.'),
-        ));
+        return array_map(static fn (ProductLookupRow $row): array => [
+            'id' => $row->id,
+            'code' => $row->kodeBarang,
+            'name' => $row->namaBarang,
+            'brand' => $row->merek,
+            'size' => $row->ukuran,
+            'available_stock' => $row->availableStock,
+            'price_rupiah' => $row->defaultUnitPriceRupiah,
+            'label' => $row->label(),
+        ], $this->products->findByIds($ids));
     }
 }

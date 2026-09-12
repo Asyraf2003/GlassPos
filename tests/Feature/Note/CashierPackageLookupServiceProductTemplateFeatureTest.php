@@ -50,6 +50,8 @@ final class CashierPackageLookupServiceProductTemplateFeatureTest extends TestCa
         $response->assertJsonPath('data.rows.0.product_lines.0.qty', 1);
         $response->assertJsonPath('data.rows.0.product_lines.0.unit_price_rupiah', 120000);
         $response->assertJsonPath('data.rows.0.product_lines.0.available_stock', 5);
+        $response->assertJsonPath('data.rows.0.product_lines.0.brand', 'Federal');
+        $response->assertJsonPath('data.rows.0.product_lines.0.size', 80);
         $response->assertJsonPath('data.rows.0.product_lines.0.stock_status', 'safe');
 
         $response->assertJsonPath('data.rows.0.product_lines.1.product_id', 'package-endpoint-product-oli');

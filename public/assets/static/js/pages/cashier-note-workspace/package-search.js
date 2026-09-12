@@ -53,9 +53,10 @@
       const item = document.createElement("div");
       item.className = "workspace-package-product";
       const name = document.createElement("span");
-      name.textContent = `${line?.product_name || line?.label || "Sparepart"} × ${line?.qty || 1}`;
+      name.textContent = window.ProductDisplay.identity(line.display_metadata || line);
       const detail = document.createElement("span");
-      detail.textContent = `Rp${format(digits(line?.qty) * digits(line?.unit_price_rupiah))} · stok ${line?.available_stock ?? "-"}`;
+      detail.className = "small text-muted";
+      detail.textContent = window.ProductDisplay.price(line.display_metadata || line);
       item.append(name, detail);
       list.appendChild(item);
     });
@@ -69,10 +70,11 @@
     setText(
       row,
       "[data-package-description]",
-      `${productLines.length} sparepart · total Rp${format(packageTotal(item))}`
+      `Rp${format(item?.service?.price_rupiah ?? item?.service_product_template?.default_service_price_rupiah)}`
     );
     setText(row, "[data-package-stock-text]", item?.stock_label || "Stok mengikuti validasi server");
     renderPackageProducts(row, productLines);
+    setText(row, "[data-package-total]", `Total Paket Rp${format(packageTotal(item))}`);
   };
 
   const clearResults = (row) => {
@@ -121,6 +123,7 @@
   const applyProductLine = (row, scope, line) => {
     if (!(scope instanceof HTMLElement)) return;
 
+    scope.dataset.productDisplay = JSON.stringify(line);
     const label = String(line?.label || line?.product_name || "").trim();
 
     setValue(scope, "[data-product-search]", label);

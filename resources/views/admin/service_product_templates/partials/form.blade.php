@@ -15,7 +15,7 @@
         @method($method)
     @endif
 
-    <div data-package-picker data-products='@json($productOptions)' data-services='@json($serviceOptions)'>
+    <div data-package-picker data-product-endpoint="{{ route('admin.procurement.products.lookup') }}" data-products='@json($productOptions)' data-services='@json($serviceOptions)'>
         <input type="hidden" name="product_id" value="{{ old('product_id', $template['product_id'] ?? '') }}" data-package-product-id>
         <input type="hidden" name="product_lines[1][product_id]" value="{{ old('product_lines.1.product_id', $template['product_lines'][1]['product_id'] ?? '') }}" data-package-product-id>
         <input type="hidden" name="product_lines[2][product_id]" value="{{ old('product_lines.2.product_id', $template['product_lines'][2]['product_id'] ?? '') }}" data-package-product-id>

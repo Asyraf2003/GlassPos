@@ -26,6 +26,7 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('assets/static/js/shared/product-display.js') }}?v={{ config('app.asset_version') }}"></script>
     <script src="{{ asset('assets/static/js/pages/admin-service-product-template.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush
 

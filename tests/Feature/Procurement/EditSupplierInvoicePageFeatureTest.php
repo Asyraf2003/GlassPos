@@ -60,17 +60,19 @@ final class EditSupplierInvoicePageFeatureTest extends TestCase
         $response->assertSee('INV-SUP-001');
         $response->assertSee('PT Sumber Makmur');
         $response->assertSee('Rincian Nota');
-        $response->assertSee('Tambah Rincian');
-        $response->assertSee('add-procurement-line', false);
-        $response->assertSee('data-product-search', false);
+        $response->assertSee('Tambah Produk');
+        $response->assertDontSee('add-procurement-line', false);
+        $response->assertDontSee('data-product-search', false);
         $response->assertSee('data-product-selected', false);
+        $this->assertSame(1, substr_count($response->getContent(), 'data-procurement-product-search'));
+        $response->assertDontSee('onclick="window.localStorage', false);
         $response->assertSee('data-product-remove', false);
         $response->assertSee('name="lines[0][product_id]"', false);
         $response->assertSee('value="product-1"', false);
         $response->assertSee('data-selected-product-label>Ban Luar', false);
         $response->assertDontSee('value="Ban Luar', false);
         $response->assertSee('admin-procurement-edit.js');
-        $response->assertSee('Simpan Perubahan Nota');
+        $response->assertSee('Simpan Perubahan');
     }
 
     public function test_admin_is_redirected_to_revise_when_supplier_invoice_is_locked_for_edit(): void

@@ -44,24 +44,14 @@
                                     </p>
                                 </div>
 
-                                <div class="d-flex flex-wrap gap-2">
-                                    <button type="button" id="add-procurement-line" class="btn btn-primary">
-                                        Tambah Rincian
-                                    </button>
-                                </div>
                             </div>
                         </div>
 
                         <div class="card-body">
-                            <div
-                                class="d-none d-xl-grid text-muted small fw-semibold border-bottom pb-2 mb-3"
-                                style="grid-template-columns: minmax(0, 1fr) 72px 168px 144px 44px; gap: 16px;"
-                            >
-                                <div>Produk</div>
-                                <div>Qty (Pcs)</div>
-                                <div>Total Rincian</div>
-                                <div>Pajak Rincian</div>
-                                <div class="text-center">Aksi</div>
+                            <div class="position-relative mb-3">
+                                <label for="procurement-product-search" class="form-label">Tambah Produk</label>
+                                <input id="procurement-product-search" type="search" class="form-control" placeholder="Ketik minimal 2 huruf untuk mencari produk" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="procurement-product-results" data-procurement-product-search>
+                                <div id="procurement-product-results" class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 20;" role="listbox" data-procurement-product-results></div>
                             </div>
 
                             <div id="procurement-line-items" data-next-index="{{ count($lineItemsView) }}" class="d-flex flex-column gap-3">
@@ -76,10 +66,10 @@
 
                                         <div
                                             class="d-flex flex-column d-xl-grid gap-3 align-items-start"
-                                            style="grid-template-columns: minmax(0, 1fr) 72px 168px 144px 44px;"
+                                            style="grid-template-columns: 160px minmax(120px, 1fr) minmax(100px, 1fr) 44px;"
                                         >
-                                            <div class="w-100 position-relative">
-                                                <label class="form-label d-xl-none">Produk</label>
+                                            <div class="w-100 position-relative" style="grid-column: 1 / -1;">
+                                                <label class="form-label">Produk</label>
 
                                                 <input
                                                     type="hidden"
@@ -87,21 +77,6 @@
                                                     value="{{ $lineView['selected_product_id'] }}"
                                                     data-product-id
                                                 >
-
-                                                <input
-                                                    type="text"
-                                                    value=""
-                                                    class="form-control @error('lines.' . $lineView['index'] . '.product_id') is-invalid @enderror"
-                                                    placeholder="Ketik minimal 2 huruf untuk mencari produk"
-                                                    autocomplete="off"
-                                                    data-product-search
-                                                >
-
-                                                <div
-                                                    class="list-group position-absolute w-100 shadow-sm d-none mt-1"
-                                                    style="z-index: 20;"
-                                                    data-product-results
-                                                ></div>
 
                                                 <div class="admin-selected-card {{ $lineView['selected_product_id'] === '' ? 'd-none' : '' }}" data-product-selected>
                                                     <strong class="admin-selected-copy" data-selected-product-label>{{ $lineView['selected_label'] }}</strong>
@@ -114,7 +89,7 @@
                                             </div>
 
                                             <div class="w-100">
-                                                <label class="form-label d-xl-none">Jumlah (Pcs)</label>
+                                                <label class="form-label">Jumlah (Pcs)</label>
                                                 <input
                                                     type="text"
                                                     inputmode="numeric"
@@ -132,7 +107,7 @@
                                             </div>
 
                                             <div class="w-100">
-                                                <label class="form-label d-xl-none">Total Rincian (Rupiah)</label>
+                                                <label class="form-label">Total Beli (Rupiah)</label>
 
                                                 <input
                                                     type="hidden"
@@ -158,7 +133,7 @@
                                             </div>
 
                                             <div class="w-100" data-tax-line-group>
-                                                <label class="form-label d-xl-none">Pajak Rincian</label>
+                                                <label class="form-label">Pajak Rincian</label>
                                                 <input
                                                     type="text"
                                                     name="lines[{{ $lineView['index'] }}][tax_input]"
@@ -173,7 +148,7 @@
                                             </div>
 
                                             <div class="w-100">
-                                                <label class="form-label d-xl-none">Aksi</label>
+                                                <label class="form-label">Aksi</label>
                                                 <button
                                                     type="button"
                                                     class="btn icon btn-danger"
@@ -200,10 +175,10 @@
 
                                     <div
                                         class="d-flex flex-column d-xl-grid gap-3 align-items-start"
-                                        style="grid-template-columns: minmax(0, 1fr) 72px 168px 144px 44px;"
+                                        style="grid-template-columns: 160px minmax(120px, 1fr) minmax(100px, 1fr) 44px;"
                                     >
-                                        <div class="w-100 position-relative">
-                                            <label class="form-label d-xl-none">Produk</label>
+                                        <div class="w-100 position-relative" style="grid-column: 1 / -1;">
+                                            <label class="form-label">Produk</label>
 
                                             <input
                                                 type="hidden"
@@ -211,20 +186,6 @@
                                                 value=""
                                                 data-product-id
                                             >
-
-                                            <input
-                                                type="text"
-                                                class="form-control"
-                                                placeholder="Ketik minimal 2 huruf untuk mencari produk"
-                                                autocomplete="off"
-                                                data-product-search
-                                            >
-
-                                            <div
-                                                class="list-group position-absolute w-100 shadow-sm d-none mt-1"
-                                                style="z-index: 20;"
-                                                data-product-results
-                                            ></div>
                                             <div class="admin-selected-card d-none" data-product-selected>
                                                 <strong class="admin-selected-copy" data-selected-product-label></strong>
                                                 <button type="button" class="admin-selected-remove" data-product-remove aria-label="Lepas produk terpilih">×</button>
@@ -233,7 +194,7 @@
                                         </div>
 
                                         <div class="w-100">
-                                            <label class="form-label d-xl-none">Jumlah (Pcs)</label>
+                                            <label class="form-label">Jumlah (Pcs)</label>
                                             <input
                                                 type="text"
                                                 inputmode="numeric"
@@ -248,7 +209,7 @@
                                         </div>
 
                                         <div class="w-100">
-                                            <label class="form-label d-xl-none">Total Rincian (Rupiah)</label>
+                                            <label class="form-label">Total Beli (Rupiah)</label>
 
                                             <input
                                                 type="hidden"
@@ -270,7 +231,7 @@
                                         </div>
 
                                         <div class="w-100" data-tax-line-group>
-                                            <label class="form-label d-xl-none">Pajak Rincian</label>
+                                            <label class="form-label">Pajak Rincian</label>
                                             <input
                                                 type="text"
                                                 name="lines[__INDEX__][tax_input]"
@@ -282,7 +243,7 @@
                                         </div>
 
                                         <div class="w-100">
-                                            <label class="form-label d-xl-none">Aksi</label>
+                                            <label class="form-label">Aksi</label>
                                             <button
                                                 type="button"
                                                 class="btn icon btn-danger"
@@ -452,18 +413,13 @@
 
                             <div class="ui-form-actions mt-4">
                                 <button type="submit" class="btn btn-primary">
-                                    Simpan Nota Pemasok
+                                    Simpan Nota
                                 </button>
-
-                                <a href="{{ route('admin.procurement.supplier-invoices.index') }}" class="btn btn-light-secondary">
-                                    Kembali ke Daftar
-                                </a>
 
                                 <button
                                     type="button"
                                     class="btn btn-light-danger"
                                     id="procurement-start-new"
-                                    onclick="window.localStorage.removeItem('admin.procurement.create-supplier-invoice.draft.v1'); window.location.reload();"
                                 >
                                     Mulai Baru
                                 </button>
@@ -477,6 +433,8 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('assets/static/js/shared/procurement-product-search.js') }}?v={{ config('app.asset_version') }}"></script>
+    <script src="{{ asset('assets/static/js/shared/product-display.js') }}?v={{ config('app.asset_version') }}"></script>
     <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}?v={{ config('app.asset_version') }}"></script>
     <script>
         window.procurementCreateConfig = {

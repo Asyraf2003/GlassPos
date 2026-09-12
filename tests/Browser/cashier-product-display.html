@@ -1,0 +1,62 @@
+<!doctype html><meta charset="utf-8"><style>.d-none{display:none}</style>
+<section data-line-item data-item-type="product" id="product"><div data-product-line>
+<div data-product-search-stage><input data-product-search><div data-product-results></div></div>
+<input data-product-id><input name="items[0][product_lines][0][unit_price_rupiah]"><input data-qty-input value="1"><input data-price-basis>
+<div data-product-selected><strong data-selected-product-name></strong><span data-selected-product-meta></span><small data-selected-product-price-stock></small><button data-product-change></button></div>
+<small data-stock-text></small><div data-min-price-warning class="d-none"><span data-min-price-text></span></div>
+</div></section>
+<section data-line-item data-item-type="service" id="service">
+<div data-service-search-stage><input data-service-search><div data-service-results></div></div>
+<input data-service-name><input data-service-catalog-id><input data-service-default-fee-rupiah><input data-service-price-raw><input data-service-price-display>
+<div data-service-selected><strong data-selected-service-name></strong><small data-selected-service-price></small></div><button data-service-change></button>
+</section>
+<section data-line-item data-item-type="service_store_stock" id="package">
+<div data-package-search-stage><input data-package-search><div data-package-results></div></div>
+<div data-package-selected-section><strong data-package-title></strong><small data-package-description></small><span data-package-stock-text></span><div data-package-product-list></div><strong data-package-total></strong></div>
+<input data-service-name><input data-service-catalog-id><input data-service-default-fee-rupiah><input data-service-price-raw><input data-service-price-display><input data-requires-service-product-template>
+<div data-product-line><input data-product-search><input data-product-id><input data-price-basis><input data-qty-input><input name="items[2][product_lines][0][unit_price_rupiah]"><span data-stock-text></span></div>
+</section>
+<script src="../../public/assets/static/js/shared/product-display.js"></script>
+<script>window.CashierNoteWorkspace = { config: { productLookupEndpoint: "https://example.test/products", serviceLookupEndpoint: "https://example.test/services" } }; window.requestAnimationFrame = (fn) => fn();</script>
+<script src="../../public/assets/static/js/pages/cashier-note-workspace/rows.js"></script>
+<script src="../../public/assets/static/js/pages/cashier-note-workspace/search.js"></script>
+<script src="../../public/assets/static/js/pages/cashier-note-workspace/service-catalog.js"></script>
+<script src="../../public/assets/static/js/pages/cashier-note-workspace/package-search.js"></script>
+<script>
+(async () => {
+try {
+ const assert = (ok, message) => { if (!ok) throw new Error(message); };
+ const NS = window.CashierNoteWorkspace;
+ const product = document.getElementById("product"), service = document.getElementById("service"), pack = document.getElementById("package");
+ const row = { id: "p", code: "2XF00", name: "PISTON <ALFA>", brand: "NPP", size: 0, available_stock: 10, default_unit_price_rupiah: 170000, minimum_unit_price_rupiah: 170000 };
+ let calls = 0;
+ window.fetch = async (url) => { calls++; return { ok: true, json: async () => ({ success: true, data: { rows: url.includes("services") ? [{ id: "s", label: "BORING GRAND", default_price_rupiah: 100000 }] : [row] } }) }; };
+ const wait = () => new Promise((resolve) => setTimeout(resolve, 300));
+ NS.bindProductSearch(product);
+ const search = product.querySelector("[data-product-search]"); search.value = "PI"; search.dispatchEvent(new Event("input")); await wait();
+ assert(product.querySelector("[data-product-results]").textContent === "2XF00 | PISTON <ALFA> | NPP | 0 | sisa: 10 stokRp170.000 / pcs", "product result hierarchy");
+ search.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+ assert(product.querySelector("[data-selected-product-name]").textContent === "2XF00 | PISTON <ALFA> | NPP | 0 | sisa: 10 stok", "selected identity");
+ assert(!product.querySelector("alfa"), "safe text rendering");
+ assert(product.querySelector("[data-selected-product-price-stock]").textContent === "Rp170.000 / pcs", "selected price");
+ const scope = product.querySelector("[data-product-line]");
+ assert(scope.dataset.availableStock === "10" && scope.dataset.minimumUnitPriceRupiah === "170000", "stock and floor preserved");
+ scope.querySelector('[name$="[unit_price_rupiah]"]').value = "160000"; NS.syncFloorPriceGuard(product);
+ assert(!scope.querySelector("[data-min-price-warning]").classList.contains("d-none"), "minimum price warning preserved");
+ NS.bindServiceCatalog(service); const serviceSearch = service.querySelector("[data-service-search]");
+ serviceSearch.value = "BO"; serviceSearch.dispatchEvent(new Event("input")); await wait(); serviceSearch.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+ assert(service.querySelector("[data-service-selected]").textContent === "BORING GRANDRp100.000", "service display");
+ service.querySelector("[data-service-price-display]").value = "120000"; service.querySelector("[data-service-price-display]").dispatchEvent(new Event("input"));
+ assert(service.querySelector("[data-selected-service-price]").textContent === "Rp120.000", "editable service price remains");
+ NS.applyPackageTemplate(pack, { id: "pack", service: { name: "BORING GRAND", price_rupiah: 100000 }, product_lines: [{ product_id: "p", product_name: row.name, kode_barang: row.code, brand: row.brand, size: row.size, qty: 1, available_stock: 10, unit_price_rupiah: 170000 }] });
+ assert(pack.querySelector("[data-package-title]").textContent === "BORING GRAND" && pack.querySelector("[data-package-description]").textContent === "Rp100.000", "package service display");
+ assert(pack.querySelector("[data-package-product-list]").textContent === "2XF00 | PISTON <ALFA> | NPP | 0 | sisa: 10 stokRp170.000 / pcs", "package product metadata");
+ assert(pack.querySelector("[data-package-total]").textContent === "Total Paket Rp270.000", "package total");
+ assert(window.ProductDisplay.identity({name:"Only name", size:0}) === "Only name | 0", "missing fields omitted and zero size kept");
+ const metadata = JSON.parse(scope.dataset.productDisplay); NS.restoreSelectedProduct(product, scope, { product_id: "p", display_metadata: metadata, unit_price_rupiah: "160000" });
+ assert(scope.querySelector("[data-selected-product-name]").textContent.includes("NPP | 0 | sisa: 10 stok"), "draft metadata restored without replacing submitted price");
+ assert(scope.querySelector('[name$="[unit_price_rupiah]"]').value === "160000", "restoring presentation preserves price input");
+ document.body.dataset.testResult = "PASS";
+} catch(error) { document.body.dataset.testResult = "FAIL: " + error.message; }
+})();
+</script>

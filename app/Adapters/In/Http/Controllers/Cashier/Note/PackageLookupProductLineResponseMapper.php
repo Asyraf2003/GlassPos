@@ -15,6 +15,8 @@ final class PackageLookupProductLineResponseMapper
             'product_id' => $line->productId,
             'label' => $line->label(),
             'product_name' => $line->productName,
+            'brand' => $line->brand,
+            'size' => $line->size,
             'kode_barang' => $line->kodeBarang,
             'qty' => $line->qty,
             'sort_order' => $line->sortOrder,

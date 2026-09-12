@@ -3,7 +3,6 @@
   const timers = new WeakMap();
   const requestTokens = new WeakMap();
   const activeChoiceIndexes = new WeakMap();
-  const queryCache = new Map();
 
   const parseDigits = (value) =>
     Number.parseInt(String(value || "").replace(/\D+/g, "") || "0", 10);
@@ -49,9 +48,7 @@
     requestTokens.set(input, Symbol("product-search-invalidated"));
   };
 
-  const productName = (item) => String(item?.name || item?.label || "Produk");
-  const productMeta = (item) =>
-    [item?.brand, item?.size, item?.code].filter((value) => value !== null && value !== undefined && String(value) !== "").join(" · ");
+  const productName = (item) => window.ProductDisplay.identity(item);
 
   const setProductSelectedState = (scope, item) => {
     const stage = scope.querySelector("[data-product-search-stage]");
@@ -60,12 +57,13 @@
     const meta = scope.querySelector("[data-selected-product-meta]");
     const priceStock = scope.querySelector("[data-selected-product-price-stock]");
 
+    scope.dataset.productDisplay = JSON.stringify(item);
     stage?.classList.add("d-none");
     selected?.classList.remove("d-none");
     if (name) name.textContent = productName(item);
-    if (meta) meta.textContent = productMeta(item);
+    if (meta) { meta.textContent = ""; meta.classList.add("d-none"); }
     if (priceStock) {
-      priceStock.textContent = `Rp${format(item?.default_unit_price_rupiah)} · stok ${item?.available_stock ?? "-"}`;
+      priceStock.textContent = window.ProductDisplay.price(item);
     }
   };
 
@@ -119,11 +117,10 @@
       button.className = "workspace-search-result";
       button.dataset.productChoice = "1";
       appendResultText(button, "workspace-result-primary", productName(item));
-      appendResultText(button, "workspace-result-secondary", productMeta(item));
       appendResultText(
         button,
         "workspace-result-additional",
-        `Rp${format(item.default_unit_price_rupiah)} · stok ${item.available_stock}`
+        window.ProductDisplay.price(item)
       );
       button.addEventListener("click", () => NS.selectProduct(row, item, scope));
       results.appendChild(button);
@@ -143,6 +140,7 @@
       const invalid = floor > 0 && current > 0 && current < floor;
 
       if (text) {
+        text.classList.toggle("d-none", !invalid);
         text.textContent = floor > 0 ? `Harga minimum: ${format(floor)}` : "Harga produk mengikuti katalog.";
       }
       warning?.classList.toggle("d-none", !invalid);
@@ -190,14 +188,15 @@
     const search = scope.querySelector("[data-product-search]");
     const fallbackPrice = parseDigits(line?.unit_price_rupiah);
     const item = {
+      ...line.display_metadata,
       id,
       label: line?.selected_label || line?.product_label || fallbackLabel,
-      name: line?.product_name || line?.selected_label || line?.product_label || fallbackLabel,
-      brand: line?.brand || "",
-      size: line?.size ?? "",
-      code: line?.code || line?.kode_barang || "",
-      available_stock: line?.available_stock ?? "-",
-      default_unit_price_rupiah: fallbackPrice,
+      name: line?.display_metadata?.name || line?.product_name || line?.selected_label || line?.product_label || fallbackLabel,
+      brand: line?.display_metadata?.brand || line?.brand || "",
+      size: line?.display_metadata?.size ?? line?.size ?? "",
+      code: line?.display_metadata?.code || line?.code || line?.kode_barang || "",
+      available_stock: line?.display_metadata?.available_stock ?? line?.available_stock,
+      default_unit_price_rupiah: line?.display_metadata?.default_unit_price_rupiah ?? fallbackPrice,
     };
 
     if (search) {
@@ -207,18 +206,15 @@
     setProductSelectedState(scope, item);
   };
 
-  const cachedRows = async (endpoint, params) => {
+  const fetchRows = async (endpoint, params) => {
     const separator = endpoint.includes("?") ? "&" : "?";
     const url = `${endpoint}${separator}${params.toString()}`;
-    if (queryCache.has(url)) return queryCache.get(url);
 
     const response = await fetch(url, { headers: { Accept: "application/json" } });
     if (!response.ok) throw new Error(`Product lookup failed with status ${response.status}`);
     const payload = await response.json();
 
     const rows = payload?.data?.rows || [];
-    queryCache.set(url, rows);
-    if (queryCache.size > 20) queryCache.delete(queryCache.keys().next().value);
     return rows;
   };
 
@@ -247,7 +243,7 @@
         }
 
         try {
-          const rows = await cachedRows(endpoint, params);
+          const rows = await fetchRows(endpoint, params);
           if (requestTokens.get(input) === token) renderResults(row, scope, rows);
         } catch (_error) {
           if (requestTokens.get(input) === token) clearResults(scope);

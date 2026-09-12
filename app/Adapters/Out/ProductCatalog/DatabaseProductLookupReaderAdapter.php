@@ -19,18 +19,7 @@ final class DatabaseProductLookupReaderAdapter implements ProductLookupReaderPor
         $normalizedQuery = trim($query);
         $boundedLimit = $this->boundedLimit($limit);
 
-        $builder = DB::table('products')
-            ->leftJoin('product_inventory', 'product_inventory.product_id', '=', 'products.id')
-            ->whereNull('products.deleted_at')
-            ->select([
-                'products.id',
-                'products.kode_barang',
-                'products.nama_barang',
-                'products.merek',
-                'products.ukuran',
-                'products.harga_jual',
-                DB::raw('COALESCE(product_inventory.qty_on_hand, 0) as available_stock'),
-            ]);
+        $builder = $this->baseQuery();
 
         if ($normalizedQuery !== '') {
             $this->applySearch($builder, $normalizedQuery);
@@ -42,6 +31,38 @@ final class DatabaseProductLookupReaderAdapter implements ProductLookupReaderPor
 
         $rows = $this->applyOrdering($builder)->limit($boundedLimit)->get();
 
+        return $this->mapRows($rows->all());
+    }
+
+    /** @param list<string> $ids
+     * @return list<ProductLookupRow>
+     */
+    public function findByIds(array $ids): array
+    {
+        return $this->mapRows($this->baseQuery()->whereIn('products.id', $ids)->get()->all());
+    }
+
+    private function baseQuery(): Builder
+    {
+        return DB::table('products')
+            ->leftJoin('product_inventory', 'product_inventory.product_id', '=', 'products.id')
+            ->whereNull('products.deleted_at')
+            ->select([
+                'products.id',
+                'products.kode_barang',
+                'products.nama_barang',
+                'products.merek',
+                'products.ukuran',
+                'products.harga_jual',
+                DB::raw('COALESCE(product_inventory.qty_on_hand, 0) as available_stock'),
+            ]);
+    }
+
+    /** @param list<object> $rows
+     * @return list<ProductLookupRow>
+     */
+    private function mapRows(array $rows): array
+    {
         return array_map(
             static fn (object $row): ProductLookupRow => new ProductLookupRow(
                 id: (string) $row->id,
@@ -53,7 +74,7 @@ final class DatabaseProductLookupReaderAdapter implements ProductLookupReaderPor
                 defaultUnitPriceRupiah: (int) $row->harga_jual,
                 minimumUnitPriceRupiah: (int) $row->harga_jual,
             ),
-            $rows->all(),
+            $rows,
         );
     }
 
@@ -64,11 +85,11 @@ final class DatabaseProductLookupReaderAdapter implements ProductLookupReaderPor
 
         $query->where(function (Builder $builder) use ($rawKeyword, $normalizedKeyword): void {
             $builder
-                ->where('products.kode_barang', 'like', '%' . $rawKeyword . '%')
-                ->orWhere('products.nama_barang', 'like', '%' . $rawKeyword . '%')
-                ->orWhere('products.merek', 'like', '%' . $rawKeyword . '%')
-                ->orWhere('products.nama_barang_normalized', 'like', '%' . $normalizedKeyword . '%')
-                ->orWhere('products.merek_normalized', 'like', '%' . $normalizedKeyword . '%');
+                ->where('products.kode_barang', 'like', '%'.$rawKeyword.'%')
+                ->orWhere('products.nama_barang', 'like', '%'.$rawKeyword.'%')
+                ->orWhere('products.merek', 'like', '%'.$rawKeyword.'%')
+                ->orWhere('products.nama_barang_normalized', 'like', '%'.$normalizedKeyword.'%')
+                ->orWhere('products.merek_normalized', 'like', '%'.$normalizedKeyword.'%');
         });
     }
 

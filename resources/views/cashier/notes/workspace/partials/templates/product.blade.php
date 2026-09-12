@@ -68,8 +68,8 @@
                 </div>
 
                 <div class="workspace-line-warning-row">
-                    <small class="text-muted" data-stock-text>Stok tersedia: -</small>
-                    <small class="text-muted" data-min-price-text>Harga produk mengikuti katalog.</small>
+                    <small class="text-muted d-none" data-stock-text>Stok tersedia: -</small>
+                    <small class="text-muted d-none" data-min-price-text>Harga produk mengikuti katalog.</small>
                     <small class="text-danger d-none" data-stock-error>Qty melebihi stok tersedia.</small>
                     <small class="text-danger d-none" data-min-price-warning>Harga tidak boleh di bawah minimum.</small>
                 </div>

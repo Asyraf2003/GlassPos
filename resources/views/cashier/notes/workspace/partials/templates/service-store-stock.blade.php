@@ -48,11 +48,12 @@
                 <div class="workspace-selected-copy">
                     <strong data-package-title>Paket terpilih</strong>
                     <span data-package-description></span>
-                    <span data-package-stock-text></span>
+                    <span class="d-none" data-package-stock-text></span>
                 </div>
                 <button type="button" class="workspace-selection-remove" data-package-change data-selection-remove="package" aria-label="Lepas paket terpilih" title="Lepas pilihan">×</button>
             </div>
             <div class="workspace-package-products" data-package-product-list></div>
+            <strong class="d-block mt-2" data-package-total></strong>
         </div>
 
         <div class="d-none" data-product-lines>

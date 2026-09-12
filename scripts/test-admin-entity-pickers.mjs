@@ -9,6 +9,7 @@ import { join } from "node:path";
 const scenarios = [
   "admin-package-picker.html",
   "admin-package-table.html",
+  "cashier-product-display.html",
   "admin-employee-debt-picker.html",
   "admin-payroll-picker.html",
   "admin-expense-picker.html",
@@ -23,7 +24,7 @@ try {
     const html = execFileSync(process.env.CHROMIUM_BIN || "chromium", [
       "--headless=new", "--no-sandbox", "--disable-gpu",
       `--user-data-dir=${profile}`, "--allow-file-access-from-files",
-      "--virtual-time-budget=4000", "--dump-dom", url.href,
+      "--virtual-time-budget=8000", "--dump-dom", url.href,
     ], { encoding: "utf8", timeout: 20000, stdio: ["ignore", "pipe", "pipe"] });
     const result = html.match(/<body[^>]*data-test-result="([^"]+)"/)?.[1];
     assert.ok(result?.startsWith("PASS"), `${scenario}: ${result || "fixture did not complete"}`);

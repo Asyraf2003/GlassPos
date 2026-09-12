@@ -23,7 +23,11 @@ final class EditServiceProductTemplatePageController extends Controller
 
         return view('admin.service_product_templates.edit', [
             'template' => $template,
-            'productOptions' => $pageData->productOptions(),
+            'productOptions' => $pageData->productOptions(array_values(array_filter([
+                (string) old('product_id', $template['product_id'] ?? ''),
+                (string) old('product_lines.1.product_id', $template['product_lines'][1]['product_id'] ?? ''),
+                (string) old('product_lines.2.product_id', $template['product_lines'][2]['product_id'] ?? ''),
+            ]))),
             'serviceOptions' => $pageData->serviceOptions((string) $template['service_catalog_item_id']),
         ]);
     }
