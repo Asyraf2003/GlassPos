@@ -36,7 +36,7 @@
           button.className = "list-group-item list-group-item-action"; button.dataset.productChoice = "1";
           button.id = `procurement-product-choice-${index}`; button.setAttribute("role", "option"); button.setAttribute("aria-selected", "false");
           const name = document.createElement("div"); name.className = "fw-semibold"; name.textContent = window.ProductDisplay.identity(row);
-          const price = document.createElement("small"); price.className = "text-muted"; price.textContent = window.ProductDisplay.price(row);
+          const price = document.createElement("small"); price.className = "admin-lookup-secondary"; price.textContent = window.ProductDisplay.price(row);
           button.append(name, price);
           button.addEventListener("click", (event) => {
             event.stopPropagation();

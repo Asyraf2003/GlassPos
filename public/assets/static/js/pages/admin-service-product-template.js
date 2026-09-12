@@ -121,7 +121,7 @@
         const name = document.createElement("div");
         name.textContent = product ? window.ProductDisplay.identity(item) : item.name;
         const price = document.createElement("small");
-        price.className = "d-block text-muted";
+        price.className = "admin-lookup-secondary";
         price.textContent = product ? window.ProductDisplay.price(item) : `Rp${Number(item.price_rupiah).toLocaleString("id-ID")}`;
         button.append(name, price);
         button.addEventListener("click", () => { select(item); close(); });

@@ -24,3 +24,31 @@
 }
 .admin-selected-remove:hover { background: rgba(67, 94, 190, .12); }
 .admin-selected-remove:focus-visible { outline: 2px solid var(--bs-primary, #435ebe); }
+
+.admin-lookup-secondary {
+    display: block;
+    color: var(--bs-body-color, #212529);
+    font-size: .8rem;
+    font-weight: 500;
+    opacity: .78;
+}
+.admin-lookup-results .list-group-item-action.active .admin-lookup-secondary,
+.admin-lookup-results .list-group-item-action:active .admin-lookup-secondary {
+    color: var(--bs-list-group-active-color, #fff);
+    opacity: 1;
+}
+.admin-selected-meta {
+    color: var(--bs-body-color, #212529);
+    opacity: .78;
+}
+.procurement-product-line-grid {
+    display: grid;
+    gap: .8rem 1rem;
+    align-items: end;
+}
+.procurement-product-line-grid .admin-selected-card { margin-block: 0; }
+@media (min-width: 1200px) {
+    .procurement-product-line-grid {
+        grid-template-columns: minmax(8rem, .7fr) minmax(10rem, 1fr) minmax(9rem, .85fr) auto;
+    }
+}

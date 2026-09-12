@@ -345,18 +345,6 @@
     });
   };
 
-  const closeAllResults = () => {
-    container.querySelectorAll("[data-product-results]").forEach((box) => {
-      box.classList.add("d-none");
-      box.innerHTML = "";
-    });
-
-    if (supplierResultsBox) {
-      supplierResultsBox.classList.add("d-none");
-      supplierResultsBox.innerHTML = "";
-    }
-  };
-
   const updateTanggalTerimaState = () => {
     const selected = document.querySelector('input[name="auto_receive"]:checked');
     const enabled = selected && selected.value === "1";
@@ -417,41 +405,17 @@
 
   const ensureProductDuplicateFeedback = (item) => {
     let feedback = item.querySelector("[data-product-duplicate-feedback]");
-
-    if (feedback) {
-      return feedback;
-    }
-
+    if (feedback) return feedback;
     feedback = document.createElement("div");
     feedback.className = "invalid-feedback d-block";
     feedback.setAttribute("data-product-duplicate-feedback", "1");
-
-    const resultsBox = item.querySelector("[data-product-results]");
-    if (resultsBox) {
-      resultsBox.insertAdjacentElement("afterend", feedback);
-      return feedback;
-    }
-
-    const searchInput = item.querySelector("[data-product-search]");
-    if (searchInput) {
-      searchInput.insertAdjacentElement("afterend", feedback);
-      return feedback;
-    }
-
-    item.appendChild(feedback);
+    item.querySelector("[data-product-selected]")?.insertAdjacentElement("afterend", feedback);
+    if (!feedback.isConnected) item.appendChild(feedback);
     return feedback;
   };
 
-  const clearProductDuplicateFeedback = (item, searchInput = null) => {
-    const field = searchInput || item.querySelector("[data-product-search]");
-    if (field) {
-      field.classList.remove("is-invalid");
-    }
-
-    const feedback = item.querySelector("[data-product-duplicate-feedback]");
-    if (feedback) {
-      feedback.remove();
-    }
+  const clearProductDuplicateFeedback = (item) => {
+    item.querySelector("[data-product-duplicate-feedback]")?.remove();
   };
 
   const lineNoOfItem = (item, fallbackIndex = 0) => {
@@ -464,74 +428,24 @@
   const duplicateProductMessage = (firstLineNo, currentLineNo) =>
     `Baris ${currentLineNo}: produk ini sudah dipakai di baris ${firstLineNo}. Satu produk hanya boleh satu kali per faktur.`;
 
-  const findDuplicateProductLineNo = (currentItem, productId) => {
-    const normalized = String(productId ?? "").trim();
-    if (normalized === "") {
-      return null;
-    }
-
-    const items = lineItems();
-
-    for (let index = 0; index < items.length; index += 1) {
-      const item = items[index];
-      if (item === currentItem) {
-        continue;
-      }
-
-      const otherProductId = String(item.querySelector("[data-product-id]")?.value ?? "").trim();
-      if (otherProductId === normalized) {
-        return lineNoOfItem(item, index);
-      }
-    }
-
-    return null;
-  };
 
   const validateDuplicateProductsBeforeSubmit = () => {
     let isValid = true;
     const seen = new Map();
-
-    lineItems().forEach((item) => {
-      clearProductDuplicateFeedback(item);
-    });
+    lineItems().forEach(clearProductDuplicateFeedback);
 
     lineItems().forEach((item, index) => {
-      const searchInput = item.querySelector("[data-product-search]");
       const productId = String(item.querySelector("[data-product-id]")?.value ?? "").trim();
-      const typedLabel = String(searchInput?.value ?? "").trim();
+      if (productId === "") return;
       const currentLineNo = lineNoOfItem(item, index);
-
-      if (typedLabel !== "" && productId === "") {
-        isValid = false;
-
-        if (searchInput) {
-          searchInput.classList.add("is-invalid");
-        }
-
-        const feedback = ensureProductDuplicateFeedback(item);
-        feedback.textContent = `Baris ${currentLineNo}: pilih produk dari daftar hasil pencarian, jangan hanya tempel atau ketik teks.`;
-        return;
-      }
-
-      if (productId === "") {
-        return;
-      }
-
       if (seen.has(productId)) {
         isValid = false;
-
-        if (searchInput) {
-          searchInput.classList.add("is-invalid");
-        }
-
         const feedback = ensureProductDuplicateFeedback(item);
         feedback.textContent = duplicateProductMessage(seen.get(productId), currentLineNo);
         return;
       }
-
       seen.set(productId, currentLineNo);
     });
-
     return isValid;
   };
 
@@ -567,7 +481,7 @@
     if (label) label.textContent = item.dataset.selectedProductLabel;
     let price = item.querySelector("[data-selected-product-price]");
     if (!price && label) {
-      price = document.createElement("small"); price.className = "d-block text-muted fw-normal";
+      price = document.createElement("small"); price.className = "admin-selected-meta";
       price.dataset.selectedProductPrice = "1"; label.append(price);
     }
     if (price) { price.textContent = row && window.ProductDisplay.price(row) ? `Harga jual ${window.ProductDisplay.price(row)}` : ""; label?.append(price); }
@@ -1074,12 +988,6 @@
       id: item.querySelector("[data-product-id]")?.value,
       label: item.querySelector("[data-selected-product-label]")?.textContent,
     });
-    const remove = item.querySelector("[data-product-remove]");
-    remove?.addEventListener("click", () => removeLine(item));
-    remove?.addEventListener("keydown", (event) => {
-      if (event.ctrlKey && event.key === "Enter") { event.preventDefault(); focusField(productSearch); }
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") { event.preventDefault(); form.requestSubmit(); }
-    });
     initQtyInput(item);
     const quantity = item.querySelector("[data-qty-input]");
     if (quantity && !item.querySelector("[data-qty-step]")) {
@@ -1148,12 +1056,6 @@
     updateTanggalTerimaState(); updateTaxModeFields(); focusField(document.getElementById("nomor_faktur"));
   });
 
-  document.addEventListener("click", (event) => {
-    if (!event.target.closest("[data-line-item]") && !event.target.closest("[data-supplier-search]")) {
-      closeAllResults();
-    }
-  });
-
   autoReceiveInputs.forEach((input) => {
     input.addEventListener("change", () => {
       updateTanggalTerimaState();
@@ -1185,12 +1087,12 @@
       persistDraftNow();
 
       const invalidItem = lineItems().find((item) =>
-        item.querySelector("[data-product-search].is-invalid")
+        item.querySelector("[data-product-duplicate-feedback]")
       );
 
       if (invalidItem) {
         setActiveLine(invalidItem);
-        focusField(getLineFields(invalidItem).product, false);
+        focusField(productSearch, false);
       }
 
       return;

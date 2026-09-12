@@ -55,7 +55,7 @@
                             <div class="position-relative mb-3">
                                 <label for="procurement-product-search" class="form-label">Tambah Produk</label>
                                 <input id="procurement-product-search" type="search" class="form-control" placeholder="Ketik minimal 2 huruf untuk mencari produk" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="procurement-product-results" data-procurement-product-search>
-                                <div id="procurement-product-results" class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 20;" role="listbox" data-procurement-product-results></div>
+                                <div id="procurement-product-results" class="admin-lookup-results list-group position-absolute w-100 shadow-sm d-none" style="z-index: 20;" role="listbox" data-procurement-product-results></div>
                             </div>
 
                             <div id="procurement-line-items" data-next-index="{{ count($lineItemsView) }}" class="d-flex flex-column gap-3">
@@ -76,13 +76,10 @@
                                         >
 
                                         <div
-                                            class="d-flex flex-column d-xl-grid gap-3 align-items-start"
-                                            style="grid-template-columns: 160px minmax(120px, 1fr) minmax(100px, 1fr) 44px;"
+                                            class="procurement-product-line-grid"
                                         >
                                             <div class="w-100 position-relative" style="grid-column: 1 / -1;">
-                                                <label class="form-label">Produk</label>
-
-                                                <input
+<input
                                                     type="hidden"
                                                     name="lines[{{ $lineView['index'] }}][product_id]"
                                                     value="{{ $lineView['selected_product_id'] }}"
@@ -91,8 +88,7 @@
 
                                                 <div class="admin-selected-card {{ $lineView['selected_product_id'] === '' ? 'd-none' : '' }}" data-product-selected>
                                                     <strong class="admin-selected-copy" data-selected-product-label>{{ $lineView['selected_label'] }}</strong>
-                                                    <button type="button" class="admin-selected-remove" data-product-remove aria-label="Lepas produk terpilih">×</button>
-                                                </div>
+</div>
 
                                                 @error('lines.' . $lineView['index'] . '.product_id')
                                                     <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -192,13 +188,10 @@
                                     >
 
                                     <div
-                                        class="d-flex flex-column d-xl-grid gap-3 align-items-start"
-                                        style="grid-template-columns: 160px minmax(120px, 1fr) minmax(100px, 1fr) 44px;"
+                                        class="procurement-product-line-grid"
                                     >
                                         <div class="w-100 position-relative" style="grid-column: 1 / -1;">
-                                            <label class="form-label">Produk</label>
-
-                                            <input
+<input
                                                 type="hidden"
                                                 name="lines[__INDEX__][product_id]"
                                                 value=""
@@ -206,8 +199,7 @@
                                             >
                                             <div class="admin-selected-card d-none" data-product-selected>
                                                 <strong class="admin-selected-copy" data-selected-product-label></strong>
-                                                <button type="button" class="admin-selected-remove" data-product-remove aria-label="Lepas produk terpilih">×</button>
-                                            </div>
+</div>
 
                                         </div>
 
