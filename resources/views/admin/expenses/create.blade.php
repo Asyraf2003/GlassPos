@@ -26,7 +26,7 @@
                                     <div class="form-group mb-4">
                                         <label class="form-label" for="expense-category-search-input">Kategori</label>
 
-                                        <div id="expense-category-search-wrap" class="d-none">
+                                        <div id="expense-category-search-wrap" class="admin-lookup-search d-none">
                                             <input
                                                 type="text"
                                                 id="expense-category-search-input"
@@ -38,6 +38,11 @@
                                                 Ketik minimal 2 karakter untuk cari kategori. Enter pilih hasil. Jika tidak ada, Enter ke form kategori baru.
                                             </small>
                                             <div id="expense-category-search-results" class="list-group mt-2 d-none"></div>
+                                        </div>
+
+                                        <div id="expense-category-selected" class="admin-selected-card d-none">
+                                            <strong id="expense-category-selected-label" class="admin-selected-copy"></strong>
+                                            <button type="button" id="expense-category-remove" class="admin-selected-remove" aria-label="Lepas kategori terpilih">×</button>
                                         </div>
 
                                         <div id="expense-category-select-wrap">
@@ -185,4 +190,8 @@
     <script src="{{ asset('assets/static/js/pages/admin-expense-create/category-search.js') }}?v={{ config('app.asset_version') }}"></script>
     <script src="{{ asset('assets/static/js/pages/admin-expense-create/flow.js') }}?v={{ config('app.asset_version') }}"></script>
     <script src="{{ asset('assets/static/js/pages/admin-expense-create/boot.js') }}?v={{ config('app.asset_version') }}"></script>
+@endpush
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/static/css/admin-lookup.css') }}?v={{ config('app.asset_version') }}">
 @endpush

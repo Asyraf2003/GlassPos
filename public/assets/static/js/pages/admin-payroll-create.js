@@ -9,6 +9,8 @@
   const employeeSearch = $('employee_search');
   const results = $('payroll-employee-search-results');
   const selected = $('payroll-selected-employee');
+  const selectedCard = $('payroll-selected-card');
+  const removeEmployee = $('payroll-employee-remove');
   const amount = $('amount_display');
   const date = $('disbursement_date_string');
   const mode = $('mode_value');
@@ -81,11 +83,15 @@
   let timer = null;
 
   const hideResults = () => {
+    filtered = [];
+    activeIndex = 0;
     results.innerHTML = '';
     results.classList.add('d-none');
   };
 
   const renderSelected = (employee) => {
+    selectedCard?.classList.toggle('d-none', !employee);
+    employeeSearch.classList.toggle('d-none', Boolean(employee));
     if (!employee) {
       selected.innerHTML = 'Belum ada karyawan dipilih.';
       selected.classList.add('text-muted');
@@ -125,21 +131,21 @@
   };
 
   const selectEmployee = (employee) => {
+    window.clearTimeout(timer);
     employeeId.value = employee.id;
-    employeeSearch.value = employee.employee_name;
+    employeeSearch.value = '';
     renderSelected(employee);
     hideResults();
     focusField(amount);
   };
 
   const runSearch = () => {
+    if (employeeId.value) return;
     const query = norm(employeeSearch.value);
 
     if (query.length < 2) {
       filtered = [];
       activeIndex = 0;
-      employeeId.value = '';
-      renderSelected(null);
       hideResults();
       return;
     }
@@ -154,8 +160,6 @@
     }).slice(0, 8);
 
     activeIndex = 0;
-    employeeId.value = '';
-    renderSelected(null);
     renderResults();
   };
 
@@ -174,6 +178,14 @@
   };
 
   employeeSearch.addEventListener('input', queueSearch);
+  removeEmployee?.addEventListener('click', () => {
+    window.clearTimeout(timer);
+    employeeId.value = '';
+    employeeSearch.value = '';
+    renderSelected(null);
+    hideResults();
+    focusField(employeeSearch);
+  });
 
   employeeSearch.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown' && filtered.length) {
@@ -201,6 +213,7 @@
     }
 
     if (e.key === 'Escape') {
+      window.clearTimeout(timer);
       hideResults();
     }
   });
@@ -234,7 +247,7 @@
 
   const oldEmployee = employees.find((employee) => employee.id === employeeId.value);
   if (oldEmployee) {
-    employeeSearch.value = oldEmployee.employee_name;
+    employeeSearch.value = '';
     renderSelected(oldEmployee);
     focusField(amount);
     return;

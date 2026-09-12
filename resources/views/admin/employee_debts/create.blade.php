@@ -45,19 +45,19 @@
                                             type="text"
                                             id="employee_picker_query"
                                             name="employee_lookup"
-                                            value="{{ old('employee_lookup', $prefilledEmployeeName ?? '') }}"
+                                            value=""
                                             class="form-control @error('employee_id') is-invalid @enderror"
                                             placeholder="Ketik minimal 2 huruf nama karyawan"
                                             autocomplete="off"
                                             spellcheck="false"
-                                            required
                                         >
 
                                         <div id="employee-picker-results" class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 1050;"></div>
 
-                                        <small id="employee-picker-summary" class="text-muted d-block mt-2">
-                                            Pilih karyawan dari hasil pencarian. Data yang dikirim tetap employee_id berbentuk UUID.
-                                        </small>
+                                        <div id="employee-picker-selected" class="admin-selected-card d-none">
+                                            <div id="employee-picker-summary" class="admin-selected-copy"></div>
+                                            <button type="button" id="employee-picker-remove" class="admin-selected-remove" aria-label="Lepas karyawan terpilih">×</button>
+                                        </div>
 
                                         @error('employee_id')
                                             <div class="invalid-feedback d-block">
@@ -144,4 +144,8 @@
     <script>
         window.AdminMoneyInput?.bindBySelector(document);
     </script>
+@endpush
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/static/css/admin-lookup.css') }}?v={{ config('app.asset_version') }}">
 @endpush

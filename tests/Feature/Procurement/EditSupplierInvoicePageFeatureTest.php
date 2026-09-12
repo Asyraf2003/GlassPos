@@ -63,6 +63,12 @@ final class EditSupplierInvoicePageFeatureTest extends TestCase
         $response->assertSee('Tambah Rincian');
         $response->assertSee('add-procurement-line', false);
         $response->assertSee('data-product-search', false);
+        $response->assertSee('data-product-selected', false);
+        $response->assertSee('data-product-remove', false);
+        $response->assertSee('name="lines[0][product_id]"', false);
+        $response->assertSee('value="product-1"', false);
+        $response->assertSee('data-selected-product-label>Ban Luar', false);
+        $response->assertDontSee('value="Ban Luar', false);
         $response->assertSee('admin-procurement-edit.js');
         $response->assertSee('Simpan Perubahan Nota');
     }
@@ -144,7 +150,7 @@ final class EditSupplierInvoicePageFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-procurement-edit@example.test',
+            'email' => $role.'-procurement-edit@example.test',
             'password' => 'password123',
         ]);
 

@@ -1,0 +1,42 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>.d-none { display: none; }</style>
+<form id="expense-create-form">
+<div id="expense-category-search-wrap"><input id="expense-category-search-input"><small id="expense-category-search-helper"></small><div id="expense-category-search-results"></div></div>
+<div id="expense-category-selected"><strong id="expense-category-selected-label"></strong><button type="button" id="expense-category-remove">×</button></div>
+<div id="expense-category-select-wrap"><select id="category_id" required><option value=""></option><option value="a" selected>Listrik</option></select></div>
+<input id="expense_date"><input id="amount_rupiah_display"><input id="payment_method"><input id="description">
+</form>
+<script id="expense-create-config" type="application/json">{"categoryOptions":[{"id":"a","label":"Listrik"}],"selectedCategoryId":"a","createCategoryBaseUrl":"https://example.test/categories/create"}</script>
+<script>window.requestAnimationFrame = (callback) => callback();</script>
+<script src="../../public/assets/static/js/pages/admin-expense-create/category-search.js"></script>
+<script src="../../public/assets/static/js/pages/admin-expense-create/flow.js"></script>
+<script src="../../public/assets/static/js/pages/admin-expense-create/boot.js"></script>
+<script>
+try {
+  const q = (id) => document.getElementById(id);
+  const assert = (condition, message) => { if (!condition) throw new Error(message); };
+  const input = q("expense-category-search-input");
+  let selectionEvent;
+  document.addEventListener("expense-category:selected", (event) => { selectionEvent = event.detail; });
+  assert(input.value === "" && q("category_id").value === "a", "hydrated identity");
+  assert(q("expense-category-selected-label").textContent === "Listrik", "hydrated card");
+  assert(document.activeElement === q("expense_date"), "hydrated focus");
+  q("expense-category-remove").click();
+  assert(q("category_id").value === "" && document.activeElement === input, "remove");
+  input.value = "Li";
+  input.dispatchEvent(new Event("input"));
+  input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown" }));
+  input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+  assert(input.value === "" && q("category_id").value === "a", "keyboard selection");
+  assert(selectionEvent.id === "a" && selectionEvent.label === "Listrik", "event contract");
+  assert(document.activeElement === q("expense_date"), "next field focus");
+  q("expense-category-remove").click();
+  input.value = "Missing";
+  input.dispatchEvent(new Event("input"));
+  assert(q("expense-category-search-helper").textContent.includes("kategori baru"), "create category guidance");
+  input.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+  assert(q("expense-category-search-results").classList.contains("d-none"), "escape");
+  document.body.dataset.testResult = "PASS";
+} catch (error) { document.body.dataset.testResult = "FAIL: " + error.message; }
+</script>

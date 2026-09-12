@@ -1,0 +1,50 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>.d-none { display: none; }</style>
+<div data-package-picker
+ data-products='[{"id":"a","code":"A","name":"Product A","label":"Product A","price_rupiah":125000},{"id":"b","name":"Product B","label":"Product B","price_rupiah":45000},{"id":"c","name":"Product C","label":"Product C","price_rupiah":30000}]'
+ data-services='[{"id":"s","name":"Service","label":"Service","price_rupiah":75000}]'>
+ <input type="hidden" name="product_id" value="a" data-package-product-id>
+ <input type="hidden" name="product_lines[1][product_id]" value="b" data-package-product-id>
+ <input type="hidden" name="product_lines[2][product_id]" value="c" data-package-product-id>
+ <input type="hidden" name="service_catalog_item_id" value="s" data-package-service-id>
+ <div data-product-search-stage><input data-package-product-search><div id="products" role="listbox" data-package-product-results></div></div>
+ <div data-package-products-selected></div><span data-package-count></span>
+ <div data-service-search-stage><input data-package-service-search><div id="services" role="listbox" data-package-service-results></div></div>
+ <div data-package-service-selected></div><output data-package-total></output>
+</div>
+<script src="../../public/assets/static/js/pages/admin-service-product-template.js"></script>
+<script>
+try {
+  const q = (s) => document.querySelector(s);
+  const assert = (condition, message) => { if (!condition) throw new Error(message); };
+  const product = q("[data-package-product-search]");
+  const service = q("[data-package-service-search]");
+  const ids = () => [...document.querySelectorAll("[data-package-product-id]")].map((x) => x.value).join(",");
+  assert(ids() === "a,b,c", "ordered hydration");
+  assert(product.value === "" && service.value === "", "queries empty on hydration");
+  assert(q("[data-package-products-selected]").children.length === 3, "hydrated cards");
+  assert(q("[data-product-search-stage]").classList.contains("d-none"), "max 3 hides search");
+  assert(q("[data-package-total]").textContent === "Rp275.000", "structured preview");
+  q("[data-package-products-selected] button").click();
+  assert(ids() === "b,c,", "removing primary reindexes payload");
+  assert(document.activeElement === product, "remove restores focus");
+  assert(!q("[data-product-search-stage]").classList.contains("d-none"), "remove restores search");
+  product.dispatchEvent(new Event("input"));
+  assert(q("[data-package-product-results]").querySelectorAll("button").length === 1, "duplicates excluded");
+  product.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+  product.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+  assert(ids() === "b,c,a", "keyboard add preserves order");
+  assert(product.value === "", "selection clears query");
+  q("[data-package-service-selected] button").click();
+  assert(q("[data-package-service-id]").value === "", "service remove clears ID");
+  assert(document.activeElement === service, "service remove focuses query");
+  service.dispatchEvent(new Event("input"));
+  service.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+  assert(q("[data-package-service-results]").classList.contains("d-none"), "escape closes");
+  service.dispatchEvent(new Event("input"));
+  service.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+  assert(q("[data-package-service-id]").value === "s" && service.value === "", "service keyboard select");
+  document.body.dataset.testResult = "PASS";
+} catch (error) { document.body.dataset.testResult = "FAIL: " + error.message; }
+</script>

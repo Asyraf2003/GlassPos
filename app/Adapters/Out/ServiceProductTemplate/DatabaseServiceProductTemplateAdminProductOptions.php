@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 trait DatabaseServiceProductTemplateAdminProductOptions
 {
-    /** @return list<array{id:string,label:string}> */
+    /** @return list<array{id:string,code:string,name:string,price_rupiah:int,label:string}> */
     public function productOptions(): array
     {
         return DB::table('products')
@@ -19,6 +19,9 @@ trait DatabaseServiceProductTemplateAdminProductOptions
             ->get()
             ->map(fn (object $row): array => [
                 'id' => (string) $row->id,
+                'code' => (string) $row->kode_barang,
+                'name' => (string) $row->nama_barang,
+                'price_rupiah' => (int) $row->harga_jual,
                 'label' => $this->productLabel($row),
             ])
             ->all();

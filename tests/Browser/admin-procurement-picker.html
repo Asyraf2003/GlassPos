@@ -1,0 +1,122 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>.d-none { display: none; }</style>
+<form>
+<input id="nomor_faktur" value="TEST" data-procurement-header-field>
+<input id="nama_pt_pengirim" value="Supplier">
+<input id="tanggal_pengiriman"><input id="tanggal_terima">
+<input type="radio" name="auto_receive" value="1" checked>
+<input type="radio" name="auto_receive" value="0">
+<input id="tax_input" data-tax-header-input>
+<input type="hidden" data-tax-rounding-residue-confirmed-input value="0">
+<div id="procurement-line-items" data-next-index="1"></div>
+<button type="button" id="add-procurement-line">Add</button>
+<template id="procurement-line-template">
+<article data-line-item>
+ <input type="hidden" data-previous-line-id>
+ <input type="hidden" name="lines[__INDEX__][line_no]" data-line-no value="__LINE_NO__">
+ <input type="hidden" name="lines[__INDEX__][product_id]" data-product-id>
+ <input data-product-search>
+ <div data-product-results></div>
+ <div data-product-selected class="d-none"><strong data-selected-product-label></strong><button type="button" data-product-remove>×</button></div>
+ <input name="lines[__INDEX__][qty_pcs]" data-qty-input value="1">
+ <input type="hidden" name="lines[__INDEX__][line_total_rupiah]" data-money-raw>
+ <input data-money-display>
+ <div data-tax-line-group><input name="lines[__INDEX__][tax_input]" data-tax-line-input></div>
+ <button type="button" data-remove-line>Remove row</button>
+</article>
+</template>
+</form>
+<script>
+(async () => {
+try {
+  const params = new URLSearchParams(location.search);
+  const mode = params.get("mode") === "edit" ? "edit" : "create";
+  const hydration = params.get("hydration") || "draft";
+  const key = mode === "create" ? "admin.procurement.create-supplier-invoice.draft.v2" : "glasspos.picker.fixture.edit";
+  const form = document.querySelector("form");
+  form.setAttribute("data-procurement-" + mode + "-form", "1");
+  form.dataset.procurementDraftKey = key;
+  const container = document.getElementById("procurement-line-items");
+  container.innerHTML = document.getElementById("procurement-line-template").innerHTML.replaceAll("__INDEX__", "0").replaceAll("__LINE_NO__", "1");
+  const initial = container.firstElementChild;
+  initial.querySelector("[data-product-id]").value = "server";
+  initial.querySelector("[data-selected-product-label]").textContent = "Server Product";
+  initial.querySelector("[data-qty-input]").value = "2";
+  initial.querySelector("[data-money-raw]").value = "20000";
+  const draft = { header: { nomor_faktur: "TEST", auto_receive: "1" }, lines: [{
+    product_id: "draft", product_label: "Draft Product", previous_line_id: "line-previous",
+    qty_pcs: "2", line_total_rupiah: "20000", tax_input: "10%"
+  }] };
+  localStorage.setItem(key, JSON.stringify(draft));
+  if (hydration === "server") localStorage.removeItem(key);
+  window.requestAnimationFrame = (callback) => callback();
+  window.procurementCreateConfig = { lookupEndpoint: "https://example.test/lookup", hasOldInput: hydration === "old" };
+  window.fetch = async () => ({ ok: true, json: async () => ({ success: true, data: { rows: [{
+    id: "new", label: "New Product", nama_barang: "New Product", merek: "Brand", ukuran: null
+  }] } }) });
+  const script = document.createElement("script");
+  script.src = "../../public/assets/static/js/pages/admin-procurement-" + mode + ".js";
+  await new Promise((resolve, reject) => { script.onload = resolve; script.onerror = reject; document.body.append(script); });
+  const assert = (condition, message) => { if (!condition) throw new Error(message); };
+  const wait = () => new Promise((resolve) => setTimeout(resolve, 350));
+  const rows = () => [...container.querySelectorAll("[data-line-item]")];
+  const expectedId = hydration === "draft" ? "draft" : "server";
+  const expectedLabel = hydration === "draft" ? "Draft Product" : "Server Product";
+  const selected = rows().find((row) => row.querySelector("[data-product-id]").value === expectedId);
+  assert(selected, "hydration identity / old-input precedence");
+  const q = (selector) => selected.querySelector(selector);
+  assert(q("[data-product-search]").value === "", "hydration query empty");
+  assert(q("[data-selected-product-label]").textContent === expectedLabel, "hydration label");
+  assert(!q("[data-product-selected]").classList.contains("d-none"), "hydration card visible");
+  q("[data-qty-input]").dispatchEvent(new Event("input", { bubbles: true }));
+  await wait();
+  const saved = JSON.parse(localStorage.getItem(key)).lines.find((line) => line.product_id === expectedId);
+  assert(saved.product_label === expectedLabel && saved.qty_pcs === "2" && saved.line_total_rupiah === "20000", "draft explicit identity and financial fields");
+  if (hydration === "draft") assert(saved.tax_input === "10%", "draft retains line tax");
+  if (mode === "edit" && hydration === "draft") assert(saved.previous_line_id === "line-previous", "edit previous line ID");
+  q("[data-product-remove]").click();
+  assert(q("[data-product-id]").value === "" && selected.dataset.selectedProductLabel === "", "remove clears state");
+  assert(document.activeElement === q("[data-product-search]"), "remove focus");
+  assert(q("[data-qty-input]").value === "2" && q("[data-money-raw]").value === "20000", "remove retains financial fields");
+  const search = q("[data-product-search]");
+  search.value = "New";
+  search.dispatchEvent(new Event("input", { bubbles: true }));
+  await wait();
+  search.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown" }));
+  search.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+  assert(q("[data-product-id]").value === "new" && search.value === "", "keyboard select");
+  assert(document.activeElement === q("[data-qty-input]"), "qty focus after selection");
+  search.dispatchEvent(new Event("blur"));
+  assert(q("[data-product-id]").value === "new", "blur retains ID");
+  document.getElementById("add-procurement-line").click();
+  const blank = rows().find((row) => row !== selected && !row.querySelector("[data-product-id]").value);
+  const duplicateSearch = blank.querySelector("[data-product-search]");
+  duplicateSearch.value = "New";
+  duplicateSearch.dispatchEvent(new Event("input", { bubbles: true }));
+  await wait();
+  duplicateSearch.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+  assert(blank.querySelector("[data-product-id]").value === "", "duplicate rejected");
+  assert(blank.querySelector("[data-product-duplicate-feedback]").textContent.includes("sudah dipakai"), "duplicate feedback");
+  assert(q("[data-product-id]").value === "new", "original identity preserved");
+  await wait();
+  const savedNew = JSON.parse(localStorage.getItem(key)).lines.find((line) => line.product_id === "new");
+  assert(savedNew.product_label === "New Product", "new selection draft label");
+  duplicateSearch.value = "New";
+  duplicateSearch.dispatchEvent(new Event("input", { bubbles: true }));
+  duplicateSearch.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+  await wait();
+  assert(blank.querySelector("[data-product-results]").classList.contains("d-none"), "escape cancels pending lookup");
+  q("[data-product-remove]").dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", ctrlKey: true, cancelable: true }));
+  assert(document.activeElement === rows()[0].querySelector("[data-product-search]"), "selected card forwards new-line shortcut");
+  const receiving = document.querySelector('input[name="auto_receive"][value="0"]');
+  receiving.checked = true;
+  receiving.dispatchEvent(new Event("change", { bubbles: true }));
+  assert(document.getElementById("tanggal_terima").disabled, "receiving state");
+  await wait();
+  assert(JSON.parse(localStorage.getItem(key)).header.auto_receive === "0", "receiving draft retained");
+  localStorage.removeItem(key);
+  document.body.dataset.testResult = "PASS " + mode + " " + hydration;
+} catch (error) { document.body.dataset.testResult = "FAIL: " + error.message; }
+})();
+</script>

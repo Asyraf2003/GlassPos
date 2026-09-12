@@ -286,7 +286,9 @@
       .filter((field) => field instanceof HTMLElement);
 
   const getLineFields = (item) => ({
-    product: item.querySelector("[data-product-search]"),
+    product: item.querySelector("[data-product-id]")?.value
+      ? item.querySelector("[data-product-remove]")
+      : item.querySelector("[data-product-search]"),
     qty: item.querySelector("[data-qty-input]"),
     total: item.querySelector("[data-money-display]"),
     tax: item.querySelector("[data-tax-line-input]")
@@ -453,12 +455,6 @@
     }
   };
 
-  const invalidateManualProductEntry = (item, searchInput, hiddenInput) => {
-    clearProductDuplicateFeedback(item, searchInput);
-    hiddenInput.value = "";
-    searchInput.dataset.selectedProductId = "";
-  };
-
   const lineNoOfItem = (item, fallbackIndex = 0) => {
     const value = String(item.querySelector("[data-line-no]")?.value ?? "").trim();
     const parsed = Number.parseInt(value, 10);
@@ -622,40 +618,25 @@
   const applySelectedProductState = (item, row) => {
     const hiddenInput = item.querySelector("[data-product-id]");
     const searchInput = item.querySelector("[data-product-search]");
+    const card = item.querySelector("[data-product-selected]");
+    const label = item.querySelector("[data-selected-product-label]");
+    if (!hiddenInput || !searchInput || !card || !label) return;
 
-    if (!(hiddenInput instanceof HTMLInputElement) || !(searchInput instanceof HTMLInputElement)) {
-      return;
-    }
-
-    if (!row || typeof row !== "object") {
-      hiddenInput.value = "";
-      searchInput.value = "";
-      searchInput.dataset.selectedProductId = "";
-      searchInput.dataset.selectedLabel = "";
-      return;
-    }
-
-    const selectedId = String(row.id ?? "").trim();
-    const selectedLabel = buildProductCanonicalLabel(row);
-
-    if (selectedId === "" || selectedLabel === "") {
-      hiddenInput.value = "";
-      searchInput.value = "";
-      searchInput.dataset.selectedProductId = "";
-      searchInput.dataset.selectedLabel = "";
-      return;
-    }
-
-    hiddenInput.value = selectedId;
-    searchInput.value = selectedLabel;
-    searchInput.dataset.selectedProductId = selectedId;
-    searchInput.dataset.selectedLabel = selectedLabel;
+    const selectedProductId = String(row?.id ?? "").trim();
+    const selectedProductLabel = selectedProductId
+      ? buildProductCanonicalLabel(row) || "Produk terpilih"
+      : "";
+    item.dataset.selectedProductId = selectedProductId;
+    item.dataset.selectedProductLabel = selectedProductLabel;
+    hiddenInput.value = selectedProductId;
+    searchInput.value = "";
+    searchInput.classList.toggle("d-none", selectedProductId !== "");
+    card.classList.toggle("d-none", selectedProductId === "");
+    label.textContent = selectedProductLabel;
   };
 
   const populateLineItem = (item, line) => {
     const lineNoInput = item.querySelector("[data-line-no]");
-    const productIdInput = item.querySelector("[data-product-id]");
-    const productSearchInput = item.querySelector("[data-product-search]");
     const qtyInput = item.querySelector("[data-qty-input]");
     const moneyRawInput = item.querySelector("[data-money-raw]");
     const moneyDisplayInput = item.querySelector("[data-money-display]");
@@ -666,7 +647,7 @@
     }
 
     const restoredProductId = String(line.product_id ?? "").trim();
-    const restoredProductLabel = String(line.product_label ?? "").trim();
+    const restoredProductLabel = String(line.product_label ?? line.selected_label ?? "").trim();
 
     applySelectedProductState(
       item,
@@ -883,7 +864,7 @@
           line_no: String(item.querySelector("[data-line-no]")?.value ?? ""),
           product_id: String(item.querySelector("[data-product-id]")?.value ?? ""),
           product_label: String(item.querySelector("[data-product-id]")?.value ?? "").trim() !== ""
-            ? String(item.querySelector("[data-product-search]")?.dataset.selectedLabel ?? "")
+            ? String(item.dataset.selectedProductLabel ?? "")
             : "",
           qty_pcs: String(item.querySelector("[data-qty-input]")?.value ?? ""),
           line_total_rupiah: String(item.querySelector("[data-money-raw]")?.value ?? ""),
@@ -1202,11 +1183,13 @@
     };
 
     const selectProduct = (row) => {
+      clearTimeout(debounceTimer);
+      requestCounter += 1;
       const productId = String(row.id ?? "").trim();
       const currentLineNo = lineNoOfItem(item);
       const duplicateLineNo = findDuplicateProductLineNo(item, productId);
-      const previousSelectedProductId = String(searchInput.dataset.selectedProductId ?? "").trim();
-      const previousSelectedLabel = String(searchInput.dataset.selectedLabel ?? "").trim();
+      const previousSelectedProductId = String(item.dataset.selectedProductId ?? "").trim();
+      const previousSelectedLabel = String(item.dataset.selectedProductLabel ?? "").trim();
 
       if (duplicateLineNo !== null) {
         hideResults();
@@ -1223,7 +1206,7 @@
         );
 
         scheduleDraftSave();
-        focusField(searchInput, false);
+        focusField(getLineFields(item).product, false);
         return;
       }
 
@@ -1274,7 +1257,7 @@
 
     const fetchResults = async () => {
       const query = searchInput.value.trim();
-      hiddenInput.value = "";
+      if (hiddenInput.value) return;
 
       if (query.length < 2) {
         hideResults();
@@ -1303,44 +1286,36 @@
       renderResults(json.data?.rows || []);
     };
 
-    searchInput.addEventListener("input", () => {
-      const selectedLabel = String(searchInput.dataset.selectedLabel ?? "").trim();
-      const currentValue = String(searchInput.value ?? "").trim();
+    item.querySelector("[data-product-remove]")?.addEventListener("click", () => {
+      clearTimeout(debounceTimer);
+      requestCounter += 1;
+      applySelectedProductState(item, null);
+      clearProductDuplicateFeedback(item, searchInput);
+      hideResults();
+      scheduleDraftSave();
+      focusField(searchInput);
+    });
 
-      if (currentValue !== selectedLabel) {
-        invalidateManualProductEntry(item, searchInput, hiddenInput);
-      } else {
-        clearProductDuplicateFeedback(item, searchInput);
+    const removeButton = item.querySelector("[data-product-remove]");
+    removeButton?.addEventListener("focus", () => setActiveLine(item));
+    removeButton?.addEventListener("keydown", (event) => {
+      if (event.ctrlKey || event.metaKey || (event.shiftKey && event.key === "Enter")) {
+        const forwarded = new KeyboardEvent("keydown", {
+          key: event.key, ctrlKey: event.ctrlKey, metaKey: event.metaKey,
+          shiftKey: event.shiftKey, altKey: event.altKey, cancelable: true,
+        });
+        searchInput.dispatchEvent(forwarded);
+        if (forwarded.defaultPrevented) event.preventDefault();
       }
+    });
 
+    searchInput.addEventListener("input", () => {
+      if (hiddenInput.value) return;
+      clearProductDuplicateFeedback(item, searchInput);
+      requestCounter += 1;
+      hideResults();
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(fetchResults, 250);
-    });
-
-    searchInput.addEventListener("paste", () => {
-      window.requestAnimationFrame(() => {
-        const selectedLabel = String(searchInput.dataset.selectedLabel ?? "").trim();
-        const currentValue = String(searchInput.value ?? "").trim();
-
-        if (currentValue !== selectedLabel) {
-          invalidateManualProductEntry(item, searchInput, hiddenInput);
-        }
-      });
-    });
-
-    searchInput.addEventListener("blur", () => {
-      const selectedLabel = String(searchInput.dataset.selectedLabel ?? "").trim();
-      const currentValue = String(searchInput.value ?? "").trim();
-
-      if (currentValue === "") {
-        invalidateManualProductEntry(item, searchInput, hiddenInput);
-        searchInput.dataset.selectedLabel = "";
-        return;
-      }
-
-      if (currentValue !== selectedLabel) {
-        invalidateManualProductEntry(item, searchInput, hiddenInput);
-      }
     });
 
     searchInput.addEventListener("focus", () => {
@@ -1393,6 +1368,8 @@
 
       if (event.key === "Escape") {
         event.preventDefault();
+        clearTimeout(debounceTimer);
+        requestCounter += 1;
         hideResults();
         return;
       }
@@ -1429,6 +1406,10 @@
   };
 
   const initLineItem = (item) => {
+    applySelectedProductState(item, {
+      id: item.querySelector("[data-product-id]")?.value,
+      label: item.querySelector("[data-selected-product-label]")?.textContent,
+    });
     initProductLookup(item);
     initQtyInput(item);
     initMoneyInput(item);
@@ -1525,7 +1506,7 @@
 
       if (invalidItem) {
         setActiveLine(invalidItem);
-        focusField(invalidItem.querySelector("[data-product-search]"), false);
+        focusField(getLineFields(invalidItem).product, false);
       }
 
       return;
@@ -1566,7 +1547,7 @@
     }
   } else {
     const initialDraft = readDraft();
-    if (initialDraft) {
+    if (initialDraft && !config.hasOldInput) {
       restoreDraft();
     } else {
       const workingLine = ensureTopWorkingLine();

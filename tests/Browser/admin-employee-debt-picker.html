@@ -1,0 +1,37 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>.d-none { display: none; }</style>
+<input id="employee_picker_query"><input type="hidden" id="employee_id" value="employee-a">
+<div id="employee-picker-results"></div>
+<div id="employee-picker-selected"><span id="employee-picker-summary"></span><button id="employee-picker-remove">×</button></div>
+<input id="debt_amount_display">
+<script>
+window.requestAnimationFrame = (callback) => callback();
+window.employeeDebtCreateConfig = { employees: [{ id: "employee-a", employee_name: "Budi", salary_basis_label: "Bulanan" }] };
+</script>
+<script src="../../public/assets/static/js/pages/admin-employee-debt-create.js"></script>
+<script>
+try {
+  const q = (id) => document.getElementById(id);
+  const assert = (condition, message) => { if (!condition) throw new Error(message); };
+  const input = q("employee_picker_query");
+  assert(input.value === "" && q("employee_id").value === "employee-a", "hydration separates query and ID");
+  assert(q("employee-picker-summary").textContent.includes("Budi"), "hydrated card");
+  q("employee-picker-remove").click();
+  assert(q("employee_id").value === "" && document.activeElement === input, "remove clears and focuses");
+  assert(q("employee-picker-selected").classList.contains("d-none"), "remove hides card");
+  input.value = "Bu";
+  input.dispatchEvent(new Event("input"));
+  input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown" }));
+  input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+  assert(q("employee_id").value === "employee-a" && input.value === "", "keyboard select");
+  assert(document.activeElement === q("debt_amount_display"), "amount focus");
+  assert(!q("employee-picker-selected").classList.contains("d-none"), "selected card visible");
+  q("employee-picker-remove").click();
+  input.value = "Bu";
+  input.dispatchEvent(new Event("input"));
+  input.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+  assert(q("employee-picker-results").classList.contains("d-none"), "escape closes");
+  document.body.dataset.testResult = "PASS";
+} catch (error) { document.body.dataset.testResult = "FAIL: " + error.message; }
+</script>

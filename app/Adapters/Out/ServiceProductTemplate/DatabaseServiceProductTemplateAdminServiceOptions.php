@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 trait DatabaseServiceProductTemplateAdminServiceOptions
 {
-    /** @return list<array{id:string,label:string}> */
+    /** @return list<array{id:string,name:string,price_rupiah:int,label:string}> */
     public function serviceOptions(?string $includeId = null): array
     {
         $trimmedIncludeId = trim((string) $includeId);
@@ -26,6 +26,8 @@ trait DatabaseServiceProductTemplateAdminServiceOptions
             ->get()
             ->map(fn (object $row): array => [
                 'id' => (string) $row->id,
+                'name' => (string) $row->name,
+                'price_rupiah' => (int) $row->default_price_rupiah,
                 'label' => $this->serviceLabel($row),
             ])
             ->all();

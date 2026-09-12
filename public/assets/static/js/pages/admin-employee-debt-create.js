@@ -6,6 +6,8 @@
   const hiddenInput = document.getElementById('employee_id');
   const resultBox = document.getElementById('employee-picker-results');
   const summary = document.getElementById('employee-picker-summary');
+  const selectedCard = document.getElementById('employee-picker-selected');
+  const removeButton = document.getElementById('employee-picker-remove');
   const debtAmountDisplay = document.getElementById('debt_amount_display');
 
   if (!queryInput || !hiddenInput || !resultBox || !summary) return;
@@ -48,6 +50,7 @@
     resultBox.classList.add('d-none');
     resultBox.innerHTML = '';
     state.activeIndex = -1;
+    state.matches = [];
   };
 
   const focusDebtAmount = () => {
@@ -63,8 +66,10 @@
   };
 
   const renderSummary = (employee) => {
+    selectedCard?.classList.toggle('d-none', !employee);
+    queryInput.classList.toggle('d-none', Boolean(employee));
     if (!employee) {
-      summary.textContent = 'Pilih karyawan dari hasil pencarian. Data yang dikirim tetap employee_id berbentuk UUID.';
+      summary.textContent = '';
       return;
     }
 
@@ -75,7 +80,7 @@
   const selectEmployee = (employee, moveNext = true) => {
     state.selected = employee;
     hiddenInput.value = employee.id;
-    queryInput.value = employee.employee_name;
+    queryInput.value = '';
     renderSummary(employee);
     closeResults();
 
@@ -137,21 +142,14 @@
     renderResults();
   };
 
-  const syncSelectionState = () => {
-    const current = queryInput.value.trim();
-
-    if (!state.selected) {
-      hiddenInput.value = '';
-      renderSummary(null);
-      return;
-    }
-
-    if (current !== state.selected.employee_name) {
-      state.selected = null;
-      hiddenInput.value = '';
-      renderSummary(null);
-    }
-  };
+  removeButton?.addEventListener('click', () => {
+    state.selected = null;
+    hiddenInput.value = '';
+    queryInput.value = '';
+    renderSummary(null);
+    closeResults();
+    queryInput.focus();
+  });
 
   const hydrateFromOldValue = () => {
     const oldId = hiddenInput.value.trim();
@@ -164,7 +162,6 @@
   };
 
   queryInput.addEventListener('input', () => {
-    syncSelectionState();
     findMatches(queryInput.value);
   });
 
@@ -224,6 +221,7 @@
   hydrateFromOldValue();
 
   window.requestAnimationFrame(() => {
+    if (state.selected) { focusDebtAmount(); return; }
     queryInput.focus();
 
     if (typeof queryInput.select === 'function') {

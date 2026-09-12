@@ -1,0 +1,36 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>.d-none { display: none; }</style>
+<form id="payroll-create-form">
+<input id="employee_search"><input type="hidden" id="employee_id" value="employee-a">
+<div id="payroll-employee-search-results"></div>
+<div id="payroll-selected-card"><span id="payroll-selected-employee"></span><button type="button" id="payroll-employee-remove">×</button></div>
+<input id="amount_display"><input id="disbursement_date_string"><input id="mode_value"><input id="notes">
+</form>
+<script>
+window.requestAnimationFrame = (callback) => callback();
+window.payrollCreateConfig = { employees: [{ id: "employee-a", employee_name: "Budi", salary_basis_type: "monthly" }] };
+</script>
+<script src="../../public/assets/static/js/pages/admin-payroll-create.js"></script>
+<script>
+(async () => {
+try {
+  const q = (id) => document.getElementById(id);
+  const assert = (condition, message) => { if (!condition) throw new Error(message); };
+  const input = q("employee_search");
+  assert(input.value === "" && q("employee_id").value === "employee-a", "hydration separates query and ID");
+  assert(q("payroll-selected-employee").textContent.includes("Budi"), "hydrated card");
+  q("payroll-employee-remove").click();
+  assert(q("employee_id").value === "" && document.activeElement === input, "remove clears and focuses");
+  input.value = "Bu";
+  input.dispatchEvent(new Event("input"));
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown" }));
+  input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+  assert(q("employee_id").value === "employee-a" && input.value === "", "keyboard select");
+  assert(document.activeElement === q("amount_display"), "amount focus");
+  assert(!q("payroll-selected-card").classList.contains("d-none"), "selected card visible");
+  document.body.dataset.testResult = "PASS";
+} catch (error) { document.body.dataset.testResult = "FAIL: " + error.message; }
+})();
+</script>

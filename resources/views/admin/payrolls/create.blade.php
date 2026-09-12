@@ -50,13 +50,14 @@
                                 aria-live="polite"
                             ></div>
 
-                            <div class="card bg-light-subtle border mb-4">
-                                <div class="card-body">
+                            <div id="payroll-selected-card" class="admin-selected-card mb-4 d-none">
+                                <div class="admin-selected-copy">
                                     <h6 class="mb-2">Karyawan Terpilih</h6>
                                     <div id="payroll-selected-employee" class="text-muted">
                                         Belum ada karyawan dipilih.
                                     </div>
                                 </div>
+                                <button type="button" id="payroll-employee-remove" class="admin-selected-remove" aria-label="Lepas karyawan terpilih">×</button>
                             </div>
 
                             <div class="row">
@@ -165,4 +166,8 @@
         window.AdminMoneyInput?.bindBySelector(document);
     </script>
     <script src="{{ asset('assets/static/js/pages/admin-payroll-create.js') }}?v={{ config('app.asset_version') }}"></script>
+@endpush
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/static/css/admin-lookup.css') }}?v={{ config('app.asset_version') }}">
 @endpush

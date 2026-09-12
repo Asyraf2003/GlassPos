@@ -49,6 +49,17 @@ final class CreatePayrollPageFeatureTest extends TestCase
         $response->assertSee('Cari Karyawan');
         $response->assertSee('Ketik minimal 2 huruf');
         $response->assertSee('Karyawan Terpilih');
+        $response->assertSee('id="payroll-selected-card"', false);
+        $response->assertSee('id="payroll-employee-remove"', false);
+        $response->assertDontSee('value="Budi Payroll"', false);
+
+        $employeeId = (string) DB::table('employees')->where('employee_name', 'Budi Payroll')->value('id');
+        $oldPage = $this->withSession(['_old_input' => ['employee_id' => $employeeId, 'employee_lookup' => 'Budi Payroll']])
+            ->get(route('admin.payrolls.create'));
+        $oldPage->assertOk();
+        $oldPage->assertSee('value="'.$employeeId.'"', false);
+        $oldPage->assertDontSee('value="Budi Payroll"', false);
+        $oldPage->assertSee('id="payroll-selected-card"', false);
         $response->assertSee('Nominal Pencairan');
         $response->assertSee('Tanggal Pencairan');
         $response->assertSee('Mode Pencairan');

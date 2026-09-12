@@ -31,5 +31,10 @@ final class SupplierInvoiceTaxRoundingResidueJsContractTest extends TestCase
         self::assertStringContainsString('Swal.fire', $js);
         self::assertStringContainsString('taxRoundingResidueConfirmedInput.value = "1"', $js);
         self::assertStringContainsString('taxRoundingResidueConfirmedInput.value = "0"', $js);
+        self::assertStringContainsString('item.dataset.selectedProductLabel', $js);
+        self::assertStringContainsString('data-product-remove', $js);
+        self::assertStringNotContainsString('searchInput.value = row.label', $js);
+        self::assertStringNotContainsString('searchInput.value = selectedLabel', $js);
+        self::assertStringNotContainsString('productSearchInput.value = String(line.product_label', $js);
     }
 }

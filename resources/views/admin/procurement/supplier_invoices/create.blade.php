@@ -90,7 +90,7 @@
 
                                                 <input
                                                     type="text"
-                                                    value="{{ $lineView['selected_label'] }}"
+                                                    value=""
                                                     class="form-control @error('lines.' . $lineView['index'] . '.product_id') is-invalid @enderror"
                                                     placeholder="Ketik minimal 2 huruf untuk mencari produk"
                                                     autocomplete="off"
@@ -102,6 +102,11 @@
                                                     style="z-index: 20;"
                                                     data-product-results
                                                 ></div>
+
+                                                <div class="admin-selected-card {{ $lineView['selected_product_id'] === '' ? 'd-none' : '' }}" data-product-selected>
+                                                    <strong class="admin-selected-copy" data-selected-product-label>{{ $lineView['selected_label'] }}</strong>
+                                                    <button type="button" class="admin-selected-remove" data-product-remove aria-label="Lepas produk terpilih">×</button>
+                                                </div>
 
                                                 @error('lines.' . $lineView['index'] . '.product_id')
                                                     <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -220,6 +225,11 @@
                                                 style="z-index: 20;"
                                                 data-product-results
                                             ></div>
+                                            <div class="admin-selected-card d-none" data-product-selected>
+                                                <strong class="admin-selected-copy" data-selected-product-label></strong>
+                                                <button type="button" class="admin-selected-remove" data-product-remove aria-label="Lepas produk terpilih">×</button>
+                                            </div>
+
                                         </div>
 
                                         <div class="w-100">
@@ -470,6 +480,7 @@
     <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}?v={{ config('app.asset_version') }}"></script>
     <script>
         window.procurementCreateConfig = {
+            hasOldInput: @json(session()->hasOldInput()),
             lookupEndpoint: @json(route('admin.procurement.products.lookup')),
             supplierLookupEndpoint: @json(route('admin.procurement.suppliers.lookup')),
             clearDraftOnLoad: @json((bool) session('clear_procurement_create_draft')),
@@ -481,4 +492,8 @@
         };
     </script>
     <script src="{{ asset('assets/static/js/pages/admin-procurement-create.js') }}?v={{ config('app.asset_version') }}"></script>
+@endpush
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/static/css/admin-lookup.css') }}?v={{ config('app.asset_version') }}">
 @endpush

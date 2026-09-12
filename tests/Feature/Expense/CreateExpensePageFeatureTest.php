@@ -51,6 +51,9 @@ final class CreateExpensePageFeatureTest extends TestCase
         $response->assertDontSee('Status');
         $response->assertSee('expense-create-config', false);
         $response->assertSee('expense-category-search-input', false);
+        $response->assertSee('id="expense-category-selected"', false);
+        $response->assertSee('id="expense-category-remove"', false);
+        $response->assertDontSee('admin-expense-create.js', false);
         $response->assertSee('admin-expense-create/category-search.js');
         $response->assertSee('admin-expense-create/flow.js');
         $response->assertSee('admin-expense-create/boot.js');
@@ -76,11 +79,24 @@ final class CreateExpensePageFeatureTest extends TestCase
         $this->assertStringContainsString('alert(24)', $html);
     }
 
+    public function test_old_category_id_is_restored_without_a_selected_label_in_the_query(): void
+    {
+        $this->seedExpenseCategory('old-category', 'OLD', 'Old Category', true);
+        $page = $this->actingAs($this->user('admin'))
+            ->withSession(['_old_input' => ['category_id' => 'old-category']])
+            ->get(route('admin.expenses.create'));
+
+        $page->assertOk();
+        $page->assertSee('value="old-category" selected', false);
+        $page->assertSee('id="expense-category-selected-label"', false);
+        $page->assertDontSee('value="Old Category', false);
+    }
+
     private function user(string $role): User
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-expense-create@example.test',
+            'email' => $role.'-expense-create@example.test',
             'password' => 'password123',
         ]);
 

@@ -26,12 +26,14 @@ final class AdminServiceProductTemplateManagementFeatureTest extends TestCase
         $createPage->assertOk();
         $createPage->assertSee('Tambah Service', false);
         $createPage->assertSee('Ban Admin Template', false);
-        $createPage->assertSee('Produk 1', false);
-        $createPage->assertSee('Produk 2', false);
-        $createPage->assertSee('Produk 3', false);
+        $createPage->assertSee('data-package-products-selected', false);
+        $createPage->assertSee('data-package-service-selected', false);
+        $createPage->assertSee('0 dari maksimal 3 produk', false);
+        $createPage->assertSee('data-package-total', false);
         $createPage->assertSee('Jasa Pasang Ban Admin', false);
-        $createPage->assertSee('data-searchable-create-select', false);
-        $createPage->assertSee('admin-searchable-create-select.js', false);
+        $createPage->assertDontSee('data-searchable-create-select', false);
+        $createPage->assertSee('admin-service-product-template.js', false);
+        $createPage->assertSee('"price_rupiah":125000', false);
         $createPage->assertSee(route('admin.products.create'), false);
         $createPage->assertSee(route('admin.services.create'), false);
 
@@ -42,6 +44,7 @@ final class AdminServiceProductTemplateManagementFeatureTest extends TestCase
                 2 => ['product_id' => 'product-admin-template-3'],
             ],
             'service_catalog_item_id' => 'service-admin-template-1',
+            'default_package_total_rupiah' => 1,
         ]);
 
         $storeResponse->assertRedirect(route('admin.service-product-templates.index'));
@@ -94,7 +97,9 @@ final class AdminServiceProductTemplateManagementFeatureTest extends TestCase
         $editPage->assertOk();
         $editPage->assertSee('Edit Service', false);
         $editPage->assertSee('Jasa Pasang Ban Admin Update', false);
-        $editPage->assertSee('data-searchable-create-select', false);
+        $editPage->assertSee('data-package-picker', false);
+        $editPage->assertSee('name="product_id" value="product-admin-template-1"', false);
+        $editPage->assertSee('name="product_lines[1][product_id]" value="product-admin-template-2"', false);
         $editPage->assertSee(route('admin.products.create'), false);
         $editPage->assertSee(route('admin.services.create'), false);
 
@@ -151,6 +156,26 @@ final class AdminServiceProductTemplateManagementFeatureTest extends TestCase
             'id' => $templateId,
             'is_active' => true,
         ]);
+    }
+
+    public function test_old_selection_is_restored_as_ids_with_empty_search_queries(): void
+    {
+        $admin = $this->user('admin');
+        $this->seedProduct('old-product', 'OLD', 'Old Product', 170000);
+        $this->seedService('old-service', 'Old Service', true);
+
+        $page = $this->actingAs($admin)->withSession(['_old_input' => [
+            'product_id' => 'old-product',
+            'service_catalog_item_id' => 'old-service',
+        ]])->get(route('admin.service-product-templates.create'));
+
+        $page->assertOk();
+        $page->assertSee('name="product_id" value="old-product"', false);
+        $page->assertSee('name="service_catalog_item_id" value="old-service"', false);
+        $page->assertSee('"price_rupiah":170000', false);
+        $page->assertDontSee('value="Old Product"', false);
+        $page->assertDontSee('value="Old Service"', false);
+        $page->assertSee('data-package-products-selected', false);
     }
 
     public function test_admin_allows_same_product_for_different_service_but_rejects_same_product_service_duplicate(): void
@@ -261,7 +286,6 @@ final class AdminServiceProductTemplateManagementFeatureTest extends TestCase
             'is_active' => false,
         ]);
     }
-
 
     public function test_admin_validation_rejects_missing_product_and_service(): void
     {

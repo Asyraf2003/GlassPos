@@ -45,6 +45,9 @@ final class CreateSupplierInvoicePageFeatureTest extends TestCase
         $response->assertSee('Ketik minimal 2 huruf untuk mencari produk');
         $response->assertSee('add-procurement-line', false);
         $response->assertSee('data-product-search', false);
+        $response->assertSee('data-product-selected', false);
+        $response->assertSee('data-product-remove', false);
+        $response->assertSee('admin-lookup.css', false);
         $response->assertSee('data-supplier-search', false);
         $response->assertSee('data-supplier-results', false);
         $response->assertSee('admin-procurement-create.js');
@@ -56,7 +59,7 @@ final class CreateSupplierInvoicePageFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '@example.test',
+            'email' => $role.'@example.test',
             'password' => 'password123',
         ]);
 

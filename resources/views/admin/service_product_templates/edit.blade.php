@@ -26,10 +26,9 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('assets/static/js/shared/admin-money-input.js') }}?v={{ config('app.asset_version') }}"></script>
-    <script src="{{ asset('assets/static/js/shared/admin-searchable-create-select.js') }}?v={{ config('app.asset_version') }}"></script>
-    <script>
-        window.AdminMoneyInput?.bindBySelector(document);
-        window.AdminSearchableCreateSelect?.bindBySelector(document);
-    </script>
+    <script src="{{ asset('assets/static/js/pages/admin-service-product-template.js') }}?v={{ config('app.asset_version') }}"></script>
+@endpush
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/static/css/admin-lookup.css') }}?v={{ config('app.asset_version') }}">
 @endpush

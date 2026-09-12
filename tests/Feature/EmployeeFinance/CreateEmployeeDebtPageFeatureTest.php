@@ -48,6 +48,17 @@ final class CreateEmployeeDebtPageFeatureTest extends TestCase
         $response->assertSee('Catat Hutang Karyawan');
         $response->assertSee('Nominal Hutang');
         $response->assertSee('Simpan Data Hutang');
+        $response->assertSee('id="employee-picker-selected"', false);
+        $response->assertSee('id="employee-picker-remove"', false);
+        $response->assertDontSee('value="Budi Hutang"', false);
+
+        $employeeId = (string) DB::table('employees')->where('employee_name', 'Budi Hutang')->value('id');
+        $oldPage = $this->withSession(['_old_input' => ['employee_id' => $employeeId, 'employee_lookup' => 'Budi Hutang']])
+            ->get(route('admin.employee-debts.create'));
+        $oldPage->assertOk();
+        $oldPage->assertSee('value="'.$employeeId.'"', false);
+        $oldPage->assertDontSee('value="Budi Hutang"', false);
+        $oldPage->assertSee('id="employee-picker-selected"', false);
     }
 
     public function test_admin_can_store_employee_debt_from_create_page(): void

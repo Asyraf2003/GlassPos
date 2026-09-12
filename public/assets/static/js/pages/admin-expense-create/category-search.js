@@ -43,6 +43,9 @@
       categorySearchHelper,
       categorySelectWrap,
       categorySelect,
+      categorySelected,
+      categorySelectedLabel,
+      categoryRemove,
     } = elements;
 
     if (
@@ -69,11 +72,17 @@
       categorySearchResults.classList.add("d-none");
     };
 
-    const selectOption = (option) => {
-      categorySelect.value = option.id;
-      categorySearchInput.value = option.label;
-      setHelper(`Kategori dipilih: ${option.label}`);
+    const renderSelection = (option) => {
+      categorySelect.value = option?.id || "";
+      categorySearchInput.value = "";
+      categorySearchWrap.classList.toggle("d-none", Boolean(option));
+      categorySelected?.classList.toggle("d-none", !option);
+      if (categorySelectedLabel) categorySelectedLabel.textContent = option?.label || "";
       closeResults();
+    };
+
+    const selectOption = (option) => {
+      renderSelection(option);
       dispatchSelected({
         id: option.id,
         label: option.label,
@@ -101,6 +110,7 @@
     };
 
     const runSearch = (rawQuery) => {
+      if (categorySelect.value) return;
       const query = norm(rawQuery);
 
       if (query.length < minChars) {
@@ -133,15 +143,24 @@
     const selectedCategory = optionById.get(selectedCategoryId);
 
     if (selectedCategory) {
-      categorySelect.value = selectedCategory.id;
-      categorySearchInput.value = selectedCategory.label;
-      setHelper(`Kategori dipilih: ${selectedCategory.label}`);
+      renderSelection(selectedCategory);
     } else {
       setHelper("Ketik minimal 2 karakter untuk cari kategori. Enter pilih hasil. Jika tidak ada, Enter ke form kategori baru.");
     }
 
     categorySearchInput.addEventListener("input", () => {
       runSearch(categorySearchInput.value);
+    });
+
+    categoryRemove?.addEventListener("click", () => {
+      renderSelection(null);
+      runSearch("");
+      categorySearchInput.focus();
+    });
+    categorySelect.addEventListener("invalid", (event) => {
+      event.preventDefault();
+      categorySearchInput.focus();
+      setHelper("Pilih kategori dari hasil pencarian.", true);
     });
 
     categorySearchInput.addEventListener("keydown", (event) => {
@@ -181,15 +200,9 @@
 
       const query = String(categorySearchInput.value || "").trim();
 
-      if (categorySelect.value !== "" && query !== "") {
-        dispatchSelected({
-          id: categorySelect.value,
-          label: categorySearchInput.value,
-        });
-        return;
-      }
-
       if (query.length >= minChars) {
+        const existing = options.find((item) => item.search.includes(norm(query)));
+        if (existing) { selectOption(existing); return; }
         window.location.href = buildCreateUrl(config.createCategoryBaseUrl, query);
       }
     });
@@ -218,6 +231,7 @@
     ctx.api = ctx.api || {};
     ctx.api.focusCategorySearch = () => {
       window.requestAnimationFrame(() => {
+        if (categorySelect.value) { categoryRemove?.focus(); return; }
         categorySearchInput.focus();
         categorySearchInput.select();
       });
