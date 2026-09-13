@@ -114,7 +114,14 @@ Prefer uncomfortable combinations:
 
 ### Revision
 
+- Canonical full-layer versioning contract: `docs/02_architecture/adr/0045_transaction_revision_version_graph_and_full_layer_snapshot_contract.md`.
 - Edit uses immutable revision + active replacement.
+- Revision is a version of the full transaction graph, not only note total.
+- Product, service, package decomposition, external purchase, pricing snapshot, and relevant header facts must remain reconstructable for every historical revision.
+- Payments/refunds/inventory/audit remain immutable event truth across versions.
+- Current operational rows/projection may be replacement/current-only, but they must not erase historical reconstructability.
+- Master data changes must not rewrite historical version snapshots.
+- A stale concurrent editor must not silently overwrite a newer revision; characterize and harden this boundary if current request/version identity is insufficient.
 - Old row IDs become stale after replacement.
 - Duplicate same-key/same-payload revision must replay/no-op.
 - Same key with changed payload must reject.

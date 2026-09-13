@@ -81,6 +81,30 @@ Implementation boundary:
 - hutang, DP, lunas, refund, revision, and cancellation derive from shared primitives rather than separate financial engines;
 - when older cashier docs conflict on cash-credit semantics, ADR-0044 wins.
 
+### ADR-0045
+
+Status:
+
+Accepted.
+
+Topic:
+
+Transaction edit is full-layer immutable revision versioning, not CRUD overwrite.
+
+File:
+
+- docs/02_architecture/adr/0045_transaction_revision_version_graph_and_full_layer_snapshot_contract.md
+
+Implementation boundary:
+
+- note root identity stays stable while accepted edits create monotonically newer revisions;
+- revision snapshots cover header plus product, service, package decomposition, and external-purchase transaction facts;
+- payments/refunds/inventory/audit remain immutable ledgers rather than being cloned into every version;
+- current work-item/projection tables may represent the active replacement only if historical versions remain reconstructable;
+- old row IDs are stale for current operations;
+- stale concurrent editors must not silently overwrite a newer revision;
+- cashier UX edits current truth while backend carries historical consequences automatically.
+
 ## Current Cleanup Notes
 
 ### ADR-0014

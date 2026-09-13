@@ -561,3 +561,16 @@ No source type bucket membership change is authorized without registry/test proo
 No migration is authorized until the table contract for the selected slice is written and tested.
 
 No legacy docs should be archived only because they are older. They should first be marked as refined/superseded by this ADR where conflicts exist.
+
+
+## Full-Layer Versioning Clarification
+
+The canonical transaction-versioning decision is now:
+
+- `docs/02_architecture/adr/0045_transaction_revision_version_graph_and_full_layer_snapshot_contract.md`
+
+ADR-0042 remains canonical for edit/refund settlement and shadow behavior.
+
+ADR-0045 clarifies that an edit revision versions the complete transaction graph needed to reconstruct historical truth, including product, service, package decomposition, and external-purchase snapshots.
+
+Where older implementation text looks like destructive work-item replacement, interpret current work-item rows as active operational replacement only. Historical truth must remain reconstructable from revision snapshots plus immutable payment/refund/inventory/audit ledgers.

@@ -70,6 +70,59 @@ surplus               -> valid settlement money exceeds current obligation after
 
 Cancellation is not destructive deletion and must decompose into obligation/refund/inventory/history effects.
 
+## Full-Layer Transaction Versioning - ADR-0045
+
+Also read and obey:
+
+- `docs/02_architecture/adr/0045_transaction_revision_version_graph_and_full_layer_snapshot_contract.md`
+
+Edit/revision is NOT only a note-total correction.
+
+Every accepted edit creates the next immutable transaction revision and must preserve enough snapshot data to reconstruct the whole transaction shape at that version.
+
+Version-sensitive layers include:
+
+- note/header;
+- product/store-stock lines;
+- service detail;
+- package total and decomposition;
+- multi-product package lines;
+- external-purchase lines;
+- pricing snapshots and package metadata;
+- current obligation/settlement snapshot;
+- inventory consequences;
+- audit/reason/actor context.
+
+Payments, refunds, and inventory movements remain immutable event ledgers and are not copied into every revision.
+
+The cashier edits only current truth. The system carries old payment/refund/stock consequences automatically.
+
+Old row/component IDs become stale after replacement.
+
+Current operations must not mutate stale pre-revision identities.
+
+Master product/service/template changes must not rewrite historical revision snapshots.
+
+A stale editor must not silently overwrite a newer current revision. Characterize current concurrency/stale-edit behavior before changing it; if the active request cannot prove which revision it was based on, record that as a hardening gap rather than assuming last-write-wins is acceptable.
+
+Required adversarial edit/version combinations include:
+
+- product qty/price replacement;
+- product A -> B;
+- service price/name context;
+- package product composition and service split;
+- external purchase amount/label;
+- multiple layers changed in one revision;
+- edit after DP/payment;
+- edit after multiple payments;
+- edit after refund;
+- refund after revision using current replacement IDs;
+- revision stock correction distinct from refund stock reversal;
+- master-data changes after old revision;
+- duplicate idempotent revision;
+- stale concurrent editor;
+- current-vs-historical reporting.
+
 ## Known Contract Drift To Fix First
 
 Create transaction partial cash is already corrected:
