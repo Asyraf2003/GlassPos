@@ -726,3 +726,194 @@ effects.
 
 No stale-editor, cancellation, partial-quantity refund, or unrelated residual gap
 was started in this continuation.
+
+
+## 2026-09-14 continuation — runtime RED: historical service fee re-entered payment target
+
+### Scope lock
+
+Single target only:
+
+```text
+paid mixed transaction
+-> refund historical store-stock component
+-> accepted revision creates legitimate replacement obligation
+-> partial payment
+-> final settlement
+```
+
+No stale-editor, cancellation, partial-quantity refund, reporting rewrite, or broad
+reader refactor was opened.
+
+### FACT — first runtime RED
+
+Owner ran:
+
+```bash
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php \
+  --filter=refund_then_revision_new_obligation_accepts_new_payments_without_resurrecting_stale_component \
+  --compact
+```
+
+Result:
+
+```text
+1 failed
+34 assertions completed before failure
+```
+
+The final 60000 settlement correctly allocated:
+
+```text
+10000 -> current replacement service_store_stock_part
+```
+
+but the remaining:
+
+```text
+50000 -> service_fee
+```
+
+was written to work_item_id:
+
+```text
+cbc6c15b-4a2c-44a0-a777-8fe2ba74fffa
+```
+
+instead of the proven replacement work_item_id:
+
+```text
+4ac7ab55-53c1-4f8d-8eea-d5c57181d25f
+```
+
+The scenario contains exactly one original work item and one persisted replacement
+work item. The original work item is preserved because
+`WorkItemDeletesTrait` protects refund-referenced rows. Therefore the only
+non-replacement work_item identity in this focused scenario is the historical
+pre-revision work item.
+
+A focused diagnostic assertion was added first in commit:
+
+```text
+4792d491 test: prove stale service fee payment identity
+```
+
+It explicitly records the pre-patch expectation that the unexpected final
+service-fee allocation identity is `$oldWorkItemId`. The final regression now
+asserts the inverse invariant after the production patch.
+
+### CONTRACT
+
+ADR-0045 is explicit:
+
+- old active row/component identities become historical/stale after replacement;
+- current payment operations resolve against the current revision;
+- historical refund anchors remain immutable;
+- historical refunded/shadow rows do not become current components merely because
+  another revision exists;
+- new active obligation comes from the accepted current revision.
+
+ADR-0044 settlement semantics are unchanged. The 60000 final cash settlement is
+valid. Only its component target boundary was wrong.
+
+### CLASSIFICATION
+
+```text
+PRODUCTION BUG
+```
+
+This is not TEST WRONG and not CONTRACT GAP.
+
+### Root cause
+
+`DatabaseNoteReaderAdapter` intentionally rehydrates every `work_items` row for
+the note, including refund-referenced historical anchors.
+
+`ResolveNotePayableComponents::fromNote()` only excluded canceled rows. A preserved
+historical package/service row can remain non-canceled because its refunded stock
+component and non-refundable service fee share the same historical work item.
+
+Consequently, `RecordAndAllocateNotePaymentOperation` could receive both:
+
+- historical pre-revision work item components;
+- active replacement work item components.
+
+The refunded/reversed stock guard correctly prevented resurrection of the old
+store-stock component, but the old service fee had no equivalent historical-row
+boundary and therefore remained a candidate. Component priority then allowed that
+historical service fee to consume the final 50000.
+
+### ACTION — smallest shared seam
+
+No global note-reader filtering was introduced.
+
+Production changes:
+
+1. `ResolveNotePayableComponents`
+   - added explicit current-revision filtering using
+     `NoteRevision::lines()->workItemRootId()`;
+   - full-note and selected-row payment resolution can now be constrained to the
+     active revision;
+   - selected-row resolution rejects a selection if any resolved component belongs
+     to a non-current work item.
+
+2. `RecordAndAllocateNotePaymentOperation`
+   - resolves the authoritative current revision when one exists;
+   - new payments allocate only across components whose work-item identity belongs
+     to that revision;
+   - legacy notes without revision history retain the existing fallback behavior.
+
+Important temporal boundary preserved:
+
+`NoteReplacementPaymentAllocationReconciler` still uses
+`ResolveNotePayableComponents::fromNote()` while a replacement revision is being
+applied. It is not forced through the persisted current-revision pointer before the
+new pointer is committed. This avoids breaking revision allocation replay.
+
+Production commits:
+
+```text
+6bd08185 fix: constrain payable components to current revision
+36147e99 fix: allocate new payments only to current revision
+46338696 test: lock current revision service fee allocation
+```
+
+Files changed for this RED:
+
+```text
+app/Application/Payment/Services/ResolveNotePayableComponents.php
+app/Application/Payment/Services/RecordAndAllocateNotePaymentOperation.php
+tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php
+```
+
+No reporting, inventory, refund-history, reader-global, cancellation, or ADR semantic
+files were changed.
+
+### PROOF boundary
+
+Confirmed proof already available:
+
+- owner runtime reached 34 assertions before the first RED;
+- current replacement stock component correctly received the first 10000 of the
+  final settlement;
+- source/cardinality proof identifies the other service-fee identity as the single
+  preserved historical pre-revision work item;
+- current revision snapshot creation occurs after replacement work items are
+  persisted, so `note_revision_lines.work_item_root_id` is the authoritative
+  persisted replacement identity.
+
+Post-patch runtime GREEN is still pending owner execution. Do not classify the
+slice as GREEN before that command passes.
+
+### Exact next command
+
+```bash
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php \
+  --filter=refund_then_revision_new_obligation_accepts_new_payments_without_resurrecting_stale_component \
+  --compact
+```
+
+Stop after this command. Do not run adjacent suites, AbsurdTransactionGauntlet, or
+`make verify` until this focused test is GREEN.
