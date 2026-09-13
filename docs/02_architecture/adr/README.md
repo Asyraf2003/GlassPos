@@ -58,6 +58,29 @@ Implementation boundary:
 - 20/80 package explanation is not persisted as system logic.
 - Historical mixed-price notes are not auto-rewritten.
 
+### ADR-0044
+
+Status:
+
+Accepted.
+
+Topic:
+
+Payment settlement intent, physical cash tender, and UI compression remain separate. Cash received is never settlement authority for a partial payment.
+
+File:
+
+- docs/02_architecture/adr/0044_payment_settlement_intent_cash_tender_and_ui_compression.md
+
+Implementation boundary:
+
+- credited payment follows settlement intent within authoritative outstanding;
+- cash received is physical tender;
+- change equals tender minus credited payment;
+- Simple/Detail are presentation compression only;
+- hutang, DP, lunas, refund, revision, and cancellation derive from shared primitives rather than separate financial engines;
+- when older cashier docs conflict on cash-credit semantics, ADR-0044 wins.
+
 ## Current Cleanup Notes
 
 ### ADR-0014

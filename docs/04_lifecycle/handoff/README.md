@@ -34,7 +34,9 @@ This folder is only for active or latest handoffs. Once a session is closed, arc
 | `0019_cloudflare_r2_static_sync_direct_upload_handoff.md` | Cloudflare R2 static sync + private direct-upload migration | active: public CDN + privacy + repo verification + strict direct-upload adapter proven; private CORS next |
 | `0020_cashier_note_workspace_simple_detail_pos_hardening_handoff.md` | Cashier Note Workspace Simple/Detail POS hardening + financial/static delivery closure | closed locally; production/device verification next |
 | `0021_cashier_final_preproduction_ux_hardening_handoff.md` | Cashier UX hardening + chronological history + payment timeline | closed locally; production/device verification next |
-| `0022_cashier_note_level_payment_and_finance_work_queue_handoff.md` | Cashier note-level cash + finance work queue + admin sort | closed locally; release QA pending |
+| `0022_cashier_note_level_payment_and_finance_work_queue_handoff.md` | Cashier note-level cash + finance work queue + admin sort | cash-credit semantics partially superseded by ADR-0044 |
+| `0023_absurd_transaction_gauntlet_iterative_hardening_handoff.md` | Absurd transaction cross-domain gauntlet | active |
+| `0024_first_principles_finance_engine_continuation_handoff.md` | First-principles settlement/tender correction + gauntlet continuation | active next session |
 
 ## Archive
 

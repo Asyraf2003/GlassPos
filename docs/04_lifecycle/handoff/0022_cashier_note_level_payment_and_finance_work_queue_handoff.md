@@ -24,6 +24,20 @@ Cashier create/detail payment, cashier `Riwayat Nota`, and admin note history. T
 - Previous handoff: `docs/04_lifecycle/handoff/0021_cashier_final_preproduction_ux_hardening_handoff.md`
 - Repo snapshot / command output: local `main` and `origin/main` both started at `96f5f51450265942386292fafce36b8488f372ba`
 
+## Supersession Notice - ADR-0044
+
+This handoff is historical evidence for the September 5 cashier hardening.
+
+Its rule that cash settlement is derived from `min(received, current outstanding)` is superseded by:
+
+- `docs/02_architecture/adr/0044_payment_settlement_intent_cash_tender_and_ui_compression.md`
+
+The corrected canonical model keeps settlement intent and physical cash tender separate.
+
+Do not revert ADR-0044 merely to preserve tests or implementation expectations recorded in this handoff.
+
+Other note-level authority, allocation priority, chronology, work-queue, and timeline decisions in this handoff remain historical/implementation evidence unless separately superseded.
+
 ## Locked Facts
 
 - A cash payment is credited by `min(received, current outstanding)`; change exists only above current outstanding.

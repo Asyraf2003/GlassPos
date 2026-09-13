@@ -275,3 +275,26 @@ create hostile scenario
 ```
 
 A gauntlet reaching more assertions before failing is progress. Immediate all-green is not the objective if it was achieved by weakening the scenario.
+
+
+## September 13 Continuation Update - First-Principles Payment Contract
+
+Repository progress after this handoff was created:
+
+- commit `98674660ab0b14717a441bd6a7db9d43b13509e6` advanced the gauntlet into historical payment/reporting reconciliation;
+- package refund expectation was corrected from 620000 to 440000;
+- blocked service-only/external attempts were aligned with the locked refund policy;
+- focused historical-payment/reporting regressions were added;
+- production reporting/payment-history readers were changed to preserve immutable historical payment amounts instead of capped current allocations.
+
+Before continuing failure-guided gauntlet work, apply ADR-0044 as the canonical payment contract.
+
+Important new classification:
+
+- create transaction partial cash already follows settlement-intent vs tender separation after commit `d9fa443e619267a75c12799e4b18301bb2b0df4e`;
+- existing-note/detail cash payment still contains a known contract drift in `NotePaymentAmountResolver`: current implementation derives credited cash payment from physical amount received;
+- older September 5 tests/docs that expect cash tender to become credited settlement are not canonical after ADR-0044.
+
+Next continuation must first characterize and correct that drift with focused RED tests before trusting downstream gauntlet payment combinations.
+
+Do not discard the historical reporting work in `98674660...`; preserving immutable historical customer payments is consistent with ADR-0044.

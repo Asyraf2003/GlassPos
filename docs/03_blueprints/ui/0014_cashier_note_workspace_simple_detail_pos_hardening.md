@@ -115,6 +115,24 @@ Product, service, and store-stock package use the same interaction language: que
 
 Simple retains separate structured values for service name, service price, external part label, and external purchase amount. It must not collapse those values into an operational note or a generic total.
 
+## ADR-0044 Cash Semantics Correction
+
+The original September 5 Detail cash rule in this blueprint collapsed settlement intent into physical tender by using `min(cash received, outstanding)` as credited payment.
+
+That rule is superseded by:
+
+- `docs/02_architecture/adr/0044_payment_settlement_intent_cash_tender_and_ui_compression.md`
+
+Canonical behavior now separates:
+
+- settlement intent / credited payment;
+- cash received / physical tender;
+- change.
+
+Simple presets remain valid only as UI compression into the same primitive engine.
+
+The historical text below remains as implementation evidence. Where its Detail cash formula conflicts with ADR-0044, ADR-0044 wins.
+
 ## Payment Preset Contract
 
 ### Simpan Nota
