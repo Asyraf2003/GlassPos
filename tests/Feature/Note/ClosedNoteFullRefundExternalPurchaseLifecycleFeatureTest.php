@@ -67,6 +67,159 @@ final class ClosedNoteFullRefundExternalPurchaseLifecycleFeatureTest extends Tes
         $this->assertDatabaseCount('inventory_movements', 0);
     }
 
+    public function test_mixed_selection_with_refundable_product_and_blocked_external_row_is_rejected_atomically(): void
+    {
+        $user = $this->seedKasir();
+        $today = date('Y-m-d');
+
+        $this->seedNotePaymentProduct(
+            'product-mixed-refund-1',
+            'MIX-REF-1',
+            'Produk Mixed Refund',
+            'General',
+            null,
+            50000,
+        );
+        DB::table('product_inventory')->insert([
+            'product_id' => 'product-mixed-refund-1',
+            'qty_on_hand' => 0,
+        ]);
+        DB::table('product_inventory_costing')->insert([
+            'product_id' => 'product-mixed-refund-1',
+            'avg_cost_rupiah' => 30000,
+            'inventory_value_rupiah' => 0,
+        ]);
+
+        $this->seedNoteBase('note-mixed-1', 'Budi Mixed Refund', $today, 61000, 'closed');
+
+        $this->seedWorkItemBase(
+            'wi-product-mixed-1',
+            'note-mixed-1',
+            1,
+            WorkItem::TYPE_STORE_STOCK_SALE_ONLY,
+            WorkItem::STATUS_OPEN,
+            50000,
+        );
+        $this->seedStoreStockLineBase(
+            'ssl-product-mixed-1',
+            'wi-product-mixed-1',
+            'product-mixed-refund-1',
+            1,
+            50000,
+        );
+        DB::table('inventory_movements')->insert([
+            'id' => 'move-product-mixed-1',
+            'product_id' => 'product-mixed-refund-1',
+            'movement_type' => 'stock_out',
+            'source_type' => 'work_item_store_stock_line',
+            'source_id' => 'ssl-product-mixed-1',
+            'tanggal_mutasi' => $today,
+            'qty_delta' => -1,
+            'unit_cost_rupiah' => 30000,
+            'total_cost_rupiah' => -30000,
+        ]);
+
+        $this->seedWorkItemBase(
+            'wi-external-mixed-1',
+            'note-mixed-1',
+            2,
+            WorkItem::TYPE_SERVICE_WITH_EXTERNAL_PURCHASE,
+            WorkItem::STATUS_OPEN,
+            11000,
+        );
+        $this->seedServiceDetailBase(
+            'wi-external-mixed-1',
+            'Servis External Mixed Refund',
+            9000,
+            ServiceDetail::PART_SOURCE_NONE,
+        );
+        DB::table('work_item_external_purchase_lines')->insert([
+            'id' => 'ext-mixed-1',
+            'work_item_id' => 'wi-external-mixed-1',
+            'cost_description' => 'Barang luar mixed',
+            'unit_cost_rupiah' => 2000,
+            'qty' => 1,
+            'line_total_rupiah' => 2000,
+        ]);
+
+        $this->seedCustomerPaymentBase('payment-mixed-1', 61000, $today);
+        $this->seedPaymentAllocationBase('allocation-mixed-1', 'payment-mixed-1', 'note-mixed-1', 61000);
+
+        DB::table('payment_component_allocations')->insert([
+            [
+                'id' => 'pca-product-mixed-1',
+                'customer_payment_id' => 'payment-mixed-1',
+                'note_id' => 'note-mixed-1',
+                'work_item_id' => 'wi-product-mixed-1',
+                'component_type' => 'product_only_work_item',
+                'component_ref_id' => 'wi-product-mixed-1',
+                'component_amount_rupiah_snapshot' => 50000,
+                'allocated_amount_rupiah' => 50000,
+                'allocation_priority' => 1,
+            ],
+            [
+                'id' => 'pca-service-mixed-1',
+                'customer_payment_id' => 'payment-mixed-1',
+                'note_id' => 'note-mixed-1',
+                'work_item_id' => 'wi-external-mixed-1',
+                'component_type' => 'service_fee',
+                'component_ref_id' => 'wi-external-mixed-1',
+                'component_amount_rupiah_snapshot' => 9000,
+                'allocated_amount_rupiah' => 9000,
+                'allocation_priority' => 2,
+            ],
+            [
+                'id' => 'pca-external-mixed-1',
+                'customer_payment_id' => 'payment-mixed-1',
+                'note_id' => 'note-mixed-1',
+                'work_item_id' => 'wi-external-mixed-1',
+                'component_type' => 'service_external_purchase_part',
+                'component_ref_id' => 'ext-mixed-1',
+                'component_amount_rupiah_snapshot' => 2000,
+                'allocated_amount_rupiah' => 2000,
+                'allocation_priority' => 3,
+            ],
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('cashier.notes.index'))
+            ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-mixed-1']), [
+                'selected_row_ids' => ['wi-product-mixed-1', 'wi-external-mixed-1'],
+                'refunded_at' => $today,
+                'reason' => 'Mixed refundable + blocked row must fail atomically.',
+            ])
+            ->assertRedirect(route('cashier.notes.index'))
+            ->assertSessionHasErrors(['refund']);
+
+        $this->assertDatabaseCount('customer_refunds', 0);
+        $this->assertDatabaseCount('refund_component_allocations', 0);
+        $this->assertDatabaseHas('work_items', [
+            'id' => 'wi-product-mixed-1',
+            'status' => WorkItem::STATUS_OPEN,
+        ]);
+        $this->assertDatabaseHas('work_items', [
+            'id' => 'wi-external-mixed-1',
+            'status' => WorkItem::STATUS_OPEN,
+        ]);
+        $this->assertDatabaseHas('notes', [
+            'id' => 'note-mixed-1',
+            'note_state' => 'closed',
+            'total_rupiah' => 61000,
+        ]);
+        $this->assertDatabaseHas('product_inventory', [
+            'product_id' => 'product-mixed-refund-1',
+            'qty_on_hand' => 0,
+        ]);
+        self::assertSame(
+            0,
+            DB::table('inventory_movements')
+                ->where('source_type', 'work_item_store_stock_line_reversal')
+                ->where('source_id', 'ssl-product-mixed-1')
+                ->count(),
+        );
+    }
+
+
     private function seedKasir(): User
     {
         $this->loginAsKasir();
