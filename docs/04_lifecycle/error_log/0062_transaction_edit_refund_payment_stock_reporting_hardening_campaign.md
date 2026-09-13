@@ -1054,3 +1054,23 @@ No remaining backlog for this campaign.
 ## Final Status
 
 Sub-slices A-R are closed with automated proof.
+
+
+## Absurd Transaction Gauntlet Iterative Hardening
+
+Active handoff:
+
+- `docs/04_lifecycle/handoff/0023_absurd_transaction_gauntlet_iterative_hardening_handoff.md`
+
+Purpose:
+
+- drive one deliberately hostile end-to-end transaction lifecycle through supplier receipt, mixed transaction create, partial cash, revision, settlement, refund decisions, inventory reversals, post-close revision, surplus handling, and reporting;
+- use first-failure iteration: classify each RED as stale/wrong test expectation or real production defect before changing code;
+- preserve locked refund policy rather than weakening assertions merely to make the gauntlet green;
+- keep the gauntlet difficult and cross-domain instead of replacing it with isolated happy-path tests.
+
+Latest proven findings:
+
+- partial cash create previously used tendered cash as settlement amount; fixed in commit `d9fa443e619267a75c12799e4b18301bb2b0df4e`;
+- mixed refund selection previously silently ignored a fully blocked row while refunding another selected row; fixed atomically in commit `b62ac6a82d04186ef8f874086324e3b967451c94`;
+- current gauntlet RED at package refund expectation `620000` versus actual `440000` is a test-contract mismatch, not evidence that service fee should become refundable. Package selected-row refund remains component-aware: store-stock/product components are default refundable, service fee remains default blocked.
