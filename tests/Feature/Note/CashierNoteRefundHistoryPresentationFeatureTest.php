@@ -98,7 +98,7 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
 
                 $response
                     ->assertSee('Riwayat Pengembalian Dana')
-                    ->assertSee('14 Sep 2026', false)
+                    ->assertSee('14 September 2026', false)
                     ->assertSee('100.000', false)
                     ->assertSee($reason)
                     ->assertSee('Produk Refund History')
