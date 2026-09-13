@@ -24,7 +24,7 @@ final class CashierNoteLevelCashPaymentContractFeatureTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_partial_cash_uses_actual_money_instead_of_component_suggestion(): void
+    public function test_partial_cash_rejects_insufficient_tender_then_allocates_only_valid_settlement_intent(): void
     {
         $user = $this->loginAsKasir();
         $this->seedMixedFiveHundredThousandNote('note-partial-suggestion');
@@ -35,6 +35,18 @@ final class CashierNoteLevelCashPaymentContractFeatureTest extends TestCase
                 suggestedAmount: 200000,
                 receivedAmount: 149000,
                 idempotencyKey: 'partial-suggestion-149',
+            ))
+            ->assertSessionHasErrors(['payment']);
+        self::assertSame(0, DB::table('customer_payments')->count());
+        self::assertSame(0, DB::table('customer_payment_cash_details')->count());
+        self::assertSame(0, DB::table('payment_component_allocations')->count());
+
+        $this->actingAs($user)
+            ->post($this->paymentRoute('note-partial-suggestion'), $this->cashPayload(
+                noteId: 'note-partial-suggestion',
+                suggestedAmount: 149000,
+                receivedAmount: 149000,
+                idempotencyKey: 'partial-valid-149',
             ))
             ->assertRedirect(route('cashier.notes.show', ['noteId' => 'note-partial-suggestion']))
             ->assertSessionHasNoErrors();
@@ -53,7 +65,7 @@ final class CashierNoteLevelCashPaymentContractFeatureTest extends TestCase
         $this->assertNoteOutstanding('note-partial-suggestion', 351000);
     }
 
-    public function test_partial_cash_below_outstanding_never_creates_change_from_suggestion(): void
+    public function test_partial_cash_below_outstanding_returns_tender_above_settlement_intent(): void
     {
         $user = $this->loginAsKasir();
         $this->seedServiceNote('note-partial-no-change', 265000);
@@ -67,16 +79,16 @@ final class CashierNoteLevelCashPaymentContractFeatureTest extends TestCase
             ))
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('customer_payments', ['amount_rupiah' => 100000]);
+        $this->assertDatabaseHas('customer_payments', ['amount_rupiah' => 65000]);
         $this->assertDatabaseHas('customer_payment_cash_details', [
-            'amount_paid_rupiah' => 100000,
+            'amount_paid_rupiah' => 65000,
             'amount_received_rupiah' => 100000,
-            'change_rupiah' => 0,
+            'change_rupiah' => 35000,
         ]);
-        $this->assertNoteOutstanding('note-partial-no-change', 165000);
+        $this->assertNoteOutstanding('note-partial-no-change', 200000);
     }
 
-    public function test_cash_above_outstanding_settles_only_outstanding_and_records_real_change(): void
+    public function test_tender_above_outstanding_does_not_override_partial_settlement_intent(): void
     {
         $user = $this->loginAsKasir();
         $this->seedServiceNote('note-cash-settlement', 165000);
@@ -90,14 +102,14 @@ final class CashierNoteLevelCashPaymentContractFeatureTest extends TestCase
             ))
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('customer_payments', ['amount_rupiah' => 165000]);
+        $this->assertDatabaseHas('customer_payments', ['amount_rupiah' => 65000]);
         $this->assertDatabaseHas('customer_payment_cash_details', [
-            'amount_paid_rupiah' => 165000,
+            'amount_paid_rupiah' => 65000,
             'amount_received_rupiah' => 200000,
-            'change_rupiah' => 35000,
+            'change_rupiah' => 135000,
         ]);
-        $this->assertNoteOutstanding('note-cash-settlement', 0);
-        $this->assertDatabaseHas('notes', ['id' => 'note-cash-settlement', 'note_state' => 'closed']);
+        $this->assertNoteOutstanding('note-cash-settlement', 100000);
+        $this->assertDatabaseHas('notes', ['id' => 'note-cash-settlement', 'note_state' => 'open']);
     }
 
     public function test_same_note_cash_chain_keeps_three_events_and_reconciles_each_component(): void

@@ -17,13 +17,15 @@ final class CashierHybridPaymentDpPresetFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
-    public function test_cash_received_is_payment_truth_while_priority_allocates_store_product_first(): void
+    public function test_partial_settlement_intent_allocates_store_product_before_selected_service(): void
     {
         $user = $this->seedKasir();
         $this->seedMixedNote();
 
         $response = $this->actingAs($user)->post(route('cashier.notes.payments.store', ['noteId' => 'note-1']), [
             'selected_row_ids' => ['wi-1::service_fee::wi-1'],
+            'payment_scope' => 'partial',
+            'amount_paid' => '20000',
             'payment_method' => 'cash',
             'paid_at' => date('Y-m-d'),
             'amount_received' => '20000',

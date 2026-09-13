@@ -29,7 +29,7 @@ final class RecordNotePaymentRequest extends FormRequest
             'payment_scope' => ['nullable', 'string', 'in:partial'],
             'payment_method' => ['required', 'string', 'in:cash,transfer'],
             'paid_at' => ['required', 'date_format:Y-m-d'],
-            'amount_paid' => ['nullable', 'integer', 'min:1'],
+            'amount_paid' => ['required_if:payment_scope,partial', 'nullable', 'integer', 'min:1'],
             'amount_received' => ['nullable', 'integer', 'min:1'],
             'idempotency_key' => ['nullable', 'string', 'max:120'],
         ];

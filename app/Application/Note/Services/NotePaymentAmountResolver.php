@@ -30,20 +30,23 @@ final class NotePaymentAmountResolver
         }
 
         $isCash = $paymentMethod === CustomerPayment::METHOD_CASH;
-        $tendered = $isCash
-            ? (int) $amountReceivedRupiah
-            : ($requestedAmountRupiah > 0 ? $requestedAmountRupiah : $outstanding);
+        // An omitted amount is the full-payment preset; tender never defines partial intent.
+        $settlementIntent = $requestedAmountRupiah > 0 ? $requestedAmountRupiah : $outstanding;
 
-        if ($tendered <= 0) {
+        if ($settlementIntent <= 0) {
             return Result::failure('Nominal pembayaran wajib lebih dari 0.', ['payment' => ['INVALID_PAYMENT_AMOUNT']]);
         }
 
-        if (! $isCash && $tendered > $outstanding) {
+        if ($settlementIntent > $outstanding) {
             return Result::failure('Nominal pembayaran melebihi sisa tagihan.', ['payment' => ['INVALID_PAYMENT_AMOUNT']]);
         }
 
+        if ($isCash && (int) $amountReceivedRupiah < $settlementIntent) {
+            return Result::failure('Uang masuk kurang dari nominal pembayaran.', ['payment' => ['INVALID_PAYMENT_AMOUNT']]);
+        }
+
         return Result::success([
-            'amount_rupiah' => min($tendered, $outstanding),
+            'amount_rupiah' => $settlementIntent,
             'outstanding_rupiah' => $outstanding,
         ]);
     }

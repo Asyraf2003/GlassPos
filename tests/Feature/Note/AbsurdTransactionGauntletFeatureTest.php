@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Note;
 
 use App\Adapters\Out\Reporting\Queries\TransactionCashLedgerReportingQuery;
+use App\Application\Note\Services\NoteDetailPageDataBuilder;
 use App\Application\Note\UseCases\CreateTransactionWorkspaceHandler;
 use App\Application\Reporting\UseCases\GetOperationalProfitSummaryHandler;
 use App\Application\Reporting\UseCases\GetTransactionReportDatasetHandler;
@@ -125,6 +126,29 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
         }
         self::assertNotSame($oldProductRowId, $productRowId);
 
+        // ADR-0044: an existing-note partial payment after revision credits intent, not tender.
+        $partialCashPayload = [
+            'selected_row_ids' => [$externalRowId.'::service_fee::'.$externalRowId],
+            'payment_scope' => 'partial',
+            'payment_method' => 'cash',
+            'paid_at' => '2026-09-12',
+            'amount_paid' => 20000,
+            'amount_received' => 100000,
+            'idempotency_key' => 'gauntlet-payment-partial-cash-002',
+        ];
+        $this->actingAs($admin)->post(route('admin.notes.payments.store', ['noteId' => $noteId]), $partialCashPayload)
+            ->assertSessionHasNoErrors();
+        $this->actingAs($admin)->post(route('admin.notes.payments.store', ['noteId' => $noteId]), $partialCashPayload)
+            ->assertSessionHasNoErrors();
+        self::assertSame(2, DB::table('customer_payments')->count());
+        self::assertSame(320000, (int) DB::table('customer_payments')->sum('amount_rupiah'));
+        $this->assertDatabaseHas('customer_payment_cash_details', [
+            'amount_paid_rupiah' => 20000, 'amount_received_rupiah' => 100000, 'change_rupiah' => 80000,
+        ]);
+        $this->assertDatabaseHas('note_history_projection', [
+            'note_id' => $noteId, 'net_paid_rupiah' => 320000, 'outstanding_rupiah' => 560000,
+        ]);
+
         // CHECKPOINT 4: settle by transfer. A selected-row suggestion is deliberately misleading;
         // backend note-level settlement must remain authoritative. Duplicate submit must be harmless.
         $paymentPayload = [
@@ -132,7 +156,7 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
             'payment_scope' => 'partial',
             'payment_method' => 'transfer',
             'paid_at' => '2026-09-12',
-            'amount_paid' => 580000,
+            'amount_paid' => 560000,
             'idempotency_key' => 'gauntlet-payment-settle-001',
         ];
 
@@ -147,9 +171,9 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
             ->assertSessionHas('success')
             ->assertSessionHasNoErrors();
 
-        self::assertSame(2, DB::table('customer_payments')->count());
+        self::assertSame(3, DB::table('customer_payments')->count());
         self::assertSame(880000, (int) DB::table('customer_payments')->sum('amount_rupiah'));
-        self::assertSame(1, DB::table('customer_payments')->where('payment_method', 'cash')->count());
+        self::assertSame(2, DB::table('customer_payments')->where('payment_method', 'cash')->count());
         self::assertSame(1, DB::table('customer_payments')->where('payment_method', 'transfer')->count());
         $this->assertDatabaseHas('notes', ['id' => $noteId, 'note_state' => 'closed']);
         $this->assertDatabaseHas('note_history_projection', [
@@ -165,7 +189,7 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
             ->from(route('admin.notes.show', ['noteId' => $noteId]))
             ->post(route('admin.notes.payments.store', ['noteId' => $noteId]), $tamperedPayment)
             ->assertSessionHasErrors(['payment']);
-        self::assertSame(2, DB::table('customer_payments')->count());
+        self::assertSame(3, DB::table('customer_payments')->count());
 
         // CHECKPOINT 5: stale pre-revision row IDs must not refund historical/shadow rows.
         $this->actingAs($admin)
@@ -379,10 +403,17 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
 
         // CHECKPOINT 13: reporting must tell the same story as DB truth. These assertions are intentionally
         // business-level, not implementation-level. If they go RED, the gauntlet has found a cross-domain miss.
+        $timeline = app(NoteDetailPageDataBuilder::class)->build($noteId)['note']['payment_timeline'];
+        self::assertCount(3, $timeline, 'Replacement/refund must preserve every historical credited payment.');
+        self::assertSame(880000, array_sum(array_column($timeline, 'payment_amount_rupiah')));
+        $cashTimeline = array_values(array_filter($timeline, static fn (array $event): bool => $event['payment_method'] === 'cash'));
+        self::assertCount(2, $cashTimeline);
+        self::assertSame(450000, array_sum(array_column($cashTimeline, 'amount_received_rupiah')));
+        self::assertSame(130000, array_sum(array_column($cashTimeline, 'change_rupiah')));
         $ledger = app(TransactionCashLedgerReportingQuery::class)->reconciliation('2026-09-01', '2026-09-30');
         self::assertSame(880000, $ledger['total_in_rupiah'], 'Cash ledger must preserve gross historical customer money-in across revisions/refunds.');
-        self::assertSame(300000, $ledger['cash_in_rupiah']);
-        self::assertSame(580000, $ledger['transfer_in_rupiah']);
+        self::assertSame(320000, $ledger['cash_in_rupiah']);
+        self::assertSame(560000, $ledger['transfer_in_rupiah']);
         self::assertSame(730000, $ledger['total_out_rupiah']);
         self::assertSame(150000, $ledger['total_in_rupiah'] - $ledger['total_out_rupiah']);
 

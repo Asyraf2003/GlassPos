@@ -98,6 +98,8 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
 
         $response = $this->actingAs($user)->post('/cashier/notes/note-1/payments', [
             'selected_row_ids' => ['wi-1::service_fee::wi-1'],
+            'payment_scope' => 'partial',
+            'amount_paid' => 70000,
             'payment_method' => 'cash',
             'paid_at' => $today,
             'amount_received' => 70000,

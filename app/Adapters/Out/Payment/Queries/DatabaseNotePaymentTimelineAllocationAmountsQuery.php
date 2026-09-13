@@ -39,6 +39,12 @@ final class DatabaseNotePaymentTimelineAllocationAmountsQuery
             $amounts[(string) $row->customer_payment_id] = (int) $row->allocated_amount_rupiah;
         }
 
+        // Refund history still identifies a payment after replacement removes its
+        // current allocations. Include the event without inventing an allocation.
+        foreach (DB::table('customer_refunds')->where('note_id', $noteId)->distinct()->pluck('customer_payment_id') as $paymentId) {
+            $amounts[(string) $paymentId] ??= 0;
+        }
+
         return $amounts;
     }
 }
