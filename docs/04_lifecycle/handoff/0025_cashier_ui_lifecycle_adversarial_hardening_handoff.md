@@ -917,3 +917,110 @@ php -d memory_limit=-1 vendor/bin/pest \
 
 Stop after this command. Do not run adjacent suites, AbsurdTransactionGauntlet, or
 `make verify` until this focused test is GREEN.
+
+
+### Runtime RED #2 — component refund expected on wrong history surface
+
+Owner reran the focused lifecycle test after the current-revision payable-component patch.
+
+Result:
+
+```text
+1 failed
+54 assertions completed before failure
+```
+
+The previous payment-allocation RED was no longer present. The test advanced through:
+
+- accepted post-refund revision;
+- current replacement stock component allocation;
+- partial payment;
+- final settlement;
+- no allocation to the historical refunded work item/component;
+- payment timeline with all three historical payments.
+
+The new failure was only this assertion:
+
+```text
+expected refund reason inside note['correction_history']
+```
+
+#### FACT
+
+This scenario selects the historical work item containing:
+
+- one refundable `service_store_stock_part`;
+- one non-refundable `service_fee`.
+
+`SelectedNoteRowsRefundPlanFactory::cancellableRowIds()` only marks a whole row
+cancellable when every payment allocation on that selected row is refundable.
+
+Because `service_fee` is not selected-row refundable, this component-only refund
+produces:
+
+```text
+cancellableRowIds = []
+```
+
+Therefore `RecordSelectedRowsRefundPlanTransaction` does not call
+`CancelSelectedRowsAndSyncActiveNoteTotal`, so it intentionally does not create a
+`note_rows_canceled_via_refund` mutation event.
+
+`correction_history` is sourced from `note_mutation_events`, not from the refund ledger.
+
+The canonical immutable refund history for this path is:
+
+```text
+customer_refunds
+refund_component_allocations
+```
+
+The refund reason and original component identity are already persisted there.
+
+#### CONTRACT
+
+ADR-0045 requires historical refunds to remain immutable and distinct from edits or
+row replacement. It does not require a component-only refund to masquerade as a
+whole-row cancellation mutation.
+
+The original session constraint also explicitly forbids turning refund into edit or
+edit into refund.
+
+#### CLASSIFICATION
+
+```text
+TEST WRONG
+```
+
+Production behavior is correct for this boundary.
+
+#### ACTION
+
+Only the focused test was corrected:
+
+- removed the invalid expectation that the component refund reason must appear in
+  `correction_history`;
+- added an explicit assertion that the component-only refund reason is not presented
+  as a row-cancellation correction event;
+- re-asserted the immutable `customer_refunds` row after revision and later payments;
+- re-asserted the immutable `refund_component_allocations` row with the original
+  historical work-item/component identity.
+
+Commit:
+
+```text
+ba6d6db7 test: keep component refund history on refund ledger
+```
+
+No production file changed for RED #2.
+
+### Exact next command after RED #2
+
+```bash
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php \
+  --filter=refund_then_revision_new_obligation_accepts_new_payments_without_resurrecting_stale_component \
+  --compact
+```
+
+Do not move to adjacent suites until this focused test is GREEN.
