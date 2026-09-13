@@ -1,0 +1,438 @@
+# 0025 - Cashier UI Lifecycle Adversarial Hardening Handoff
+
+## Status
+
+ACTIVE NEXT SESSION.
+
+This handoff converts owner manual-production QA into a systematic UI/lifecycle hardening campaign.
+
+Do not treat the observed examples as a closed bug list.
+
+The required workflow is:
+
+```text
+owner seed
+-> identify violated invariant
+-> find every sibling UI surface using the same invariant
+-> derive adversarial variants
+-> characterize first RED
+-> classify TEST WRONG / PRODUCTION BUG / CONTRACT GAP
+-> patch the smallest shared seam
+-> focused proof
+-> rerun the expanded matrix
+```
+
+Three or four manual examples should normally expand into at least eight to twelve meaningful regression scenarios when they share UI state, lifecycle, or finance primitives.
+
+## Canonical Contracts
+
+Read first:
+
+1. `docs/02_architecture/adr/0044_payment_settlement_intent_cash_tender_and_ui_compression.md`
+2. `docs/02_architecture/adr/0045_transaction_revision_version_graph_and_full_layer_snapshot_contract.md`
+3. `docs/04_lifecycle/error_log/0062_transaction_edit_refund_payment_stock_reporting_hardening_campaign.md`
+4. `docs/04_lifecycle/handoff/0024_first_principles_finance_engine_continuation_handoff.md`
+5. `docs/04_lifecycle/handoff/0023_absurd_transaction_gauntlet_iterative_hardening_handoff.md`
+
+ADR-0044 and ADR-0045 remain canonical.
+
+Do not create separate business semantics in JavaScript.
+
+UI is an adapter over the same backend settlement/version/refund engine.
+
+## Latest Owner Manual QA - 2026-09-14
+
+These are seed observations, not all pre-classified as bugs.
+
+### Seed A - Create partial cash rewrites settlement intent
+
+Observed:
+
+```text
+note total        780000
+owner intended    280000 partial settlement
+cash tender       300000
+```
+
+Expected under ADR-0044:
+
+```text
+credited payment  280000
+cash received     300000
+change             20000
+remaining         500000
+```
+
+Observed UI/history instead behaved as if credited payment became 300000, with change 0 and remaining 480000.
+
+Source inspection confirms stale UI semantics in:
+
+- `public/assets/static/js/pages/cashier-note-workspace/payment-flow.js`
+- `public/assets/static/js/pages/cashier-note-payment.js`
+
+Both contain logic that derives credited settlement from tender/selected outstanding instead of preserving the existing settlement intent.
+
+This is a confirmed UI-adapter contract drift. Backend settlement primitives must not be weakened to accommodate it.
+
+### Seed B - Cash calculator labels and values follow outstanding instead of partial intent
+
+Observed partial cash modal shows full outstanding as "Tagihan" and computes change/remaining against full outstanding.
+
+For partial settlement, cash view must present the selected settlement/payable amount as the cash target and keep the total outstanding separately understandable.
+
+Do not let presentation overwrite hidden finance inputs.
+
+### Seed C - Service + external purchase service JavaScript inactive
+
+Template:
+
+- `resources/views/cashier/notes/workspace/partials/templates/service-external.blade.php`
+
+Service catalog JavaScript:
+
+- `public/assets/static/js/pages/cashier-note-workspace/service-catalog.js`
+
+Source inspection found the template exposes `data-service-name` but the catalog binder expects a `data-service-search` input and returns early when none exists.
+
+Characterize create and edit behavior before patching. Fix the shared UI contract, not a one-off click handler.
+
+### Seed D - Edit action produced access denied
+
+Owner clicked edit from a note lifecycle and received the generic access-denied page.
+
+Relevant boundaries:
+
+- `EnsureCashierNoteAccess`
+- `CashierNoteRouteAccessData`
+- `CashierNoteAccessGuard`
+- `EditableWorkspaceNoteGuard`
+- `NoteDetailNotePayloadBuilder.can_edit_workspace`
+
+Do not assume this is a bug until the exact note state/date/refund state is reproduced.
+
+Potential mismatch already exists conceptually:
+
+```text
+detail payload may expose can_edit_workspace for open/closed non-refunded note
+cashier application mutation guard may reject close-derived edit
+```
+
+Characterize route visibility, page access, and submit separately.
+
+### Seed E - Qty 3 product refund only offers full qty 3
+
+Current refund request accepts `selected_row_ids`, not refund quantity.
+
+Current domain therefore supports selected row/component refund, not necessarily "refund 1 of qty 3".
+
+Classify partial-quantity refund as CONTRACT GAP unless an existing canonical capability is discovered.
+
+Do not add a qty input without a backend money, stock, version, idempotency, and history contract.
+
+### Seed F - Payment actions appeared after refund and owner could submit another payment
+
+This is high risk.
+
+Existing historical issue `0043_service_package_component_refund_pay_again_inventory_cash_mismatch.md` proved one class of pay-again bug and introduced allocator protection for refunded inventory-backed package components.
+
+The owner now observed a post-refund UI path where "Bayar Sebagian/Lunasi" remained available and a payment appeared to succeed.
+
+Do not infer whether this was valid remaining obligation or invalid repayment.
+
+Reproduce with assertions on:
+
+- active current components;
+- refunded component identities;
+- note total/current obligation;
+- payment_component_allocations before/after;
+- customer_payments before/after;
+- inventory movements before/after;
+- note_history_projection;
+- action flags rendered to UI.
+
+If payment is valid for an unrefunded active component, preserve it.
+If payment reopens/re-pays refunded inventory-reversed components, treat as PRODUCTION BUG.
+If backend blocks but UI still advertises the action, treat as UI projection/gating bug.
+
+### Seed G - Full payment with total 340 and cash tender 400 failed
+
+Under ADR-0044, full cash with tender above settlement should be valid:
+
+```text
+settlement = 340
+received   = 400
+change     = 60
+```
+
+Characterize the exact request/error. Do not assume payment is root cause; stock, selected product, request validation, or UI hidden-state corruption may be responsible.
+
+## Required Bug Expansion
+
+Do not fix only the seven seeds above.
+
+For every confirmed shared invariant, search sibling flows and derive regressions.
+
+Minimum target for this campaign: 12 adversarial UI/lifecycle scenarios.
+
+### Payment UI parity
+
+1. Create Simple partial cash:
+   settlement 280, tender 300 -> credited 280, change 20, remaining correct.
+
+2. Create Detail partial cash:
+   same primitive and same persisted result.
+
+3. Existing-note/detail partial cash:
+   settlement remains typed intent when entering cash tender.
+
+4. Full cash over-tender:
+   settlement equals full payable, tender may exceed it, change correct.
+
+5. Transfer partial/full:
+   no cash received/change fields influence settlement.
+
+6. Modal back/reopen/re-entry:
+   switching partial -> cash -> back -> cash must not replace settlement intent with tender or stale hidden values.
+
+### Transaction row UI parity
+
+7. Service + external purchase:
+   service lookup/manual create, service price, external label/amount, total, submit and reload/edit hydration remain functional.
+
+8. Product/service/package/external mixed create:
+   one row's JavaScript must not disable or overwrite another row's hidden identity/pricing state.
+
+### Refund lifecycle
+
+9. Whole product row refund:
+   correct refund amount, exact stock reversal, row/current projection/action flags consistent after refresh.
+
+10. Package component refund:
+    refunded component must not silently become payable again; valid remaining service/other components may remain payable.
+
+11. Post-refund payment action gating:
+    rendered buttons must correspond to backend payable components, not merely note-level arithmetic.
+
+12. Refund then edit/revision:
+    edit availability, current replacement IDs, stale old IDs, refund shadow, stock correction vs refund reversal, and payment actions must remain coherent.
+
+## Additional Expansion When First 12 Are Green
+
+Continue only if first 12 expose sibling risks:
+
+- duplicate submit/double click in UI with same idempotency key;
+- browser back/forward or stale draft hydration;
+- edit after partial payment;
+- edit after multiple payments;
+- edit after refund;
+- close -> edit visibility vs submit authority;
+- admin vs cashier parity where policy intentionally differs;
+- master product/service/template change after historical revision;
+- stale concurrent editor ADR-0045;
+- cancellation/batal presentation if a supported capability exists.
+
+## UI Invariants
+
+### Settlement UI
+
+For cash:
+
+```text
+0 < settlement_intent <= outstanding_before
+cash_received >= settlement_intent
+credited_payment = settlement_intent
+change = cash_received - settlement_intent
+outstanding_after = outstanding_before - settlement_intent
+```
+
+JavaScript may format or prefill these values but must not redefine them.
+
+### UI Compression
+
+Simple mode may auto-fill:
+
+```text
+partial exact cash:
+settlement = x
+received   = x
+
+full exact cash:
+settlement = outstanding
+received   = outstanding
+```
+
+Detail mode may expose settlement and tender separately.
+
+Both modes must submit to the same backend semantics.
+
+### Action Visibility
+
+A visible action is a claim that the backend capability is currently meaningful.
+
+Do not show:
+
+- payment action when no allocatable current component exists;
+- edit action when current route/application contract will necessarily reject it;
+- refund action for stale/non-refundable selectors;
+- "cancel" semantics that do not exist in the domain.
+
+Conversely, do not hide a valid backend action merely to avoid a UI bug.
+
+### Refund Quantity
+
+Do not invent partial quantity refund.
+
+If required by owner, first define:
+
+```text
+original qty
+refund qty
+historical unit sale basis
+refund amount
+inventory reversal qty
+remaining active qty/version
+component identity
+idempotency
+reporting effect
+```
+
+Until then classify as CONTRACT GAP.
+
+### Versioning UI
+
+Cashier edits current truth only.
+
+UI must not ask cashier to manually reconcile:
+
+- previous payments;
+- refunds;
+- stock reversals;
+- allocation carry-forward;
+- revision IDs except conflict/reload communication.
+
+Stale pre-revision IDs must not mutate current state.
+
+## Failure Loop
+
+For each first RED:
+
+1. FACT - exact browser/request/database evidence.
+2. CONTRACT - ADR/blueprint/current capability.
+3. CLASSIFICATION:
+   - TEST WRONG
+   - PRODUCTION BUG
+   - CONTRACT GAP
+4. ACTION - smallest correction.
+5. PROOF - focused test, then expanded matrix.
+
+Do not update expected values to current output without proving the contract.
+
+Do not patch reports to hide invalid write-side state.
+
+Do not broad-refactor UI before a focused failing characterization exists.
+
+## Test Strategy
+
+Prefer layered proof:
+
+```text
+JS/static contract test
+-> focused HTTP/Feature lifecycle test
+-> browser interaction test where state/hidden fields matter
+-> Note/Payment adjacent suites
+-> absurd transaction gauntlet
+-> make verify only after focused matrix is green
+```
+
+Where possible, regression tests must assert both UI payload and persisted backend facts.
+
+A UI test that only checks visible text is insufficient for finance-sensitive flows.
+
+A backend test that never exercises the browser adapter is insufficient for the current bugs.
+
+## First Mandatory Slice
+
+Start with the confirmed shared payment UI drift before ADR-0045 stale-editor work.
+
+Characterize and fix both:
+
+- create workspace payment UI;
+- existing note/detail payment UI.
+
+Mandatory proof:
+
+```text
+outstanding 780000
+settlement intent 280000
+cash received 300000
+
+hidden/submitted settlement = 280000
+submitted tender            = 300000
+persisted customer payment  = 280000
+cash detail paid            = 280000
+cash detail received        = 300000
+change                      = 20000
+projection outstanding      = 500000
+timeline                    = 280000 / received 300000 / change 20000
+```
+
+Then prove:
+
+```text
+full payable 480000
+cash received 500000
+credited 480000
+change 20000
+outstanding 0
+```
+
+Do not change backend settlement semantics to make stale JavaScript pass.
+
+## Second Mandatory Slice
+
+Characterize service_external UI contract:
+
+- service lookup works;
+- manual service create/selection where supported;
+- service price raw/display stay synchronized;
+- external label/amount stay independent;
+- total is service + external;
+- submitted request creates service_with_external_purchase;
+- no inventory movement;
+- edit hydration preserves the same fields.
+
+## Third Mandatory Slice
+
+Reproduce owner refund/edit/payment chain from UI to persistence.
+
+Use at least:
+
+```text
+create product qty 3
+-> pay full
+-> attempt edit
+-> refund selected product row
+-> refresh detail
+-> inspect action flags
+-> attempt partial/full payment
+-> inspect payment/refund/allocation/inventory/projection history
+```
+
+Do not add partial-quantity refund in this slice. Record it as CONTRACT GAP.
+
+The goal is to prove whether post-refund pay-again is valid remaining obligation, stale UI gating, or a write-side regression.
+
+## Session Exit Requirement
+
+Before token/context exhaustion update this handoff with:
+
+- exact first REDs encountered;
+- classification for each;
+- last GREEN command;
+- files changed;
+- production bugs fixed;
+- contract gaps intentionally left open;
+- exact next command;
+- unresolved UI sibling risks.
+
+Do not leave the session with only a commit message.

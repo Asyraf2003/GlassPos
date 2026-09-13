@@ -37,6 +37,7 @@ This folder is only for active or latest handoffs. Once a session is closed, arc
 | `0022_cashier_note_level_payment_and_finance_work_queue_handoff.md` | Cashier note-level cash + finance work queue + admin sort | cash-credit semantics partially superseded by ADR-0044 |
 | `0023_absurd_transaction_gauntlet_iterative_hardening_handoff.md` | Absurd transaction cross-domain gauntlet | active |
 | `0024_first_principles_finance_engine_continuation_handoff.md` | First-principles settlement/tender correction + gauntlet continuation | active next session |
+| `0025_cashier_ui_lifecycle_adversarial_hardening_handoff.md` | Cashier UI/payment/refund/edit lifecycle adversarial expansion | active next session |
 
 ## Archive
 
