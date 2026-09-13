@@ -997,10 +997,15 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
             ->where('allocated_amount_rupiah', 50000)
             ->value('work_item_id');
 
-        self::assertSame(
+        self::assertNotSame(
             $oldWorkItemId,
             $unexpectedServiceFeeWorkItemId,
-            'Diagnostic: pre-patch final settlement service fee targets the historical pre-revision work item.',
+            'Historical pre-revision service fee must not receive a new payment allocation.',
+        );
+        self::assertSame(
+            $newWorkItemId,
+            $unexpectedServiceFeeWorkItemId,
+            'Final settlement service fee must target the active replacement work item.',
         );
 
         $this->assertDatabaseHas('customer_payment_cash_details', [
