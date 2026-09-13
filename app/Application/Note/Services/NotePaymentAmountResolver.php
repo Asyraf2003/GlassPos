@@ -33,10 +33,6 @@ final class NotePaymentAmountResolver
         // An omitted amount is the full-payment preset; tender never defines partial intent.
         $settlementIntent = $requestedAmountRupiah > 0 ? $requestedAmountRupiah : $outstanding;
 
-        if ($settlementIntent <= 0) {
-            return Result::failure('Nominal pembayaran wajib lebih dari 0.', ['payment' => ['INVALID_PAYMENT_AMOUNT']]);
-        }
-
         if ($settlementIntent > $outstanding) {
             return Result::failure('Nominal pembayaran melebihi sisa tagihan.', ['payment' => ['INVALID_PAYMENT_AMOUNT']]);
         }

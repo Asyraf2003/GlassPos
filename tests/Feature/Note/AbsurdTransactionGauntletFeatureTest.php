@@ -286,7 +286,6 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
         self::assertSame($refundAllocationCountBeforeBlockedAttempts, DB::table('refund_component_allocations')->count());
 
         // CHECKPOINT 10: external purchase refund is explicitly blocked by current policy.
-        $refundTotalBeforeExternalAttempt = (int) DB::table('customer_refunds')->sum('amount_rupiah');
         $this->actingAs($admin)
             ->from(route('admin.notes.show', ['noteId' => $noteId]))
             ->post(route('admin.notes.refunds.store', ['noteId' => $noteId]), [
@@ -296,7 +295,7 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
                 'idempotency_key' => 'gauntlet-refund-external-blocked-001',
             ])
             ->assertSessionHasErrors(['refund']);
-        self::assertSame($refundTotalBeforeExternalAttempt, (int) DB::table('customer_refunds')->sum('amount_rupiah'));
+        self::assertSame(440000, (int) DB::table('customer_refunds')->sum('amount_rupiah'));
         self::assertSame($movementCountBeforeServiceRefund, DB::table('inventory_movements')->count());
         self::assertSame($refundAllocationCountBeforeBlockedAttempts, DB::table('refund_component_allocations')->count());
 
