@@ -37,7 +37,8 @@ final class TransactionCashLedgerLegacyPaymentAllocationRowsQuery
                 'notes.customer_name',
                 'notes.transaction_date',
                 DB::raw('customer_payments.paid_at as event_date'),
-                DB::raw('SUM(payment_allocations.amount_rupiah) as event_amount_rupiah'),
+                // Allocations may be capped by revision; the cash event remains immutable.
+                DB::raw('MAX(customer_payments.amount_rupiah) as event_amount_rupiah'),
                 'payment_allocations.customer_payment_id',
                 DB::raw("COALESCE(NULLIF(customer_payments.payment_method, ''), 'unknown') as payment_method"),
                 'customer_payment_cash_details.amount_paid_rupiah as cash_amount_paid_rupiah',

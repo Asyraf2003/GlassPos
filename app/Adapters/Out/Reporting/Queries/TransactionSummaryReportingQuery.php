@@ -25,6 +25,7 @@ final class TransactionSummaryReportingQuery
         $surplusRefundPaymentTotals = $this->surplusRefundPaymentTotals->query();
 
         return DB::table('notes')
+            ->leftJoinSub($this->cashPaymentTotals->historicalPaymentTotals(), 'historical_payments', fn ($join) => $join->on('historical_payments.note_id', '=', 'notes.id'))
             ->leftJoinSub($cashPaymentTotals, 'cash_payment_totals', fn ($join) => $join->on('cash_payment_totals.note_id', '=', 'notes.id'))
             ->leftJoinSub($cashRefundTotals, 'cash_refund_totals', fn ($join) => $join->on('cash_refund_totals.note_id', '=', 'notes.id'))
             ->leftJoinSub($refundDueTotals, 'refund_due_totals', fn ($join) => $join->on('refund_due_totals.note_id', '=', 'notes.id'))
@@ -39,6 +40,7 @@ final class TransactionSummaryReportingQuery
                 'notes.customer_name',
                 'notes.total_rupiah as gross_transaction_rupiah',
                 DB::raw('COALESCE(cash_payment_totals.allocated_payment_rupiah, 0) as allocated_payment_rupiah'),
+                DB::raw('COALESCE(historical_payments.gross_payment_rupiah, 0) as gross_payment_rupiah'),
                 DB::raw('COALESCE(cash_refund_totals.refunded_rupiah, 0) as refunded_rupiah'),
                 DB::raw('COALESCE(refund_due_totals.refund_due_rupiah, 0) as refund_due_rupiah'),
                 DB::raw('COALESCE(surplus_refund_payment_totals.surplus_refund_paid_rupiah, 0) as surplus_refund_paid_rupiah'),
@@ -51,6 +53,7 @@ final class TransactionSummaryReportingQuery
                 'customer_name' => (string) $row->customer_name,
                 'gross_transaction_rupiah' => (int) $row->gross_transaction_rupiah,
                 'allocated_payment_rupiah' => (int) $row->allocated_payment_rupiah,
+                'gross_payment_rupiah' => (int) $row->gross_payment_rupiah,
                 'refunded_rupiah' => (int) $row->refunded_rupiah,
                 'refund_due_rupiah' => (int) $row->refund_due_rupiah,
                 'surplus_refund_paid_rupiah' => (int) $row->surplus_refund_paid_rupiah,

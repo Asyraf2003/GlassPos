@@ -419,13 +419,13 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         self::assertSame(100000, $transactionSummary['refund_due_rupiah']);
         self::assertSame(100000, $transactionSummary['surplus_refund_paid_rupiah']);
         self::assertSame(0, $transactionSummary['remaining_refund_due_rupiah']);
-        self::assertSame(150000, $transactionSummary['net_cash_collected_rupiah']);
+        self::assertSame(250000, $transactionSummary['net_cash_collected_rupiah']);
         self::assertSame(0, $transactionSummary['outstanding_rupiah']);
         self::assertSame(1, $transactionSummary['settled_rows']);
 
         self::assertSame([
-            'total_in_rupiah' => 250000,
-            'cash_in_rupiah' => 250000,
+            'total_in_rupiah' => 350000,
+            'cash_in_rupiah' => 350000,
             'transfer_in_rupiah' => 0,
             'total_out_rupiah' => 100000,
         ], $cashLedger);
@@ -768,14 +768,14 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         self::assertSame(150000, $transactionSummary['gross_transaction_rupiah']);
         self::assertSame(50000, $transactionSummary['allocated_payment_rupiah']);
         self::assertSame(200000, $transactionSummary['refunded_rupiah']);
-        self::assertSame(-150000, $transactionSummary['net_cash_collected_rupiah']);
+        self::assertSame(50000, $transactionSummary['net_cash_collected_rupiah']);
         self::assertSame(100000, $transactionSummary['outstanding_rupiah']);
         self::assertSame(0, $transactionSummary['settled_rows']);
         self::assertSame(1, $transactionSummary['outstanding_rows']);
 
         self::assertSame([
-            'total_in_rupiah' => 50000,
-            'cash_in_rupiah' => 50000,
+            'total_in_rupiah' => 250000,
+            'cash_in_rupiah' => 250000,
             'transfer_in_rupiah' => 0,
             'total_out_rupiah' => 200000,
         ], $cashLedger);

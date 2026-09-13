@@ -43,7 +43,8 @@ final class TransactionCashLedgerComponentAllocationRowsQuery
                 'notes.customer_name',
                 'notes.transaction_date',
                 DB::raw('customer_payments.paid_at as event_date'),
-                DB::raw('SUM(payment_component_allocations.allocated_amount_rupiah) as event_amount_rupiah'),
+                // Rebuilt component allocations describe settlement, not historical cash-in.
+                DB::raw('MAX(customer_payments.amount_rupiah) as event_amount_rupiah'),
                 'payment_component_allocations.customer_payment_id',
                 DB::raw("COALESCE(NULLIF(customer_payments.payment_method, ''), 'unknown') as payment_method"),
                 'customer_payment_cash_details.amount_paid_rupiah as cash_amount_paid_rupiah',

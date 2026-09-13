@@ -47,7 +47,7 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
                 'event_date' => '2026-03-15',
                 'event_type' => 'payment_allocation',
                 'direction' => 'in',
-                'event_amount_rupiah' => 60000,
+                'event_amount_rupiah' => 80000,
                 'payment_method' => 'unknown',
                 'cash_amount_paid_rupiah' => null,
                 'cash_amount_received_rupiah' => null,

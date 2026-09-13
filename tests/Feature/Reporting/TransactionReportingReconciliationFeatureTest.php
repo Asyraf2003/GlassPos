@@ -53,15 +53,15 @@ final class TransactionReportingReconciliationFeatureTest extends TestCase
             'refund_due_rupiah' => 30000,
             'surplus_refund_paid_rupiah' => 10000,
             'remaining_refund_due_rupiah' => 20000,
-            'net_cash_collected_rupiah' => 270000,
+            'net_cash_collected_rupiah' => 300000,
             'outstanding_rupiah' => 0,
             'settled_rows' => 2,
             'outstanding_rows' => 0,
         ], $transactionSummary);
 
         $this->assertSame([
-            'total_in_rupiah' => 320000,
-            'cash_in_rupiah' => 220000,
+            'total_in_rupiah' => 350000,
+            'cash_in_rupiah' => 250000,
             'transfer_in_rupiah' => 100000,
             'total_out_rupiah' => 50000,
         ], $cashLedger);

@@ -47,7 +47,7 @@ final class GetTransactionSummaryPerNoteFeatureTest extends TestCase
                 'allocated_payment_rupiah' => 60000,
                 'refunded_rupiah' => 10000,
                 'refund_due_rupiah' => 0,
-                'net_cash_collected_rupiah' => 50000,
+                'net_cash_collected_rupiah' => 70000,
                 'outstanding_rupiah' => 50000,
                 'payment_status_label' => 'Ada Pengembalian Dana',
             'surplus_refund_paid_rupiah' => 0,

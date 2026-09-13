@@ -22,8 +22,15 @@ final class DatabaseNotePaymentAmountByNoteIdQuery
             ->where('note_id', $normalizedNoteId)
             ->pluck('customer_payment_id');
 
+        // Replacement may remove every current allocation for a refunded payment.
+        // Its immutable refund history still anchors the original money-in to this note.
+        $refundedPaymentIds = DB::table('customer_refunds')
+            ->where('note_id', $normalizedNoteId)
+            ->pluck('customer_payment_id');
+
         $paymentIds = $legacyPaymentIds
             ->merge($componentPaymentIds)
+            ->merge($refundedPaymentIds)
             ->filter(static fn (mixed $id): bool => trim((string) $id) !== '')
             ->unique()
             ->values();

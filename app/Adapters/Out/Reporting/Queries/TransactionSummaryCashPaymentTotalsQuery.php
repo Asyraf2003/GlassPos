@@ -9,6 +9,20 @@ use Illuminate\Support\Facades\DB;
 
 final class TransactionSummaryCashPaymentTotalsQuery
 {
+    public function historicalPaymentTotals(): Builder
+    {
+        // Union identities, not amounts: compatibility rows and multiple refunds
+        // must still identify each historical payment only once per note.
+        $links = DB::table('payment_allocations')->select('note_id', 'customer_payment_id')
+            ->union(DB::table('payment_component_allocations')->select('note_id', 'customer_payment_id'))
+            ->union(DB::table('customer_refunds')->select('note_id', 'customer_payment_id'));
+
+        return DB::query()->fromSub($links, 'payment_note_links')
+            ->join('customer_payments', 'customer_payments.id', '=', 'payment_note_links.customer_payment_id')
+            ->selectRaw('payment_note_links.note_id, SUM(customer_payments.amount_rupiah) as gross_payment_rupiah')
+            ->groupBy('payment_note_links.note_id');
+    }
+
     public function query(): Builder
     {
         return DB::query()

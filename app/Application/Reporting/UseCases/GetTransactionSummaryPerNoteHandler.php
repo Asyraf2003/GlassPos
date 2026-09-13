@@ -67,7 +67,8 @@ final class GetTransactionSummaryPerNoteHandler
 
                 $payload['surplus_refund_paid_rupiah'] = $surplusPaid;
                 $payload['remaining_refund_due_rupiah'] = $remainingDue;
-                $payload['net_cash_collected_rupiah'] -= $surplusPaid;
+                $payload['net_cash_collected_rupiah'] = (int) ($raw['gross_payment_rupiah'] ?? $payload['allocated_payment_rupiah'])
+                    - $payload['refunded_rupiah'] - $surplusPaid;
 
                 return $payload;
             },
