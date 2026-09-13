@@ -1388,3 +1388,127 @@ make verify
 No further production or test changes are required for this target.
 Do not broaden this closed checkpoint into stale editor, cancellation, partial-quantity
 refund, or unrelated UI work without a new explicit target.
+
+
+## 2026-09-14 continuation — Detail Nota ordinary/component refund UI hardening
+
+### Scope lock
+
+Single UI/read-model target only:
+
+```text
+Detail Nota after ordinary/component refund
+```
+
+The previously closed backend target remains closed:
+
+```text
+refund -> revision -> legitimate new payment -> final settlement
+```
+
+No finance write-engine patch is allowed unless a focused runtime RED proves a new write bug.
+
+### First focused RED
+
+Characterization:
+
+```bash
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/CashierNoteRefundHistoryPresentationFeatureTest.php \
+  --compact
+```
+
+Initial result:
+
+```text
+1 failed
+3 assertions completed before failure
+Undefined array key "refund_timeline"
+Duration: 5.76s
+```
+
+Scenario:
+
+```text
+paid product-only note
+-> ordinary refund
+-> refresh Detail Nota
+-> inspect desktop + handset history/action state
+```
+
+### FACT
+
+- refund request succeeds;
+- customer refund/refund component ledger already exists and is authoritative;
+- refreshed Detail Nota payload has no explicit ordinary/component refund timeline;
+- existing financial history renders payment timeline and revision-surplus refund history only;
+- `correction_history` remains note mutation history and is not a valid substitute for component refund ledger history.
+
+### CONTRACT
+
+ADR-0042 requires refunded historical components to remain:
+
+- not editable;
+- not payable;
+- not refundable again;
+- visible in detail/history/report;
+- linked to refund/payment/inventory/audit records.
+
+ADR-0045 requires historical refunded identities to remain historical rather than becoming current payable rows.
+
+### CLASSIFICATION
+
+```text
+PRODUCTION BUG — read-model/presentation gap
+```
+
+No finance write bug was observed.
+
+### Smallest action
+
+Added a dedicated ordinary/component refund history surface sourced from canonical ledger data:
+
+```text
+customer_refunds
+refund_component_allocations
+```
+
+New read-side pieces:
+
+- `CustomerRefundHistoryReaderPort`
+- `DatabaseCustomerRefundHistoryReaderAdapter`
+- `NoteRefundTimelineBuilder`
+- shared `refund-timeline.blade.php`
+
+Detail payload now exposes:
+
+```text
+refund_timeline
+```
+
+Financial history renders that timeline for both desktop and handset because both layouts consume the shared financial-history partial.
+
+The builder anchors component labels to historical `work_item_id` / `component_ref_id`, not current revision identity.
+
+No change was made to:
+
+- refund/payment write paths;
+- allocation engine;
+- stock reversal;
+- revision engine;
+- ADR-0044 settlement semantics;
+- `correction_history`.
+
+### Focused proof pending
+
+Next command:
+
+```bash
+git pull
+
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/CashierNoteRefundHistoryPresentationFeatureTest.php \
+  --compact
+```
+
+Do not expand to package/revision/new-payment UI cases until this focused proof is GREEN.
