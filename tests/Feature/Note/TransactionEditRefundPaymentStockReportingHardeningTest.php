@@ -797,6 +797,330 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         self::assertSame(10000, $profitRow['cash_operational_profit_rupiah']);
     }
 
+    public function test_refund_then_revision_new_obligation_accepts_new_payments_without_resurrecting_stale_component(): void
+    {
+        $admin = $this->loginAsAuthorizedAdmin();
+        $this->seedStoreStockProduct();
+
+        $create = app(CreateTransactionWorkspaceHandler::class)->handle($this->createPaidStoreStockPayload());
+
+        self::assertTrue($create->isSuccess(), $create->message());
+
+        $noteId = (string) ($create->data()['note']['id'] ?? '');
+        self::assertNotSame('', $noteId);
+
+        $oldWorkItemId = (string) DB::table('work_items')->where('note_id', $noteId)->value('id');
+        $oldStoreStockLineId = (string) DB::table('work_item_store_stock_lines')
+            ->where('work_item_id', $oldWorkItemId)
+            ->value('id');
+        $originalPaymentId = (string) DB::table('customer_payments')->value('id');
+
+        self::assertNotSame('', $oldWorkItemId);
+        self::assertNotSame('', $oldStoreStockLineId);
+        self::assertNotSame('', $originalPaymentId);
+
+        $refundReason = '0062-target refund old component before legitimate revision obligation.';
+
+        $this->actingAs($admin)
+            ->from(route('admin.notes.show', ['noteId' => $noteId]))
+            ->post(route('admin.notes.refunds.store', ['noteId' => $noteId]), [
+                'selected_row_ids' => [$oldWorkItemId],
+                'refunded_at' => '2026-05-21',
+                'reason' => $refundReason,
+                'idempotency_key' => '0062-target-refund',
+            ])
+            ->assertRedirect(route('admin.notes.index'))
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('success');
+
+        $refundId = (string) DB::table('customer_refunds')->where('note_id', $noteId)->value('id');
+        self::assertNotSame('', $refundId);
+
+        $this->assertDatabaseHas('customer_payments', [
+            'id' => $originalPaymentId,
+            'amount_rupiah' => 250000,
+            'paid_at' => '2026-05-20',
+            'payment_method' => 'cash',
+        ]);
+        $this->assertDatabaseHas('customer_refunds', [
+            'id' => $refundId,
+            'customer_payment_id' => $originalPaymentId,
+            'note_id' => $noteId,
+            'amount_rupiah' => 200000,
+            'reason' => $refundReason,
+        ]);
+        $this->assertDatabaseHas('refund_component_allocations', [
+            'customer_refund_id' => $refundId,
+            'customer_payment_id' => $originalPaymentId,
+            'note_id' => $noteId,
+            'work_item_id' => $oldWorkItemId,
+            'component_type' => 'service_store_stock_part',
+            'component_ref_id' => $oldStoreStockLineId,
+            'refunded_amount_rupiah' => 200000,
+        ]);
+        $this->assertDatabaseHas('inventory_movements', [
+            'product_id' => 'product-0062-a',
+            'movement_type' => 'stock_in',
+            'source_type' => 'work_item_store_stock_line_reversal',
+            'source_id' => $oldStoreStockLineId,
+            'tanggal_mutasi' => '2026-05-21',
+            'qty_delta' => 2,
+            'unit_cost_rupiah' => 40000,
+            'total_cost_rupiah' => 80000,
+        ]);
+
+        $revision = app(CreateNoteRevisionHandler::class)->handle(
+            $noteId,
+            $this->refundedStoreStockRevisionPayload(),
+            'admin-0062-target',
+            false,
+        );
+
+        self::assertTrue($revision->isSuccess(), $revision->message());
+
+        $newStoreStockLineId = (string) DB::table('inventory_movements')
+            ->where('product_id', 'product-0062-a')
+            ->where('movement_type', 'stock_out')
+            ->where('source_type', 'work_item_store_stock_line')
+            ->where('tanggal_mutasi', '2026-05-22')
+            ->where('qty_delta', -1)
+            ->where('source_id', '<>', $oldStoreStockLineId)
+            ->value('source_id');
+        $newWorkItemId = (string) DB::table('work_item_store_stock_lines')
+            ->where('id', $newStoreStockLineId)
+            ->value('work_item_id');
+
+        self::assertNotSame('', $newStoreStockLineId);
+        self::assertNotSame('', $newWorkItemId);
+        self::assertNotSame($oldStoreStockLineId, $newStoreStockLineId);
+        self::assertNotSame($oldWorkItemId, $newWorkItemId);
+
+        $this->assertDatabaseHas('refund_component_allocations', [
+            'customer_refund_id' => $refundId,
+            'work_item_id' => $oldWorkItemId,
+            'component_ref_id' => $oldStoreStockLineId,
+            'refunded_amount_rupiah' => 200000,
+        ]);
+        self::assertSame(
+            0,
+            DB::table('payment_component_allocations')
+                ->where('note_id', $noteId)
+                ->where('component_ref_id', $oldStoreStockLineId)
+                ->count(),
+            'Refunded stale component must not be resurrected into current payment allocations.',
+        );
+        self::assertSame(
+            0,
+            DB::table('payment_component_allocations')
+                ->where('note_id', $noteId)
+                ->where('work_item_id', $oldWorkItemId)
+                ->count(),
+            'Historical refunded work item must not remain a current payment target after revision.',
+        );
+        $this->assertDatabaseHas('payment_component_allocations', [
+            'customer_payment_id' => $originalPaymentId,
+            'note_id' => $noteId,
+            'work_item_id' => $newWorkItemId,
+            'component_type' => 'service_store_stock_part',
+            'component_ref_id' => $newStoreStockLineId,
+            'allocated_amount_rupiah' => 50000,
+        ]);
+        $this->assertDatabaseHas('note_history_projection', [
+            'note_id' => $noteId,
+            'total_rupiah' => 150000,
+            'allocated_rupiah' => 50000,
+            'refunded_rupiah' => 200000,
+            'net_paid_rupiah' => 50000,
+            'outstanding_rupiah' => 100000,
+        ]);
+
+        $partial = app(RecordAndAllocateNotePaymentHandler::class)->handle(
+            $noteId,
+            40000,
+            '2026-05-23',
+            [],
+            'cash',
+            50000,
+        );
+
+        self::assertTrue($partial->isSuccess(), $partial->message());
+
+        $partialPaymentId = (string) DB::table('customer_payments')
+            ->where('paid_at', '2026-05-23')
+            ->where('amount_rupiah', 40000)
+            ->value('id');
+        self::assertNotSame('', $partialPaymentId);
+
+        $this->assertDatabaseHas('customer_payment_cash_details', [
+            'customer_payment_id' => $partialPaymentId,
+            'amount_paid_rupiah' => 40000,
+            'amount_received_rupiah' => 50000,
+            'change_rupiah' => 10000,
+        ]);
+        $this->assertDatabaseHas('payment_component_allocations', [
+            'customer_payment_id' => $partialPaymentId,
+            'note_id' => $noteId,
+            'work_item_id' => $newWorkItemId,
+            'component_type' => 'service_store_stock_part',
+            'component_ref_id' => $newStoreStockLineId,
+            'allocated_amount_rupiah' => 40000,
+        ]);
+        $this->assertDatabaseHas('note_history_projection', [
+            'note_id' => $noteId,
+            'total_rupiah' => 150000,
+            'allocated_rupiah' => 90000,
+            'refunded_rupiah' => 200000,
+            'net_paid_rupiah' => 90000,
+            'outstanding_rupiah' => 60000,
+        ]);
+
+        $settlement = app(RecordAndAllocateNotePaymentHandler::class)->handle(
+            $noteId,
+            60000,
+            '2026-05-24',
+            [],
+            'cash',
+            100000,
+        );
+
+        self::assertTrue($settlement->isSuccess(), $settlement->message());
+
+        $settlementPaymentId = (string) DB::table('customer_payments')
+            ->where('paid_at', '2026-05-24')
+            ->where('amount_rupiah', 60000)
+            ->value('id');
+        self::assertNotSame('', $settlementPaymentId);
+
+        $this->assertDatabaseHas('customer_payment_cash_details', [
+            'customer_payment_id' => $settlementPaymentId,
+            'amount_paid_rupiah' => 60000,
+            'amount_received_rupiah' => 100000,
+            'change_rupiah' => 40000,
+        ]);
+        $this->assertDatabaseHas('payment_component_allocations', [
+            'customer_payment_id' => $settlementPaymentId,
+            'note_id' => $noteId,
+            'work_item_id' => $newWorkItemId,
+            'component_type' => 'service_store_stock_part',
+            'component_ref_id' => $newStoreStockLineId,
+            'allocated_amount_rupiah' => 10000,
+        ]);
+        $this->assertDatabaseHas('payment_component_allocations', [
+            'customer_payment_id' => $settlementPaymentId,
+            'note_id' => $noteId,
+            'work_item_id' => $newWorkItemId,
+            'component_type' => 'service_fee',
+            'component_ref_id' => $newWorkItemId,
+            'allocated_amount_rupiah' => 50000,
+        ]);
+
+        self::assertSame(
+            0,
+            DB::table('payment_component_allocations')
+                ->where('note_id', $noteId)
+                ->where('component_ref_id', $oldStoreStockLineId)
+                ->count(),
+            'No later payment may allocate into the refunded stale component.',
+        );
+        self::assertSame(
+            0,
+            DB::table('payment_component_allocations')
+                ->where('note_id', $noteId)
+                ->where('work_item_id', $oldWorkItemId)
+                ->count(),
+            'No later payment may allocate into the historical refunded work item.',
+        );
+
+        $this->assertDatabaseHas('note_history_projection', [
+            'note_id' => $noteId,
+            'total_rupiah' => 150000,
+            'allocated_rupiah' => 150000,
+            'refunded_rupiah' => 200000,
+            'net_paid_rupiah' => 150000,
+            'outstanding_rupiah' => 0,
+        ]);
+        self::assertSame(3, DB::table('customer_payments')->whereIn('id', [
+            $originalPaymentId,
+            $partialPaymentId,
+            $settlementPaymentId,
+        ])->count());
+        self::assertSame(350000, (int) DB::table('customer_payments')->sum('amount_rupiah'));
+        self::assertSame(200000, (int) DB::table('customer_refunds')->sum('amount_rupiah'));
+
+        self::assertSame(1, DB::table('inventory_movements')
+            ->where('source_type', 'work_item_store_stock_line')
+            ->where('source_id', $oldStoreStockLineId)
+            ->count());
+        self::assertSame(1, DB::table('inventory_movements')
+            ->where('source_type', 'work_item_store_stock_line_reversal')
+            ->where('source_id', $oldStoreStockLineId)
+            ->count());
+        self::assertSame(1, DB::table('inventory_movements')
+            ->where('source_type', 'work_item_store_stock_line')
+            ->where('source_id', $newStoreStockLineId)
+            ->count());
+        self::assertSame(0, DB::table('inventory_movements')
+            ->where('source_type', 'work_item_store_stock_line_reversal')
+            ->where('source_id', $newStoreStockLineId)
+            ->count());
+        self::assertSame(3, DB::table('inventory_movements')->where('product_id', 'product-0062-a')->count());
+        $this->assertDatabaseHas('product_inventory', [
+            'product_id' => 'product-0062-a',
+            'qty_on_hand' => 9,
+        ]);
+        $this->assertDatabaseHas('product_inventory_costing', [
+            'product_id' => 'product-0062-a',
+            'avg_cost_rupiah' => 40000,
+            'inventory_value_rupiah' => 360000,
+        ]);
+
+        $detail = app(NoteDetailPageDataBuilder::class)->build($noteId);
+        self::assertNotNull($detail);
+
+        $timeline = $detail['note']['payment_timeline'];
+        self::assertCount(3, $timeline);
+        self::assertSame([60000, 40000, 250000], array_column($timeline, 'payment_amount_rupiah'));
+        self::assertSame(350000, array_sum(array_column($timeline, 'payment_amount_rupiah')));
+        self::assertContains(
+            $refundReason,
+            array_column($detail['note']['correction_history'], 'reason'),
+            'Refund mutation history must remain visible after revision and later payments.',
+        );
+
+        $transaction = app(GetTransactionReportDatasetHandler::class)
+            ->handle('2026-05-01', '2026-05-31');
+        $cashLedger = app(TransactionCashLedgerReportingQuery::class)
+            ->reconciliation('2026-05-01', '2026-05-31');
+        $profit = app(GetOperationalProfitSummaryHandler::class)
+            ->handle('2026-05-01', '2026-05-31');
+
+        self::assertTrue($transaction->isSuccess());
+        self::assertTrue($profit->isSuccess());
+
+        $summary = $transaction->data()['summary'];
+        self::assertSame(1, $summary['total_rows']);
+        self::assertSame(150000, $summary['gross_transaction_rupiah']);
+        self::assertSame(150000, $summary['allocated_payment_rupiah']);
+        self::assertSame(200000, $summary['refunded_rupiah']);
+        self::assertSame(150000, $summary['net_cash_collected_rupiah']);
+        self::assertSame(0, $summary['outstanding_rupiah']);
+        self::assertSame(1, $summary['settled_rows']);
+        self::assertSame(0, $summary['outstanding_rows']);
+
+        self::assertSame([
+            'total_in_rupiah' => 350000,
+            'cash_in_rupiah' => 350000,
+            'transfer_in_rupiah' => 0,
+            'total_out_rupiah' => 200000,
+        ], $cashLedger);
+
+        $profitRow = $profit->data()['row'];
+        self::assertSame(350000, $profitRow['cash_in_rupiah']);
+        self::assertSame(200000, $profitRow['refunded_rupiah']);
+        self::assertSame(40000, $profitRow['store_stock_cogs_rupiah']);
+        self::assertSame(110000, $profitRow['cash_operational_profit_rupiah']);
+    }
+
     public function test_store_stock_transaction_keeps_historical_line_price_after_master_product_price_change(): void
     {
         $this->seedStoreStockProduct();
