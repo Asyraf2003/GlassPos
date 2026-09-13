@@ -545,3 +545,184 @@ php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note tests/Feature/Payment 
 Then rerun AbsurdTransactionGauntletFeatureTest explicitly. Run make verify only
 once these matrices are GREEN. Sandbox blocks Chromium sockets/MySQL; authorized
 external execution is required for browser/database proofs, not code changes.
+
+
+## 2026-09-14 continuation — refund -> revision -> legitimate new obligation characterization
+
+### Scope lock
+
+This continuation touches one target only:
+
+```text
+paid mixed transaction
+-> refundable inventory-backed component refund
+-> accepted revision after refund
+-> legitimate new current obligation
+-> partial payment
+-> final settlement
+```
+
+The characterization explicitly distinguishes historical refunded/stale component
+identity from the replacement/current payable component identity.
+
+### Contract proof
+
+ADR-0045 is explicit:
+
+- payment and refund events remain immutable historical ledgers;
+- refunded/shadow components do not become current merely because a revision exists;
+- revision after refund preserves the refund boundary;
+- stale pre-revision component IDs must not mutate current state;
+- a new revision may create a new active obligation, with outstanding recalculated
+  from official payment/refund history.
+
+ADR-0044 continues to govern later cash payments: credited settlement is the
+settlement intent, not physical tender.
+
+This target is therefore defined by existing ADRs and is not a CONTRACT GAP.
+
+### Focused characterization added
+
+Branch:
+
+```text
+ai/refund-revision-new-obligation-characterization
+```
+
+Test commit:
+
+```text
+10d7a9276160bf4340c4a8553906f7e6bb761580
+test: characterize refund revision new obligation payment
+```
+
+Changed test:
+
+- `tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php`
+
+New scenario:
+
+- creates the existing mixed service + inventory-backed product transaction;
+- pays the original 250000 obligation;
+- refunds the old 200000 inventory-backed component;
+- proves the old payment/refund and one refund stock reversal remain immutable;
+- accepts the existing post-refund revision that creates a new 150000 current
+  transaction shape with 50000 valid carried settlement and 100000 outstanding;
+- proves the stale refunded stock-line/work-item IDs receive no rebuilt allocation;
+- proves the original surviving 50000 settlement is replayed only onto the new
+  current component;
+- attempts a new 40000 partial cash payment against current obligation;
+- attempts the remaining 60000 settlement;
+- requires the final payment to allocate 10000 to the current replacement product
+  component and 50000 to the current service component;
+- requires zero payment allocation to the stale refunded component/work-item;
+- requires exactly one old stock-out, one old refund reversal, one deliberate new
+  replacement stock-out, and no payment-triggered inventory movement;
+- requires the original payment timeline and refund mutation history to remain;
+- requires final `note_history_projection` 150000/150000/200000/150000/0;
+- requires transaction report, cash ledger, and operational profit to reconcile.
+
+### First RED / classification
+
+No runtime RED has been observed in this continuation because this execution
+environment does not contain a runnable GlassPos checkout/database and the
+repository has no dispatchable GitHub Actions workflow.
+
+Do not classify the target from source inspection alone.
+
+Current classification:
+
+```text
+PENDING RUNTIME PROOF
+```
+
+If the focused test rejects the new payment while the 100000 current obligation
+is valid under ADR-0045, classify the exact failing seam from runtime proof.
+
+If any new payment allocation points to the old refunded component/work-item ID,
+classify it as PRODUCTION BUG.
+
+If the test passes as written, no production patch is justified for this target;
+the required hardening is the regression proof itself.
+
+### Static source characterization, not runtime proof
+
+Relevant shared seams inspected:
+
+- `NoteReplacementPaymentAllocationReconciler` captures gross allocations minus
+  refunds, deletes current allocations, then replays only surviving settlement
+  against components resolved from the active replacement note;
+- `RecordAndAllocateNotePaymentOperation` resolves the authoritative current note,
+  calculates net allocated amount from official allocations/refunds, and allocates
+  new payment only across current components;
+- `AllocatePaymentAcrossComponents` keys allocation state by component type plus
+  component ref ID and guards refunded/reversed stock component identities;
+- current priority is inventory-backed component before service fee.
+
+For the focused fixture, source behavior predicts:
+
+```text
+original payment             250000
+old product refund           200000
+surviving settlement          50000
+new revision total           150000
+new outstanding              100000
+
+partial new payment           40000
+remaining                     60000
+
+final new payment             60000
+final outstanding                 0
+```
+
+This prediction is intentionally not labeled GREEN until runtime execution.
+
+### Last GREEN
+
+Owner-provided current-main proof at session entry remains authoritative:
+
+```text
+make verify
+1700 passed
+11131 assertions
+PHPStan PASS
+line audit PASS
+Blade audit PASS
+contract audit PASS
+```
+
+No later GREEN is claimed.
+
+### Exact next command
+
+Run from a checkout of the characterization branch:
+
+```bash
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php \
+  --filter=refund_then_revision_new_obligation_accepts_new_payments_without_resurrecting_stale_component \
+  --compact
+```
+
+Failure loop after that command:
+
+```text
+FACT
+-> CONTRACT
+-> CLASSIFICATION
+-> ACTION
+-> PROOF
+```
+
+Do not run adjacent suites, the absurd gauntlet, or `make verify` until this
+focused characterization is GREEN.
+
+### Unresolved risk inside this target
+
+Only one unresolved risk remains: whether runtime behavior actually permits the
+new legitimate post-refund revision obligation to receive partial/final payment
+without allocating to stale refunded identities or creating duplicate inventory
+effects.
+
+No stale-editor, cancellation, partial-quantity refund, or unrelated residual gap
+was started in this continuation.
