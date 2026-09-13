@@ -105,7 +105,7 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
                     ->assertDontSee('Bayar Sebagian')
                     ->assertDontSee('Lunasi')
                     ->assertDontSee('Edit Nota')
-                    ->assertDontSee('Pengembalian Dana Rincian Terpilih');
+                    ->assertDontSee('id="note-refund-open-button"', false);
             }
         } finally {
             Carbon::setTestNow();
