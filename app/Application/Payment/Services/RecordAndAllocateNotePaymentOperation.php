@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Application\Payment\Services;
 
 use App\Application\Note\Services\AutoCloseNoteWhenFullyPaid;
-use App\Application\Note\Services\NoteCurrentRevisionResolver;
 use App\Application\Payment\DTO\RecordedNotePayment;
 use App\Core\Payment\CustomerPayment\CustomerPayment;
 use App\Core\Payment\Policies\PaymentAllocationPolicy;
