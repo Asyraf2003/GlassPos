@@ -54,6 +54,21 @@ final class CreateTransactionWorkspaceInlinePaymentAmountResolverTest extends Te
         ]);
     }
 
+    public function test_pay_partial_cash_uses_declared_paid_amount_instead_of_tendered_cash(): void
+    {
+        $resolver = new CreateTransactionWorkspaceInlinePaymentAmountResolver(
+            $this->payments(0, 0),
+            $this->refunds(0),
+        );
+
+        $this->assertSame(30000, $resolver->resolve($this->note(85000), [
+            'decision' => 'pay_partial',
+            'payment_method' => 'cash',
+            'amount_paid_rupiah' => 30000,
+            'amount_received_rupiah' => 50000,
+        ]));
+    }
+
     private function note(int $total): Note
     {
         return Note::rehydrate(

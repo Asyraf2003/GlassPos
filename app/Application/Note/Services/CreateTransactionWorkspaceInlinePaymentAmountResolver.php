@@ -46,9 +46,7 @@ final class CreateTransactionWorkspaceInlinePaymentAmountResolver
     private function resolvePartial(array $payment, int $outstandingAmount): int
     {
         $method = (string) ($payment['payment_method'] ?? '');
-        $amount = $method === 'cash'
-            ? (int) ($payment['amount_received_rupiah'] ?? 0)
-            : (int) ($payment['amount_paid_rupiah'] ?? 0);
+        $amount = (int) ($payment['amount_paid_rupiah'] ?? 0);
 
         if ($amount <= 0) {
             throw new DomainException('Nominal pembayaran sebagian wajib lebih dari 0.');

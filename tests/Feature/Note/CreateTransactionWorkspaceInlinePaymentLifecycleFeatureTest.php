@@ -225,15 +225,15 @@ final class CreateTransactionWorkspaceInlinePaymentLifecycleFeatureTest extends 
         $payment = DB::table('customer_payments')->first();
 
         $this->assertNotNull($payment);
-        $this->assertSame(50000, (int) $payment->amount_rupiah);
+        $this->assertSame(30000, (int) $payment->amount_rupiah);
         $this->assertSame('cash', (string) $payment->payment_method);
         $this->assertSame('2026-05-24', (string) $payment->paid_at);
 
         $this->assertDatabaseHas('customer_payment_cash_details', [
             'customer_payment_id' => (string) $payment->id,
-            'amount_paid_rupiah' => 50000,
+            'amount_paid_rupiah' => 30000,
             'amount_received_rupiah' => 50000,
-            'change_rupiah' => 0,
+            'change_rupiah' => 20000,
         ]);
 
         $this->assertDatabaseHas('payment_component_allocations', [
@@ -243,7 +243,7 @@ final class CreateTransactionWorkspaceInlinePaymentLifecycleFeatureTest extends 
             'component_type' => 'service_fee',
             'component_ref_id' => (string) $workItem->id,
             'component_amount_rupiah_snapshot' => 85000,
-            'allocated_amount_rupiah' => 50000,
+            'allocated_amount_rupiah' => 30000,
             'allocation_priority' => 1,
         ]);
 
@@ -259,10 +259,10 @@ final class CreateTransactionWorkspaceInlinePaymentLifecycleFeatureTest extends 
             'customer_name_normalized' => 'lifecycle partial create customer',
             'customer_phone' => '081234567891',
             'total_rupiah' => 85000,
-            'allocated_rupiah' => 50000,
+            'allocated_rupiah' => 30000,
             'refunded_rupiah' => 0,
-            'net_paid_rupiah' => 50000,
-            'outstanding_rupiah' => 35000,
+            'net_paid_rupiah' => 30000,
+            'outstanding_rupiah' => 55000,
         ]);
 
         $this->assertDatabaseHas('audit_logs', [
