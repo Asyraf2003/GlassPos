@@ -7,6 +7,7 @@ namespace Tests\Feature\Note;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\SeedsMinimalProductFixture;
 use Tests\TestCase;
 
@@ -15,7 +16,13 @@ final class CashierProductRefundActionLifecycleFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalProductFixture;
 
-    public function test_qty_three_paid_refund_refresh_cannot_repay_reversed_product(): void
+    public static function rowKinds(): array
+    {
+        return ['product row' => [false], 'package with surviving service' => [true]];
+    }
+
+    #[DataProvider('rowKinds')]
+    public function test_qty_three_paid_refund_refresh_cannot_repay_reversed_product(bool $package): void
     {
         Carbon::setTestNow('2026-09-14 09:00:00');
         try {
@@ -29,6 +36,11 @@ final class CashierProductRefundActionLifecycleFeatureTest extends TestCase
                 'items' => [['entry_mode' => 'product', 'product_lines' => [['product_id' => 'refund-product', 'qty' => 3, 'unit_price_rupiah' => 100000]]]],
                 'inline_payment' => ['decision' => 'pay_full', 'payment_method' => 'cash', 'paid_at' => '2026-09-14', 'amount_paid_rupiah' => 300000, 'amount_received_rupiah' => 400000],
             ];
+            if ($package) {
+                $payload['items'][0] += ['part_source' => 'store_stock', 'pricing_mode' => 'manual_split', 'service' => ['name' => 'Surviving service', 'price_rupiah' => 100000]];
+                $payload['items'][0]['entry_mode'] = 'service';
+                $payload['inline_payment']['amount_paid_rupiah'] = 400000;
+            }
             $this->actingAs($cashier)->post(route('notes.workspace.store'), $payload)->assertSessionHasNoErrors();
             $noteId = (string) DB::table('notes')->value('id');
             $rowId = (string) DB::table('work_items')->value('id');
@@ -55,7 +67,7 @@ final class CashierProductRefundActionLifecycleFeatureTest extends TestCase
                 ])->assertSessionHasErrors();
             }
             foreach ($tables as $table) self::assertSame($before[$table], DB::table($table)->get()->toJson(), $table.' changed after invalid repayment');
-            self::assertSame(300000, (int) DB::table('customer_payments')->sum('amount_rupiah'));
+            self::assertSame($package ? 400000 : 300000, (int) DB::table('customer_payments')->sum('amount_rupiah'));
             self::assertSame(300000, (int) DB::table('customer_refunds')->sum('amount_rupiah'));
             self::assertSame(300000, (int) DB::table('refund_component_allocations')->sum('refunded_amount_rupiah'));
             $this->assertDatabaseHas('product_inventory', ['product_id' => 'refund-product', 'qty_on_hand' => 10]);

@@ -436,3 +436,112 @@ Before token/context exhaustion update this handoff with:
 - unresolved UI sibling risks.
 
 Do not leave the session with only a commit message.
+
+## 2026-09-14 continuation — local recovery state
+
+Started from clean `d29d9f1d` main. No stale-editor work or financial backend
+rewrite was undertaken. During execution the checkout advanced to `a0d67bd8`,
+containing the production fixes and initial regression files. Later matrix/test
+and handoff changes remain in the working tree; do not reset either set.
+
+### First REDs and classification
+
+1. **PRODUCTION BUG**: production workspace JS in Chromium submitted settlement
+   300000 for intent 280000/tender 300000/obligation 780000. Corrected cash
+   refresh/click payload and calculator to preserve intent; tender below intent
+   disables cash submit.
+2. **PRODUCTION BUG**: existing-note JS reproduced the same 300000-vs-280000 RED.
+   Corrected refresh, click and submit seams; calculator targets settlement.
+3. **PRODUCTION BUG**: service_external template/binder browser lookup never
+   invoked. Template now follows the existing service-only picker contract:
+   separate hidden identity/search input, selected display and change action.
+4. **PRODUCTION BUG**: external part was stored correctly but absent from detail
+   reload. Current revision row mapper only built store-stock subtitles. It now
+   derives external subtitle from immutable revision payload cost_description/qty.
+5. **PRODUCTION BUG**: fully paid qty3 note exposed cashier can_edit_workspace=true
+   while actual PATCH returned 403. Cashier detail now asks the existing date,
+   state and operational editability guards for that capability. Admin policy
+   is unchanged. Direct closed edit GET remains available under existing route
+   policy; this change does not claim that GET route was forbidden.
+6. **PRODUCTION BUG**: stale Detail partial value 50000 overwrote a later Simple
+   partial intent 280000 during refresh. Simple now synchronizes its intent into
+   the display/hidden pair before refreshing.
+7. **TEST WRONG**: old CashierClosedNoteRefundViewFeatureTest expected Edit for a
+   closed cashier note. Updated to assert no edit link; open partial edit remains.
+8. **TEST WRONG**: NoteDetailEditEntryFeatureTest expected edit for raw open state
+   with full 50000 settlement. Operational close blocks its write-side edit;
+   assert no edit link while preserving unpaid sibling (2 / 6 assertions GREEN).
+
+New test fixture errors corrected separately: required create idempotency key,
+full payment_scope must be null (only partial is accepted), and external DB label
+column is cost_description. These were not production defects.
+
+### Regression matrix and proof boundary
+
+- `tests/Browser/cashier-payment-intent.html` executes production scripts in real
+  headless Chromium, dispatches input/click/submit and captures FormData.
+- `scripts/test-cashier-payment-intent.mjs` runs that browser matrix and emits JSON
+  for HTTP regression consumption. Requires Node and Chromium (CHROMIUM_BIN may
+  override binary); lookup fixture stubs responses, not production binder logic.
+- `CashierPaymentBrowserPayloadFeatureTest`: 12 scenarios / 120 assertions GREEN
+  before adding the 13th stale Detail-to-Simple case. The final adjacent run
+  includes all 13 cases GREEN. Covers workspace/detail,
+  back/reopen, transfer, Simple exact cash, 480000/500000 full cash and 340/400.
+  Every case feeds browser-derived values into actual HTTP handlers and checks
+  payment, allocation, cash detail, outstanding and timeline. The 13th browser
+  case independently passed and is included in the combined GREEN below.
+- `ServiceExternalBrowserLifecycleFeatureTest`: 1 / 12 assertions GREEN. Browser
+  reads actual Blade templates plus rows/catalog/money/summary scripts; proves
+  lookup, raw/display price, external fields, hydration, manual service creation,
+  and sibling independence. Extended browser independently passed product +
+  multi-product package + external + service coexistence and manual external
+  replacement. HTTP proves create, detail/edit reload, no payment/inventory.
+- `CashierProductRefundActionLifecycleFeatureTest`: 2 / 54 assertions GREEN.
+  Product qty3 and package qty3 with surviving service: full payment, edit GET,
+  rejected cashier edit PATCH, refund/replay, refresh flags, partial/full pay-again
+  rejection, unchanged six ledgers/projection, original cost stock restored once.
+- ClosedNoteRefundView + ClosedNoteRevisionPolicy: 4 / 32 assertions GREEN;
+  open cashier edit and authorized admin closed revision remain valid.
+
+The owner 340/400 primitive is valid in both browser and persisted backend proof.
+The specific manual failure cause is not established from that nominal alone.
+For the reproduced whole-product/package fully-paid refund cases, no post-refund
+write regression was found: payment rejects and flags are false. Do not generalize
+this to every possible remaining-obligation/revision combination.
+
+### Files changed
+
+Production:
+
+- public/assets/static/js/pages/cashier-note-workspace/payment-flow.js
+- public/assets/static/js/pages/cashier-note-payment.js
+- resources/views/cashier/notes/workspace/partials/templates/service-external.blade.php
+- app/Application/Note/Services/CurrentRevision/CurrentRevisionDetailBaseRowMapper.php
+- app/Application/Note/Services/CashierNoteDetailPageAccessData.php
+- app/Adapters/In/Http/Controllers/Cashier/Note/NoteDetailPageController.php
+
+Regression files: browser fixtures/runner and three Feature tests listed above,
+plus tests/Feature/Note/CashierClosedNoteRefundViewFeatureTest.php,
+tests/Feature/Note/NoteDetailEditEntryFeatureTest.php and this handoff.
+
+### Gaps and next command
+
+**CONTRACT GAP**: refund qty1 of qty3 remains unimplemented: no quantity refund
+request/financial-stock-version-idempotency contract is defined. No whole-note
+canceled state or deletion semantics were invented.
+
+Unresolved sibling risks: complete authenticated-page browser navigation (fixtures
+exercise real production scripts/templates but HTTP submission is bridged through
+Feature tests); post-refund payment with a newly revised legitimate obligation;
+stale concurrent editor/master-data mutation remain later ADR-0045 work.
+
+Last adjacent GREEN: **659 tests, 5418 assertions, 56.24s**, exit 0.
+Exact command from repository root:
+
+```bash
+php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note tests/Feature/Payment tests/Feature/Reporting --stop-on-failure --compact
+```
+
+Then rerun AbsurdTransactionGauntletFeatureTest explicitly. Run make verify only
+once these matrices are GREEN. Sandbox blocks Chromium sockets/MySQL; authorized
+external execution is required for browser/database proofs, not code changes.

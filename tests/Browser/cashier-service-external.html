@@ -3,7 +3,7 @@
 (async () => {
  try {
   const nativeFetch = window.fetch;
-  for (const name of ['service-external', 'service']) {
+  for (const name of ['service-external', 'service', 'product', 'service-store-stock']) {
    const html = await (await nativeFetch(`../../resources/views/cashier/notes/workspace/partials/templates/${name}.blade.php`)).text();
    document.body.insertAdjacentHTML('beforeend', html);
   }
@@ -46,6 +46,18 @@
   sibling.querySelector('[data-service-price-display]').dispatchEvent(new Event('blur')); await wait();
   check(creates>0,'manual service create not invoked');
   check(NS.rowTotal(restored)===205000,'sibling changed external row');
+  const product=NS.addRow('product',{product_lines:[{product_id:'product-fixture',qty:2,unit_price_rupiah:30000}]});
+  const pack=NS.addRow('service_store_stock',{service:{name:'Package fixture',price_rupiah:50000},pricing_mode:'manual_split',product_lines:[{product_id:'part-a',qty:1,unit_price_rupiah:20000},{product_id:'part-b',qty:2,unit_price_rupiah:15000}]});
+  check(NS.rowTotal(product)===60000,'product sibling total incorrect');
+  check(NS.rowTotal(pack)===100000,'multi product package sibling total incorrect');
+  check(NS.rowTotal(restored)===205000,'mixed row insertion changed external');
+  restored.querySelector('[data-service-change]').click();
+  input(restored.querySelector('[data-service-search]'),'Manual external');
+  input(restored.querySelector('[data-service-price-display]'),'135000');
+  restored.querySelector('[data-service-price-display]').dispatchEvent(new Event('blur')); await wait();
+  check(restored.querySelector('[data-service-name]').value==='Manual external','manual external identity missing');
+  check(NS.rowTotal(restored)===215000,'manual external selection changed part amount');
+  check(NS.rowTotal(product)===60000 && NS.rowTotal(pack)===100000,'manual external selection corrupted siblings');
   const output=document.createElement('pre');output.id='payload';output.textContent=JSON.stringify(item);document.body.append(output);
   document.body.dataset.testResult='PASS';
  } catch(error) {document.body.dataset.testResult='FAIL '+error.message;}

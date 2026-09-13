@@ -34,7 +34,7 @@ final class CashierClosedNoteRefundViewFeatureTest extends TestCase
             ->assertDontSee('name="customer_payment_id"', false)
             ->assertDontSee('name="amount_rupiah"', false)
             ->assertDontSee('Lunasi')
-            ->assertSee('Edit');
+            ->assertDontSee('href="'.route('cashier.notes.workspace.edit', ['noteId' => 'note-1']).'"', false);
     }
 
     public function test_open_note_detail_shows_workspace_edit_and_payment_actions(): void
