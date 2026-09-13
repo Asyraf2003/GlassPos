@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Payment\Services;
 
 use App\Application\Note\Services\AutoCloseNoteWhenFullyPaid;
+use App\Application\Note\Services\NoteCurrentRevisionResolver;
 use App\Application\Payment\DTO\RecordedNotePayment;
 use App\Core\Payment\CustomerPayment\CustomerPayment;
 use App\Core\Payment\Policies\PaymentAllocationPolicy;
@@ -26,6 +27,7 @@ final class RecordAndAllocateNotePaymentOperation
         private readonly PaymentComponentAllocationWriterPort $allocationWriter,
         private readonly NoteReaderPort $notes,
         private readonly PaymentAllocationPolicy $policy,
+        private readonly NoteCurrentRevisionResolver $currentRevision,
         private readonly ResolveNotePayableComponents $components,
         private readonly AllocatePaymentAcrossComponents $allocator,
         private readonly AutoCloseNoteWhenFullyPaid $autoClose,
@@ -73,9 +75,23 @@ final class RecordAndAllocateNotePaymentOperation
             $netAllocatedByNote,
         );
 
-        $components = $selectedRowIds === []
-            ? $this->components->fromNote($note)
-            : $this->components->fromSelectedRows($note, $selectedRowIds);
+        $currentRevision = $this->currentRevision->hasRevision($note->id())
+            ? $this->currentRevision->resolveOrFail($note->id())
+            : null;
+
+        if ($currentRevision === null) {
+            $components = $selectedRowIds === []
+                ? $this->components->fromNote($note)
+                : $this->components->fromSelectedRows($note, $selectedRowIds);
+        } else {
+            $components = $selectedRowIds === []
+                ? $this->components->fromCurrentRevision($note, $currentRevision)
+                : $this->components->fromSelectedRowsCurrentRevision(
+                    $note,
+                    $selectedRowIds,
+                    $currentRevision,
+                );
+        }
 
         $allocations = $this->allocator->allocate($payment->id(), $note->id(), $amount, $components);
 
