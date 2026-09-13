@@ -97,7 +97,7 @@ final class TransactionReportPageFeatureTest extends TestCase
         $response->assertSee('Rp 150.000');
         $response->assertSee('Rp 149.999');
         $response->assertSee('Rp 9.000');
-        $response->assertSee('Rp 140.999');
+        $response->assertSee('Rp 111.000');
         $response->assertSee('Rp 9.001');
         $response->assertDontSee('note-1');
         $response->assertDontSee('note-2');

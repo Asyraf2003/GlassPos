@@ -93,7 +93,8 @@ final class GetTransactionReportDatasetFeatureTest extends TestCase
             'refund_due_rupiah' => 7000,
             'surplus_refund_paid_rupiah' => 0,
             'remaining_refund_due_rupiah' => 7000,
-            'net_cash_collected_rupiah' => 140999,
+            // Historical credited payments: 70000 + 50000 - 9000 refund.
+            'net_cash_collected_rupiah' => 111000,
             'outstanding_rupiah' => 9001,
             'settled_rows' => 1,
             'outstanding_rows' => 1,
@@ -109,7 +110,7 @@ final class GetTransactionReportDatasetFeatureTest extends TestCase
                 'refund_due_rupiah' => 7000,
                 'surplus_refund_paid_rupiah' => 0,
                 'remaining_refund_due_rupiah' => 7000,
-                'net_cash_collected_rupiah' => 90999,
+                'net_cash_collected_rupiah' => 61000,
                 'outstanding_rupiah' => 9001,
             ],
             [
@@ -136,7 +137,7 @@ final class GetTransactionReportDatasetFeatureTest extends TestCase
                 'refund_due_rupiah' => 7000,
                 'surplus_refund_paid_rupiah' => 0,
                 'remaining_refund_due_rupiah' => 7000,
-                'net_cash_collected_rupiah' => 90999,
+                'net_cash_collected_rupiah' => 61000,
                 'outstanding_rupiah' => 9001,
             ],
             [

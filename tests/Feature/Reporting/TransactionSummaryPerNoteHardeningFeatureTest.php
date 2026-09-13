@@ -73,7 +73,7 @@ final class TransactionSummaryPerNoteHardeningFeatureTest extends TestCase
             'allocated_payment_rupiah' => 99999,
             'refunded_rupiah' => 9000,
             'refund_due_rupiah' => 0,
-            'net_cash_collected_rupiah' => 90999,
+            'net_cash_collected_rupiah' => 61000,
             'outstanding_rupiah' => 9001,
         ], $daily);
 
@@ -83,7 +83,7 @@ final class TransactionSummaryPerNoteHardeningFeatureTest extends TestCase
             'allocated_payment_rupiah' => 149999,
             'refunded_rupiah' => 9000,
             'refund_due_rupiah' => 0,
-            'net_cash_collected_rupiah' => 140999,
+            'net_cash_collected_rupiah' => 111000,
             'outstanding_rupiah' => 9001,
         ], $weekly);
 
@@ -93,7 +93,7 @@ final class TransactionSummaryPerNoteHardeningFeatureTest extends TestCase
             'allocated_payment_rupiah' => 149999,
             'refunded_rupiah' => 9000,
             'refund_due_rupiah' => 0,
-            'net_cash_collected_rupiah' => 140999,
+            'net_cash_collected_rupiah' => 111000,
             'outstanding_rupiah' => 9001,
         ], $monthly);
 
@@ -115,7 +115,7 @@ final class TransactionSummaryPerNoteHardeningFeatureTest extends TestCase
             'allocated_payment_rupiah' => 99999,
             'refunded_rupiah' => 9000,
             'refund_due_rupiah' => 0,
-            'net_cash_collected_rupiah' => 90999,
+            'net_cash_collected_rupiah' => 61000,
             'outstanding_rupiah' => 9001,
             'payment_status_label' => 'Ada Pengembalian Dana',
             'surplus_refund_paid_rupiah' => 0,

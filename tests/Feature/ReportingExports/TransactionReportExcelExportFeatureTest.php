@@ -64,7 +64,7 @@ final class TransactionReportExcelExportFeatureTest extends TestCase
         $this->assertSame(0, $summary->getCell('B11')->getValue());
         $this->assertSame('Total Sisa Refund Belum Dibayar', $summary->getCell('A12')->getValue());
         $this->assertSame(0, $summary->getCell('B12')->getValue());
-        $this->assertSame(140999, $summary->getCell('B13')->getValue());
+        $this->assertSame(141000, $summary->getCell('B13')->getValue());
         $this->assertSame(9001, $summary->getCell('B14')->getValue());
 
         $this->assertSame('ID Nota', $detail->getCell('B1')->getValue());
@@ -78,7 +78,7 @@ final class TransactionReportExcelExportFeatureTest extends TestCase
         $this->assertSame(0, $detail->getCell('I2')->getValue());
         $this->assertSame('Sisa Refund Belum Dibayar', $detail->getCell('J1')->getValue());
         $this->assertSame(0, $detail->getCell('J2')->getValue());
-        $this->assertSame(90999, $detail->getCell('K2')->getValue());
+        $this->assertSame(91000, $detail->getCell('K2')->getValue());
         $this->assertSame(9001, $detail->getCell('L2')->getValue());
         $this->assertSame('Ada Pengembalian Dana', $detail->getCell('M2')->getValue());
         $this->assertSame('note-2', $detail->getCell('B3')->getValue());

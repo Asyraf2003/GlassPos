@@ -4,6 +4,98 @@
 
 ACTIVE NEXT SESSION.
 
+## Recovery update — 2026-09-14
+
+Observed checkout: `099f4b86` (clean before this continuation). ADR-0045 is now
+available and has been read; the earlier missing-document gap is resolved.
+The original "Known Contract Drift" and "Mandatory First Slice" sections below
+describe the starting point, not the current implementation.
+
+Completed payment/history work already present in this checkout:
+
+- `NotePaymentAmountResolver` credits settlement intent, checks outstanding and
+  cash tender, and does not use gross tender as credited payment.
+- `RecordNotePaymentRequest` requires explicit `amount_paid` for partial scope.
+- `ExistingNoteCashSettlementIntentFeatureTest` covers the 20k/100k then
+  80k/100k primitive, replay/mutated payload, timeline and reporting boundaries.
+- `DatabaseNotePaymentTimelineAllocationAmountsQuery` retains refund-linked
+  historical payments even when their current allocation has disappeared;
+  `PaymentTimelineRefundHistoricalAnchorFeatureTest` isolates that case.
+- The absurd gauntlet includes the additional 20k/100k existing-note cash event
+  and reconciles all three historical payment events after revision/refund.
+
+This continuation corrected five first REDs one at a time, all **TEST WRONG**:
+
+1. `GetTransactionReportDatasetFeatureTest`: expected net 140999, actual 111000.
+2. `TransactionReportPageFeatureTest`: expected rendered Rp 140.999, corrected
+   to Rp 111.000 after reading its payment/refund fixture and the Blade field.
+3. `TransactionSummaryPerNoteHardeningFeatureTest`: expected daily net 90999,
+   actual 61000; weekly/monthly net must be 111000.
+4. `AdminDashboardPageFeatureTest`: expected Rp 140.999, corrected Rp 111.000
+   from its 70000 + 50000 payments less 9000 refund fixture.
+5. `TransactionReportExcelExportFeatureTest`: expected 140999, actual 141000.
+   This fixture instead has payments 100000 + 50000 less refund 9000; detail
+   net is 91000. Do not copy 111000 from the other fixtures.
+
+Contract proof is ADR-0044 historical credited payment reporting. These fixtures
+store payments 70000 + 50000 and refund 9000. The deliberately divergent legacy
+allocation of 99999 is not additional money-in. Only net-cash expectations were
+changed; no production changes were needed for these failures.
+
+Local GREEN commands/proof:
+
+- `php artisan test tests/Feature/Reporting/GetTransactionReportDatasetFeatureTest.php`
+  — 2 passed, 25 assertions.
+- `php artisan test tests/Feature/Reporting/TransactionReportPageFeatureTest.php`
+  — 7 passed, 54 assertions.
+- `php artisan test tests/Feature/Reporting/TransactionSummaryPerNoteHardeningFeatureTest.php`
+  — 1 passed, 19 assertions.
+- `php artisan test tests/Feature/Note/AbsurdTransactionGauntletFeatureTest.php`
+  — 1 passed, 161 assertions after each correction.
+- `php artisan test tests/Feature/Admin/AdminDashboardPageFeatureTest.php`
+  — 5 passed, 91 assertions.
+- `php artisan test tests/Feature/ReportingExports/TransactionReportExcelExportFeatureTest.php`
+  — 3 passed, 39 assertions.
+
+Verification caveat: the combined Artisan suite exhausted PHP's 128 MB memory
+limit in Dompdf, with no final GREEN summary. Direct Pest inside the sandbox
+could not connect to local MySQL; that run is infrastructure failure, not domain
+proof. The authorized rerun with the repository's unlimited-memory test setting
+finished GREEN: **643 passed, 5222 assertions, 35.27s**. Do not classify either
+earlier infrastructure result as TEST WRONG.
+
+Last full-suite GREEN command from repository root:
+
+```bash
+make test-compact
+```
+
+Result: **1684 passed, 10935 assertions, 47.57s**, exit 0.
+Current domain RED: none in the executed suites.
+`make verify` passed PHPStan and contract audits, then found the dashboard and
+Excel stale expectations above (1682 passed, 2 failed). After their individual
+focused GREEN and gauntlet GREEN proofs, `make test-compact` passed the full suite.
+Do not claim the earlier `make verify` invocation itself exited successfully.
+Files changed in this continuation: the five tests above and this
+handoff. No production files changed.
+
+Exact next command, to establish the existing revision-submit baseline before
+adding a focused stale-editor regression (do not rerun the whole verification
+gate without a new failure or change):
+
+```bash
+php artisan test tests/Feature/Note/CashierNoteRevisionSubmitFeatureTest.php
+```
+
+Remaining ADR-0045 work: characterize stale concurrent editors and master-data
+snapshot stability with focused runtime tests. Initial source inspection found
+`StoreNoteRevisionRequest` has no explicit base-revision rule and
+`CreateNoteRevisionWorkflow` locks the root then resolves current revision;
+locking alone does not prove a stale draft is rejected. This is an unresolved
+hardening investigation, not yet a runtime-proven bug or a completed matrix.
+Whole-note cancellation capability also remains uncharacterized; do not invent
+a canceled note state or claim its contract is implemented.
+
 This handoff exists because the previous Astra/Codex session stopped after token exhaustion while the absurd lifecycle gauntlet was already advancing into reporting/history work.
 
 Canonical architecture decision:
