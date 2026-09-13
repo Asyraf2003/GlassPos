@@ -1098,11 +1098,27 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         self::assertCount(3, $timeline);
         self::assertSame([60000, 40000, 250000], array_column($timeline, 'payment_amount_rupiah'));
         self::assertSame(350000, array_sum(array_column($timeline, 'payment_amount_rupiah')));
-        self::assertContains(
+        self::assertNotContains(
             $refundReason,
             array_column($detail['note']['correction_history'], 'reason'),
-            'Refund mutation history must remain visible after revision and later payments.',
+            'Component-only refund must not be misrepresented as a row-cancellation correction event.',
         );
+        $this->assertDatabaseHas('customer_refunds', [
+            'id' => $refundId,
+            'customer_payment_id' => $originalPaymentId,
+            'note_id' => $noteId,
+            'amount_rupiah' => 200000,
+            'reason' => $refundReason,
+        ]);
+        $this->assertDatabaseHas('refund_component_allocations', [
+            'customer_refund_id' => $refundId,
+            'customer_payment_id' => $originalPaymentId,
+            'note_id' => $noteId,
+            'work_item_id' => $oldWorkItemId,
+            'component_type' => 'service_store_stock_part',
+            'component_ref_id' => $oldStoreStockLineId,
+            'refunded_amount_rupiah' => 200000,
+        ]);
 
         $transaction = app(GetTransactionReportDatasetHandler::class)
             ->handle('2026-05-01', '2026-05-31');
