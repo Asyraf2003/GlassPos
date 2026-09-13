@@ -21,6 +21,7 @@ final class NoteDetailPageDataBuilder
         private readonly NoteRevisionSurplusDispositionActionViewDataBuilder $surplusDispositions,
         private readonly NoteSurplusDispositionAuditTimelineBuilder $surplusDispositionAuditTimeline,
         private readonly NotePaymentTimelineBuilder $paymentTimeline,
+        private readonly NoteRefundTimelineBuilder $refundTimeline,
         private readonly NoteDetailNotePayloadBuilder $notePayloads,
     ) {}
 
@@ -47,6 +48,7 @@ final class NoteDetailPageDataBuilder
             $note->id(),
             (int) $operational['grand_total_rupiah'],
         );
+        $refundTimeline = $this->refundTimeline->build($note->id());
 
         $refundRows = array_values(array_filter(
             $workspacePanel['rows'],
@@ -83,6 +85,7 @@ final class NoteDetailPageDataBuilder
                 $surplusDisposition,
                 $surplusDispositionAuditTimeline,
                 $paymentTimeline,
+                $refundTimeline,
                 $history,
                 $note->isOpen(),
                 $note->isClosed(),
