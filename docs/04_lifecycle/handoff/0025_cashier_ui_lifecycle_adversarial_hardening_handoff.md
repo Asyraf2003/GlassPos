@@ -1108,3 +1108,45 @@ Why these six:
   identity bug fixed in this session.
 
 Stop after this command and classify any RED before changing production again.
+
+
+### Adjacent revision/refund/payment regression GREEN
+
+Owner ran:
+
+```bash
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Unit/Application/Payment/Services/ResolveNotePayableComponentsTest.php \
+  tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php \
+  tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php \
+  tests/Feature/Payment/ServicePackageComponentRefundPayAgainMatrixTest.php \
+  tests/Feature/Note/CashierProductReplacementBackdatedPriceFinanceFeatureTest.php \
+  tests/Feature/Note/CashierServiceStoreStockReplacementBackdatedPriceFinanceFeatureTest.php \
+  --compact
+```
+
+Result:
+
+```text
+61 passed
+435 assertions
+Duration: 7.11s
+```
+
+Checkpoint status:
+
+```text
+GREEN
+```
+
+This proves the current-revision payment boundary patch is compatible with:
+
+- direct payable-component resolver behavior;
+- refund -> revision historical/current row separation;
+- payment-after-revision settlement;
+- component refund pay-again protection;
+- product replacement finance replay;
+- service + store-stock replacement finance replay.
+
+Next checkpoint is the adjacent Note + Payment feature suite only.
+Do not run AbsurdTransactionGauntlet or make verify before that checkpoint is GREEN.
