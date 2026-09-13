@@ -1024,3 +1024,59 @@ php -d memory_limit=-1 vendor/bin/pest \
 ```
 
 Do not move to adjacent suites until this focused test is GREEN.
+
+
+### Focused runtime GREEN
+
+Owner reran the focused characterization after RED #2 test correction.
+
+Command:
+
+```bash
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php \
+  --filter=refund_then_revision_new_obligation_accepts_new_payments_without_resurrecting_stale_component \
+  --compact
+```
+
+Result:
+
+```text
+1 passed
+71 assertions
+Duration: 5.82s
+```
+
+This closes the focused target proof for:
+
+```text
+paid mixed transaction
+-> component refund
+-> accepted replacement revision
+-> legitimate current outstanding
+-> partial payment
+-> final payment
+```
+
+Proven invariants:
+
+- old refunded stock component receives zero new allocation;
+- old historical work item receives zero new allocation;
+- surviving historical settlement is replayed onto the replacement component;
+- new partial payment targets current replacement component only;
+- final payment settles current replacement stock component and current service fee;
+- original payment/refund history remains immutable;
+- no duplicate inventory reversal is created;
+- payment timeline remains gross historical payment truth;
+- component-only refund remains on refund ledger and is not misrepresented as a
+  row-cancellation correction event;
+- final current settlement reaches zero outstanding.
+
+Focused checkpoint status:
+
+```text
+GREEN
+```
+
+Next checkpoint is adjacent revision/refund/payment regression only.
+Do not run AbsurdTransactionGauntlet or make verify before that checkpoint is GREEN.
