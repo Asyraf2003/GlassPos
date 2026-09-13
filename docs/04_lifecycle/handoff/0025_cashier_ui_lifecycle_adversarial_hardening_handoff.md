@@ -1150,3 +1150,25 @@ This proves the current-revision payment boundary patch is compatible with:
 
 Next checkpoint is the adjacent Note + Payment feature suite only.
 Do not run AbsurdTransactionGauntlet or make verify before that checkpoint is GREEN.
+
+
+### Next checkpoint — wider Note + Payment feature regression
+
+Run all Note and Payment feature tests except the dedicated absurd gauntlet, which remains
+the following checkpoint:
+
+```bash
+mapfile -t tests < <(
+  find tests/Feature/Note tests/Feature/Payment \
+    -type f -name '*Test.php' \
+    ! -name 'AbsurdTransactionGauntletFeatureTest.php' \
+    | sort
+)
+
+php -d memory_limit=-1 vendor/bin/pest "${tests[@]}" --compact
+```
+
+The gauntlet is deliberately excluded so a failure in the wider adjacent surface is not
+mixed with the dedicated end-to-end absurd-chain checkpoint.
+
+Stop and classify any RED before moving on.
