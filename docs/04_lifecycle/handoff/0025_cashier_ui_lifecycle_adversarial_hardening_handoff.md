@@ -1080,3 +1080,31 @@ GREEN
 
 Next checkpoint is adjacent revision/refund/payment regression only.
 Do not run AbsurdTransactionGauntlet or make verify before that checkpoint is GREEN.
+
+
+### Next checkpoint — adjacent revision/refund/payment regression
+
+Run only this adjacent set before any broader Note/Payment suite:
+
+```bash
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Unit/Application/Payment/Services/ResolveNotePayableComponentsTest.php \
+  tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php \
+  tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php \
+  tests/Feature/Payment/ServicePackageComponentRefundPayAgainMatrixTest.php \
+  tests/Feature/Note/CashierProductReplacementBackdatedPriceFinanceFeatureTest.php \
+  tests/Feature/Note/CashierServiceStoreStockReplacementBackdatedPriceFinanceFeatureTest.php \
+  --compact
+```
+
+Why these six:
+
+- direct unit boundary for the modified payable-component resolver;
+- refund -> revision historical/current row boundary;
+- ordinary payment-after-revision settlement;
+- refunded component pay-again guard;
+- product replacement payment/revision finance path;
+- service + store-stock replacement path, the closest sibling to the service-fee
+  identity bug fixed in this session.
+
+Stop after this command and classify any RED before changing production again.
