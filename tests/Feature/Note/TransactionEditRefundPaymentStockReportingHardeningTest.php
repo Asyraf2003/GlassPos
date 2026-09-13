@@ -991,6 +991,18 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
             ->value('id');
         self::assertNotSame('', $settlementPaymentId);
 
+        $unexpectedServiceFeeWorkItemId = (string) DB::table('payment_component_allocations')
+            ->where('customer_payment_id', $settlementPaymentId)
+            ->where('component_type', 'service_fee')
+            ->where('allocated_amount_rupiah', 50000)
+            ->value('work_item_id');
+
+        self::assertSame(
+            $oldWorkItemId,
+            $unexpectedServiceFeeWorkItemId,
+            'Diagnostic: pre-patch final settlement service fee targets the historical pre-revision work item.',
+        );
+
         $this->assertDatabaseHas('customer_payment_cash_details', [
             'customer_payment_id' => $settlementPaymentId,
             'amount_paid_rupiah' => 60000,
