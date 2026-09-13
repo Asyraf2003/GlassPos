@@ -1172,3 +1172,46 @@ The gauntlet is deliberately excluded so a failure in the wider adjacent surface
 mixed with the dedicated end-to-end absurd-chain checkpoint.
 
 Stop and classify any RED before moving on.
+
+
+### Wider Note + Payment feature regression GREEN
+
+Owner ran all Note and Payment feature tests except the dedicated absurd gauntlet:
+
+```bash
+mapfile -t tests < <(
+  find tests/Feature/Note tests/Feature/Payment \
+    -type f -name '*Test.php' \
+    ! -name 'AbsurdTransactionGauntletFeatureTest.php' \
+    | sort
+)
+
+php -d memory_limit=-1 vendor/bin/pest "${tests[@]}" --compact
+```
+
+Result:
+
+```text
+510 passed
+4086 assertions
+Duration: 50.63s
+```
+
+Checkpoint status:
+
+```text
+GREEN
+```
+
+This materially widens proof beyond the focused and adjacent regression set while keeping
+the dedicated absurd lifecycle chain isolated for the next checkpoint.
+
+Next checkpoint:
+
+```bash
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/AbsurdTransactionGauntletFeatureTest.php \
+  --compact
+```
+
+Do not run make verify until the absurd gauntlet is GREEN.
