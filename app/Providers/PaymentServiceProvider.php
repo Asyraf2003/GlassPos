@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Adapters\Out\Payment\DatabaseCustomerPaymentReaderAdapter;
 use App\Adapters\Out\Payment\DatabaseCustomerPaymentWriterAdapter;
+use App\Adapters\Out\Payment\DatabaseCustomerRefundHistoryReaderAdapter;
 use App\Adapters\Out\Payment\DatabaseCustomerRefundReaderAdapter;
 use App\Adapters\Out\Payment\DatabaseCustomerRefundWriterAdapter;
 use App\Adapters\Out\Payment\DatabaseLegacyPaymentAllocationReaderAdapter;
@@ -23,6 +24,7 @@ use App\Application\Payment\Services\ResolveNotePayableComponents;
 use App\Application\Payment\Services\ReversedRefundedStoreStockPartPaymentGuard;
 use App\Ports\Out\Payment\CustomerPaymentReaderPort;
 use App\Ports\Out\Payment\CustomerPaymentWriterPort;
+use App\Ports\Out\Payment\CustomerRefundHistoryReaderPort;
 use App\Ports\Out\Payment\CustomerRefundReaderPort;
 use App\Ports\Out\Payment\CustomerRefundWriterPort;
 use App\Ports\Out\Payment\LegacyPaymentAllocationReaderPort;
@@ -49,6 +51,7 @@ class PaymentServiceProvider extends ServiceProvider
         $this->app->singleton(CustomerPaymentReaderPort::class, DatabaseCustomerPaymentReaderAdapter::class);
         $this->app->singleton(CustomerRefundWriterPort::class, DatabaseCustomerRefundWriterAdapter::class);
         $this->app->singleton(CustomerRefundReaderPort::class, DatabaseCustomerRefundReaderAdapter::class);
+        $this->app->singleton(CustomerRefundHistoryReaderPort::class, DatabaseCustomerRefundHistoryReaderAdapter::class);
         $this->app->singleton(RefundComponentAllocationWriterPort::class, DatabaseRefundComponentAllocationWriterAdapter::class);
         $this->app->singleton(RefundComponentAllocationReaderPort::class, DatabaseRefundComponentAllocationReaderAdapter::class);
         $this->app->singleton(PaymentAllocationWriterPort::class, DatabasePaymentAllocationWriterAdapter::class);
