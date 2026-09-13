@@ -1313,3 +1313,78 @@ make verify
 ```
 
 If that command is GREEN, this target can be closed.
+
+
+### Final repository verification GREEN — target closed
+
+Owner pulled the final refactor and ran:
+
+```bash
+make verify
+```
+
+Final result:
+
+```text
+PHPStan: [OK] No errors
+line audit: SUCCESS
+Blade audit: SUCCESS
+contract audit: passed
+
+Tests: 1701 passed
+Assertions: 11202
+Duration: 75.34s
+```
+
+Final checkpoint status:
+
+```text
+GREEN
+```
+
+The session target is now closed.
+
+Proven end-to-end for this target:
+
+- paid mixed transaction;
+- partial/component refund;
+- immutable historical refund allocation;
+- accepted revision after refund;
+- stale refunded historical work item/component excluded from new payment targeting;
+- legitimate current revision obligation remains payable;
+- partial payment succeeds against the current revision;
+- final settlement succeeds against the current revision;
+- no resurrection of refunded component allocation;
+- no duplicate stock reversal;
+- immutable payment/refund history remains intact;
+- Note/Payment adjacent regression remains green;
+- absurd transaction gauntlet remains green;
+- full repository verification remains green;
+- PHPStan, line limit, Blade, and contract audits remain green.
+
+Final proof ladder for this session:
+
+```text
+focused lifecycle
+  1 passed / 71 assertions
+
+adjacent revision-refund-payment
+  61 passed / 435 assertions
+
+wider Note + Payment
+  510 passed / 4086 assertions
+
+AbsurdTransactionGauntlet
+  1 passed / 161 assertions
+
+make verify
+  1701 passed / 11202 assertions
+  PHPStan PASS
+  line audit PASS
+  Blade audit PASS
+  contract audit PASS
+```
+
+No further production or test changes are required for this target.
+Do not broaden this closed checkpoint into stale editor, cancellation, partial-quantity
+refund, or unrelated UI work without a new explicit target.
