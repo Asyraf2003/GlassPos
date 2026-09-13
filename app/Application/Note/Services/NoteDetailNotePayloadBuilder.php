@@ -17,6 +17,7 @@ final class NoteDetailNotePayloadBuilder
         array $surplusDisposition,
         array $surplusDispositionAuditTimeline,
         array $paymentTimeline,
+        array $refundTimeline,
         array $history,
         bool $isOpen,
         bool $isClosed,
@@ -66,6 +67,7 @@ final class NoteDetailNotePayloadBuilder
             'surplus_disposition' => $surplusDisposition,
             'surplus_disposition_audit_timeline' => $surplusDispositionAuditTimeline,
             'payment_timeline' => $paymentTimeline,
+            'refund_timeline' => $refundTimeline,
             'correction_history' => $history,
         ];
     }
