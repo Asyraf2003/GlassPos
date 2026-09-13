@@ -1,5 +1,6 @@
 <div class="note-detail-history-stack note-detail-history-stack--financial">
   @include('shared.notes.partials.payment-timeline')
+  @include('shared.notes.partials.refund-timeline')
 
   @if (! empty($note['surplus_disposition_audit_timeline'] ?? []))
     <section class="note-detail-history-section note-detail-history-section--refunds">
