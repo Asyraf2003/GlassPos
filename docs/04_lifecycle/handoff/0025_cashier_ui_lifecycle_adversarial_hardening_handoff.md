@@ -1215,3 +1215,101 @@ php -d memory_limit=-1 vendor/bin/pest \
 ```
 
 Do not run make verify until the absurd gauntlet is GREEN.
+
+
+### Absurd transaction gauntlet GREEN
+
+Owner ran:
+
+```bash
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/AbsurdTransactionGauntletFeatureTest.php \
+  --compact
+```
+
+Result:
+
+```text
+1 passed
+161 assertions
+Duration: 5.97s
+```
+
+Checkpoint status:
+
+```text
+GREEN
+```
+
+### Final make verify RED — line audit only
+
+The final `make verify` did not report a runtime lifecycle regression. It stopped at
+the repository line-count audit:
+
+```text
+ERROR: File berikut melebihi limit 100 baris tanpa label bypass:
+- [114 lines] app/Application/Payment/Services/ResolveNotePayableComponents.php
+- [104 lines] app/Application/Payment/Services/RecordAndAllocateNotePaymentOperation.php
+make: *** [mk/hexagonal.mk:61: audit-lines] Error 1
+```
+
+#### CLASSIFICATION
+
+```text
+ARCHITECTURE / LINE-AUDIT FAILURE
+```
+
+This is not a new payment semantic failure. The current-revision hardening added enough
+orchestration to push two application services past the repository's 100-line rule.
+
+No bypass label was added.
+
+#### ACTION
+
+The current-revision payment-target boundary was extracted into:
+
+```text
+app/Application/Payment/Services/ResolveNotePaymentTargetComponents.php
+```
+
+Responsibilities after the split:
+
+- `ResolveNotePayableComponents`
+  - raw aggregate component resolution;
+  - remains usable by revision allocation replay before current revision pointer commit.
+- `ResolveNotePaymentTargetComponents`
+  - new-payment-only current revision boundary;
+  - legacy note fallback;
+  - current revision work-item filtering;
+  - rejection of stale selected payment rows.
+- `RecordAndAllocateNotePaymentOperation`
+  - payment orchestration only;
+  - delegates target component resolution to the extracted service.
+
+Static line-count proof after refactor:
+
+```text
+ResolveNotePayableComponents.php: 48 lines
+ResolveNotePaymentTargetComponents.php: 77 lines
+RecordAndAllocateNotePaymentOperation.php: 87 lines
+```
+
+No `@audit-skip: line-limit` bypass was introduced.
+
+Refactor commits on `main`:
+
+```text
+c0f6255b refactor: isolate current revision payment targets
+ba724f3e refactor: isolate current revision payment targets
+05c5beab refactor: isolate current revision payment targets
+980509a2 refactor: clean payment target resolver import
+```
+
+Runtime proof after this refactor is still pending. The next and only command is the
+full repository gate:
+
+```bash
+make verify
+```
+
+If that command is GREEN, this target can be closed.
