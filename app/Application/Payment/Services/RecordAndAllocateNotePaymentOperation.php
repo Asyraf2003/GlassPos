@@ -27,8 +27,7 @@ final class RecordAndAllocateNotePaymentOperation
         private readonly PaymentComponentAllocationWriterPort $allocationWriter,
         private readonly NoteReaderPort $notes,
         private readonly PaymentAllocationPolicy $policy,
-        private readonly NoteCurrentRevisionResolver $currentRevision,
-        private readonly ResolveNotePayableComponents $components,
+        private readonly ResolveNotePaymentTargetComponents $targetComponents,
         private readonly AllocatePaymentAcrossComponents $allocator,
         private readonly AutoCloseNoteWhenFullyPaid $autoClose,
         private readonly UuidPort $uuid,
@@ -75,23 +74,7 @@ final class RecordAndAllocateNotePaymentOperation
             $netAllocatedByNote,
         );
 
-        $currentRevision = $this->currentRevision->hasRevision($note->id())
-            ? $this->currentRevision->resolveOrFail($note->id())
-            : null;
-
-        if ($currentRevision === null) {
-            $components = $selectedRowIds === []
-                ? $this->components->fromNote($note)
-                : $this->components->fromSelectedRows($note, $selectedRowIds);
-        } else {
-            $components = $selectedRowIds === []
-                ? $this->components->fromCurrentRevision($note, $currentRevision)
-                : $this->components->fromSelectedRowsCurrentRevision(
-                    $note,
-                    $selectedRowIds,
-                    $currentRevision,
-                );
-        }
+        $components = $this->targetComponents->resolve($note, $selectedRowIds);
 
         $allocations = $this->allocator->allocate($payment->id(), $note->id(), $amount, $components);
 
