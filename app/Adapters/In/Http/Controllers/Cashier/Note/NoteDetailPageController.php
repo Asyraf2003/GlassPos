@@ -46,6 +46,7 @@ final class NoteDetailPageController extends Controller
 
         $data = $builder->build($noteId);
         abort_if($data === null, 404);
+        $data['note']['can_edit_workspace'] = $accessData->canEditWorkspace($noteId);
 
         $paymentAction = route('cashier.notes.payments.store', ['noteId' => $noteId]);
         $refundAction = route('cashier.notes.refunds.store', ['noteId' => $noteId]);

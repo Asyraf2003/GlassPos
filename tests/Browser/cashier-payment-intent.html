@@ -1,0 +1,90 @@
+<!doctype html><meta charset="utf-8"><body>
+<script>
+const params = new URLSearchParams(location.search);
+const surface = params.get('surface') || 'workspace';
+const mode = params.get('mode') || 'partial';
+const total = Number(params.get('total') || 780000);
+const intent = mode === 'full' ? total : Number(params.get('intent') || 280000);
+const tender = Number(params.get('tender') || 300000);
+const method = params.get('method') || 'cash';
+const workspace = surface !== 'detail';
+const form = document.createElement('form');
+form.id = workspace ? 'cashier-note-workspace-form' : 'note-payment-form';
+document.body.append(form);
+const add = (tag, id, name = '', value = '') => {
+  const el = document.createElement(tag); el.id = id;
+  if (name) el.name = name;
+  if (tag === 'input') el.value = value;
+  if (tag === 'button') el.type = 'button';
+  form.append(el); return el;
+};
+const hidden = (id, name, value = '') => { const el = add('input', id, name, value); el.type = 'hidden'; return el; };
+const modal = add('div', workspace ? 'workspace-payment-modal' : 'note-payment-modal');
+modal.dataset.allowPartial = '1';
+if (workspace) {
+  hidden('inline_payment_decision_hidden', 'decision', 'skip');
+  hidden('inline_payment_method_hidden', 'method');
+  hidden('inline_payment_amount_paid_rupiah', 'paid');
+  hidden('inline_payment_amount_received_rupiah', 'received');
+  hidden('inline_payment_paid_at_hidden', 'date');
+  add('input', 'inline_payment_amount_paid_display');
+  add('input', 'note_transaction_date', '', '2026-09-14');
+  for (const id of ['workspace-payment-open-cash', 'workspace-payment-back-cash', 'workspace-payment-submit-cash', 'workspace-payment-submit-transfer']) add('button', id);
+  const choice = add('button', 'choice'); choice.dataset.paymentChoice = mode;
+  window.CashierNoteWorkspace = { currentRows: () => [{total, productTotal: 0, title: 'Service'}], config: {workspaceMode: 'edit'} };
+} else {
+  hidden('detail_payment_amount_paid', 'paid'); hidden('detail_payment_amount_received', 'received');
+  hidden('detail_payment_method', 'method');
+  add('input', 'detail_payment_amount_paid_display'); add('div', 'payment-selected-row-ids');
+  const row = add('div', 'row'); row.dataset.paymentRowSource = '1'; row.dataset.outstandingRupiah = total; row.dataset.rowId = 'intent-service';
+  const choice = add('button', 'choice'); choice.className = 'js-open-payment-intent'; choice.dataset.paymentIntent = mode === 'partial' ? 'pay' : 'settle';
+  for (const id of ['detail-payment-open-cash', 'detail-payment-back-cash', 'detail-payment-submit-cash', 'detail-payment-submit-transfer']) add('button', id);
+}
+add('input', 'inline_payment_amount_received_display');
+for (const id of ['workspace-cash-payable-text', 'workspace-cash-change-text', 'workspace-cash-remaining-text']) add('span', id);
+let submitted;
+form.addEventListener('submit', event => { event.preventDefault(); queueMicrotask(() => { submitted = Object.fromEntries(new FormData(form)); }); });
+const script = document.createElement('script');
+script.src = workspace ? '../../public/assets/static/js/pages/cashier-note-workspace/payment-flow.js' : '../../public/assets/static/js/pages/cashier-note-payment.js';
+script.onload = async () => {
+  try {
+    const byId = id => document.getElementById(id);
+    const input = (id, value) => { byId(id).value = value; byId(id).dispatchEvent(new Event('input', {bubbles:true})); };
+    const prefix = workspace ? 'workspace' : 'detail';
+    byId('choice').click();
+    if (mode === 'partial') input(workspace ? 'inline_payment_amount_paid_display' : 'detail_payment_amount_paid_display', intent);
+    if (surface === 'simple') {
+      if (params.has('stale')) input('inline_payment_amount_paid_display', 50000);
+      window.CashierNoteWorkspace.submitSimplePayment(mode, intent);
+    } else {
+      if (method === 'cash') {
+        byId(`${prefix}-payment-open-cash`).click();
+        input('inline_payment_amount_received_display', tender);
+        if (params.has('reopen')) {
+          byId(`${prefix}-payment-back-cash`).click();
+          byId(`${prefix}-payment-open-cash`).click();
+          input('inline_payment_amount_received_display', tender);
+        }
+        byId(`${prefix}-payment-submit-cash`).click();
+      } else byId(`${prefix}-payment-submit-transfer`).click();
+      form.requestSubmit();
+    }
+    await Promise.resolve();
+    const paid = Number(submitted.paid || (mode === 'full' ? total : 0));
+    if (paid !== intent) throw Error(`submitted paid expected ${intent}, actual ${paid}`);
+    if (method === 'cash') {
+      const expectedTender = surface === 'simple' ? intent : tender;
+      if (Number(submitted.received) !== expectedTender) throw Error('submitted tender mismatch');
+      if (surface !== 'simple') {
+        const numberText = id => Number(byId(id).textContent.replace(/\D/g, ''));
+        if (numberText('workspace-cash-payable-text') !== intent) throw Error('cash target differs from intent');
+        if (numberText('workspace-cash-change-text') !== tender - intent) throw Error('cash change differs from tender minus intent');
+        if (numberText('workspace-cash-remaining-text') !== total - intent) throw Error('remaining differs from obligation minus intent');
+      }
+    } else if (submitted.received) throw Error('transfer contains cash tender');
+    const output = document.createElement('pre'); output.id = 'payload'; output.textContent = JSON.stringify({...submitted, paid}); document.body.append(output);
+    document.body.dataset.testResult = 'PASS';
+  } catch (error) { document.body.dataset.testResult = `FAIL ${error.message}`; }
+};
+document.body.append(script);
+</script>

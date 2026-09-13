@@ -35,7 +35,9 @@ final class CurrentRevisionDetailBaseRowMapper
             'id' => $key,
             'line_no' => $line->lineNo(),
             'line_label' => $this->lineLabel($line, $payload, $storeLineCount),
-            'line_subtitle' => $this->storeStockLabels->summary($payload),
+            'line_subtitle' => $line->transactionType() === WorkItem::TYPE_SERVICE_WITH_EXTERNAL_PURCHASE
+                ? $this->externalSummary($payload)
+                : $this->storeStockLabels->summary($payload),
             'type_label' => $this->presentation->typeLabel($line->transactionType()),
             'transaction_type' => $line->transactionType(),
             'can_correct_service_only' => $line->transactionType() === WorkItem::TYPE_SERVICE_ONLY,
@@ -57,6 +59,19 @@ final class CurrentRevisionDetailBaseRowMapper
     private function lineCount(array $payload, string $key): int
     {
         return count(is_array($payload[$key] ?? null) ? $payload[$key] : []);
+    }
+
+    /** @param array<string, mixed> $payload */
+    private function externalSummary(array $payload): ?string
+    {
+        $parts = [];
+        foreach (($payload['external_purchase_lines'] ?? []) as $line) {
+            if (is_array($line)) {
+                $parts[] = (string) ($line['cost_description'] ?? '').' x'.(int) ($line['qty'] ?? 0);
+            }
+        }
+
+        return $parts === [] ? null : implode(' • ', $parts);
     }
 
     private function lineLabel(NoteRevisionLineSnapshot $line, array $payload, int $storeLineCount): string

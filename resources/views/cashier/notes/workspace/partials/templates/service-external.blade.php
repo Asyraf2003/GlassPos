@@ -17,6 +17,7 @@
         <input type="hidden" name="items[__INDEX__][part_source]" value="external_purchase">
         <input type="hidden" name="items[__INDEX__][pay_now]" value="0" data-pay-now>
         <input type="hidden" name="items[__INDEX__][service][notes]" value="">
+        <input type="hidden" name="items[__INDEX__][service][name]" value="" data-service-name>
         <input type="hidden" value="" data-service-catalog-id>
         <input type="hidden" value="" data-service-default-fee-rupiah>
 
@@ -27,14 +28,23 @@
                     <i class="bi bi-search workspace-search-icon" aria-hidden="true"></i>
                     <input
                         type="search"
-                        name="items[__INDEX__][service][name]"
                         value=""
                         class="form-control"
                         placeholder="Cari atau ketik servis"
                         autocomplete="off"
-                        data-service-name
+                        data-service-search
                     >
                     <div class="workspace-search-results d-none" data-service-results></div>
+                </div>
+            </div>
+
+            <div class="workspace-selected-card d-none" data-service-selected>
+                <div class="workspace-selected-main">
+                    <div class="workspace-selected-copy">
+                        <strong data-selected-service-name>Servis terpilih</strong>
+                        <span data-selected-service-price></span>
+                    </div>
+                    <button type="button" class="workspace-selection-remove" data-service-change data-selection-remove="service" aria-label="Lepas servis terpilih" title="Lepas pilihan">×</button>
                 </div>
             </div>
 

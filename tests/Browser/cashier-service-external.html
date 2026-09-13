@@ -1,0 +1,53 @@
+<!doctype html><meta charset="utf-8"><body><form id="fixture"><div id="workspace-line-items"></div></form>
+<script>
+(async () => {
+ try {
+  const nativeFetch = window.fetch;
+  for (const name of ['service-external', 'service']) {
+   const html = await (await nativeFetch(`../../resources/views/cashier/notes/workspace/partials/templates/${name}.blade.php`)).text();
+   document.body.insertAdjacentHTML('beforeend', html);
+  }
+  window.CashierNoteWorkspace = {config:{serviceLookupEndpoint:'/lookup',serviceStoreEndpoint:'/store'}};
+  const NS = window.CashierNoteWorkspace;
+  let lookups = 0, creates = 0;
+  window.fetch = async (url, options) => {
+   if (String(url).startsWith('/lookup')) { lookups++; return {json:async()=>({data:{rows:[{id:'service-1',label:'Servis luar',default_price_rupiah:120000}]}})}; }
+   if (url === '/store') { creates++; const body = JSON.parse(options.body); return {ok:true,json:async()=>({data:{row:{id:'manual-1',label:body.name,default_price_rupiah:body.default_price_rupiah}}})}; }
+   return nativeFetch(url, options);
+  };
+  for (const path of ['shared/admin-money-input.js','pages/cashier-note-workspace/rows.js','pages/cashier-note-workspace/summary.js','pages/cashier-note-workspace/service-catalog.js']) {
+   await new Promise((resolve,reject) => {const script=document.createElement('script');script.src='../../public/assets/static/js/'+path;script.onload=resolve;script.onerror=reject;document.body.append(script);});
+  }
+  const row = NS.addRow('service_external');
+  const input = (el, value) => {el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));};
+  const check = (condition, message) => {if(!condition) throw Error(message);};
+  const wait = () => new Promise(resolve=>setTimeout(resolve,400));
+  const search = row.querySelector('[data-service-search]') || row.querySelector('[data-service-name]');
+  input(search,'Servis'); await wait();
+  check(lookups>0,'service external lookup never invoked');
+  row.querySelector('[data-service-choice]').click();
+  check(row.querySelector('[data-service-name]').value==='Servis luar','selected service identity missing');
+  check(row.querySelector('[data-service-price-raw]').value==='120000','catalog price raw missing');
+  check(row.querySelector('[data-service-price-display]').value==='120.000','catalog price display missing');
+  const label=row.querySelector('[name$="[label]"]'); input(label,'Bearing NTN');
+  input(row.querySelector('[data-external-total-rupiah]').closest('[data-money-input-group]').querySelector('[data-money-display]'),'80000');
+  input(row.querySelector('[data-service-price-display]'),'125000');
+  NS.updateSummary(); check(NS.rowTotal(row)===205000,'service plus external total incorrect');
+  const item={entry_mode:'service',part_source:'external_purchase',service:{name:row.querySelector('[data-service-name]').value,price_rupiah:Number(row.querySelector('[data-service-price-raw]').value)},external_purchase_lines:[{label:label.value,total_rupiah:Number(row.querySelector('[data-external-total-rupiah]').value)}]};
+  NS.removeRow(row);
+  const restored=NS.addRow('service_external',item);
+  check(restored.querySelector('[data-service-name]').value==='Servis luar','hydration lost service name');
+  check(restored.querySelector('[data-service-price-display]').value==='125.000','hydration lost service price');
+  check(restored.querySelector('[name$="[label]"]').value==='Bearing NTN','hydration lost external label');
+  check(NS.rowTotal(restored)===205000,'hydration total mismatch');
+  const sibling=NS.addRow('service');
+  input(sibling.querySelector('[data-service-search]'),'Manual sibling');
+  input(sibling.querySelector('[data-service-price-display]'),'45000');
+  sibling.querySelector('[data-service-price-display]').dispatchEvent(new Event('blur')); await wait();
+  check(creates>0,'manual service create not invoked');
+  check(NS.rowTotal(restored)===205000,'sibling changed external row');
+  const output=document.createElement('pre');output.id='payload';output.textContent=JSON.stringify(item);document.body.append(output);
+  document.body.dataset.testResult='PASS';
+ } catch(error) {document.body.dataset.testResult='FAIL '+error.message;}
+})();
+</script>

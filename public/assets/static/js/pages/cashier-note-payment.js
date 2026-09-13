@@ -170,7 +170,7 @@
     const selected = selectedTotal();
     const payable = payableAmount();
     const received = digits(moneyInput("inline_payment_amount_received_display")?.value || "");
-    const credited = Math.min(received, selected);
+    const credited = payable;
 
     if (state.cashStep) {
       setValue("detail_payment_amount_received", received > 0 ? received : "");
@@ -184,8 +184,8 @@
     setText("detail-payment-selected-total", selected);
     setText("detail-payment-payable-text", payable);
     setText("detail-payment-remaining-text", Math.max(selected - payable, 0));
-    setText("workspace-cash-payable-text", selected);
-    setText("workspace-cash-change-text", Math.max(received - selected, 0));
+    setText("workspace-cash-payable-text", payable);
+    setText("workspace-cash-change-text", Math.max(received - payable, 0));
     setText("workspace-cash-remaining-text", Math.max(selected - credited, 0));
 
     const hasRows = selectedRows().length > 0;
@@ -195,7 +195,7 @@
 
     if (transfer) transfer.disabled = !hasRows || payable <= 0;
     if (openCash) openCash.disabled = !hasRows || payable <= 0;
-    if (submitCash) submitCash.disabled = !hasRows || selected <= 0 || received <= 0;
+    if (submitCash) submitCash.disabled = !hasRows || payable <= 0 || received < payable;
   };
 
   const applyMode = (mode) => {
@@ -258,10 +258,7 @@
         "detail_payment_amount_received",
         digits(moneyInput("inline_payment_amount_received_display")?.value || "")
       );
-      setValue("detail_payment_amount_paid", Math.min(
-        digits(moneyInput("inline_payment_amount_received_display")?.value || ""),
-        selectedTotal()
-      ));
+      setValue("detail_payment_amount_paid", payableAmount());
       refresh();
     }
   });
@@ -311,10 +308,7 @@
         "detail_payment_amount_received",
         digits(moneyInput("inline_payment_amount_received_display")?.value || "")
       );
-      setValue("detail_payment_amount_paid", Math.min(
-        digits(moneyInput("inline_payment_amount_received_display")?.value || ""),
-        selectedTotal()
-      ));
+      setValue("detail_payment_amount_paid", payableAmount());
       lockPaymentSubmit();
       return;
     }
