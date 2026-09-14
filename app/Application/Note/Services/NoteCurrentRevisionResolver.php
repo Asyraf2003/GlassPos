@@ -57,6 +57,14 @@ final class NoteCurrentRevisionResolver
         return $this->revisions->nextRevisionNumber($normalized);
     }
 
+    public function hasCurrentRevision(string $noteRootId): bool
+    {
+        $normalized = trim($noteRootId);
+
+        return $normalized !== ''
+            && $this->revisions->findCurrentByRootId($normalized) !== null;
+    }
+
     public function hasRevision(string $noteRootId): bool
     {
         $normalized = trim($noteRootId);
