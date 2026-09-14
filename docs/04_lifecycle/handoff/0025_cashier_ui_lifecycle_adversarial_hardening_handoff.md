@@ -1969,3 +1969,48 @@ Smallest action:
 - align both first-submit and replay redirect assertions with the canonical index route;
 - no production change;
 - rerun the same duplicate refund replay display characterization.
+
+
+### Duplicate refund replay focused RED — global reason string count
+
+Runtime:
+
+```text
+1 failed
+24 assertions before failure
+Duration: 5.32s
+```
+
+Observed before failure:
+
+- exactly one `customer_refunds` row;
+- exactly one `refund_component_allocations` row;
+- exactly one stock reversal;
+- exactly one `refund_timeline` item;
+- exactly one rendered `data-refund-history-event` on desktop.
+
+Failure:
+
+```text
+expected refund reason text to occur once in the entire HTML
+actual occurrences = 3
+```
+
+### CLASSIFICATION
+
+```text
+TEST WRONG
+```
+
+The duplicate-display invariant is structural event cardinality, not global text-substring
+cardinality. The same reason string may legally appear in other rendered state/form/history
+markup without creating another refund event.
+
+Smallest action:
+
+- keep exact refund event count assertion;
+- remove the global reason substring count assertion;
+- retain explicit timeline reason equality and `assertSee` proof;
+- no production change.
+
+Next proof is the same focused duplicate refund replay characterization.
