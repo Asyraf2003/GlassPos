@@ -1806,3 +1806,71 @@ Smallest action:
 - coalesce nullable result message to a string fallback;
 - no production change;
 - rerun the same focused scenario.
+
+
+### Focused rerun RED — revision-aware resolver not wired by container
+
+Runtime:
+
+```text
+1 failed
+5 assertions before failure
+Duration: 5.16s
+```
+
+Failure:
+
+```text
+expected current revision grand total 250000
+actual payment outstanding grand total 550000
+```
+
+### FACT
+
+The resolver source had current-revision support, but its two revision dependencies were
+nullable constructor arguments with default `null`.
+
+Laravel container therefore resolved the service through the legacy 3-dependency shape,
+so `currentRevisionSettlement()` returned `null` and payment preflight still used the
+root aggregate containing both:
+
+- historical refund-protected work item = 300000;
+- current revision work item = 250000.
+
+That produced the incorrect preflight grand total 550000.
+
+Sibling evidence:
+
+`NoteOperationalStatusResolver` already uses an explicit container binding to inject
+the same current-revision resolver/projector pair, because those dependencies are also
+optional in the class constructor.
+
+### CLASSIFICATION
+
+```text
+PRODUCTION BUG PATCH INCOMPLETE — dependency wiring
+```
+
+No new finance write bug was discovered.
+
+### ACTION
+
+Added an explicit `NoteOutstandingPaymentAmountResolver` singleton binding in
+`NoteApplicationServiceProvider` with:
+
+- `NoteReaderPort`
+- `PaymentAllocationReaderPort`
+- `CustomerRefundReaderPort`
+- `NoteCurrentRevisionResolver`
+- `CurrentRevisionRowSettlementProjector`
+
+No payment/refund/revision writer changed.
+
+Static line counts:
+
+```text
+NoteApplicationServiceProvider.php: 65
+NoteOutstandingPaymentAmountResolver.php: 99
+```
+
+Next proof is the same focused HTTP/UI characterization.
