@@ -589,7 +589,11 @@ line_total_rupiah: 144000
 qty_on_hand: 38
 ~~~
 
-The owner's full unabridged MariaDB paste should remain available in the originating manual-QA conversation/file. This error log preserves the material rows and explicit limitations required for later classification.
+Full raw MariaDB evidence is preserved in:
+
+docs/04_lifecycle/error_log/evidence/0064_manual_qa_mariadb_raw.txt
+
+The summarized rows above are for reasoning convenience; the companion file is the evidence source when exact ids/amounts need to be rechecked. This error log preserves the material rows and explicit limitations required for later classification.
 
 ---
 
