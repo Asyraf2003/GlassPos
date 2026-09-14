@@ -1932,3 +1932,40 @@ php -d memory_limit=-1 vendor/bin/pest \
   --filter=duplicate_refund_replay_renders_one_historical_event_after_refresh \
   --compact
 ```
+
+
+### Duplicate refund replay focused RED — redirect expectation
+
+Runtime:
+
+```text
+1 failed
+3 assertions before failure
+Duration: 5.22s
+```
+
+Failure:
+
+```text
+expected redirect to cashier note detail
+actual redirect to cashier notes index
+```
+
+### CLASSIFICATION
+
+```text
+TEST WRONG
+```
+
+Canonical transport behavior from `ClosedNoteRefundResponseFactory::success()` is:
+
+- cashier refund success -> `cashier.notes.index`;
+- admin refund success -> `admin.notes.index`.
+
+The same response factory is used for idempotent replay success.
+
+Smallest action:
+
+- align both first-submit and replay redirect assertions with the canonical index route;
+- no production change;
+- rerun the same duplicate refund replay display characterization.
