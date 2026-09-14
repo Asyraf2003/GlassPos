@@ -577,3 +577,378 @@ C. payment suggestion mismatch
 D. refund history split
 -> raw DB proof first
 -> decide whether data is wrong or grouping is only a UI concern
+
+
+---
+
+## 17. Raw MariaDB forensic proof captured
+
+Owner supplied a full MariaDB snapshot after the final settlement of R3.
+
+Source note:
+
+733bd893-8f14-4cbd-8fe7-b958a53e6823
+
+The raw paste is preserved in the originating QA conversation. Material rows and conclusions are captured below so future sessions do not need to reconstruct the chain from memory.
+
+### Root note row
+
+Final root row:
+
+- note_state = closed
+- closed_at = 2026-09-15 01:51:26
+- closed_by_actor_id = system
+- reopened_at = NULL
+- reopened_by_actor_id = NULL
+- total_rupiah = 1.067.500
+- current_revision_id = ...-r003
+- latest_revision_number = 3
+- updated_at = 2026-09-15 01:57:09
+
+Important:
+
+The final payment that settled R3 occurred at approximately 01:58, but root closed_at still points to the first R2 closure at 01:51:26.
+
+### Current/preserved work items
+
+Rows physically present:
+
+1. old Busi product-only row:
+   - line 1
+   - subtotal 455.000
+   - status = canceled
+
+2. current service-only:
+   - line 2
+   - subtotal 60.000
+   - status = open
+
+3. current service + store-stock:
+   - line 3
+   - subtotal 82.500
+   - status = open
+
+4. current service + external purchase:
+   - line 4
+   - subtotal 260.000
+   - status = open
+
+5. current new Bohlam product-only:
+   - line 5
+   - subtotal 665.000
+   - status = open
+
+So after the second full settlement, the root note is closed while all four active R3 work items remain persisted as open.
+
+This directly explains the cashier-history work summary:
+
+Belum Selesai: 4 • Selesai: 0 • Batal: 1
+
+while finance/detail projection can simultaneously render the four active rows as settled/close.
+
+### Four actual customer payments
+
+Raw customer_payments proves exactly four payments:
+
+1. Rp 293.500 at 01:46
+2. Rp 564.000 at 01:51
+3. Rp 20.000 at 01:57
+4. Rp 645.000 at 01:58
+
+Total cash-settlement records:
+
+293.500 + 564.000 + 20.000 + 645.000 = 1.522.500
+
+Ordinary refunds:
+
+455.000
+
+Net historical money:
+
+1.522.500 - 455.000 = 1.067.500
+
+This equals final R3 total exactly.
+
+### Refund split is proven correct at ledger level
+
+Raw customer_refunds:
+
+1. Rp 93.500
+   - linked to historical payment Rp 293.500
+   - same Busi product-only work item/component
+
+2. Rp 361.500
+   - linked to historical payment Rp 564.000
+   - same Busi product-only work item/component
+
+Raw refund_component_allocations repeats the same component identity for both rows:
+
+- component_type = product_only_work_item
+- component_ref_id = old Busi work item id
+
+Amounts:
+
+93.500 + 361.500 = 455.000
+
+Therefore:
+
+NOT A DUPLICATE REFUND.
+
+Classification:
+
+LEDGER CORRECT / PRESENTATION GROUPING CANDIDATE.
+
+One logical full component refund was allocated against two historical payment sources.
+
+UI may still benefit from grouping these rows as one refund action with two source allocations underneath, but the underlying ledger split is correct.
+
+### Revision chain proof
+
+R1:
+
+- total 630.000
+- 4 lines
+
+R2:
+
+- total 857.500
+- 4 lines
+
+R3:
+
+- total 1.067.500
+- 4 lines
+
+Revision snapshots retain product_name_snapshot correctly for product-only rows, including:
+
+- Busi Aspira Varian 3
+- Bohlam Lampu Federal Varian 3
+
+Therefore generic UI labels such as "Line 5" are a presentation/read-model limitation, not missing snapshot data.
+
+### R3 settlement row
+
+Raw R3 settlement:
+
+- gross_total_rupiah = 1.067.500
+- carry_forward_paid_rupiah = 877.500
+- carry_forward_refunded_rupiah = 455.000
+- net_paid_rupiah = 422.500
+- outstanding_rupiah = 645.000
+- surplus_rupiah = 0
+- settlement_status = underpaid
+
+Check:
+
+877.500 - 455.000 = 422.500
+
+1.067.500 - 422.500 = 645.000
+
+The 877.500 carry includes the new Rp 20.000 payment recorded in the same R3 transaction window:
+
+857.500 historical paid before R3 + 20.000 new payment = 877.500
+
+This is coherent.
+
+### Final current component allocation proof
+
+SUM(payment_component_allocations.allocated_amount_rupiah):
+
+1.067.500
+
+Exactly equal to final current note total.
+
+Current allocation reconstruction:
+
+- old historical net carried into current components = 402.500
+- new Rp 20.000 payment = 20.000
+- final Rp 645.000 payment = 645.000
+
+Total:
+
+402.500 + 20.000 + 645.000 = 1.067.500
+
+Finance allocation reconstruction is GREEN.
+
+### Inventory proof
+
+Old refunded Busi current preserved stock line:
+
+- stock_out qty -10 at 01:51
+- reversal stock_in qty +10 at 01:52
+- same source line identity
+- reversal_source_id anchors the reversal
+
+Net:
+
+0
+
+Current Busi inventory projection returns to:
+
+31
+
+which matches the owner's observed pre-sale availability.
+
+New Bohlam Federal:
+
+- stock_out qty -5
+- current projection = 11
+
+Owner observed availability before adding qty 5:
+
+16
+
+Check:
+
+16 - 5 = 11
+
+Package stock line:
+
+- one stock_out qty -1
+- current projection = 20
+
+No duplicate current-note stock movement is visible in the captured source set.
+
+Inventory behavior for the refunded Busi and new Bohlam is GREEN.
+
+---
+
+## 18. CONFIRMED PRODUCTION BUG - root operational state is not reopened for new receivable
+
+This is a separate bug from the pay_full validator regression.
+
+### Runtime + DB facts
+
+After R2:
+
+- note fully paid;
+- root note closed at 01:51:26.
+
+Then:
+
+- old Busi product fully refunded;
+- R3 adds a new product and creates legitimate new outstanding;
+- UI correctly shows current note as open/underpaid;
+- R3 settlement status = underpaid;
+- outstanding = 645.000 after the Rp 20.000 payment.
+
+But final raw root row still shows:
+
+- note_state = closed
+- closed_at = 01:51:26
+- reopened_at = NULL
+
+After final Rp 645.000 payment at 01:58:
+
+- root remains closed with old closed_at;
+- no second AUTO_CLOSE_ON_FULL_PAYMENT mutation exists;
+- active R3 work_items remain persisted open.
+
+### Source proof
+
+ApplyNoteRevisionAsActiveReplacement:
+
+- updates header;
+- rebuilds payment allocations;
+- persists replacement work items;
+- updates total;
+- does NOT call Note::reopen();
+- does NOT update operational state.
+
+AutoCloseNoteWhenFullyPaid starts with:
+
+if ($note->isClosed()) {
+    return;
+}
+
+Therefore a previously closed root that gets a legitimate new receivable through revision can remain physically closed.
+
+When the new receivable is later fully paid, AutoCloseNoteWhenFullyPaid exits immediately because the stale root state is already closed.
+
+### Domain proof
+
+NoteOperationalStateMutations explicitly defines:
+
+- close(): open -> closed
+- reopen(): closed -> open and records reopened_at / reopened_by_actor_id
+
+The schema and DB audit classify closed_at / reopened_at as operational/action dates.
+
+Thus current persisted state is not merely a harmless historical marker.
+
+### Classification
+
+PRODUCTION BUG - OPERATIONAL STATE MACHINE / AUDIT METADATA
+
+Symptoms caused by this bug include:
+
+- root note says closed while current settlement is underpaid;
+- reopened_at remains null;
+- final second settlement does not generate a new close transition;
+- closed_at remains the first closure timestamp;
+- current active work_items remain open after final settlement;
+- cashier history can show "4 Selesai" beside "Belum Selesai: 4".
+
+### Guardrail
+
+Do NOT patch by blindly forcing all work_items to close.
+
+The first focused question is:
+
+When a closed/refunded historical note receives a legitimate new current receivable via authorized revision, what exact transition should happen to the root note?
+
+Expected direction from current domain model:
+
+closed -> reopen -> open
+
+then, after new outstanding reaches zero:
+
+open -> close
+
+But this must be locked by a focused lifecycle test before production mutation.
+
+---
+
+## 19. Updated classification after MariaDB proof
+
+### GREEN / ledger correct
+
+- four customer payments exist exactly as observed;
+- ordinary refund total = 455.000;
+- refund split across two payment sources is legitimate;
+- R3 settlement math is coherent;
+- current component allocations total exactly 1.067.500;
+- old Busi refund reverses stock qty 10 exactly once for the captured R2 source;
+- new Bohlam qty 5 stock-out matches current projection;
+- refunded Busi is not revived as current payable.
+
+### CONFIRMED PRODUCTION BUGS
+
+1. pay_full cash request validator still uses raw grand total instead of backend payable after revision.
+
+2. authorized post-close revision that creates a new receivable does not reopen root operational state, leaving stale closed_at/reopened_at and preventing a true second close transition.
+
+### CONFIRMED PRESENTATION / READ-MODEL DEFECT
+
+Cashier history presents effective financial completion and raw operational work status without semantic distinction:
+
+- "4 Selesai"
+- "Belum Selesai: 4 • Selesai: 0 • Batal: 1"
+
+The root operational-state bug materially contributes to this mismatch.
+
+Do not treat this as a CSS-only issue.
+
+### UX IMPROVEMENT, NOT LEDGER BUG
+
+Two refund rows for Rp 93.500 and Rp 361.500 are correct source allocations for one Rp 455.000 component refund.
+
+Potential improvement:
+
+group by logical refunded component/action, then show payment-source allocation detail beneath it.
+
+### PRESENTATION GAP
+
+Revision snapshots already contain actual product names, but revision UI renders generic labels such as "Line 5".
+
+This can be improved without changing revision storage semantics.
