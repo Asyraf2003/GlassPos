@@ -22,20 +22,17 @@ final class NoteOutstandingPaymentAmountResolver
         private readonly CustomerRefundReaderPort $refunds,
         private readonly ?NoteCurrentRevisionResolver $currentRevision = null,
         private readonly ?CurrentRevisionRowSettlementProjector $currentRevisionSettlements = null,
-    ) {
-    }
+    ) {}
 
     public function resolveFull(string $noteId): Result
     {
         $note = $this->notes->getById(trim($noteId));
-
         if ($note === null) {
             return Result::failure('Nota tidak ditemukan.', ['payment' => ['PAYMENT_INVALID_TARGET']]);
         }
 
         $settlement = $this->currentRevisionSettlement($note) ?? $this->legacySettlement($note);
         $outstanding = $settlement['outstanding_rupiah'];
-
         if ($outstanding <= 0) {
             return Result::failure('Nota sudah lunas.', ['payment' => ['PAYMENT_ALREADY_PAID']]);
         }
@@ -56,17 +53,14 @@ final class NoteOutstandingPaymentAmountResolver
     public function resolvePartial(string $noteId, int $amountRupiah): Result
     {
         $full = $this->resolveFull($noteId);
-
         if ($full->isFailure()) {
             return $full;
         }
-
         if ($amountRupiah <= 0) {
             return Result::failure('Nominal pembayaran sebagian harus lebih dari 0.', ['payment' => ['INVALID_PARTIAL_AMOUNT']]);
         }
 
         $outstanding = (int) ($full->data()['outstanding_rupiah'] ?? 0);
-
         if ($amountRupiah >= $outstanding) {
             return Result::failure('Nominal pembayaran sebagian harus lebih kecil dari sisa tagihan.', ['payment' => ['INVALID_PARTIAL_AMOUNT']]);
         }
@@ -96,7 +90,6 @@ final class NoteOutstandingPaymentAmountResolver
         ];
     }
 
-    /** @return array{basis:string,gross_total_rupiah:int,net_paid_rupiah:int,outstanding_rupiah:int} */
     private function explanation(int $grandTotal, int $netPaid, int $outstanding): array
     {
         return [
