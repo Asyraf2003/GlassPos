@@ -15,7 +15,7 @@ trait ResolvesNoteOperationalCurrentRevisionSettlement
             return null;
         }
 
-        if (! $this->currentRevision->hasRevision($note->id())) {
+        if (! $this->currentRevision->hasCurrentRevision($note->id())) {
             return null;
         }
 
