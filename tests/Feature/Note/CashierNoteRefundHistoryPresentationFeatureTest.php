@@ -448,4 +448,288 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
         }
     }
 
+
+    public function test_refund_then_legitimate_new_payment_refresh_settles_current_revision_without_hiding_history(): void
+    {
+        Carbon::setTestNow('2026-09-14 12:00:00');
+
+        try {
+            $admin = $this->loginAsAuthorizedAdmin();
+            $noteId = 'note-refund-ui-new-payment';
+            $oldWorkItemId = 'wi-refund-ui-payment-old';
+            $newWorkItemId = 'wi-refund-ui-payment-current';
+
+            $this->seedMinimalProduct(
+                'refund-ui-payment-product',
+                'RUP-001',
+                'Produk Refund Payment Lama',
+                'Test',
+                null,
+                100000,
+            );
+
+            DB::table('notes')->insert([
+                'id' => $noteId,
+                'customer_name' => 'Refund New Payment UI',
+                'customer_phone' => null,
+                'transaction_date' => '2026-09-14',
+                'note_state' => 'open',
+                'total_rupiah' => 250000,
+                'current_revision_id' => $noteId.'-r002',
+                'latest_revision_number' => 2,
+            ]);
+
+            DB::table('work_items')->insert([
+                [
+                    'id' => $oldWorkItemId,
+                    'note_id' => $noteId,
+                    'line_no' => 1,
+                    'transaction_type' => 'store_stock_sale_only',
+                    'status' => 'open',
+                    'subtotal_rupiah' => 300000,
+                ],
+                [
+                    'id' => $newWorkItemId,
+                    'note_id' => $noteId,
+                    'line_no' => 2,
+                    'transaction_type' => 'service_only',
+                    'status' => 'open',
+                    'subtotal_rupiah' => 250000,
+                ],
+            ]);
+
+            DB::table('work_item_store_stock_lines')->insert([
+                'id' => 'ssl-refund-ui-payment-old',
+                'work_item_id' => $oldWorkItemId,
+                'product_id' => 'refund-ui-payment-product',
+                'qty' => 3,
+                'line_total_rupiah' => 300000,
+            ]);
+
+            DB::table('work_item_service_details')->insert([
+                'work_item_id' => $newWorkItemId,
+                'service_name' => 'Servis Current Setelah Refund',
+                'service_price_rupiah' => 250000,
+                'part_source' => 'none',
+            ]);
+
+            DB::table('note_revisions')->insert([
+                [
+                    'id' => $noteId.'-r001',
+                    'note_root_id' => $noteId,
+                    'revision_number' => 1,
+                    'parent_revision_id' => null,
+                    'created_by_actor_id' => null,
+                    'reason' => 'Historical refunded revision',
+                    'customer_name' => 'Refund New Payment UI',
+                    'customer_phone' => null,
+                    'transaction_date' => '2026-09-13',
+                    'grand_total_rupiah' => 300000,
+                    'line_count' => 1,
+                    'created_at' => '2026-09-13 09:00:00',
+                    'updated_at' => null,
+                ],
+                [
+                    'id' => $noteId.'-r002',
+                    'note_root_id' => $noteId,
+                    'revision_number' => 2,
+                    'parent_revision_id' => $noteId.'-r001',
+                    'created_by_actor_id' => null,
+                    'reason' => 'Legitimate current service obligation',
+                    'customer_name' => 'Refund New Payment UI',
+                    'customer_phone' => null,
+                    'transaction_date' => '2026-09-14',
+                    'grand_total_rupiah' => 250000,
+                    'line_count' => 1,
+                    'created_at' => '2026-09-14 10:00:00',
+                    'updated_at' => null,
+                ],
+            ]);
+
+            DB::table('note_revision_lines')->insert([
+                [
+                    'id' => $noteId.'-r001-l001',
+                    'note_revision_id' => $noteId.'-r001',
+                    'work_item_root_id' => $oldWorkItemId,
+                    'line_no' => 1,
+                    'transaction_type' => 'store_stock_sale_only',
+                    'status' => 'open',
+                    'service_label' => null,
+                    'service_price_rupiah' => null,
+                    'subtotal_rupiah' => 300000,
+                    'payload' => json_encode([
+                        'work_item_root_id' => $oldWorkItemId,
+                        'transaction_type' => 'store_stock_sale_only',
+                        'status' => 'open',
+                        'external_purchase_lines' => [],
+                        'store_stock_lines' => [[
+                            'id' => 'ssl-refund-ui-payment-old',
+                            'product_id' => 'refund-ui-payment-product',
+                            'qty' => 3,
+                            'line_total_rupiah' => 300000,
+                        ]],
+                    ], JSON_THROW_ON_ERROR),
+                    'created_at' => '2026-09-13 09:00:00',
+                    'updated_at' => null,
+                ],
+                [
+                    'id' => $noteId.'-r002-l001',
+                    'note_revision_id' => $noteId.'-r002',
+                    'work_item_root_id' => $newWorkItemId,
+                    'line_no' => 1,
+                    'transaction_type' => 'service_only',
+                    'status' => 'open',
+                    'service_label' => 'Servis Current Setelah Refund',
+                    'service_price_rupiah' => 250000,
+                    'subtotal_rupiah' => 250000,
+                    'payload' => json_encode([
+                        'work_item_root_id' => $newWorkItemId,
+                        'transaction_type' => 'service_only',
+                        'status' => 'open',
+                        'external_purchase_lines' => [],
+                        'store_stock_lines' => [],
+                        'service' => [
+                            'service_name' => 'Servis Current Setelah Refund',
+                            'service_price_rupiah' => 250000,
+                            'part_source' => 'none',
+                        ],
+                    ], JSON_THROW_ON_ERROR),
+                    'created_at' => '2026-09-14 10:00:00',
+                    'updated_at' => null,
+                ],
+            ]);
+
+            DB::table('customer_payments')->insert([
+                'id' => 'payment-refund-ui-payment-old',
+                'amount_rupiah' => 300000,
+                'paid_at' => '2026-09-13',
+                'payment_method' => 'cash',
+            ]);
+
+            DB::table('payment_component_allocations')->insert([
+                'id' => 'pca-refund-ui-payment-carried',
+                'customer_payment_id' => 'payment-refund-ui-payment-old',
+                'note_id' => $noteId,
+                'work_item_id' => $newWorkItemId,
+                'component_type' => 'service_fee',
+                'component_ref_id' => $newWorkItemId,
+                'component_amount_rupiah_snapshot' => 250000,
+                'allocated_amount_rupiah' => 200000,
+                'allocation_priority' => 1,
+            ]);
+
+            DB::table('customer_refunds')->insert([
+                'id' => 'refund-refund-ui-payment-old',
+                'customer_payment_id' => 'payment-refund-ui-payment-old',
+                'note_id' => $noteId,
+                'amount_rupiah' => 100000,
+                'refunded_at' => '2026-09-13',
+                'reason' => 'Refund lama tetap terlihat sesudah pembayaran baru',
+            ]);
+
+            DB::table('refund_component_allocations')->insert([
+                'id' => 'rca-refund-ui-payment-old',
+                'customer_refund_id' => 'refund-refund-ui-payment-old',
+                'customer_payment_id' => 'payment-refund-ui-payment-old',
+                'note_id' => $noteId,
+                'work_item_id' => $oldWorkItemId,
+                'component_type' => 'product_only_work_item',
+                'component_ref_id' => $oldWorkItemId,
+                'refunded_amount_rupiah' => 100000,
+                'refund_priority' => 1,
+            ]);
+
+            $before = $this->actingAs($admin)
+                ->get(route('admin.notes.show', ['noteId' => $noteId]))
+                ->assertOk();
+
+            $beforeNote = $before->viewData('note');
+            self::assertSame(50000, $beforeNote['outstanding_rupiah']);
+            self::assertTrue($beforeNote['can_show_payment_form']);
+
+            $this->actingAs($admin)
+                ->from(route('admin.notes.show', ['noteId' => $noteId]))
+                ->post(route('admin.notes.payments.store', ['noteId' => $noteId]), [
+                    'selected_row_ids' => [$newWorkItemId.'::service_fee::'.$newWorkItemId],
+                    'payment_method' => 'cash',
+                    'paid_at' => '2026-09-14',
+                    'amount_received' => 50000,
+                    'idempotency_key' => 'refund-ui-legitimate-current-payment',
+                ])
+                ->assertRedirect(route('admin.notes.show', ['noteId' => $noteId]))
+                ->assertSessionHasNoErrors();
+
+            $newPaymentId = (string) DB::table('customer_payments')
+                ->where('id', '!=', 'payment-refund-ui-payment-old')
+                ->value('id');
+
+            self::assertNotSame('', $newPaymentId);
+
+            $this->assertDatabaseHas('customer_payments', [
+                'id' => $newPaymentId,
+                'amount_rupiah' => 50000,
+                'paid_at' => '2026-09-14',
+                'payment_method' => 'cash',
+            ]);
+            $this->assertDatabaseHas('payment_component_allocations', [
+                'customer_payment_id' => $newPaymentId,
+                'note_id' => $noteId,
+                'work_item_id' => $newWorkItemId,
+                'component_type' => 'service_fee',
+                'component_ref_id' => $newWorkItemId,
+                'allocated_amount_rupiah' => 50000,
+            ]);
+            $this->assertDatabaseMissing('payment_component_allocations', [
+                'customer_payment_id' => $newPaymentId,
+                'note_id' => $noteId,
+                'work_item_id' => $oldWorkItemId,
+            ]);
+
+            foreach (['?0' => 'desktop', '?1' => 'handset'] as $mobileHeader => $device) {
+                $response = $this->actingAs($admin)
+                    ->withHeaders(['Sec-CH-UA-Mobile' => $mobileHeader])
+                    ->get(route('admin.notes.show', ['noteId' => $noteId]))
+                    ->assertOk();
+
+                $note = $response->viewData('note');
+
+                self::assertCount(1, $note['refund_timeline'], $device);
+                self::assertSame(100000, $note['refund_timeline'][0]['amount_rupiah'], $device);
+                self::assertSame('Refund lama tetap terlihat sesudah pembayaran baru', $note['refund_timeline'][0]['reason'], $device);
+                self::assertSame($oldWorkItemId, $note['refund_timeline'][0]['components'][0]['work_item_id'], $device);
+                self::assertSame('Produk Refund Payment Lama', $note['refund_timeline'][0]['components'][0]['label'], $device);
+
+                self::assertCount(1, $note['rows'], $device);
+                self::assertSame($newWorkItemId, $note['rows'][0]['id'], $device);
+                self::assertSame('Servis Current Setelah Refund', $note['rows'][0]['line_label'], $device);
+                self::assertSame(250000, $note['rows'][0]['net_paid_rupiah'], $device);
+                self::assertSame(0, $note['rows'][0]['outstanding_rupiah'], $device);
+
+                self::assertCount(1, $note['billing_rows'], $device);
+                self::assertSame($newWorkItemId, $note['billing_rows'][0]['work_item_id'], $device);
+                self::assertSame('service_fee', $note['billing_rows'][0]['component_type'], $device);
+                self::assertSame(0, $note['billing_rows'][0]['outstanding_rupiah'], $device);
+
+                self::assertSame(0, $note['outstanding_rupiah'], $device);
+                self::assertFalse($note['can_show_payment_form'], $device);
+                self::assertFalse($note['can_show_partial_payment_action'], $device);
+                self::assertFalse($note['can_show_settle_payment_action'], $device);
+                self::assertTrue($note['can_edit_workspace'], $device);
+                self::assertTrue($note['can_show_refund_form'], $device);
+
+                $response
+                    ->assertSee('Riwayat Pengembalian Dana')
+                    ->assertSee('Produk Refund Payment Lama')
+                    ->assertSee('Refund lama tetap terlihat sesudah pembayaran baru')
+                    ->assertSee('Servis Current Setelah Refund')
+                    ->assertDontSee('Bayar Sebagian')
+                    ->assertDontSee('Lunasi')
+                    ->assertSee('Edit Nota')
+                    ->assertSee('id="note-refund-open-button"', false);
+            }
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
 }
