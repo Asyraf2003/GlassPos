@@ -647,6 +647,13 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
             self::assertSame(50000, $beforeNote['outstanding_rupiah']);
             self::assertTrue($beforeNote['can_show_payment_form']);
 
+            $paymentOutstanding = app(\App\Application\Note\Services\NoteOutstandingPaymentAmountResolver::class)
+                ->resolveFull($noteId);
+            self::assertTrue($paymentOutstanding->isSuccess(), $paymentOutstanding->message());
+            self::assertSame(250000, $paymentOutstanding->data()['grand_total_rupiah']);
+            self::assertSame(200000, $paymentOutstanding->data()['net_paid_rupiah']);
+            self::assertSame(50000, $paymentOutstanding->data()['outstanding_rupiah']);
+
             $this->actingAs($admin)
                 ->from(route('admin.notes.show', ['noteId' => $noteId]))
                 ->post(route('admin.notes.payments.store', ['noteId' => $noteId]), [
