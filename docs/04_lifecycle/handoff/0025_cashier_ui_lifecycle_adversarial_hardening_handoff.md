@@ -2071,3 +2071,58 @@ make verify
 ```
 
 If GREEN, close this automated UI hardening target and hand off to manual browser/device QA.
+
+
+### Final automated closure — GREEN
+
+Owner reported the final `make verify` run PASS after the two adjacency fixes.
+
+Exact test/assertion/duration totals were not supplied in the final owner message, so they are intentionally not fabricated here.
+
+Final automated state:
+
+- PHPStan: GREEN
+- line audit: GREEN
+- Blade audit: GREEN
+- contract audit: GREEN
+- full Pest suite through `make verify`: GREEN
+- focused refund history presentation scenarios: GREEN
+- duplicate refund replay display: GREEN
+- refund -> revision -> legitimate new payment lifecycle: GREEN
+- current-revision payment preflight: GREEN
+- legacy + component allocation reconciliation: GREEN
+- revision-pointer repair path: GREEN
+
+### TARGET STATUS
+
+```text
+CLOSED
+```
+
+Automated hardening target:
+
+```text
+Harden Detail Nota after ordinary/component refund
+```
+
+is complete.
+
+### NEXT UNRESOLVED TARGET
+
+```text
+QA manual browser/device
+```
+
+Manual QA should validate visual/interaction behavior only, with emphasis on:
+
+- desktop + handset;
+- ordinary refund;
+- package component refund;
+- refund -> revision;
+- refund -> legitimate new payment;
+- duplicate refund history display;
+- refresh/reload persistence;
+- Bayar/Edit/Refund button visibility;
+- modal/UX behavior.
+
+Do not reopen finance write semantics unless manual QA produces a new focused runtime defect.
