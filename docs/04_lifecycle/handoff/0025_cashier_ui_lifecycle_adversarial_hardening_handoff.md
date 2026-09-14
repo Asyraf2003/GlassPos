@@ -1512,3 +1512,55 @@ php -d memory_limit=-1 vendor/bin/pest \
 ```
 
 Do not expand to package/revision/new-payment UI cases until this focused proof is GREEN.
+
+
+### Focused ordinary refund history proof GREEN
+
+Owner reported the focused product-only refund detail test GREEN after the dedicated
+refund timeline read-model/presentation patch.
+
+Exact assertion count/duration were not supplied in the chat, so they are not fabricated here.
+
+Proven focused behavior:
+
+- ordinary product refund remains visible after refresh;
+- refund date, amount, reason and refunded component are exposed from canonical refund ledger;
+- desktop and handset consume the same shared refund history presentation;
+- historical refunded component is not exposed as a current payable component;
+- payment/edit/refund actions are hidden when no current backend capability remains;
+- `correction_history` remains untouched as note mutation history.
+
+### Next focused slice — package component refund with surviving service
+
+Characterization added:
+
+```text
+paid service + store-stock package
+-> refund store-stock product component
+-> service component survives as current settled component
+-> refresh Detail Nota
+-> inspect desktop + handset
+```
+
+Required assertions:
+
+- refund timeline shows the historical store-stock component, amount and reason;
+- current row still shows the surviving service identity;
+- row settlement shows refunded product amount + surviving service net paid;
+- current billing projection excludes the refunded stock component;
+- current billing projection retains only the settled service fee;
+- outstanding remains zero;
+- no payment action when no current payable obligation exists;
+- no refund action for the already-refunded stock component;
+- no edit action when cashier submit capability would reject the current state.
+
+Next command:
+
+```bash
+git pull
+
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/CashierNoteRefundHistoryPresentationFeatureTest.php \
+  --filter=package_component_refund_refresh_keeps_service_current_and_product_historical \
+  --compact
+```
