@@ -18,10 +18,12 @@ use App\Application\Note\Services\NoteHistoryProjectionService;
 use App\Application\Note\Services\NoteCurrentRevisionResolver;
 use App\Application\Note\Services\NoteOperationalStatusEvaluator;
 use App\Application\Note\Services\NoteOperationalStatusResolver;
+use App\Application\Note\Services\NoteOutstandingPaymentAmountResolver;
 use App\Application\Note\Services\NoteRowSettlementSummaryBuilder;
 use App\Application\Note\Services\PersistNoteMutationTimeline;
 use App\Application\Note\Services\WorkItemFactory;
 use App\Application\Note\Services\WorkItemStatusTransitionService;
+use App\Ports\Out\Note\NoteReaderPort;
 use App\Ports\Out\Payment\CustomerRefundReaderPort;
 use App\Ports\Out\Payment\PaymentAllocationReaderPort;
 use Illuminate\Support\ServiceProvider;
@@ -43,6 +45,13 @@ class NoteApplicationServiceProvider extends ServiceProvider
             $app->make(PaymentAllocationReaderPort::class),
             $app->make(CustomerRefundReaderPort::class),
             $app->make(NoteOperationalStatusEvaluator::class),
+            $app->make(NoteCurrentRevisionResolver::class),
+            $app->make(CurrentRevisionRowSettlementProjector::class),
+        ));
+        $this->app->singleton(NoteOutstandingPaymentAmountResolver::class, fn ($app) => new NoteOutstandingPaymentAmountResolver(
+            $app->make(NoteReaderPort::class),
+            $app->make(PaymentAllocationReaderPort::class),
+            $app->make(CustomerRefundReaderPort::class),
             $app->make(NoteCurrentRevisionResolver::class),
             $app->make(CurrentRevisionRowSettlementProjector::class),
         ));
