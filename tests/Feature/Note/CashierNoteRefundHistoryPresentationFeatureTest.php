@@ -111,4 +111,130 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
             Carbon::setTestNow();
         }
     }
+
+    public function test_package_component_refund_refresh_keeps_service_current_and_product_historical(): void
+    {
+        Carbon::setTestNow('2026-09-14 10:00:00');
+
+        try {
+            $cashier = $this->loginAsKasir();
+            $this->seedMinimalProduct('package-refund-product', 'PR-001', 'Sparepart Refund Package', 'Test', null, 100000);
+            DB::table('product_inventory')->insert([
+                'product_id' => 'package-refund-product',
+                'qty_on_hand' => 5,
+            ]);
+            DB::table('product_inventory_costing')->insert([
+                'product_id' => 'package-refund-product',
+                'avg_cost_rupiah' => 40000,
+                'inventory_value_rupiah' => 200000,
+            ]);
+
+            $this->actingAs($cashier)
+                ->post(route('notes.workspace.store'), [
+                    'idempotency_key' => 'package-refund-create',
+                    'note' => [
+                        'customer_name' => 'Package Refund UI',
+                        'transaction_date' => '2026-09-14',
+                    ],
+                    'items' => [[
+                        'entry_mode' => 'service',
+                        'part_source' => 'store_stock',
+                        'pricing_mode' => 'manual_split',
+                        'service' => [
+                            'name' => 'Servis Tetap Aktif',
+                            'price_rupiah' => 50000,
+                        ],
+                        'product_lines' => [[
+                            'product_id' => 'package-refund-product',
+                            'qty' => 1,
+                            'unit_price_rupiah' => 100000,
+                        ]],
+                    ]],
+                    'inline_payment' => [
+                        'decision' => 'pay_full',
+                        'payment_method' => 'cash',
+                        'paid_at' => '2026-09-14',
+                        'amount_paid_rupiah' => 150000,
+                        'amount_received_rupiah' => 150000,
+                    ],
+                ])
+                ->assertSessionHasNoErrors();
+
+            $noteId = (string) DB::table('notes')->value('id');
+            $rowId = (string) DB::table('work_items')->where('note_id', $noteId)->value('id');
+            $stockLineId = (string) DB::table('work_item_store_stock_lines')
+                ->where('work_item_id', $rowId)
+                ->value('id');
+            $reason = 'Refund sparepart package, jasa tetap sah';
+
+            $this->actingAs($cashier)
+                ->post(route('cashier.notes.refunds.store', ['noteId' => $noteId]), [
+                    'selected_row_ids' => [$rowId],
+                    'refunded_at' => '2026-09-14',
+                    'reason' => $reason,
+                    'idempotency_key' => 'package-refund-component',
+                ])
+                ->assertSessionHasNoErrors();
+
+            $this->assertDatabaseHas('customer_refunds', [
+                'note_id' => $noteId,
+                'amount_rupiah' => 100000,
+                'reason' => $reason,
+            ]);
+            $this->assertDatabaseHas('refund_component_allocations', [
+                'note_id' => $noteId,
+                'work_item_id' => $rowId,
+                'component_type' => 'service_store_stock_part',
+                'component_ref_id' => $stockLineId,
+                'refunded_amount_rupiah' => 100000,
+            ]);
+
+            foreach (['?0' => 'desktop', '?1' => 'handset'] as $mobileHeader => $device) {
+                $response = $this->actingAs($cashier)
+                    ->withHeaders(['Sec-CH-UA-Mobile' => $mobileHeader])
+                    ->get(route('cashier.notes.show', ['noteId' => $noteId]))
+                    ->assertOk();
+
+                $note = $response->viewData('note');
+                self::assertCount(1, $note['refund_timeline'], $device);
+                self::assertSame(100000, $note['refund_timeline'][0]['amount_rupiah'], $device);
+                self::assertSame($reason, $note['refund_timeline'][0]['reason'], $device);
+                self::assertSame('service_store_stock_part', $note['refund_timeline'][0]['components'][0]['component_type'], $device);
+                self::assertSame($stockLineId, $note['refund_timeline'][0]['components'][0]['component_ref_id'], $device);
+                self::assertSame('Sparepart Refund Package', $note['refund_timeline'][0]['components'][0]['label'], $device);
+
+                self::assertCount(1, $note['rows'], $device);
+                self::assertSame('Servis Tetap Aktif', $note['rows'][0]['line_label'], $device);
+                self::assertSame('refund', $note['rows'][0]['line_status'], $device);
+                self::assertSame(100000, $note['rows'][0]['refunded_rupiah'], $device);
+                self::assertSame(50000, $note['rows'][0]['net_paid_rupiah'], $device);
+                self::assertSame(0, $note['rows'][0]['outstanding_rupiah'], $device);
+
+                self::assertCount(1, $note['billing_rows'], $device);
+                self::assertSame('service_fee', $note['billing_rows'][0]['component_type'], $device);
+                self::assertSame($rowId, $note['billing_rows'][0]['work_item_id'], $device);
+                self::assertSame(0, $note['billing_rows'][0]['outstanding_rupiah'], $device);
+
+                self::assertSame(0, $note['outstanding_rupiah'], $device);
+                self::assertFalse($note['can_show_payment_form'], $device);
+                self::assertFalse($note['can_show_partial_payment_action'], $device);
+                self::assertFalse($note['can_show_settle_payment_action'], $device);
+                self::assertFalse($note['can_edit_workspace'], $device);
+                self::assertFalse($note['can_show_refund_form'], $device);
+
+                $response
+                    ->assertSee('Riwayat Pengembalian Dana')
+                    ->assertSee('Sparepart Refund Package')
+                    ->assertSee('Servis Tetap Aktif')
+                    ->assertSee($reason)
+                    ->assertDontSee('Bayar Sebagian')
+                    ->assertDontSee('Lunasi')
+                    ->assertDontSee('Edit Nota')
+                    ->assertDontSee('id="note-refund-open-button"', false);
+            }
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
 }
