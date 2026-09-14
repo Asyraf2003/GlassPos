@@ -10,6 +10,7 @@ use App\Application\Note\Services\EditableWorkspaceNoteGuard;
 use App\Application\Note\Services\NoteCurrentRevisionResolver;
 use App\Application\Note\Services\NoteHistoryProjectionService;
 use App\Application\Note\Services\NoteRevisionBootstrapFactory;
+use App\Application\Note\Services\ReopenNoteForRevisionOutstanding;
 use App\Ports\Out\ClockPort;
 use App\Ports\Out\Note\NoteReaderPort;
 
@@ -22,6 +23,7 @@ final class CreateNoteRevisionWorkflow
         private readonly CreateNoteRevisionPayloadNoteBuilder $payloadNotes,
         private readonly CreateNoteRevisionSettlementCommitter $settlementCommits,
         private readonly ApplyNoteRevisionAsActiveReplacement $applier,
+        private readonly ReopenNoteForRevisionOutstanding $reopen,
         private readonly CreateTransactionWorkspaceInlinePaymentRecorder $payments,
         private readonly CreateNoteRevisionPaymentResultFactory $paymentResults,
         private readonly EditableWorkspaceNoteGuard $guard,
@@ -63,6 +65,7 @@ final class CreateNoteRevisionWorkflow
         $createdAt = $this->clock->now();
 
         $this->applier->apply($root, $replacement, $payload['items'] ?? []);
+        $this->reopen->reopenIfNeeded($root, $revisionId, $actorId, $reason, $createdAt);
         $paymentSummary = $this->payments->record($root, $payload['inline_payment'] ?? []);
 
         $revision = $this->factory->createNextRevision(

@@ -32,7 +32,9 @@ final class AutoCloseNoteWhenFullyPaid
             return;
         }
 
-        $netPaid = $this->allocations->getTotalAllocatedAmountByNoteId($note->id())->amount()
+        $allocated = $this->allocations->getTotalAllocatedAmountByNoteId($note->id())->amount();
+        $grossPaid = $this->allocations->getTotalPaymentAmountByNoteId($note->id())->amount();
+        $netPaid = max($allocated, $grossPaid)
             - $this->refunds->getTotalRefundedAmountByNoteId($note->id())->amount();
 
         if ($netPaid < $note->totalRupiah()->amount()) {
