@@ -2014,3 +2014,42 @@ Smallest action:
 - no production change.
 
 Next proof is the same focused duplicate refund replay characterization.
+
+
+### Full verify RED — two adjacency regressions
+
+Latest full verify:
+
+```text
+PHPStan: PASS
+line audit: PASS
+Blade audit: PASS
+contract audit: PASS
+Tests: 2 failed, 1704 passed
+Assertions: 11485
+Duration: 57.80s
+```
+
+Failures:
+
+1. `RecordNotePaymentHttpFeatureTest::test_selected_row_payment_uses_combined_legacy_and_component_allocations`
+   - error: `Amount alokasi payment melebihi outstanding note.`
+   - classification: PRODUCTION BUG in current-revision read-model reconciliation.
+   - current component settlement saw component allocation but did not fold note-level legacy allocation remainder into `net_paid/outstanding`.
+   - fix: current-revision component summary now reconciles row-level allocated/refunded totals with component collectible settlement while preserving non-collectible refunded component semantics.
+
+2. `CashierNoteRevisionSmokeTest::test_note_detail_repairs_existing_revision_pointer_when_current_pointer_is_empty`
+   - actual status: 403.
+   - classification: PRODUCTION REGRESSION from revision-aware preflight.
+   - revision history existed but `current_revision_id` was empty; `hasRevision()` returned true and settlement attempted `resolveOrFail()` before the detail controller could repair the pointer.
+   - fix: add explicit `hasCurrentRevision()`; operational/current settlement only uses revision projection when a current pointer is actually resolvable. Historical revision existence remains distinct, and write targeting behavior is unchanged.
+
+Production commits:
+
+```text
+c6f14d76 fix: include legacy money in current revision settlement
+7a80e503 fix: distinguish current revision from revision history
+19282d5c fix: allow legacy settlement before revision pointer repair
+```
+
+Runtime proof pending. Run the two previously failing tests before the next full `make verify`.
