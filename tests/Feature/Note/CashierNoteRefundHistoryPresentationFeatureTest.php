@@ -803,14 +803,14 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
             $this->actingAs($cashier)
                 ->from(route('cashier.notes.show', ['noteId' => $noteId]))
                 ->post(route('cashier.notes.refunds.store', ['noteId' => $noteId]), $payload)
-                ->assertRedirect(route('cashier.notes.show', ['noteId' => $noteId]))
+                ->assertRedirect(route('cashier.notes.index'))
                 ->assertSessionHas('success')
                 ->assertSessionHasNoErrors();
 
             $this->actingAs($cashier)
                 ->from(route('cashier.notes.show', ['noteId' => $noteId]))
                 ->post(route('cashier.notes.refunds.store', ['noteId' => $noteId]), $payload)
-                ->assertRedirect(route('cashier.notes.show', ['noteId' => $noteId]))
+                ->assertRedirect(route('cashier.notes.index'))
                 ->assertSessionHas('success')
                 ->assertSessionHasNoErrors();
 
