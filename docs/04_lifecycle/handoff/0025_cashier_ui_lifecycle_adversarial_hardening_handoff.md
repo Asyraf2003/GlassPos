@@ -2053,3 +2053,21 @@ c6f14d76 fix: include legacy money in current revision settlement
 ```
 
 Runtime proof pending. Run the two previously failing tests before the next full `make verify`.
+
+
+### Adjacency fixes focused proof GREEN
+
+Owner reported both previously failing focused regressions PASS:
+
+- combined legacy + component allocation payment;
+- cashier note detail revision pointer repair.
+
+Exact test count, assertion count, and duration were not supplied, so they are intentionally not recorded.
+
+Next and final automated gate:
+
+```bash
+make verify
+```
+
+If GREEN, close this automated UI hardening target and hand off to manual browser/device QA.
