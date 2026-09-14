@@ -4,17 +4,24 @@ declare(strict_types=1);
 
 namespace App\Application\Note\Services;
 
+use App\Application\Note\Services\Concerns\ResolvesNoteOperationalCurrentRevisionSettlement;
+use App\Application\Note\Services\CurrentRevision\CurrentRevisionRowSettlementProjector;
 use App\Application\Shared\DTO\Result;
+use App\Core\Note\Note\Note;
 use App\Ports\Out\Note\NoteReaderPort;
 use App\Ports\Out\Payment\CustomerRefundReaderPort;
 use App\Ports\Out\Payment\PaymentAllocationReaderPort;
 
 final class NoteOutstandingPaymentAmountResolver
 {
+    use ResolvesNoteOperationalCurrentRevisionSettlement;
+
     public function __construct(
         private readonly NoteReaderPort $notes,
         private readonly PaymentAllocationReaderPort $allocations,
         private readonly CustomerRefundReaderPort $refunds,
+        private readonly ?NoteCurrentRevisionResolver $currentRevision = null,
+        private readonly ?CurrentRevisionRowSettlementProjector $currentRevisionSettlements = null,
     ) {
     }
 
@@ -26,12 +33,8 @@ final class NoteOutstandingPaymentAmountResolver
             return Result::failure('Nota tidak ditemukan.', ['payment' => ['PAYMENT_INVALID_TARGET']]);
         }
 
-        $grandTotal = $note->totalRupiah()->amount();
-        $allocated = $this->allocations->getTotalAllocatedAmountByNoteId($note->id())->amount();
-        $grossPaid = $this->allocations->getTotalPaymentAmountByNoteId($note->id())->amount();
-        $refunded = $this->refunds->getTotalRefundedAmountByNoteId($note->id())->amount();
-        $netPaid = max(max($allocated, $grossPaid) - $refunded, 0);
-        $outstanding = max($grandTotal - $netPaid, 0);
+        $settlement = $this->currentRevisionSettlement($note) ?? $this->legacySettlement($note);
+        $outstanding = $settlement['outstanding_rupiah'];
 
         if ($outstanding <= 0) {
             return Result::failure('Nota sudah lunas.', ['payment' => ['PAYMENT_ALREADY_PAID']]);
@@ -39,10 +42,14 @@ final class NoteOutstandingPaymentAmountResolver
 
         return Result::success([
             'amount_rupiah' => $outstanding,
-            'grand_total_rupiah' => $grandTotal,
-            'net_paid_rupiah' => $netPaid,
+            'grand_total_rupiah' => $settlement['gross_total_rupiah'],
+            'net_paid_rupiah' => $settlement['net_paid_rupiah'],
             'outstanding_rupiah' => $outstanding,
-            'explanation' => $this->explanation($grandTotal, $netPaid, $outstanding),
+            'explanation' => $this->explanation(
+                $settlement['gross_total_rupiah'],
+                $settlement['net_paid_rupiah'],
+                $outstanding,
+            ),
         ]);
     }
 
@@ -64,21 +71,32 @@ final class NoteOutstandingPaymentAmountResolver
             return Result::failure('Nominal pembayaran sebagian harus lebih kecil dari sisa tagihan.', ['payment' => ['INVALID_PARTIAL_AMOUNT']]);
         }
 
-        $grandTotal = (int) ($full->data()['grand_total_rupiah'] ?? 0);
-        $netPaid = (int) ($full->data()['net_paid_rupiah'] ?? 0);
-
         return Result::success([
             'amount_rupiah' => $amountRupiah,
-            'grand_total_rupiah' => $grandTotal,
-            'net_paid_rupiah' => $netPaid,
+            'grand_total_rupiah' => (int) ($full->data()['grand_total_rupiah'] ?? 0),
+            'net_paid_rupiah' => (int) ($full->data()['net_paid_rupiah'] ?? 0),
             'outstanding_rupiah' => $outstanding,
-            'explanation' => $this->explanation($grandTotal, $netPaid, $outstanding),
+            'explanation' => $full->data()['explanation'] ?? [],
         ]);
     }
 
-    /**
-     * @return array{basis:string,gross_total_rupiah:int,net_paid_rupiah:int,outstanding_rupiah:int}
-     */
+    /** @return array{gross_total_rupiah:int,net_paid_rupiah:int,outstanding_rupiah:int} */
+    private function legacySettlement(Note $note): array
+    {
+        $grandTotal = $note->totalRupiah()->amount();
+        $allocated = $this->allocations->getTotalAllocatedAmountByNoteId($note->id())->amount();
+        $grossPaid = $this->allocations->getTotalPaymentAmountByNoteId($note->id())->amount();
+        $refunded = $this->refunds->getTotalRefundedAmountByNoteId($note->id())->amount();
+        $netPaid = max(max($allocated, $grossPaid) - $refunded, 0);
+
+        return [
+            'gross_total_rupiah' => $grandTotal,
+            'net_paid_rupiah' => $netPaid,
+            'outstanding_rupiah' => max($grandTotal - $netPaid, 0),
+        ];
+    }
+
+    /** @return array{basis:string,gross_total_rupiah:int,net_paid_rupiah:int,outstanding_rupiah:int} */
     private function explanation(int $grandTotal, int $netPaid, int $outstanding): array
     {
         return [
