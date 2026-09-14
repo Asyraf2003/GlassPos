@@ -1618,3 +1618,58 @@ php -d memory_limit=-1 vendor/bin/pest \
   --filter=refund_then_revision_refresh_keeps_refund_historical_and_new_revision_current \
   --compact
 ```
+
+
+### Refund -> revision detail proof GREEN
+
+Owner reported the focused refund -> accepted revision -> refreshed Detail Nota characterization GREEN.
+
+Exact assertion count/duration were not supplied, so they are not invented here.
+
+Proven UI/read-model boundary:
+
+- historical refund remains visible after accepted revision;
+- old refunded work-item identity remains historical only;
+- current detail row is the replacement revision identity;
+- current carry-forward settlement drives outstanding correctly;
+- legitimate current payment actions appear when current outstanding exists;
+- edit visibility matches the active admin revision capability;
+- desktop and handset remain aligned.
+
+### Next focused slice — refund -> legitimate new payment -> refresh detail
+
+Characterization added for a current revision with:
+
+```text
+historical original payment = 300k
+historical ordinary refund = 100k
+current revision service obligation = 250k
+carried current allocation = 200k
+current outstanding before payment = 50k
+```
+
+The test then records a legitimate new 50k payment through the HTTP payment route and refreshes
+Detail Nota on desktop + handset.
+
+Required assertions:
+
+- the new payment allocates only to the current revision service component;
+- zero new allocation is created for the stale refunded work item;
+- current row reaches net paid 250k and outstanding 0;
+- payment actions disappear after settlement;
+- admin edit action remains available if backend capability allows it;
+- current refund action appears for the newly settled current row;
+- historical refund event, reason and old product identity remain visible;
+- current billing projection contains only the current service component;
+- historical refund does not become current payable identity.
+
+Next command:
+
+```bash
+git pull
+
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/CashierNoteRefundHistoryPresentationFeatureTest.php \
+  --filter=refund_then_legitimate_new_payment_refresh_settles_current_revision_without_hiding_history \
+  --compact
+```
