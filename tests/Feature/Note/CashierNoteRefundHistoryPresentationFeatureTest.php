@@ -649,7 +649,7 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
 
             $paymentOutstanding = app(\App\Application\Note\Services\NoteOutstandingPaymentAmountResolver::class)
                 ->resolveFull($noteId);
-            self::assertTrue($paymentOutstanding->isSuccess(), $paymentOutstanding->message());
+            self::assertTrue($paymentOutstanding->isSuccess(), $paymentOutstanding->message() ?? 'Payment outstanding resolver gagal.');
             self::assertSame(250000, $paymentOutstanding->data()['grand_total_rupiah']);
             self::assertSame(200000, $paymentOutstanding->data()['net_paid_rupiah']);
             self::assertSame(50000, $paymentOutstanding->data()['outstanding_rupiah']);
