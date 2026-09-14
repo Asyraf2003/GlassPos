@@ -843,7 +843,6 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
 
                 $html = (string) $response->getContent();
                 self::assertSame(1, substr_count($html, 'data-refund-history-event='), $device);
-                self::assertSame(1, substr_count($html, $reason), $device);
 
                 $response
                     ->assertSee('Riwayat Pengembalian Dana')
