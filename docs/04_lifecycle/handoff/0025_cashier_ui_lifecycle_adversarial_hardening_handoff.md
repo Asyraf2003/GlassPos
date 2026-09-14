@@ -1772,3 +1772,37 @@ php -d memory_limit=-1 vendor/bin/pest \
 ```
 
 Stop and classify any further RED before expanding.
+
+
+### Focused rerun RED — assertion harness only
+
+Runtime:
+
+```text
+1 failed
+3 assertions before failure
+Duration: 5.26s
+```
+
+Failure:
+
+```text
+TypeError:
+PHPUnit Assert::assertTrue() argument #2 must be string, null given.
+```
+
+### CLASSIFICATION
+
+```text
+TEST WRONG
+```
+
+The characterization passed a nullable domain result message directly as PHPUnit's
+required string assertion message. A successful Result carries `message() = null`,
+so the test harness raised TypeError before it could inspect the resolver result.
+
+Smallest action:
+
+- coalesce nullable result message to a string fallback;
+- no production change;
+- rerun the same focused scenario.
