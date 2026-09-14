@@ -1874,3 +1874,61 @@ NoteOutstandingPaymentAmountResolver.php: 99
 ```
 
 Next proof is the same focused HTTP/UI characterization.
+
+
+### Refund -> legitimate new payment detail proof GREEN
+
+Focused runtime:
+
+```text
+Tests: 1 passed
+Assertions: 72
+Duration: 5.28s
+```
+
+This proves the repaired current-revision payment preflight and refreshed Detail Nota agree on the same current obligation:
+
+- current revision grand total = 250000;
+- current revision net paid before new payment = 200000;
+- legitimate outstanding = 50000;
+- new 50000 payment is accepted;
+- new allocation targets only the current revision service component;
+- stale refunded historical work item receives no new allocation;
+- refreshed current row reaches outstanding 0;
+- payment actions disappear after settlement;
+- current refund action becomes available for the newly settled current row;
+- historical refund remains visible and unchanged;
+- desktop + handset remain aligned.
+
+### Next focused slice — duplicate refund replay display
+
+Characterization added for:
+
+```text
+paid product-only note
+-> refund with idempotency key
+-> replay exact same refund request
+-> refresh Detail Nota
+-> desktop + handset
+```
+
+Required proof:
+
+- exactly one `customer_refunds` row;
+- exactly one `refund_component_allocations` row;
+- exactly one inventory reversal;
+- exactly one `refund_timeline` event;
+- rendered HTML contains exactly one refund-history event;
+- reason/product label appear once as one historical event;
+- no payment/refund action is resurrected after replay.
+
+Next command:
+
+```bash
+git pull
+
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/CashierNoteRefundHistoryPresentationFeatureTest.php \
+  --filter=duplicate_refund_replay_renders_one_historical_event_after_refresh \
+  --compact
+```
