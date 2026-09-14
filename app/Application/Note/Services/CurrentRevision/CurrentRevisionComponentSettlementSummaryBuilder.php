@@ -42,8 +42,12 @@ final class CurrentRevisionComponentSettlementSummaryBuilder
                 $componentPaymentTotals,
                 $componentRefundTotals,
             );
-            $netPaid = $componentSettlement['net_paid_rupiah'];
-            $outstanding = $componentSettlement['outstanding_rupiah'];
+            $rowNetPaid = min(max($allocated - $refunded, 0), $subtotal);
+            $netPaid = max($componentSettlement['net_paid_rupiah'], $rowNetPaid);
+            $outstanding = min(
+                $componentSettlement['outstanding_rupiah'],
+                max($subtotal - $netPaid, 0),
+            );
 
             $summary[$key] = [
                 'allocated_rupiah' => $allocated,
