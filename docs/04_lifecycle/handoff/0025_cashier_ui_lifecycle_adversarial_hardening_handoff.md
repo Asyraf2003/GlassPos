@@ -1564,3 +1564,57 @@ php -d memory_limit=-1 vendor/bin/pest \
   --filter=package_component_refund_refresh_keeps_service_current_and_product_historical \
   --compact
 ```
+
+
+### Package component refund detail proof GREEN
+
+Owner reported the focused package-component refund detail characterization GREEN.
+
+Exact assertion count/duration were not supplied, so they are not invented here.
+
+Proven UI/read-model behavior:
+
+- historical store-stock refund remains visible in refund timeline;
+- surviving service identity remains visible as current row content;
+- refunded stock component is absent from current billing projection;
+- current billing retains the settled service fee only;
+- outstanding is zero;
+- payment/refund/edit action visibility matches backend capability;
+- desktop and handset render the same shared refund history surface.
+
+### Next focused slice — refund -> revision -> refresh detail
+
+Characterization added for:
+
+```text
+paid 300k product note
+-> historical refund 100k
+-> accepted revision to current 250k service-only obligation
+-> carry-forward 200k
+-> current outstanding 50k
+-> refresh Detail Nota on desktop + handset
+```
+
+Required UI/read-model boundary:
+
+- historical refund event still shows 100k, reason, and old product identity;
+- old refunded work item remains historical only;
+- current row is the new revision work item;
+- current grand total = 250k;
+- current net paid = 200k;
+- current outstanding = 50k;
+- Bayar Sebagian + Lunasi visible because legitimate current obligation exists;
+- Edit visible only because the accepted current admin revision remains editable;
+- refund action hidden because the current service-only outstanding row is not yet refundable;
+- historical refund must not appear as current payable/billing identity.
+
+Next command:
+
+```bash
+git pull
+
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/CashierNoteRefundHistoryPresentationFeatureTest.php \
+  --filter=refund_then_revision_refresh_keeps_refund_historical_and_new_revision_current \
+  --compact
+```
