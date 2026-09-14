@@ -1,0 +1,217 @@
+=== NOTE ===
+=== NOTE ===
+*************************** 1. row ***************************
+                    id: 7a129d82-3887-40bf-bb24-aebd0cc9286c
+         customer_name: Pelanggan baru
+        customer_phone: NULL
+      transaction_date: 2026-09-15
+      operational_note: NULL
+            note_state: closed
+             closed_at: 2026-09-15 00:38:38
+    closed_by_actor_id: system
+           reopened_at: NULL
+  reopened_by_actor_id: NULL
+          total_rupiah: 813500
+   current_revision_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c-r003
+latest_revision_number: 3
+              due_date: 2026-10-15
+            created_at: 2026-09-15 00:33:21
+            updated_at: 2026-09-15 00:41:45
+=== WORK ITEMS CURRENT/PRESERVED ===
+=== WORK ITEMS CURRENT/PRESERVED ===
+*************************** 1. row ***************************
+              id: be872546-88ad-45e3-bb08-9994c8a81e50
+         note_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c
+         line_no: 1
+transaction_type: store_stock_sale_only
+          status: open
+ subtotal_rupiah: 199000
+      created_at: 2026-09-15 00:41:45
+      updated_at: 2026-09-15 00:41:45
+*************************** 2. row ***************************
+              id: 47b3a602-a405-4379-9860-c00102a42e36
+         note_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c
+         line_no: 2
+transaction_type: service_with_store_stock_part
+          status: open
+ subtotal_rupiah: 614500
+      created_at: 2026-09-15 00:41:45
+      updated_at: 2026-09-15 00:41:45
+=== PAYMENT ALLOCATIONS ===
+=== PAYMENT ALLOCATIONS ===
+=== PAYMENT COMPONENT ALLOCATIONS ===
+=== PAYMENT COMPONENT ALLOCATIONS ===
+*************************** 1. row ***************************
+                              id: 227d8dbb-9e2e-49b2-b0b7-546f4801755c
+             customer_payment_id: 12d2394e-5fd1-4972-a31a-7f67727f3d8c
+                         note_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c
+                    work_item_id: be872546-88ad-45e3-bb08-9994c8a81e50
+                  component_type: product_only_work_item
+                component_ref_id: be872546-88ad-45e3-bb08-9994c8a81e50
+component_amount_rupiah_snapshot: 199000
+         allocated_amount_rupiah: 199000
+             allocation_priority: 1
+                      created_at: 2026-09-15 00:41:45
+                      updated_at: 2026-09-15 00:41:45
+*************************** 2. row ***************************
+                              id: 609f12ae-4321-44e6-8049-f0936db4a569
+             customer_payment_id: 12d2394e-5fd1-4972-a31a-7f67727f3d8c
+                         note_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c
+                    work_item_id: 47b3a602-a405-4379-9860-c00102a42e36
+                  component_type: service_store_stock_part
+                component_ref_id: e16cf57c-649f-4ea8-ac64-aae682343f66
+component_amount_rupiah_snapshot: 144000
+         allocated_amount_rupiah: 33000
+             allocation_priority: 2
+                      created_at: 2026-09-15 00:41:45
+                      updated_at: 2026-09-15 00:41:45
+*************************** 3. row ***************************
+                              id: 88ae6a96-4e5b-4651-b345-3a0b0718bec4
+             customer_payment_id: dacc6c1d-52b3-43e7-8e87-a9397f98b587
+                         note_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c
+                    work_item_id: 47b3a602-a405-4379-9860-c00102a42e36
+                  component_type: service_store_stock_part
+                component_ref_id: 416c6373-06bb-4b89-9f91-a31352c3d7f2
+component_amount_rupiah_snapshot: 181000
+         allocated_amount_rupiah: 152500
+             allocation_priority: 1
+                      created_at: 2026-09-15 00:41:45
+                      updated_at: 2026-09-15 00:41:45
+*************************** 4. row ***************************
+                              id: 82475950-850d-4c84-8317-bc199f37128a
+             customer_payment_id: dacc6c1d-52b3-43e7-8e87-a9397f98b587
+                         note_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c
+                    work_item_id: 47b3a602-a405-4379-9860-c00102a42e36
+                  component_type: service_fee
+                component_ref_id: 47b3a602-a405-4379-9860-c00102a42e36
+component_amount_rupiah_snapshot: 127000
+         allocated_amount_rupiah: 127000
+             allocation_priority: 2
+                      created_at: 2026-09-15 00:41:45
+                      updated_at: 2026-09-15 00:41:45
+*************************** 5. row ***************************
+                              id: a3f25ddd-7258-4b98-9e96-24fa65f60190
+             customer_payment_id: f56bc197-8418-4c28-80bf-5dbe1f7e1f13
+                         note_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c
+                    work_item_id: 47b3a602-a405-4379-9860-c00102a42e36
+                  component_type: service_store_stock_part
+                component_ref_id: e16cf57c-649f-4ea8-ac64-aae682343f66
+component_amount_rupiah_snapshot: 144000
+         allocated_amount_rupiah: 111000
+             allocation_priority: 1
+                      created_at: 2026-09-15 00:41:45
+                      updated_at: 2026-09-15 00:41:45
+*************************** 6. row ***************************
+                              id: 19084afd-7fb7-4200-a5d6-361a9bb2d3a8
+             customer_payment_id: f56bc197-8418-4c28-80bf-5dbe1f7e1f13
+                         note_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c
+                    work_item_id: 47b3a602-a405-4379-9860-c00102a42e36
+                  component_type: service_store_stock_part
+                component_ref_id: 9112bfa5-89ae-4b08-995b-0d2fbc36104c
+component_amount_rupiah_snapshot: 162500
+         allocated_amount_rupiah: 162500
+             allocation_priority: 2
+                      created_at: 2026-09-15 00:41:45
+                      updated_at: 2026-09-15 00:41:45
+*************************** 7. row ***************************
+                              id: 875b4510-b713-4dec-9861-84b23f78f15b
+             customer_payment_id: f56bc197-8418-4c28-80bf-5dbe1f7e1f13
+                         note_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c
+                    work_item_id: 47b3a602-a405-4379-9860-c00102a42e36
+                  component_type: service_store_stock_part
+                component_ref_id: 416c6373-06bb-4b89-9f91-a31352c3d7f2
+component_amount_rupiah_snapshot: 181000
+         allocated_amount_rupiah: 28500
+             allocation_priority: 3
+                      created_at: 2026-09-15 00:41:45
+                      updated_at: 2026-09-15 00:41:45
+=== CUSTOMER PAYMENTS ===
+=== CUSTOMER PAYMENTS ===
+=== ORDINARY REFUNDS ===
+=== ORDINARY REFUNDS ===
+=== REFUND COMPONENT ALLOCATIONS ===
+=== REFUND COMPONENT ALLOCATIONS ===
+=== REVISIONS ===
+=== REVISIONS ===
+*************************** 1. row ***************************
+                 id: 7a129d82-3887-40bf-bb24-aebd0cc9286c-r001
+       note_root_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c
+    revision_number: 1
+ parent_revision_id: NULL
+created_by_actor_id: 1
+             reason: Bootstrap initial revision from transaction workspace create
+      customer_name: Pelanggan baru
+     customer_phone: NULL
+   transaction_date: 2026-09-15
+ grand_total_rupiah: 1093000
+         line_count: 4
+         created_at: 2026-09-15 00:33:21
+         updated_at: NULL
+*************************** 2. row ***************************
+                 id: 7a129d82-3887-40bf-bb24-aebd0cc9286c-r002
+       note_root_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c
+    revision_number: 2
+ parent_revision_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c-r001
+created_by_actor_id: 1
+             reason: Revisi nota via workspace
+      customer_name: Pelanggan baru
+     customer_phone: NULL
+   transaction_date: 2026-09-15
+ grand_total_rupiah: 993500
+         line_count: 4
+         created_at: 2026-09-15 00:35:32
+         updated_at: NULL
+*************************** 3. row ***************************
+                 id: 7a129d82-3887-40bf-bb24-aebd0cc9286c-r003
+       note_root_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c
+    revision_number: 3
+ parent_revision_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c-r002
+created_by_actor_id: 1
+             reason: Revisi nota via workspace
+      customer_name: Pelanggan baru
+     customer_phone: NULL
+   transaction_date: 2026-09-15
+ grand_total_rupiah: 813500
+         line_count: 2
+         created_at: 2026-09-15 00:41:45
+         updated_at: NULL
+=== SURPLUS DISPOSITIONS ===
+=== SURPLUS DISPOSITIONS ===
+*************************** 1. row ***************************
+                         id: e5049f37-eff6-43e3-814f-b584c24456c4
+note_revision_settlement_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c-r003-settlement
+               note_root_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c
+           note_revision_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c-r003
+           disposition_type: refund_due
+              amount_rupiah: 180000
+      before_pending_rupiah: 180000
+       after_pending_rupiah: 0
+                     status: active
+                occurred_at: 2026-09-15 00:00:00
+                 created_at: 2026-09-15 00:41:45
+                 updated_at: NULL
+             audit_event_id: 503be5db-f13a-456a-8642-c3bb92db389b
+=== SURPLUS REFUND PAYMENTS ===
+=== SURPLUS REFUND PAYMENTS ===
+*************************** 1. row ***************************
+                                  id: a8fd2af5-5dcb-42b5-84f2-3d4b706546d8
+note_revision_surplus_disposition_id: e5049f37-eff6-43e3-814f-b584c24456c4
+         note_revision_settlement_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c-r003-settlement
+                        note_root_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c
+                    note_revision_id: 7a129d82-3887-40bf-bb24-aebd0cc9286c-r003
+                       amount_rupiah: 180000
+                      effective_date: 2026-09-15
+                         occurred_at: 2026-09-15 00:00:00
+                              status: active
+                     idempotency_key: auto-refund-paid:7a129d82-3887-40bf-bb24-aebd0cc9286c-r003-settlement
+                      audit_event_id: 97e738d8-fff4-4a8f-9f17-182506d66106
+                          created_at: 2026-09-15 00:41:45
+                          updated_at: NULL
+=== CURRENT STORE STOCK LINES ===
+=== CURRENT STORE STOCK LINES ===
+line_no	work_item_id	stock_line_id	product_id	qty	line_total_rupiah	qty_on_hand
+1	be872546-88ad-45e3-bb08-9994c8a81e50	b5ce7052-af7a-42ae-b253-01a809af24d2	329ffaa3-6c21-488e-b3c1-afc9d94ac1cc	2	199000	12
+2	47b3a602-a405-4379-9860-c00102a42e36	416c6373-06bb-4b89-9f91-a31352c3d7f2	768ac8cf-886a-41cd-bbd0-9d01834ca873	1	181000	16
+2	47b3a602-a405-4379-9860-c00102a42e36	9112bfa5-89ae-4b08-995b-0d2fbc36104c	fe63b4b6-9d5c-44cf-b746-e4232c9324fc	1	162500	27
+2	47b3a602-a405-4379-9860-c00102a42e36	e16cf57c-649f-4ea8-ac64-aae682343f66	95edee6a-5b20-4b4c-961e-c0709875deb4	1	144000	38
+[asyraf@zenbook GlassPos]$
