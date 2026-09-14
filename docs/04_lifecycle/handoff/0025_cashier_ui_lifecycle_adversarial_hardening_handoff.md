@@ -1673,3 +1673,102 @@ php -d memory_limit=-1 vendor/bin/pest \
   --filter=refund_then_legitimate_new_payment_refresh_settles_current_revision_without_hiding_history \
   --compact
 ```
+
+
+### Refund -> legitimate new payment focused RED
+
+Runtime:
+
+```text
+1 failed
+6 assertions before failure
+Duration: 5.73s
+```
+
+Failure:
+
+```text
+Uang masuk kurang dari nominal pembayaran.
+```
+
+The rendered Detail Nota immediately before submit showed current outstanding `50000`,
+but the HTTP payment preflight rejected cash tender `50000` as insufficient.
+
+### FACT
+
+- Detail Nota current-revision projection reported:
+  - grand total 250000
+  - net paid 200000
+  - outstanding 50000
+  - payment action visible
+- HTTP payment preflight used `NoteOutstandingPaymentAmountResolver`.
+- `DatabaseNoteReaderAdapter` loads all root work items, including refund-protected historical rows.
+- `NoteMapper` derives root aggregate total from all non-canceled root work items.
+- Refund-protected historical rows remain persisted so refund FK/audit history is immutable.
+- Therefore root aggregate total can exceed current revision total after refund + revision.
+- Current Detail projection is already revision-aware; payment preflight was not.
+
+### CONTRACT
+
+ADR-0042 / ADR-0045 require:
+
+- historical refunded rows remain historical/shadow;
+- current payable state comes from current revision;
+- legitimate current outstanding remains payable;
+- stale refunded historical identity must not re-enter current payment semantics.
+
+ADR-0044 remains unchanged: settlement intent and cash tender semantics are not modified.
+
+### CLASSIFICATION
+
+```text
+PRODUCTION BUG — revision-unaware payment outstanding preflight/read boundary
+```
+
+This is not a finance write-engine bug. Allocation/write semantics remain closed and unchanged.
+
+### Smallest action
+
+`NoteOutstandingPaymentAmountResolver` now uses the same
+`ResolvesNoteOperationalCurrentRevisionSettlement` boundary already used by
+`NoteOperationalStatusResolver`.
+
+Behavior:
+
+- if current revision exists:
+  - grand total/net paid/outstanding come from current revision settlement projection;
+- otherwise:
+  - existing legacy note-level gross/allocated/refund calculation remains unchanged.
+
+No changes to:
+
+- payment allocation writer;
+- payment component allocator;
+- refund writer;
+- stock reversal;
+- revision write/replay;
+- ADR-0044 tender semantics.
+
+Regression lock added inside the focused UI/HTTP characterization:
+
+```text
+payment outstanding resolver:
+grand total = 250000
+net paid = 200000
+outstanding = 50000
+```
+
+Touched production file remains within line audit limit without bypass.
+
+Next command:
+
+```bash
+git pull
+
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/CashierNoteRefundHistoryPresentationFeatureTest.php \
+  --filter=refund_then_legitimate_new_payment_refresh_settles_current_revision_without_hiding_history \
+  --compact
+```
+
+Stop and classify any further RED before expanding.
