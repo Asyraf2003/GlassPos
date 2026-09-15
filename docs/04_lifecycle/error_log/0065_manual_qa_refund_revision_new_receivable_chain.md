@@ -4,7 +4,9 @@
 
 OPEN - second independent manual-QA forensic chain captured.
 
-One production contract regression is confirmed from source + runtime evidence.
+Operational reopen / second-close regression: **CLOSED — automated proof GREEN**.
+See section 20 for the patch and exact execution evidence. Other issues in this
+log remain open and were not part of this fix.
 
 Primary note:
 
@@ -952,3 +954,124 @@ group by logical refunded component/action, then show payment-source allocation 
 Revision snapshots already contain actual product names, but revision UI renders generic labels such as "Line 5".
 
 This can be improved without changing revision storage semantics.
+
+---
+
+## 20. Operational reopen / second close — focused fix and closure
+
+Target status: **CLOSED** (2026-09-15).
+
+Scope: closed/paid -> historical component refund -> authorized revision creates
+new outstanding -> persisted root reopen -> final payment -> a new close transition.
+The finance/inventory forensic conclusions above remain accepted; they were not
+re-audited or rewritten.
+
+### Ownership and root cause
+
+Classification: **PRODUCTION BUG — operational state machine / audit metadata**.
+
+`CreateNoteRevisionWorkflow` owns the transaction sequence: replacement and
+allocation rebuild, inline payment, revision/settlement commit, then projection.
+`ApplyNoteRevisionAsActiveReplacement` previously changed the active rows/header/
+total without an operational reopen. Domain `NoteOperationalStateMutations`
+already implements `reopen()` and `close()`, and `NoteWriterPort` persists their
+metadata. The workflow never invoked the reopen transition.
+
+After correcting reopen, the same focused test exposed the second blocker in
+`AutoCloseNoteWhenFullyPaid`: it subtracted historical refund from allocations
+already rebuilt as net carried settlement. In the focused fixture, final current
+allocations are 865000, gross linked payments are 965000, and refund is 100000.
+The old close eligibility computed 765000 instead of 865000 and left root open.
+
+### One focused lifecycle regression and exact RED evidence
+
+Execution context for all commands: `/home/asyraf/projects/laravel/GlassPos`,
+using the local test database with approved access outside the sandbox.
+
+```bash
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/RefundRevisionOperationalReopenFeatureTest.php --compact
+```
+
+- First RED: **1 failed / 11 assertions / 5.80s**. Settlement underpaid,
+  outstanding 645000; expected root open with reopen metadata, actual closed,
+  first closed_at retained, reopened_at and reopened_by_actor_id null.
+- After reopen patch: **1 failed / 15 assertions / 5.97s**. Persisted reopen
+  passed; final payment succeeded, but root remained open with the first
+  closed_at. Classified as the auto-close eligibility production bug above.
+- Focused GREEN: **1 passed / 26 assertions / 5.84s** after both fixes.
+
+The fixture uses actual create/refund/admin revision requests and the existing
+payment handler. It retains a 200000 net historical service settlement, creates
+a revised 865000 obligation, pays 20000 inline, then settles the remaining
+645000. An injected `ClockPort` advances between operations. It verifies persisted
+reopen actor/time, preserved first close until settlement, two distinct close
+events/payment references, second close timestamp, and final outstanding zero.
+It is a reduced lifecycle reproduction, not a replay of the production note.
+
+### Smallest transition patch
+
+- `app/Application/Note/Services/ReopenNoteForRevisionOutstanding.php`: uses the
+  existing `BuildCreateNoteRevisionSettlement` to check new outstanding; for a
+  closed root only, calls domain reopen, persists operational state, and records
+  `note_reopened` with before/after snapshots. Uses the revision operation's
+  clock timestamp and actor; missing optional actor uses system attribution.
+- `app/Application/Note/UseCases/CreateNoteRevisionWorkflow.php`: invokes that
+  transition after replacement/rebuild and before inline payment, inside the
+  existing transaction. Already-open and zero-outstanding roots are not reopened.
+- `app/Application/Note/Services/AutoCloseNoteWhenFullyPaid.php`: eligibility uses
+  `max(allocated, gross linked paid) - refunded`, matching the existing inline
+  payment amount resolver's basis. Allocation/refund writers and carry-forward
+  math are unchanged. Existing domain close and timeline recording remain owners
+  of the second close transition.
+- `tests/Feature/Note/RefundRevisionOperationalReopenFeatureTest.php`: one new
+  focused regression test.
+
+No timestamps are hardcoded in production. No work-item force-close, inventory
+change, refund allocation change, or ADR-0044 change was made.
+
+### Adjacent GREEN
+
+```bash
+php -d memory_limit=-1 vendor/bin/pest \
+  tests/Feature/Note/RefundRevisionOperationalReopenFeatureTest.php \
+  tests/Feature/Note/ClosedNoteRevisionPolicyFeatureTest.php \
+  tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php \
+  tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php \
+  tests/Feature/Note/CashierNoteRevisionInlinePaymentContractTest.php \
+  tests/Feature/Note/NoteRevisionRollbackFeatureTest.php \
+  tests/Feature/Note/NoteOperationalStatePersistenceFeatureTest.php \
+  tests/Feature/Note/ReopenClosedNoteFeatureTest.php \
+  tests/Feature/Note/AdminReopenClosedNoteHttpFeatureTest.php \
+  tests/Feature/Payment/AutoClosePaidNoteOnFullPaymentFeatureTest.php \
+  tests/Unit/Core/Note/NoteOperationalStateTransitionsTest.php --compact
+```
+
+Result: **21 passed / 159 assertions / 6.36s**, including the focused test.
+No adjacent RED or expectation changes were needed.
+
+### Final verify GREEN
+
+```bash
+make verify > /tmp/glasspos-0065-final-verify.log 2>&1
+```
+
+Actual result: exit code **0**; PHPStan, line audit, Blade audit, and contract
+audit PASS; **1707 passed / 11520 assertions / 78.50s**. Duration is the reported
+Pest duration. An earlier verify session lost its process handle during the
+interruption; no final result is claimed for that run. The completed rerun above
+is the final proof.
+
+Source and focused test were found committed locally as `d255bd52` (`Update
+project`) on continuation. This section is a subsequent documentation update.
+
+### Residual / stop boundary
+
+- Existing historical production metadata, including the captured note's missed
+  reopen/second-close events, is not backfilled by this patch. No production data
+  repair was performed and no historical timestamp was invented.
+- Manual browser/device validation of the patched lifecycle remains separate
+  from the executed automated proof.
+- Work-item status presentation, pay_full validator, payment suggestions, refund
+  grouping, and generic revision labels remain outside this target. The whole
+  log is not closed. No next implementation target is opened by this closure.
