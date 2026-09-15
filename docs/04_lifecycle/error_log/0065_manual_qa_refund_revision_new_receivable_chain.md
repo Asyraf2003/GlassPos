@@ -188,6 +188,118 @@ This is now source + runtime proven.
 
 Do not broaden the fix beyond the request-validator boundary before a focused RED test reproduces this exact R2 scenario.
 
+### Target closure - pay_full cash validator (2026-09-15)
+
+Status: **CLOSED - local automated proof GREEN** for this validator regression.
+The observations above preserve the pre-patch evidence. Other targets in this
+log remain outside this closure.
+
+#### Current boundary map and root cause
+
+- `StoreNoteRevisionRequest` normalizes the workspace payload and invokes
+  `UpdateTransactionWorkspaceValidator`, which delegates payment validation to
+  `StoreTransactionWorkspacePaymentValidator`. Create/update requests also share
+  that payment validator.
+- Current `CreateNoteRevisionWorkflow` applies the replacement and records inline
+  payment through `CreateTransactionWorkspaceInlinePaymentRecorder` before the
+  settlement commit. This current source supersedes ADR 0030's historical
+  description that revision submit forces payment to skip; this patch does not
+  change that workflow.
+- Recorder -> `CreateTransactionWorkspaceInlinePaymentContextResolver` ->
+  `CreateTransactionWorkspaceInlinePaymentAmountResolver` resolves full payment
+  from persisted payment/allocation/refund readers and the backend note total.
+  Its existing basis is outstanding = max(total - net paid, 0), where
+  net paid = max(max(allocated, gross linked paid) - refunded, 0).
+- Recorder -> `BuildCustomerPaymentCashDetail` -> domain
+  `CustomerPaymentCashDetail` rejects received cash below the accepted payment
+  amount before payment/allocation persistence.
+- The request validator instead compared received cash to raw payload grand
+  total. Thus 600000 was rejected against 857500 before the backend could accept
+  payable 564000. The old unit expectation explicitly locked that regression.
+
+#### RED proof
+
+Execution context: `/home/asyraf/projects/laravel/GlassPos`; local test database,
+with approved access outside the sandbox for database tests.
+
+Commands:
+
+- `php artisan test tests/Unit/Adapters/In/Http/Requests/Note/StoreTransactionWorkspacePaymentValidatorTest.php`
+  -> **1 failed, 2 passed / 3 assertions**. Updated full-cash expectation failed
+  with `inline_payment.amount_received_rupiah` and exactly
+  `Uang masuk cash tidak boleh kurang dari total yang dibayar.`
+- `php artisan test tests/Feature/Note/WorkspaceFullCashPayableBoundaryFeatureTest.php`
+  -> **3 failed / 9 assertions / 5.81s** before production patch. Each dataset
+  first proved backend payable 564000 from total 857500 and persisted paid
+  293500, then failed at request validation with the same raw-total error.
+  Cash datasets: 600000, exact payable 564000, and insufficient 563999.
+- The initial sandboxed database attempt failed to connect with zero assertions;
+  it is infrastructure failure, not the RED proof. The approved rerun above
+  reached the targeted assertions.
+
+#### Smallest patch
+
+- Remove only the unused cash-target match and pay_full raw-grand-total cash
+  comparison from `StoreTransactionWorkspacePaymentValidator`.
+- Preserve positive-cash validation and all current pay_partial checks.
+- Replace the unit expectation that required raw-total coverage with the backend
+  payable contract. Add the database-backed validator/recorder boundary test.
+- No client payable, JS, hidden field, or submitted amount becomes financial
+  truth. The focused test supplies a forged amount_paid_rupiah of 1 and still
+  proves full-payment credit 564000.
+
+#### Focused GREEN
+
+Command:
+
+`php artisan test tests/Unit/Adapters/In/Http/Requests/Note/StoreTransactionWorkspacePaymentValidatorTest.php tests/Feature/Note/WorkspaceFullCashPayableBoundaryFeatureTest.php`
+
+Result: **6 passed / 24 assertions / 5.71s**.
+
+- 600000 accepted, payment credit 564000, change 36000.
+- Exact cash 564000 accepted with zero change.
+- 563999 reaches the backend and is rejected by the domain cash guard; no new
+  customer payment, cash detail, or component allocation is persisted.
+- Existing partial-cash tests remain GREEN without expectation changes.
+
+#### Adjacent GREEN
+
+`php artisan test` with these files under `tests/Feature/Note/`:
+
+- `CreateTransactionWorkspaceInlinePaymentAmountResolverFeatureTest.php`
+- `CreateTransactionWorkspaceInlinePaymentRecorderFeatureTest.php`
+- `CreateTransactionWorkspaceFullCashFeatureTest.php`
+- `CreateTransactionWorkspacePartialCashFeatureTest.php`
+- `CreateTransactionWorkspaceInlinePaymentLifecycleFeatureTest.php`
+- `UpdateTransactionWorkspaceFeatureTest.php`
+- `EditTransactionWorkspaceRevisionPaymentCharacterizationTest.php`
+- `ExistingNoteCashSettlementIntentFeatureTest.php`
+- `RevisionSettlementHistoricalPaymentFeatureTest.php`
+- `CashierNoteRevisionInlinePaymentContractTest.php`
+
+Result: **36 passed / 303 assertions / 6.92s**.
+
+#### Final gates
+
+- `git diff --check`: exit **0**, no output before verify.
+- `make verify > /tmp/glasspos-pay-full-verify.log 2>&1`: exit **0**;
+  PHPStan, line/Blade contract audits passed; **1710 passed / 11541 assertions /
+  77.36s** (Pest duration).
+
+#### Residual / stop
+
+- The focused test is a reduced database-backed request-validator -> application
+  recorder boundary reproduction using the exact QA money values. It does not
+  replay the four-shape production note or execute a browser/revision HTTP flow.
+  Existing revision/payment regressions and the full suite passed separately.
+- Manual browser QA of the patched 600000 submission has not been performed.
+- No production data repair was performed. On final inspection, the code and
+  tests were already committed locally as `739b309a` (`Update project`); the
+  assistant did not create that commit. This documentation update remains
+  uncommitted. Operational reopen remains closed; refund allocation, inventory, UI suggestions/history/grouping/labels,
+  and ADR-0044 semantics were not changed.
+- Stop after this target; the whole log is not closed.
+
 ---
 
 ## 5. Full settlement of R2
