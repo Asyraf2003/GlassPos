@@ -2,7 +2,7 @@
 
 ## 0. Status, scope, and evidence boundary
 
-Date: 2026-09-15. Status: **BLUEPRINT READY FOR REVIEW; CONTRACT GAPS REMAIN**.
+Audit window: 2026-09-15–2026-09-16, Asia/Makassar. Status: **BLUEPRINT READY FOR REVIEW; CONTRACT GAPS REMAIN**. Example fixture business date remains 2026-09-15.
 
 ACTIVE STEP: map primitive contracts and design five composition chains. This document does not authorize production implementation, migrations, data repair, or changes to ADR/AI_RULES. Execute one later slice at a time, with proof and owner feedback.
 
@@ -72,6 +72,7 @@ Paths below are relative to repository root. Matrix aliases name precise owners,
 | S24 | `app/Application/Note/Services/CreateNoteRevisionIdempotencyService.php`; `app/Application/Payment/Services/RecordNotePaymentIdempotencyService.php`, `RecordSelectedRowsRefundIdempotencyService.php`; key/hash replay. Revision request key is nullable; workflow has no base-revision comparison. |
 | S25 | `public/assets/static/js/pages/cashier-note-workspace/payment-flow.js`, `summary.js`, `public/assets/static/js/pages/cashier-note-payment.js`; calculator/preset derivations. `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspacePaymentValidator.php`; current full-cash validator boundary. |
 | S26 | `app/Adapters/Out/Note/Mappers/NoteMapper.php`; rehydrates total by summing non-canceled persisted work items, not directly from current revision. |
+| S27 | `app/Application/Payment/UseCases/RecordCustomerPaymentHandler.php`, `AllocateCustomerPaymentHandler.php`; older separate record/allocate application paths. `app/Core/Payment/Policies/PaymentAllocationPolicy.php` computes payment remaining as payment amount minus already allocated. No cashier route to these separate handlers was found in the inspected route inventory. |
 
 ### Persistence and constraints inspected
 
@@ -102,7 +103,7 @@ Coverage codes resolve to exact existing files in section 5. A dash means no dir
 | M03 payment accepted | Credited settlement, not banknote tender | `customer_payments.amount_rupiah`, S02 | Append valid payment | Rewrite amount/method/time on revision | P increases once | None from payment itself | Event cash-in/transfer-in | Payment id, recorded/paid dates | T02, T03 | LOCKED |
 | M04 payment allocated | Distribution of credited money to eligible components | `payment_component_allocations`, S03; legacy bridge S04 | Allocate; rebuild current projection on revision | Allocate tender/change; exceed component/payment capacity | A increases or redistributes, not new P | None | Current allocated amount, not historical cash | Payment + work item + type/ref/priority | T02, T04, T07 | IMPLEMENTED BUT WEAKLY TESTED |
 | M05 allocation priority | External first, store second, service last | S03 priority then orderIndex | Fill next eligible capacity; multiple DP | New independent DP engine | Determines funding sources | None | Component attribution | Stored allocation priority | T07; gauntlet adjacent | IMPLEMENTED BUT WEAKLY TESTED |
-| M06 unallocated payment | Accepted money deliberately awaiting obligation | No approved cashier wallet/unallocated-payment contract; ADR-0022 forbids accidental orphan | Legacy separate record/allocate APIs exist | Treat lost revision linkage as valid wallet | No approved new behavior | None | Never hide orphan money | Payment-link reconciliation needed | T07 separate APIs, no wallet proof | MISSING PRIMITIVE |
+| M06 unallocated payment | Accepted money deliberately awaiting allocation | S27 supports separate payment record and remaining=payment−allocated; no approved cashier wallet contract | Legacy record→later allocate exists; cashier S02 must allocate atomically | Treat lost revision linkage as valid wallet | Unallocated balance can exist through older application path; lifecycle/ownership GAP | None | Global cashflow can see money absent from note reports | Payment ID + later allocation, no invented note owner | T07 separate APIs, no cashier wallet proof | CONTRACT GAP |
 | M07 ordinary refunded amount | Money returned against source payment/component | `customer_refunds` + `refund_component_allocations`, S13 | Append within source limits | Sum both tables as two refunds | F increases once | Depends on explicit refund path | Ordinary outflow | Refund + source payment + component | T08, T09 | LOCKED |
 | M08 committed surplus/due | Money no longer available for current settlement | `note_revision_surplus_dispositions`, S15 | Pending surplus → refund_due | Consume committed due in later revision | D increases; N decreases | None | Liability, not cash-out | Disposition + settlement + audit | T10 | IMPLEMENTED BUT WEAKLY TESTED |
 | M09 surplus refund paid | Actual payout of committed surplus | `note_revision_surplus_refund_payments`, S15 | Due → partial/full paid | Reclaim in later revision; fake ordinary refund | V increases; D decreases; N unchanged on paying already committed due | None | Separate surplus outflow | Disposition/idempotency/audit | T10, T11 | IMPLEMENTED BUT WEAKLY TESTED |
@@ -240,10 +241,13 @@ SAFE duplication means equal semantics with an explicit equivalence boundary. RE
 | D18 stock available | product_inventory for issue lock; UI cached lookup; movement history for reconciliation | READ-MODEL DERIVATION | Lookup is a preview. Under-lock issue owns acceptance; insufficient-stock failure must roll back all money/version writes. |
 | D19 COGS/external cost | S22 movement buckets vs package-specific COGS queries; external current lines less refund allocations | READ-MODEL DERIVATION with period/membership gap | Preserved historical external rows/current replacement and cross-date subtraction need explicit membership proof. No new costing formula. |
 | D20 audit | S23 legacy AuditLogPort versus canonical AuditEventWriterPort/outbox; note timeline separately | DANGEROUS SECOND SOURCE OF TRUTH for compliance claims | Revision/selected refund/payment legacy capture is not evidence of mandatory durable outbox capture. Inject failure at actual bound port, not just any audit mock. |
+| D21 semantic command identity | S24 revision replay hashes payload via CreateTransactionWorkspaceIdempotencyScopeResolver; target noteId is a separate handler argument | DANGEROUS SECOND SOURCE OF TRUTH | Actor/operation/key lookup does not itself prove target-root membership. Controller passes validated body separately from route noteId; same body/key against another root could replay the first result. Characterize root binding before calling revision idempotency complete. |
+| D22 accepted partial intent | S07 inline partial cash returns min(requested intent,outstanding); S06 note partial rejects amount≥outstanding | DANGEROUS SECOND SOURCE OF TRUTH | Same oversized partial intent may be silently clipped in one surface and rejected in another. ADR-0044 accepted-intent boundary and ADR-0022 no-silent-adjust rule need a focused surface comparison; normal A values remain below outstanding. |
+| D23 remaining payment / legacy allocation | S27 separate allocation subtracts historical refunds from A and reads note without getByIdForUpdate; S02 combined flow locks note and uses component capacity | DANGEROUS SECOND SOURCE OF TRUTH | Lower-level entry point is not evidence of approved cashier unallocated money. Cross-note allocation also invalidates a naive sum of whole payment amount per note. Establish caller/scope and serialization before generalizing D02. |
 
 ### Priority findings requiring classification before any patch
 
-1. **Cross-version money:** D04–D06. Chain B must prove both source-event conservation and current allocation after a second post-refund revision and paid-out surplus. A plausible final net alone can hide lost allocation.
+1. **Cross-version money:** D04–D06. Chain B must prove both source-event conservation and current allocation after a second post-refund revision and paid-out surplus. A plausible final net alone can hide lost allocation. The older unallocated/allocate paths S27 also require explicit scope boundaries before claiming all payment callers are safe.
 2. **Paid cancellation/correction bypass:** X03/X04 are real source paths, not invented operations. Request permits canceled on paid row; nominal correction updates without next revision. Compare against ADR-0042/0045 and characterize exact consequences.
 3. **Stale editor:** root lock serializes operations but does not know which revision the browser edited. Missing base-version contract is V04, distinct from stale refund-ID protection.
 4. **All-refunded reopen:** O04 is separate from the closed-root path fixed in 0065. Do not amend that closure without a new focused test.
@@ -382,12 +386,12 @@ D6 change8,994; D7 change2,274. All surplus fields0. Capture actual operational 
 
 | Product | Exact movement sequence excluding opening receipts | Cardinality / ending cost |
 |---|---|---|
-| P | issue(P1)−3; revision return(P1)+3; issue(P2)−2; refund return(P2)+2; issue(P3)+sign−1 | Five rows, three issues, one revision return, one refund return. P3 ID differs from P1/P2. Net−1; COGS19,721; stock value315,536. |
+| P | issue(P1)−3; revision return(P1)+3; issue(P2)−2; refund return(P2)+2; issue(P3)−1 | Five rows, three issues, one revision return, one refund return. P3 ID differs from P1/P2. Net−1; COGS19,721; stock value315,536. |
 | Q | issue(Q1)−2; revision return(Q1)+2; issue(Q2)−3; revision return(Q2)+3 | Four rows; net0; COGS0; stock value264,569. |
 | R | issue(R3)−2 | One row; net−2; COGS27,418; stock value233,053. |
 | External/service | No movements | Zero rows, including after revision/refund/payment. |
 
-Total note-related movements10: six? **five stock_out** (P1/P2/P3/Q1/Q2/R3 is six), three revision returns (P1/Q1/Q2), one refund return(P2): **six stock_out + three revision returns + one refund return =10**. Use this explicit source set, not a guessed aggregate. Original issue rows must remain byte-for-byte unchanged.
+Total note-related movements: **six stock_out + three revision returns + one refund return =10**. Issue sources are P1/P2/P3/Q1/Q2/R3; revision-return sources are P1/Q1/Q2; refund-return source is P2. Use this explicit source set, not a guessed aggregate. Original issue rows must remain byte-for-byte unchanged.
 
 At D5 old refunded P2 must not get `transaction_workspace_updated` reversal as well. Test fresh-key stale refund P2 and same-key D5 replay; all ten movement identities remain unchanged. Before D5 success, attempt replacement R qty20 against stock19: whole mutation rolls back (revision pointer, allocations, inventory/cost, payment and audit effects). Then submit valid qty2 with a new accepted command key.
 
@@ -452,7 +456,7 @@ Shared setup: disposable local/staging QA dataset; dedicated customer labels QA-
 
 All reads are scoped to the captured note ID and source IDs; retain raw timestamps and integer amounts. Do not query accepted payments only through legacy payment_allocations.
 
-- **F-MONEY:** notes current pointer/total/state; payment IDs from UNION(payment_allocations, payment_component_allocations, customer_refunds) plus independently captured payment IDs; customer_payments and cash_details; both allocation tables; customer_refunds and refund_component_allocations. Sum each ledger once, preserve per-payment mapping. Captured IDs are essential if linkage disappears.
+- **F-MONEY:** notes current pointer/total/state; payment IDs from UNION(payment_allocations, payment_component_allocations, customer_refunds) plus independently captured payment IDs; customer_payments and customer_payment_cash_details; both allocation tables; customer_refunds and refund_component_allocations. Sum each ledger once, preserve per-payment mapping. Captured IDs are essential if linkage disappears.
 - **F-VERSION:** note_revisions ordered revision_number; note_revision_lines payload/work_item_root_id/line_no; current work_items and child tables; note_revision_settlements; dispositions and surplus payments with status, amount, effective_date, occurred_at, created_at. Check pointer belongs to root and parent chain, not just MAX(number).
 - **F-STOCK:** inventory_movements for every captured stock line source, including deleted historical line IDs from revision payloads; fields id/product_id/movement_type/source_type/source_id/reversal_source_id/qty_delta/unit_cost_rupiah/total_cost_rupiah/tanggal_mutasi/created_at; product_inventory and costing. Verify sources and counts before net quantity.
 - **F-AUDIT:** note_mutation_events/snapshots; audit_logs event/context; audit_outbox and materialized audit_events/snapshots when present; idempotency_records key/hash/result/refund_ids. Distinguish missing durable capture from delayed materialization.
@@ -523,12 +527,14 @@ Future files below are **proposals, not files created in this step**. Existing t
 | Slice | Exact proposed ownership/file | Level / proof and stop gate |
 |---|---|---|
 | 1 | `tests/Feature/Note/PrimitiveSettlementSourceParityFeatureTest.php` | APPLICATION/READ-MODEL. One fixture with ordinary refund, first net rebuild, second revision, surplus-paid and next partial payment. Compare S05/S06/S07/S10 named bases. First RED classified; no UI/production patch in characterization slice. This is the next safe active step. |
-| 2 | `tests/Feature/Note/PrimitiveMutationBoundaryCharacterizationTest.php` | FEATURE/HTTP. C's existing paid-status/nominal correction probes, all-refunded root transition, and missing stale-base contract captured as bounded separate assertions. Resolve CONTRACT GAP/SOURCE CONFLICT before dependent implementation. May split execution into one probe per session; no giant patch. |
+| 2a | `tests/Feature/Note/PrimitiveMutationBoundaryCharacterizationTest.php` | FEATURE/HTTP. Only C's paid-status cancel probe. Classify X03 and stop for feedback. |
+| 2b | Same proposed file as2a | FEATURE/HTTP. Only nominal service correction probe; classify X04 and stop. No normalization of missing refund_due into accepted behavior. |
+| 2c | `tests/Feature/Note/PrimitiveFullyRefundedNewReceivableFeatureTest.php` | DOMAIN/FEATURE. Product-only P qty1=47,513, full payment47,513 then full refund47,513; authorized new service63,719 creates O63,719, followed by cash intent63,719/tender70,003/change6,284. Old rows remain shadow. Characterize O04 independently from closed-root T05; no invented transition implementation. |
 | 3 | Extend `tests/Unit/Application/Note/Services/BuildNoteRevisionSettlementTest.php` only where owner formula lacks proof; `tests/Feature/Note/PrimitivePaymentDebtCashChainFeatureTest.php` | UNIT owns formula; A FEATURE owns real multi-DP/revision/HTTP integration. Reuse T02 for cash formula/replay; do not duplicate all its inputs. |
 | 4 | `tests/Feature/Note/PrimitiveRefundRevisionReceivableChainFeatureTest.php` | FEATURE/DOMAIN integration. B source split, immutable event capture, two post-refund revisions, new debt and close. Reuse T05 and keep 0065 closure intact. |
 | 5 | `tests/Feature/Note/PrimitiveCancelCorrectionVersionChainFeatureTest.php` | FEATURE/HTTP. Supported C0–C6; diagnostic contracts resolved in slice2. No invented reset or whole-note cancel. |
 | 6 | `tests/Feature/Inventory/PrimitiveInventoryRevisionRefundChainFeatureTest.php` | APPLICATION/INTEGRATION. D exact ten movement rows, source-cost compensation, insufficient-stock rollback. No assertions solely on final qty. |
-| 7 | `tests/Feature/Note/PrimitiveRevisionIdentityContractFeatureTest.php` | DOMAIN/FEATURE. Stale-base edit versus current row IDs; same-key replay versus changed key; one reorder/remove/re-add snapshot proof and master-label stability. A missing request base identity is a GAP until explicit implementation slice, not a test fixture workaround. |
+| 7 | `tests/Feature/Note/PrimitiveRevisionIdentityContractFeatureTest.php` | DOMAIN/FEATURE. Stale-base edit versus current row IDs; same-key replay versus changed key and different target root; one reorder/remove/re-add snapshot proof and master-label stability. Execute one identity probe per session. A missing request base identity is a GAP until explicit implementation slice, not a test fixture workaround. |
 | 8 | `tests/Feature/Note/PrimitiveLifecyclePresentationContractFeatureTest.php`; browser runner `scripts/test-primitive-lifecycle-presentation.mjs` if existing browser harness is reused | READ-MODEL/UI. Consume checkpoint outputs; Tagihan/Dibayar/Sisa/buttons/history and Simple/Detail equality. Browser owns real modal/mobile/navigation behavior; HTTP owns payload and rendered semantic hooks. Do not repeat arithmetic owner tests. |
 | 9 | `tests/Feature/Reporting/PrimitiveLifecycleReportingChainFeatureTest.php` | REPORTING. E current/event-mode dataset, cash categories, COGS/external, canceled history, read-only source hashes, one cross-date probe. Existing exports T19 own format; add only dataset parity at important checkpoints. |
 | 10 | `tests/Feature/Note/PrimitiveLifecycleAuditAtomicityFeatureTest.php` | APPLICATION/FEATURE. Bound audit port failure, durable outbox and semantic IDs for payment/revision/refund/surplus. Inject one failure seam per session. Legacy audit rollback alone does not close A01. |
@@ -554,9 +560,9 @@ PRIMITIVES LOCKED: integer money; immutable credited payment/cash detail; ordina
 
 PRIMITIVES WEAK: repeated composition, allocation replay, refund operation grouping, complete version snapshots, revision inventory cardinality, due/paid consumer parity, all mutation idempotency/concurrency.
 
-PRIMITIVES MISSING/AMBIGUOUS: approved unallocated-wallet behavior (unsupported), stale-edit base identity, whole-note cancel/delete, domain reset (absent), independent stock-return choice, complete external lifecycle, zero/refunded root semantics. Source conflicts remain for legacy corrections and canonical durable audit.
+PRIMITIVES MISSING/AMBIGUOUS: approved cashier unallocated-wallet contract (legacy record/allocate exists), stale-edit base identity, whole-note cancel/delete, domain reset (absent), independent stock-return choice, complete external lifecycle, zero/refunded root semantics. Source conflicts remain for legacy corrections and canonical durable audit.
 
-DUPLICATED SOURCES OF TRUTH: D01–D20, with exact safe/read-model/dangerous classification. The aim is to converge later on explicit ownership, not to deduplicate every display calculation blindly.
+DUPLICATED SOURCES OF TRUTH: D01–D23, with exact safe/read-model/dangerous classification. The aim is to converge later on explicit ownership, not to deduplicate every display calculation blindly.
 
 BRUTAL CHAINS: A payment/debt/cash; B split refund/revision/surplus/new receivable; C real action distinctions; D ten exact inventory movements; E current/event reporting. All designs are unexecuted.
 
@@ -564,8 +570,10 @@ MANUAL QA PLAN: READY for supported paths and exact diagnostic capture; GAP-depe
 
 FILES CREATED/CHANGED: only this blueprint. NO PRODUCTION PATCH: YES.
 
-NEXT SAFE ACTIVE STEP: slice1 source-parity characterization, beginning with the second post-refund revision and committed surplus basis; do not start residual UI cleanup.
+NEXT SAFE ACTIVE STEP: slice 1 source-parity characterization, beginning with the second post-refund revision and committed surplus basis; do not start residual UI cleanup.
 
-PROGRESS: documentation deliverable complete after structural/path/arithmetic verification; implementation of proposed chains0%. No fresh application-test pass claimed.
+PROGRESS: documentation deliverable complete after structural/path/arithmetic verification; implementation of proposed chains 0%. No fresh application-test pass claimed.
+
+Verification performed locally with read-only Python assertions: PASS for 48 matrix rows with 11 required columns; status counts: 10 LOCKED, 17 IMPLEMENTED BUT WEAKLY TESTED, 8 DUPLICATED TRUTH, 3 CONTRACT GAP, 6 SOURCE CONFLICT, 4 MISSING PRIMITIVE. Referenced full source/test paths and relative Markdown links resolve; nonexistent future test paths are explicitly proposed. Independent A/B/D calculations, every E ledger/profit checkpoint, and D's ten movement rows reconcile. This is documentation proof only. Only this blueprint was written by the assistant; no claim is made about unrelated pre-existing working-tree changes.
 
 SESSION CONTEXT HEALTH: broad audit contains explicit anchors/checkpoints for a fresh implementation session. Continue one slice per later session; refresh source at execution time. This document is the continuation artifact, not a replacement for command/test proof.
