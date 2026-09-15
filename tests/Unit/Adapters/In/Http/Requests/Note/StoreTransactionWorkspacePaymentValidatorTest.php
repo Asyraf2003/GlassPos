@@ -81,7 +81,7 @@ final class StoreTransactionWorkspacePaymentValidatorTest extends TestCase
         $this->assertTrue($validator->errors()->has('inline_payment.amount_received_rupiah'));
     }
 
-    public function test_pay_full_cash_received_must_cover_payload_grand_total(): void
+    public function test_pay_full_cash_defers_amount_acceptance_to_backend_payable(): void
     {
         $payload = [
             'items' => [
@@ -91,7 +91,7 @@ final class StoreTransactionWorkspacePaymentValidatorTest extends TestCase
                     'part_source' => 'none',
                     'service' => [
                         'name' => 'Servis ADR 0030',
-                        'price_rupiah' => 100000,
+                        'price_rupiah' => 857500,
                         'notes' => null,
                     ],
                     'product_lines' => [],
@@ -103,7 +103,7 @@ final class StoreTransactionWorkspacePaymentValidatorTest extends TestCase
                 'payment_method' => 'cash',
                 'paid_at' => date('Y-m-d'),
                 'amount_paid_rupiah' => null,
-                'amount_received_rupiah' => 60000,
+                'amount_received_rupiah' => 600000,
                 'notes' => null,
             ],
         ];
@@ -112,9 +112,9 @@ final class StoreTransactionWorkspacePaymentValidatorTest extends TestCase
 
         StoreTransactionWorkspacePaymentValidator::validate($payload, $validator);
 
-        $this->assertTrue(
+        $this->assertFalse(
             $validator->errors()->has('inline_payment.amount_received_rupiah'),
-            'Full cash payment must require received cash to cover the payload grand total. Errors: '
+            'Full cash must reach backend settlement validation. Errors: '
                 .$validator->errors()->toJson()
         );
     }

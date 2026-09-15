@@ -48,12 +48,6 @@ final class StoreTransactionWorkspacePaymentValidator
             }
         }
 
-        $cashTargetAmount = match ($decision) {
-            'pay_partial' => $amountPaid,
-            'pay_full' => $grandTotal,
-            default => 0,
-        };
-
         if (($payment['payment_method'] ?? null) !== 'cash') {
             return;
         }
@@ -64,9 +58,8 @@ final class StoreTransactionWorkspacePaymentValidator
             $validator->errors()->add('inline_payment.amount_received_rupiah', 'Uang masuk cash wajib lebih dari 0.');
         }
 
-        if ($decision === 'pay_full' && $cashTargetAmount > 0 && $received < $cashTargetAmount) {
-            $validator->errors()->add('inline_payment.amount_received_rupiah', 'Uang masuk cash tidak boleh kurang dari total yang dibayar.');
-        }
+        // Full-payment cash coverage is checked against backend payable by the
+        // application/domain payment boundary, not the workspace item total.
     }
 
     private static function intValue(mixed $value): int
