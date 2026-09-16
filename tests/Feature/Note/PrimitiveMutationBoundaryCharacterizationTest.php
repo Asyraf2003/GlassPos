@@ -99,6 +99,22 @@ final class PrimitiveMutationBoundaryCharacterizationTest extends TestCase
         ];
         self::assertSame(2, count($after['note_revisions']),
             'ADR-0045 accepted edit requires a new revision: '.json_encode($evidence, JSON_THROW_ON_ERROR));
+        foreach (['note_revisions', 'note_revision_lines'] as $table) {
+            self::assertSame($before[$table], DB::table($table)->whereIn('id', array_column($before[$table], 'id'))
+                ->orderBy('id')->get()->map(static fn ($row): array => (array) $row)->all());
+        }
+        self::assertNotSame($evidence['before_revision'], $evidence['after_revision']);
+        self::assertNotSame($before['work_items'][0]['id'], $after['work_items'][0]['id']);
+        $this->assertDatabaseHas('note_revisions', [
+            'id' => $evidence['after_revision'], 'parent_revision_id' => $evidence['before_revision'],
+            'grand_total_rupiah' => 61987, 'revision_number' => 2,
+        ]);
+        self::assertCount(1, $after['note_revision_surplus_dispositions']);
+        self::assertCount(1, $after['note_revision_surplus_refund_payments']);
+        self::assertSame(1732, (int) $after['note_revision_surplus_dispositions'][0]['amount_rupiah']);
+        self::assertSame(1732, (int) $after['note_revision_surplus_refund_payments'][0]['amount_rupiah']);
+        self::assertSame(61987, (int) DB::table('payment_component_allocations')->sum('allocated_amount_rupiah'));
+        self::assertSame(1732, json_decode($evidence['correction_audit'][0]->context, true, flags: JSON_THROW_ON_ERROR)['refund_required_rupiah']);
     }
 
     private function effects(): array
