@@ -59,6 +59,8 @@ final class CreateTransactionWorkspaceWorkItemPayloadMapper
             return [WorkItem::TYPE_SERVICE_WITH_STORE_STOCK_PART, $service, [], $this->storeStock->mapMany($item)];
         }
 
+        $service['part_source'] = (string) ($item['part_source'] ?? 'none');
+
         return [WorkItem::TYPE_SERVICE_ONLY, $service, [], []];
     }
 }
