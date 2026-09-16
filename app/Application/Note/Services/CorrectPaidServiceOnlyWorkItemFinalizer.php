@@ -7,16 +7,12 @@ namespace App\Application\Note\Services;
 use App\Application\Note\UseCases\CorrectPaidServiceOnlySupportTrait;
 use App\Ports\Out\AuditLogPort;
 use App\Ports\Out\ClockPort;
-use App\Ports\Out\Payment\CustomerRefundReaderPort;
-use App\Ports\Out\Payment\PaymentAllocationReaderPort;
 
 final class CorrectPaidServiceOnlyWorkItemFinalizer
 {
     use CorrectPaidServiceOnlySupportTrait;
 
     public function __construct(
-        private readonly PaymentAllocationReaderPort $allocations,
-        private readonly CustomerRefundReaderPort $refunds,
         private readonly PersistNoteMutationTimeline $timeline,
         private readonly ClockPort $clock,
         private readonly AuditLogPort $audit,

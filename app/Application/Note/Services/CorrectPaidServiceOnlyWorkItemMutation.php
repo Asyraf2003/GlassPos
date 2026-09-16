@@ -66,12 +66,13 @@ final class CorrectPaidServiceOnlyWorkItemMutation
         if ($corrected === null) {
             throw new DomainException('Target replacement correction tidak ditemukan.');
         }
-        $settlement = $this->settlements->findByRevisionId($revision->id());
+        $settlement = $this->settlements->findByRevisionId($revision->id())
+            ?? throw new DomainException('Settlement revision correction tidak ditemukan.');
 
         return [
             'note' => $note, 'before' => $before, 'after_note' => $afterNote,
             'after' => $this->snapshots->build($afterNote), 'corrected' => $corrected,
-            'refund_required_rupiah' => $settlement?->surplusRupiah ?? 0,
+            'refund_required_rupiah' => $settlement->surplusRupiah,
         ];
     }
 }
