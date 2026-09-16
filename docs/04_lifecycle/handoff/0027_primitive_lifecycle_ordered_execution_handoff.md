@@ -141,3 +141,52 @@ Slice2b major gate: initial lint RED (two unused finalizer reader dependencies, 
 Latest code commit observed6de7adb6 (lint fixes included by another local process). Assistant proof commit/push will follow this GREEN. Next active slice2c, then3; no downstream fixture has been executed yet.
 
 Slice2b proof commit: eb8099c2dbec69313eb549ef8a22168e245e1382 (assistant git commit). Push first encountered concurrent remote ref update already at that SHA; retry git push origin main exited0, Everything up-to-date. Remote main SHA verified equal to eb8099c2. Code and GREEN evidence published. Next active2c.
+
+## Slice 2c — fully refunded root with a new receivable — COMPLETE
+
+Owner closeout instruction: finish proof/publication for 2c only, then STOP. Slice3 belongs to a fresh session. Do not repeat Slice1/2a/2b implementation.
+
+Classification: PRODUCTION BUG. Accepted ADR-0042 permits new current lines after full refund while old lines remain shadow; ADR-0015 defines open for positive outstanding. Root remained refunded after the new revision. Payment63719 then rolled back with “Hanya note open yang boleh ditutup.” Exact RED: 1 failed /15 assertions /6.21s.
+
+Fixture: product47513 paid then fully refunded; new service63719 through authorized revision; new cash payment63719/tender70003/change6284. Old payment/refund/refund-allocation/revision/inventory records stay immutable, old product receives no new allocation.
+
+Small repair: ReopenNoteForRevisionOutstanding also handles refunded roots with positive revision outstanding. It invokes the explicit domain reopenForRevisionOutstanding transition, which requires actor and positive active obligation for a refunded root. Ordinary manual reopen retains its existing closed-only contract. Existing note_reopened audit and close history are reused. No 0065 historical metadata repair or old component resurrection.
+
+Files for this slice:
+
+- app/Application/Note/Services/ReopenNoteForRevisionOutstanding.php
+- app/Core/Note/Note/NoteOperationalStateMutations.php
+- tests/Feature/Note/PrimitiveFullyRefundedNewReceivableFeatureTest.php
+- this handoff
+
+### Exact proof
+
+Execution context: /home/asyraf/projects/laravel/GlassPos, configured local test DB with approved access outside sandbox.
+
+Baseline revision-after-refund plus core operational transitions: 7 passed /38 assertions /5.97s.
+
+Initial focused after repair: 1 passed /20 assertions /5.88s. Final assertions add explicit reopened state/event, two close events, unchanged refund allocation/movement sets and exact tender/change.
+
+Final focused + adjacent command (already executed before interruption; original process output recovered without rerun):
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveFullyRefundedNewReceivableFeatureTest.php tests/Feature/Note/RefundRevisionOperationalReopenFeatureTest.php tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php tests/Feature/Note/AdminReopenClosedNoteHttpFeatureTest.php tests/Feature/Note/ReopenClosedNoteFeatureTest.php tests/Unit/Core/Note/NoteOperationalStateTransitionsTest.php --stop-on-failure --compact
+
+Result: **12 passed /106 assertions /5.81s**, exit0.
+
+Additional adjacent boundary/auto-close/rollback command:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/RefundAfterRevisionCurrentRowBoundaryFeatureTest.php tests/Feature/Payment/AutoClosePaidNoteOnFullPaymentFeatureTest.php tests/Feature/Note/NoteRevisionRollbackFeatureTest.php --stop-on-failure --compact
+
+Result: **3 passed /37 assertions /6.12s**, exit0.
+
+No further production edit during closeout. No new make verify run: the last broad GREEN remains Slice2b1713/11670; final2c has the focused/adjacent proof above, not a claimed fresh full-suite pass.
+
+### Publication and next session
+
+Repo was clean at closeout; implementation/tests were already committed by another local process. Repair commit63ba478788df1733336e62055914a3f56f6371b4; final test assertions commit1cf033f3d88091cfed3aebcb1123de94b1649cca. git ls-remote confirmed origin/main at1cf033f3d88091cfed3aebcb1123de94b1649cca, equal to local HEAD. Only this new proof section remained unpublished when written.
+
+The first remote read inside sandbox failed on SSH config permissions; approved outside-sandbox read succeeded. No SSH configuration was changed.
+
+Remaining GAP/CONFLICT: no blocker in the exercised2c contract. Unexecuted blueprint gaps (stale editor identity, audit, richer refund semantics, etc.) remain open; this proof does not resolve them.
+
+PROGRESS: Slice1,2a,2b,2c COMPLETE with scoped proof. Next active slice in a NEW SESSION:3, Chain A payment/debt/cash. Slice3 has NOT started. Stop here per owner instruction; retain this handoff for context recovery.
