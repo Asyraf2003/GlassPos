@@ -248,3 +248,5 @@ Final focused+adjacent:
     php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveRefundRevisionReceivableChainFeatureTest.php tests/Feature/Note/RefundRevisionOperationalReopenFeatureTest.php tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php tests/Feature/Note/CreateNoteRevisionSurplusRefundPaidCarryForwardFeatureTest.php tests/Feature/Note/RefundAfterRevisionCurrentRowBoundaryFeatureTest.php tests/Feature/Note/PrimitiveSettlementSourceParityFeatureTest.php --stop-on-failure --compact
 
 GREEN7 passed /230 assertions /6.52s, exit0. No major gate in this test-only slice. Commit/push pending. Next active Slice5 supported Chain C only; diagnostic probes already resolved in2a/2b are adjacent regressions, not reopened findings.
+
+Slice4 publication: assistant commit3caa7869; git push origin main exit0,69375390→3caa7869. Slice5 active.
