@@ -9,6 +9,7 @@ use App\Application\Note\Services\NoteCorrectionSnapshotBuilder;
 use App\Application\Note\Services\NoteHistoryProjectionService;
 use App\Application\Note\Services\WorkItemStatusTransitionService;
 use App\Application\Shared\DTO\Result;
+use App\Core\Note\WorkItem\WorkItem;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Ports\Out\AuditLogPort;
 use App\Ports\Out\Note\NoteReaderPort;
@@ -49,6 +50,10 @@ final class CorrectPaidWorkItemStatusHandler
             $started = true;
             $note = $this->notes->getById(trim($nId)) ?? throw new DomainException('Note tidak ditemukan.');
             $this->paidStatus->assertPaidForCorrection($note);
+
+            if (trim($status) === WorkItem::STATUS_CANCELED) {
+                throw new DomainException('Work item yang sudah lunas harus dibalik melalui refund, bukan correction status batal.');
+            }
 
             $before = $this->snapshots->build($note);
             $item = $this->transition->findAndApply($note, $line, trim($status));
