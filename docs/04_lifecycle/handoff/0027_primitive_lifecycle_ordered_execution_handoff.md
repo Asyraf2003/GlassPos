@@ -94,3 +94,44 @@ Adjacent command:
     php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/CorrectPaidWorkItemStatusFeatureTest.php tests/Feature/Note/CorrectPaidWorkItemStatusHttpFeatureTest.php tests/Feature/Note/UpdateWorkItemStatusFeatureTest.php tests/Feature/Note/AdminReopenClosedNoteHttpFeatureTest.php tests/Feature/Note/RefundRevisionOperationalReopenFeatureTest.php --stop-on-failure --compact
 
 Slice2a adjacent GREEN: 14 passed /112 assertions /5.91s, exit0. Slice2a completed. Next active slice2b only.
+
+## Slice 2b — nominal correction through revision (2026-09-16 continuation)
+
+Latest owner authorizes repair of unambiguous production bugs, automatic sequential continuation after GREEN, and commit/push only after GREEN. Slice1 and2a remain complete; they were not re-audited.
+
+Exact refreshed RED: test_nominal_correction_must_not_report_success_without_a_new_revision, 1 failed /11 assertions /5.82s. HTTP success changes same work item/root63719→61987; pointer staysR1, one revision, no due/paid, audit advisory refund_required1732. Classification PRODUCTION BUG against ADR-0045. No business-contract decision needed to require next immutable revision.
+
+Repair reuses CreateNoteRevisionWorkflow inside the existing correction transaction. Root is locked, original revision bootstrapped for legacy notes through EnsureInitialNoteRevisionExists, existing editable-line filter and revision payload mappers preserve the current graph and exclude shadow lines, and only target service fields change. Revision workflow owns replacement, allocation replay, settlement, automatic surplus due/paid, inventory effects, pointer and audit. Correction's own before/after audit remains, and refund_required_rupiah retains the generated revision surplus amount even after automatic payout. No parallel revision writer or report repair.
+
+Files changed for2b:
+
+- app/Application/Note/Services/BuildPaidServiceCorrectionRevisionPayload.php (new)
+- app/Application/Note/Services/CorrectPaidServiceOnlyWorkItemMutation.php
+- app/Application/Note/Services/CorrectPaidServiceOnlyWorkItemTransaction.php
+- app/Application/Note/Services/CorrectPaidServiceOnlyWorkItemFinalizer.php
+- app/Application/Note/Services/CreateTransactionWorkspaceWorkItemPayloadMapper.php
+- tests/Feature/Note/PrimitiveMutationBoundaryCharacterizationTest.php
+- tests/Feature/Note/CorrectPaidServiceOnlyWorkItemFeatureTest.php
+- this handoff
+
+Focused initial repair GREEN1/11. Proof expanded to immutable R1 records, new target identity, parent pointer, exact one1732 due and paid, surviving allocation61987, immutable payment/refund/inventory and original correction audit amount.
+
+Adjacent RED1: TEST WRONG, expected mutable work-item-1 identity. Assertion now requires fresh result ID and old50000 snapshot/work-item identity in R1, preserving original value/history.
+
+Adjacent RED2: PRODUCTION BUG in existing workspace mapper exposed by correction reuse: customer_owned became none. Service-only payload now retains supported part_source; stock/external variant logic unchanged. Existing expectation remains customer_owned.
+
+Focused plus nearest correction adjacent command:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveMutationBoundaryCharacterizationTest.php tests/Feature/Note/CorrectPaidServiceOnlyWorkItemFeatureTest.php tests/Feature/Note/CorrectPaidServiceOnlyWorkItemHttpFeatureTest.php tests/Feature/Note/CorrectPaidServiceOnlyWritesMutationTimelineFeatureTest.php --stop-on-failure --compact
+
+Result **11 passed /86 assertions /6.27s**, exit0.
+
+Additional adjacent command:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/NoteDetailPageShowsNativeCorrectionHistoryFeatureTest.php tests/Feature/Note/NoteCorrectionHistoryBuilderFeatureTest.php tests/Feature/Note/NoteCorrectionHistoryPageFeatureTest.php tests/Feature/Note/CashierNoteCorrectionHistoryReasonViewFeatureTest.php tests/Feature/Note/NoteRevisionRollbackFeatureTest.php tests/Feature/Note/RefundRevisionOperationalReopenFeatureTest.php tests/Feature/Note/CreateTransactionWorkspaceInlinePaymentLifecycleFeatureTest.php --stop-on-failure --compact
+
+Result **12 passed /166 assertions /6.90s**, exit0.
+
+Major gate running: make verify > /tmp/glasspos-0018-slice2b-verify.log 2>&1. No result claimed until completion.
+
+Commit observation: another process/owner committed during execution. Production revision integration is in394a10415b1a86a6a9dd4a38f1b137d60fb936b4, identity assertion inbd5436f00e4f07deb4d4f02642d03c75290746c6, part-source fix inc2ac992841c6dfd7608f4a159ef3c10752f53594. Do not attribute those commits to assistant tool calls. Assistant will commit proof and push after gate. Active branch main tracking origin/main. Push not yet claimed.
