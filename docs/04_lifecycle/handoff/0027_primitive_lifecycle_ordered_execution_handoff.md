@@ -139,3 +139,5 @@ Commit observation: another process/owner committed during execution. Production
 Slice2b major gate: initial lint RED (two unused finalizer reader dependencies, one nullable settlement access). Classification implementation/type hygiene; removed unused dependencies and require the committed settlement instead of silent zero fallback. Rerun make verify **GREEN exit0;1713 passed /11670 assertions /84.25s**, PHPStan and contract audits PASS. Slice2b COMPLETE. No unresolved2b contract conflict; broader stale/idempotency gaps remain assigned to later slices.
 
 Latest code commit observed6de7adb6 (lint fixes included by another local process). Assistant proof commit/push will follow this GREEN. Next active slice2c, then3; no downstream fixture has been executed yet.
+
+Slice2b proof commit: eb8099c2dbec69313eb549ef8a22168e245e1382 (assistant git commit). Push first encountered concurrent remote ref update already at that SHA; retry git push origin main exited0, Everything up-to-date. Remote main SHA verified equal to eb8099c2. Code and GREEN evidence published. Next active2c.
