@@ -135,6 +135,30 @@ final class PrimitiveSettlementSourceParityFeatureTest extends TestCase
             self::assertSame(163719, $this->allocated($noteId),
                 'D05 R'.$revision.' allocation conservation: '.json_encode($history, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
         }
+        foreach ([4 => 151983, 5 => 190007] as $revision => $gross) {
+            $clock->time = $clock->time->modify('+1 minute');
+            $this->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), [
+                'idempotency_key' => 'd05-surplus-revision-'.$revision,
+                'reason' => 'Slice 1 surplus carry '.$revision,
+                'note' => ['customer_name' => 'D05 settlement conservation', 'transaction_date' => $date],
+                'items' => [['entry_mode' => 'service', 'service' => ['name' => 'Surviving service', 'price_rupiah' => $gross]]],
+                'inline_payment' => ['decision' => 'skip'],
+            ])->assertRedirect()->assertSessionHasNoErrors();
+            self::assertSame(151983, $this->allocated($noteId), 'Surplus clipping must remain unavailable on later revision.');
+            self::assertSame(1, DB::table('note_revision_surplus_dispositions')->count());
+            self::assertSame(1, DB::table('note_revision_surplus_refund_payments')->count());
+            self::assertSame(11736, (int) DB::table('note_revision_surplus_refund_payments')->sum('amount_rupiah'));
+            self::assertSame($paymentRows, $this->rows('customer_payments'));
+            self::assertSame($refundRows, $this->rows('customer_refunds'));
+            self::assertSame($refundAllocations, $this->rows('refund_component_allocations'));
+        }
+        $surplusEvidence = $this->sourceEvidence($noteId, 190007, $clock->now());
+        foreach (['S05' => $surplusEvidence['S05']['outstanding'],
+            'S06' => $surplusEvidence['S06']['data']['outstanding_rupiah'],
+            'S07_preview' => $surplusEvidence['S07_preview']['outstanding_rupiah'],
+            'S07_inline' => $surplusEvidence['S07_inline_full']] as $owner => $actual) {
+            self::assertSame(38024, $actual, $owner.' after paid surplus: '.json_encode($surplusEvidence, JSON_THROW_ON_ERROR));
+        }
     }
 
     private function allocated(string $noteId): int
