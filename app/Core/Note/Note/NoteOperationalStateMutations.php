@@ -69,4 +69,21 @@ trait NoteOperationalStateMutations
         $this->reopenedAt = $occurredAt;
         $this->reopenedByActorId = $actor;
     }
+
+    public function reopenForRevisionOutstanding(string $actorId, DateTimeImmutable $occurredAt): void
+    {
+        if ($this->noteState !== Note::STATE_REFUNDED) {
+            $this->reopen($actorId, $occurredAt);
+            return;
+        }
+
+        $actor = trim($actorId);
+        if ($actor === '' || $this->totalRupiah()->amount() <= 0) {
+            throw new DomainException('Revisi note refund membutuhkan actor dan tagihan aktif baru.');
+        }
+
+        $this->noteState = Note::STATE_OPEN;
+        $this->reopenedAt = $occurredAt;
+        $this->reopenedByActorId = $actor;
+    }
 }

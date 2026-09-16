@@ -24,7 +24,7 @@ final class ReopenNoteForRevisionOutstanding
         string $reason,
         DateTimeImmutable $occurredAt,
     ): void {
-        if (! $root->isClosed()) {
+        if (! $root->isClosed() && ! $root->isRefunded()) {
             return;
         }
 
@@ -42,7 +42,7 @@ final class ReopenNoteForRevisionOutstanding
 
         $actor = trim((string) $actorId);
         $before = $this->snapshots->build($root);
-        $root->reopen($actor !== '' ? $actor : 'system', $occurredAt);
+        $root->reopenForRevisionOutstanding($actor !== '' ? $actor : 'system', $occurredAt);
         $this->notes->updateOperationalState($root);
         $this->timeline->record(
             $root->id(),
