@@ -37,12 +37,8 @@ final class CorrectPaidServiceOnlyWorkItemFinalizer
         $before = $context['before'];
         $after = $context['after'];
 
-        $refundReq = $this->calculateRefundRequired(
-            $this->allocations,
-            $this->refunds,
-            $note->id(),
-            $afterNote->totalRupiah(),
-        );
+        // Preserve the correction's generated surplus amount, even after automatic payout.
+        $refundReq = (int) $context['refund_required_rupiah'];
 
         $this->timeline->record(
             $note->id(),

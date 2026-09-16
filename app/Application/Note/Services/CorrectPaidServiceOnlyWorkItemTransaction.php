@@ -40,6 +40,8 @@ final class CorrectPaidServiceOnlyWorkItemTransaction
                 $serviceName,
                 $servicePriceRupiah,
                 $partSource,
+                $reason,
+                $performedByActorId,
             );
 
             $refundReq = $this->finalizer->finalize(
