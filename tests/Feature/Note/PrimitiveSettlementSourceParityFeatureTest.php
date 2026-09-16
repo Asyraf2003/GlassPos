@@ -166,6 +166,20 @@ final class PrimitiveSettlementSourceParityFeatureTest extends TestCase
         self::assertSame(178271, $this->allocated($noteId));
         self::assertSame(11736, app(NoteOutstandingPaymentAmountResolver::class)->resolveFull($noteId)->data()['outstanding_rupiah']);
         $this->assertDatabaseHas('notes', ['id' => $noteId, 'note_state' => 'open']);
+        $clock->time = $clock->time->modify('+1 minute');
+        $final = app(RecordAndAllocateNotePaymentHandler::class)->handle($noteId, 11736, $date, [], 'cash', 20003);
+        self::assertTrue($final->isSuccess(), $final->message());
+        self::assertSame(190007, $this->allocated($noteId));
+        $this->assertDatabaseHas('notes', ['id' => $noteId, 'note_state' => 'closed']);
+        self::assertSame(0, app(NotePaymentSettlementPreviewResolver::class)->preview($noteId)->data()['outstanding_rupiah']);
+        self::assertSame(3, DB::table('customer_payments')->count());
+        self::assertSame($paymentRows[0], (array) DB::table('customer_payments')->where('id', $paymentId)->first());
+        self::assertSame($cashRows[0], (array) DB::table('customer_payment_cash_details')->where('customer_payment_id', $paymentId)->first());
+        self::assertSame($refundRows, $this->rows('customer_refunds'));
+        self::assertSame($refundAllocations, $this->rows('refund_component_allocations'));
+        self::assertSame($movements, $this->rows('inventory_movements'));
+        self::assertSame(1, DB::table('note_revision_surplus_refund_payments')->count());
+
     }
 
     private function allocated(string $noteId): int

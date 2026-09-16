@@ -7,6 +7,8 @@ namespace App\Application\Note\Services;
 use App\Core\Note\Note\Note;
 use App\Ports\Out\ClockPort;
 use App\Ports\Out\Note\NoteWriterPort;
+use App\Ports\Out\Note\NoteRevisionSurplusDispositionReaderPort;
+use App\Ports\Out\Note\NoteRevisionSurplusRefundPaymentReaderPort;
 use App\Ports\Out\Payment\CustomerRefundReaderPort;
 use App\Ports\Out\Payment\PaymentAllocationReaderPort;
 
@@ -23,6 +25,8 @@ final class AutoCloseNoteWhenFullyPaid
         private readonly PaymentAllocationReaderPort $allocations,
         private readonly CustomerRefundReaderPort $refunds,
         private readonly ClockPort $clock,
+        private readonly NoteRevisionSurplusDispositionReaderPort $surplusDue,
+        private readonly NoteRevisionSurplusRefundPaymentReaderPort $surplusPaid,
     ) {
     }
 
@@ -34,7 +38,11 @@ final class AutoCloseNoteWhenFullyPaid
 
         $allocated = $this->allocations->getTotalAllocatedAmountByNoteId($note->id())->amount();
         $grossPaid = $this->allocations->getTotalPaymentAmountByNoteId($note->id())->amount();
-        $netPaid = max($allocated, $grossPaid)
+        $committedSurplus = max(
+            $this->surplusDue->sumActiveRefundDueAmountByNoteRootId($note->id()),
+            $this->surplusPaid->sumActiveAmountByNoteRootId($note->id()),
+        );
+        $netPaid = max($allocated, $grossPaid) - $committedSurplus
             - $this->refunds->getTotalRefundedAmountByNoteId($note->id())->amount();
 
         if ($netPaid < $note->totalRupiah()->amount()) {
