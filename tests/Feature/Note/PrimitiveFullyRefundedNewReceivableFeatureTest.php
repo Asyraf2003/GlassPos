@@ -61,6 +61,8 @@ final class PrimitiveFullyRefundedNewReceivableFeatureTest extends TestCase
         self::assertSame($oldRevisions, DB::table('note_revisions')->where('id', $oldRevisionId)->orderBy('id')->get()->toJson());
         self::assertSame(0, DB::table('payment_component_allocations')->where('work_item_id', $oldRowId)->count());
         $stateBeforePayment = DB::table('notes')->where('id', $noteId)->value('note_state');
+        self::assertSame('open', $stateBeforePayment);
+        self::assertSame(1, DB::table('note_mutation_events')->where('note_id', $noteId)->where('mutation_type', 'note_reopened')->count());
         $payment = app(RecordAndAllocateNotePaymentHandler::class)->handle($noteId, 63719, $date, [], 'cash', 70003);
         self::assertTrue($payment->isSuccess(), 'New work has outstanding63719; root='.$stateBeforePayment.'; '.$payment->message());
         $this->assertDatabaseHas('notes', ['id' => $noteId, 'note_state' => 'closed']);
@@ -68,5 +70,9 @@ final class PrimitiveFullyRefundedNewReceivableFeatureTest extends TestCase
         self::assertSame(0, DB::table('payment_component_allocations')->where('work_item_id', $oldRowId)->count());
         self::assertSame(2, DB::table('customer_payments')->count());
         self::assertSame($refunds, DB::table('customer_refunds')->orderBy('id')->get()->toJson());
+        self::assertSame(2, DB::table('note_mutation_events')->where('note_id', $noteId)->where('mutation_type', 'note_closed')->count());
+        self::assertSame($refundAllocations, DB::table('refund_component_allocations')->orderBy('id')->get()->toJson());
+        self::assertSame($movements, DB::table('inventory_movements')->orderBy('id')->get()->toJson());
+        $this->assertDatabaseHas('customer_payment_cash_details', ['amount_paid_rupiah' => 63719, 'amount_received_rupiah' => 70003, 'change_rupiah' => 6284]);
     }
 }
