@@ -13,6 +13,19 @@ use Tests\TestCase;
 final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->app->instance(\App\Ports\Out\ClockPort::class, new class implements \App\Ports\Out\ClockPort
+        {
+            public function now(): \DateTimeImmutable
+            {
+                return \DateTimeImmutable::createFromInterface(Carbon::now());
+            }
+        });
+    }
+
     use SeedsMinimalProductFixture;
 
     public function test_full_product_refund_refresh_exposes_ledger_history_on_desktop_and_handset(): void

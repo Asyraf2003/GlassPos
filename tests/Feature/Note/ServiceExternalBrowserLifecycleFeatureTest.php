@@ -14,6 +14,19 @@ final class ServiceExternalBrowserLifecycleFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->app->instance(\App\Ports\Out\ClockPort::class, new class implements \App\Ports\Out\ClockPort
+        {
+            public function now(): \DateTimeImmutable
+            {
+                return \DateTimeImmutable::createFromInterface(Carbon::now());
+            }
+        });
+    }
+
+
     public function test_catalog_browser_payload_creates_and_reloads_external_service_without_inventory(): void
     {
         Carbon::setTestNow('2026-09-14 09:00:00');

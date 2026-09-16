@@ -14,6 +14,19 @@ use Tests\TestCase;
 final class CashierProductRefundActionLifecycleFeatureTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->app->instance(\App\Ports\Out\ClockPort::class, new class implements \App\Ports\Out\ClockPort
+        {
+            public function now(): \DateTimeImmutable
+            {
+                return \DateTimeImmutable::createFromInterface(Carbon::now());
+            }
+        });
+    }
+
     use SeedsMinimalProductFixture;
 
     public static function rowKinds(): array
