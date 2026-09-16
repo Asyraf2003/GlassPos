@@ -30,16 +30,21 @@ final class NoteReplacementPaymentAllocationReconciler
     public function captureAllocatedAmounts(string $noteId): array
     {
         $amounts = [];
+        $refundedByComponent = [];
+
+        foreach ($this->refunds->listByNoteId($noteId) as $refund) {
+            $key = $refund->customerPaymentId().'::'.$refund->componentType().'::'.$refund->componentRefId();
+            $refundedByComponent[$key] = ($refundedByComponent[$key] ?? 0)
+                + $refund->refundedAmountRupiah()->amount();
+        }
 
         foreach ($this->reader->listByNoteId($noteId) as $allocation) {
             $paymentId = $allocation->customerPaymentId();
+            $key = $paymentId.'::'.$allocation->componentType().'::'.$allocation->componentRefId();
+            // Only the original allocated component still contains its refund.
+            // Replacement components already carry net settlement under fresh identities.
             $amounts[$paymentId] = ($amounts[$paymentId] ?? 0)
-                + $allocation->allocatedAmountRupiah()->amount();
-        }
-
-        foreach ($this->refunds->listByNoteId($noteId) as $refund) {
-            $paymentId = $refund->customerPaymentId();
-            $amounts[$paymentId] = max(($amounts[$paymentId] ?? 0) - $refund->refundedAmountRupiah()->amount(), 0);
+                + max($allocation->allocatedAmountRupiah()->amount() - ($refundedByComponent[$key] ?? 0), 0);
         }
 
         return array_filter($amounts, static fn (int $amount): bool => $amount > 0);
