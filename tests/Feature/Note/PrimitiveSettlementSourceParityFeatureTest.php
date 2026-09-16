@@ -10,6 +10,7 @@ use App\Application\Note\Services\NoteOutstandingPaymentAmountResolver;
 use App\Application\Note\Services\NotePaymentSettlementPreviewResolver;
 use App\Application\Note\Services\NoteReplacementPaymentAllocationReconciler;
 use App\Ports\Out\ClockPort;
+use App\Application\Payment\UseCases\RecordAndAllocateNotePaymentHandler;
 use App\Ports\Out\Note\NoteReaderPort;
 use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -159,6 +160,12 @@ final class PrimitiveSettlementSourceParityFeatureTest extends TestCase
             'S07_inline' => $surplusEvidence['S07_inline_full']] as $owner => $actual) {
             self::assertSame(38024, $actual, $owner.' after paid surplus: '.json_encode($surplusEvidence, JSON_THROW_ON_ERROR));
         }
+        $clock->time = $clock->time->modify('+1 minute');
+        $partial = app(RecordAndAllocateNotePaymentHandler::class)->handle($noteId, 26288, $date, [], 'cash', 30007);
+        self::assertTrue($partial->isSuccess(), $partial->message());
+        self::assertSame(178271, $this->allocated($noteId));
+        self::assertSame(11736, app(NoteOutstandingPaymentAmountResolver::class)->resolveFull($noteId)->data()['outstanding_rupiah']);
+        $this->assertDatabaseHas('notes', ['id' => $noteId, 'note_state' => 'open']);
     }
 
     private function allocated(string $noteId): int
