@@ -62,6 +62,45 @@ final class PrimitiveMutationBoundaryCharacterizationTest extends TestCase
         $response->assertRedirect()->assertSessionHasErrors('correction');
     }
 
+    public function test_nominal_correction_must_not_report_success_without_a_new_revision(): void
+    {
+        $admin = $this->loginAsAuthorizedAdmin();
+        $date = date('Y-m-d');
+        $this->post(route('notes.workspace.store'), [
+            'idempotency_key' => 'nominal-boundary-create',
+            'note' => ['customer_name' => 'Nominal correction boundary', 'transaction_date' => $date],
+            'items' => [['entry_mode' => 'service', 'service' => ['name' => 'Paid service', 'price_rupiah' => 63719]]],
+            'inline_payment' => ['decision' => 'pay_full', 'payment_method' => 'cash', 'paid_at' => $date,
+                'amount_paid_rupiah' => 63719, 'amount_received_rupiah' => 70003],
+        ])->assertRedirect()->assertSessionHasNoErrors();
+        $noteId = (string) DB::table('notes')->value('id');
+        $this->actingAs($admin)->post(route('admin.notes.reopen', ['noteId' => $noteId]), ['reason' => 'Inspect nominal correction boundary'])
+            ->assertRedirect()->assertSessionHasNoErrors();
+        $this->loginAsKasir();
+        $before = $this->effects();
+        $this->post(route('cashier.notes.corrections.service-only.store', ['noteId' => $noteId]), [
+            'line_no' => 1, 'service_name' => 'Paid service', 'service_price_rupiah' => 61987,
+            'part_source' => 'none', 'reason' => 'Slice 2b price correction 1732',
+        ])->assertRedirect()->assertSessionHasNoErrors()->assertSessionHas('success');
+        $after = $this->effects();
+        self::assertSame($before['customer_payments'], $after['customer_payments']);
+        self::assertSame($before['customer_refunds'], $after['customer_refunds']);
+        self::assertSame($before['inventory_movements'], $after['inventory_movements']);
+        $evidence = [
+            'before_revision' => $before['notes'][0]['current_revision_id'],
+            'after_revision' => $after['notes'][0]['current_revision_id'],
+            'root_total' => $after['notes'][0]['total_rupiah'],
+            'work_item_before' => $before['work_items'], 'work_item_after' => $after['work_items'],
+            'revision_rows' => $after['note_revisions'],
+            'payment_rows' => $after['customer_payments'], 'refund_rows' => $after['customer_refunds'],
+            'due_rows' => $after['note_revision_surplus_dispositions'],
+            'surplus_paid_rows' => $after['note_revision_surplus_refund_payments'],
+            'correction_audit' => DB::table('audit_logs')->where('event', 'paid_service_only_work_item_corrected')->get()->all(),
+        ];
+        self::assertSame(2, count($after['note_revisions']),
+            'ADR-0045 accepted edit requires a new revision: '.json_encode($evidence, JSON_THROW_ON_ERROR));
+    }
+
     private function effects(): array
     {
         $result = [];
