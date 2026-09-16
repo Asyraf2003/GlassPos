@@ -1,0 +1,58 @@
+# Blueprint 0018 ordered execution — D05 repair onward
+
+Date: 2026-09-16. Scope: execute Blueprint 0018 slices in order, continuing automatically after GREEN under the owner's latest instruction; stop for unresolved contract/public-contract/semantic decisions. This supersedes the previous stop-before-production authorization in handoff 0026, not its historical RED evidence.
+
+## Slice 1 — settlement replay and surplus consumers
+
+D05 before repair reproduced: 1 failed / 54 assertions / 5.78s, exit 1. Expected R3 allocation 163719, actual 116206. Classification: PRODUCTION BUG, accepted ADR-0042/0045 contract unambiguous.
+
+Small repair in NoteReplacementPaymentAllocationReconciler: match ordinary refunds to the payment + component type + component reference of current allocations. Only the original component still includes its refund; fresh replacement allocations already carry net money. No ledger rewrite, payment reconstruction, surplus restoration or public HTTP contract change.
+
+D05 focused GREEN: 1 passed / 54 assertions / 5.81s. Adjacent refund/revision/0065/surplus/rollback: 9 passed / 108 assertions / 6.13s.
+
+Remaining Slice 1 composition added to the same fixture:
+
+- R4 downward service revision to151983 from available163719: one surplus due and one surplus paid11736; allocation capped151983.
+- R5 upward to190007: available151983, outstanding38024; original ordinary refund47513 remains unchanged.
+- S05/S06/S10 agree. S07 preview and inline initially offered26288 (surplus11736 reclaimed). RED: 1 failed / 76 assertions / 5.81s. Classification: PRODUCTION BUG.
+- Preview/inline now subtract max(active surplus due, active surplus paid), preserving S05's commitment semantics without subtracting due+paid twice. Required reader dependencies use existing ports; unit fixtures explicitly supply empty surplus readers. No response schema or business meaning changed.
+- Focused GREEN: 1 passed / 77 assertions / 5.84s.
+- Next partial26288/tender30007 leaves outstanding11736 and allocated178271. Auto-close incorrectly closed root: RED 1 failed / 81 assertions / 6.35s. Classification: PRODUCTION BUG, not a reopened 0065 ordinary-refund defect.
+- Auto-close now subtracts the same committed surplus. Final11736/tender20003 allocates190007 and closes. Original payment/cash details/refund/refund allocations/movements remain unchanged; three payment events total, one surplus cash-out.
+- Final focused GREEN: 1 passed / 92 assertions / 5.96s.
+- Final adjacent GREEN: 25 passed / 149 assertions / 6.32s, exit0.
+
+### Slice 1 files changed
+
+Production:
+
+- app/Application/Note/Services/NoteReplacementPaymentAllocationReconciler.php
+- app/Application/Note/Services/NotePaymentSettlementPreviewResolver.php
+- app/Application/Note/Services/CreateTransactionWorkspaceInlinePaymentAmountResolver.php
+- app/Application/Note/Services/AutoCloseNoteWhenFullyPaid.php
+
+Tests:
+
+- tests/Feature/Note/PrimitiveSettlementSourceParityFeatureTest.php
+- tests/Unit/Application/Note/Services/NotePaymentGrossSettlementResolverTest.php
+- tests/Unit/Application/Note/Services/CreateTransactionWorkspaceInlinePaymentAmountResolverTest.php
+
+The unit expectations were not weakened; only required reader fixtures were added. This handoff is the execution record; Blueprint0018 and accepted ADRs remain unchanged.
+
+### Commands / proof context
+
+All commands from /home/asyraf/projects/laravel/GlassPos. Tests use configured local test DB with approved access outside sandbox. No production data repair.
+
+Focused:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveSettlementSourceParityFeatureTest.php --stop-on-failure --compact
+
+Adjacent:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/RefundRevisionOperationalReopenFeatureTest.php tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php tests/Feature/Note/RefundAfterRevisionCurrentRowBoundaryFeatureTest.php tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php tests/Feature/Note/NoteRevisionRefundDueCarryForwardFeatureTest.php tests/Feature/Note/CreateNoteRevisionSurplusRefundPaidCarryForwardFeatureTest.php tests/Feature/Note/NoteRevisionRollbackFeatureTest.php tests/Feature/Payment/AutoClosePaidNoteOnFullPaymentFeatureTest.php tests/Feature/Note/CreateTransactionWorkspaceInlinePaymentAmountResolverFeatureTest.php tests/Feature/Note/CashierNoteRevisionInlinePaymentContractTest.php tests/Unit/Application/Note/Services/CreateTransactionWorkspaceInlinePaymentAmountResolverTest.php tests/Unit/Application/Note/Services/NotePaymentGrossSettlementResolverTest.php --stop-on-failure --compact
+
+Major gate:
+
+    make verify > /tmp/glasspos-0018-slice1-verify.log 2>&1
+
+Major gate result pending at this intermediate write. No full-suite pass claimed yet. Remaining blueprint gaps are not closed by this reduced fixture, including wholly clipped payment linkage, stale editors, and richer refund semantics.
