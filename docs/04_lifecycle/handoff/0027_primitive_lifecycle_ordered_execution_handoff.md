@@ -70,3 +70,25 @@ Focused fixture rerun:
 Result: 8 passed /358 assertions /6.96s, exit0. These three test files are additional changes in the Slice1 gate. Major gate rerun pending at this intermediate write.
 
 Major gate rerun GREEN: make verify exit0; PHPStan, line/Blade/contract audits PASS; **1711 passed /11633 assertions /76.33s**. Slice1 completed. Next active slice2a only.
+
+## Slice 2a — paid cancel bypass
+
+Baseline CorrectPaidWorkItemStatusFeatureTest + CorrectPaidWorkItemStatusHttpFeatureTest: 7 passed /37 assertions /5.68s.
+
+New file: tests/Feature/Note/PrimitiveMutationBoundaryCharacterizationTest.php. Real HTTP mixed note product47513 + service63719, full cash111232/tender120003. Cashier closed-note correction remains403. Authorized admin reopens; money remains fully paid; cashier then attempts target_status=canceled.
+
+Initial setup RED: TEST WRONG, admin transaction capability does not grant cashier-area access; 302 instead of403, 1 failed /3 assertions /5.60s. Corrected fixture actors: cashier correction, admin reopen; no middleware bypass.
+
+Domain RED: 1 failed /10 assertions /5.59s. Product work item changes open→canceled and paid_work_item_status_corrected audit is appended; no refund, stock return or new revision. Original paid111232 remains. Classified PRODUCTION BUG under mandatory paid-cannot-cancel rule.
+
+Smallest repair: app/Application/Note/UseCases/CorrectPaidWorkItemStatusHandler.php rejects target canceled after paid-policy check and before mutation, through the existing INVALID_WORK_ITEM_STATE error envelope. No invented cancel/refund action and no schema change. Normal status correction remains available.
+
+Focused GREEN: 1 passed /13 assertions /5.70s, exit0. Test compares entire note/work/payment/refund/revision/inventory/audit/projection sets for no side effects on rejection. Adjacent result recorded below.
+
+Focused command:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveMutationBoundaryCharacterizationTest.php --stop-on-failure --compact
+
+Adjacent command:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/CorrectPaidWorkItemStatusFeatureTest.php tests/Feature/Note/CorrectPaidWorkItemStatusHttpFeatureTest.php tests/Feature/Note/UpdateWorkItemStatusFeatureTest.php tests/Feature/Note/AdminReopenClosedNoteHttpFeatureTest.php tests/Feature/Note/RefundRevisionOperationalReopenFeatureTest.php --stop-on-failure --compact
