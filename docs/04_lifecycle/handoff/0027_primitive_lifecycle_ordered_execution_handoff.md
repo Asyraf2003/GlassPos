@@ -220,3 +220,31 @@ Combined adjacent (before final two additional assertions):
     php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitivePaymentDebtCashChainFeatureTest.php tests/Feature/Note/ExistingNoteCashSettlementIntentFeatureTest.php tests/Feature/Note/CreateTransactionWorkspaceInlinePaymentLifecycleFeatureTest.php tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php tests/Unit/Application/Note/Services/BuildNoteRevisionSettlementTest.php --stop-on-failure --compact
 
 GREEN22 passed /298 assertions /6.56s, exit0. git diff --check clean. No major gate run for this test-only slice; previous broad gate remains2b. Commit/push pending below. Next active slice4 only, Chain B.
+
+Slice3 publication: assistant commit69375390; git push origin main exit0,0222ef31→69375390. Slice4 baseline/proof now active; no Slice4 result claimed yet.
+
+## Slice 4 — Chain B refund / revision / receivable — COMPLETE
+
+New tests/Feature/Note/PrimitiveRefundRevisionReceivableChainFeatureTest.php only; no production changes. Reused Slice3 fixture/action helpers. Refreshed accepted ADR0025/0042/0045 and Blueprint B, refund plan/bucket/idempotency transaction, surplus disposition/payment storage, revision replay and stock-return operation.
+
+Exact B1–B8 through real HTTP. Three original payments395933; one logical refund142539 with receipt matching exactly three source IDs (20002/89457/33080), three refund allocations, one original P stock return. Replay has no duplicate effects; new-key old target rejects. B5 active241658 with distinct linked due/paid11736; B6 reordered E/K/S/new R427741 with outstanding186083; partial27119 leaves158964; final cash158964/tender170003/change11039 closes second time. Original payment/cash/refund/revision-line facts and surplus due/paid remain unchanged. Old P stays canceled without new payment rights.
+
+Classification: TEST WRONG for added receipt assertion referencing adapter result_payload instead of DB result_payload_json; corrected from migration/adapter. Initial Chain B passed1/62 before receipt/link assertions. No production bug or unresolved contract in exercised Chain B. Historical0065 remains CLOSED.
+
+Baseline:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/RefundRevisionOperationalReopenFeatureTest.php tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php tests/Feature/Note/CreateNoteRevisionSurplusRefundPaidCarryForwardFeatureTest.php --stop-on-failure --compact
+
+GREEN4 passed /52 assertions /6.20s.
+
+Initial focused:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveRefundRevisionReceivableChainFeatureTest.php --stop-on-failure --compact
+
+GREEN1 passed /62 assertions /5.75s.
+
+Final focused+adjacent:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveRefundRevisionReceivableChainFeatureTest.php tests/Feature/Note/RefundRevisionOperationalReopenFeatureTest.php tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php tests/Feature/Note/CreateNoteRevisionSurplusRefundPaidCarryForwardFeatureTest.php tests/Feature/Note/RefundAfterRevisionCurrentRowBoundaryFeatureTest.php tests/Feature/Note/PrimitiveSettlementSourceParityFeatureTest.php --stop-on-failure --compact
+
+GREEN7 passed /230 assertions /6.52s, exit0. No major gate in this test-only slice. Commit/push pending. Next active Slice5 supported Chain C only; diagnostic probes already resolved in2a/2b are adjacent regressions, not reopened findings.
