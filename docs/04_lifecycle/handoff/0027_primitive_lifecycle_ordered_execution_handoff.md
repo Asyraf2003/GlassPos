@@ -56,3 +56,15 @@ Major gate:
     make verify > /tmp/glasspos-0018-slice1-verify.log 2>&1
 
 Major gate result pending at this intermediate write. No full-suite pass claimed yet. Remaining blueprint gaps are not closed by this reduced fixture, including wholly clipped payment linkage, stale editors, and richer refund semantics.
+
+### Major gate fixture failure classification
+
+First make verify: PHPStan and contract audits passed; test result 6 failed, 1705 passed /11426 assertions /79.63s, exit2. All six failures belonged to three date-sensitive fixtures, not changed settlement expectations.
+
+Classification TEST WRONG: CashierNoteRefundHistoryPresentationFeatureTest, CashierProductRefundActionLifecycleFeatureTest, ServiceExternalBrowserLifecycleFeatureTest froze Carbon to2026-09-14 but left ClockPort bound to SystemClockAdapter (native DateTimeImmutable now,2026-09-16). The real cashier access guard therefore rejected refund/edit requests outside today/yesterday. Their ClockPort now follows the fixture's Carbon time. Production access rules and all business expectations remain unchanged. No residual UI cleanup.
+
+Focused fixture rerun:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/CashierNoteRefundHistoryPresentationFeatureTest.php tests/Feature/Note/CashierProductRefundActionLifecycleFeatureTest.php tests/Feature/Note/ServiceExternalBrowserLifecycleFeatureTest.php --stop-on-failure --compact
+
+Result: 8 passed /358 assertions /6.96s, exit0. These three test files are additional changes in the Slice1 gate. Major gate rerun pending at this intermediate write.
