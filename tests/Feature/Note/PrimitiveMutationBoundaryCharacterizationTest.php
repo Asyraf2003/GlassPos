@@ -16,7 +16,7 @@ final class PrimitiveMutationBoundaryCharacterizationTest extends TestCase
 
     public function test_paid_status_correction_cannot_cancel_even_after_operational_reopen(): void
     {
-        $this->loginAsAuthorizedAdmin();
+        $admin = $this->loginAsAuthorizedAdmin();
         $date = date('Y-m-d');
         $this->seedMinimalProduct('boundary-product', 'BOUND-P', 'Paid boundary product', 'QA', null, 47513);
         DB::table('product_inventory')->insert(['product_id' => 'boundary-product', 'qty_on_hand' => 17]);
@@ -43,18 +43,19 @@ final class PrimitiveMutationBoundaryCharacterizationTest extends TestCase
         $noteId = (string) DB::table('notes')->value('id');
         $lineNo = (int) DB::table('work_items')->where('transaction_type', 'store_stock_sale_only')->value('line_no');
         $payload = ['line_no' => $lineNo, 'target_status' => 'canceled', 'reason' => 'Slice 2a paid cancel probe'];
+        $cashier = $this->loginAsKasir();
         $beforeClosedAttempt = $this->effects();
         $this->post(route('cashier.notes.corrections.status.store', ['noteId' => $noteId]), $payload)->assertForbidden();
         self::assertSame($beforeClosedAttempt, $this->effects());
 
         // Supported admin reopen changes operational state, not the accepted settlement.
-        $this->post(route('admin.notes.reopen', ['noteId' => $noteId]), ['reason' => 'Inspect paid correction boundary'])
+        $this->actingAs($admin)->post(route('admin.notes.reopen', ['noteId' => $noteId]), ['reason' => 'Inspect paid correction boundary'])
             ->assertRedirect()->assertSessionHasNoErrors();
         $this->assertDatabaseHas('notes', ['id' => $noteId, 'note_state' => 'open']);
         self::assertSame(111232, (int) DB::table('customer_payments')->sum('amount_rupiah'));
         self::assertSame(111232, (int) DB::table('payment_component_allocations')->sum('allocated_amount_rupiah'));
         $before = $this->effects();
-        $response = $this->from(route('cashier.notes.show', ['noteId' => $noteId]))
+        $response = $this->actingAs($cashier)->from(route('cashier.notes.show', ['noteId' => $noteId]))
             ->post(route('cashier.notes.corrections.status.store', ['noteId' => $noteId]), $payload);
         $after = $this->effects();
         self::assertSame($before, $after, 'Paid cancellation must reject without money, stock, history or projection mutation.');
