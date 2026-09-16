@@ -7,6 +7,8 @@ namespace App\Application\Note\Services;
 use App\Application\Shared\DTO\Result;
 use App\Ports\Out\Note\NoteReaderPort;
 use App\Ports\Out\Payment\CustomerRefundReaderPort;
+use App\Ports\Out\Note\NoteRevisionSurplusDispositionReaderPort;
+use App\Ports\Out\Note\NoteRevisionSurplusRefundPaymentReaderPort;
 use App\Ports\Out\Payment\PaymentAllocationReaderPort;
 
 final class NotePaymentSettlementPreviewResolver
@@ -15,6 +17,8 @@ final class NotePaymentSettlementPreviewResolver
         private readonly NoteReaderPort $notes,
         private readonly PaymentAllocationReaderPort $allocations,
         private readonly CustomerRefundReaderPort $refunds,
+        private readonly NoteRevisionSurplusDispositionReaderPort $surplusDue,
+        private readonly NoteRevisionSurplusRefundPaymentReaderPort $surplusPaid,
     ) {
     }
 
@@ -30,7 +34,11 @@ final class NotePaymentSettlementPreviewResolver
         $allocated = $this->allocations->getTotalAllocatedAmountByNoteId($note->id())->amount();
         $grossPaid = $this->allocations->getTotalPaymentAmountByNoteId($note->id())->amount();
         $refunded = $this->refunds->getTotalRefundedAmountByNoteId($note->id())->amount();
-        $netPaid = max(max($allocated, $grossPaid) - $refunded, 0);
+        $committedSurplus = max(
+            $this->surplusDue->sumActiveRefundDueAmountByNoteRootId($note->id()),
+            $this->surplusPaid->sumActiveAmountByNoteRootId($note->id()),
+        );
+        $netPaid = max(max($allocated, $grossPaid) - $refunded - $committedSurplus, 0);
         $outstanding = max($grandTotal - $netPaid, 0);
 
         return Result::success([

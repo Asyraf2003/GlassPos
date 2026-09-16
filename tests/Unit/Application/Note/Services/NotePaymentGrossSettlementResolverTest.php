@@ -10,6 +10,8 @@ use App\Core\Note\Note\Note;
 use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\Note\NoteReaderPort;
 use App\Ports\Out\Payment\CustomerRefundReaderPort;
+use App\Ports\Out\Note\NoteRevisionSurplusDispositionReaderPort;
+use App\Ports\Out\Note\NoteRevisionSurplusRefundPaymentReaderPort;
 use App\Ports\Out\Payment\PaymentAllocationReaderPort;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
@@ -36,6 +38,8 @@ final class NotePaymentGrossSettlementResolverTest extends TestCase
             $this->notes($this->note(250000)),
             $this->payments(200000, 300000),
             $this->refunds(0),
+            $this->createMock(NoteRevisionSurplusDispositionReaderPort::class),
+            $this->createMock(NoteRevisionSurplusRefundPaymentReaderPort::class),
         );
 
         $result = $resolver->preview('note-1');

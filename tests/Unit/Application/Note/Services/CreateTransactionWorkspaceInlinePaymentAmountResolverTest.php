@@ -9,6 +9,8 @@ use App\Core\Note\Note\Note;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\Payment\CustomerRefundReaderPort;
+use App\Ports\Out\Note\NoteRevisionSurplusDispositionReaderPort;
+use App\Ports\Out\Note\NoteRevisionSurplusRefundPaymentReaderPort;
 use App\Ports\Out\Payment\PaymentAllocationReaderPort;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
@@ -20,6 +22,8 @@ final class CreateTransactionWorkspaceInlinePaymentAmountResolverTest extends Te
         $resolver = new CreateTransactionWorkspaceInlinePaymentAmountResolver(
             $this->payments(200000, 300000),
             $this->refunds(0),
+            $this->createMock(NoteRevisionSurplusDispositionReaderPort::class),
+            $this->createMock(NoteRevisionSurplusRefundPaymentReaderPort::class),
         );
 
         $this->expectException(DomainException::class);
@@ -33,6 +37,8 @@ final class CreateTransactionWorkspaceInlinePaymentAmountResolverTest extends Te
         $resolver = new CreateTransactionWorkspaceInlinePaymentAmountResolver(
             $this->payments(200000, 240000),
             $this->refunds(0),
+            $this->createMock(NoteRevisionSurplusDispositionReaderPort::class),
+            $this->createMock(NoteRevisionSurplusRefundPaymentReaderPort::class),
         );
 
         $this->assertSame(5000, $resolver->resolve($this->note(250000), [
@@ -59,6 +65,8 @@ final class CreateTransactionWorkspaceInlinePaymentAmountResolverTest extends Te
         $resolver = new CreateTransactionWorkspaceInlinePaymentAmountResolver(
             $this->payments(0, 0),
             $this->refunds(0),
+            $this->createMock(NoteRevisionSurplusDispositionReaderPort::class),
+            $this->createMock(NoteRevisionSurplusRefundPaymentReaderPort::class),
         );
 
         $this->assertSame(30000, $resolver->resolve($this->note(85000), [
