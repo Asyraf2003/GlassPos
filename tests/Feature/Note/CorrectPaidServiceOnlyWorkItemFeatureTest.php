@@ -48,8 +48,12 @@ final class CorrectPaidServiceOnlyWorkItemFeatureTest extends TestCase
             'total_rupiah' => 30000,
         ]);
 
+        $this->assertNotSame('work-item-1', $data['work_item']['id']);
+        $this->assertDatabaseHas('note_revision_lines', [
+            'note_revision_id' => 'note-1-r001', 'work_item_root_id' => 'work-item-1', 'subtotal_rupiah' => 50000,
+        ]);
         $this->assertDatabaseHas('work_items', [
-            'id' => 'work-item-1',
+            'id' => $data['work_item']['id'],
             'note_id' => 'note-1',
             'line_no' => 1,
             'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
@@ -58,7 +62,7 @@ final class CorrectPaidServiceOnlyWorkItemFeatureTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('work_item_service_details', [
-            'work_item_id' => 'work-item-1',
+            'work_item_id' => $data['work_item']['id'],
             'service_name' => 'Servis Karburator Revisi',
             'service_price_rupiah' => 30000,
             'part_source' => ServiceDetail::PART_SOURCE_CUSTOMER_OWNED,
