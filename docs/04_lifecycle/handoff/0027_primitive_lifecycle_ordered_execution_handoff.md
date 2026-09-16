@@ -192,3 +192,31 @@ Remaining GAP/CONFLICT: no blocker in the exercised2c contract. Unexecuted bluep
 PROGRESS: Slice1,2a,2b,2c COMPLETE with scoped proof. Next active slice in a NEW SESSION:3, Chain A payment/debt/cash. Slice3 has NOT started. Stop here per owner instruction; retain this handoff for context recovery.
 
 Closeout proof commit320abaab published successfully: git push origin main exit0, remote advanced1cf033f3→320abaab. This publication receipt is a documentation-only follow-up; no test/code changes or Slice3 execution followed.
+
+## Slice 3 — Chain A payment / debt / cash — COMPLETE
+
+2026-09-16 continuation: owner authorizes automatic sequential GREEN slices and commit/push. Starting tree clean at0222ef31. Execution context for all commands: /home/asyraf/projects/laravel/GlassPos; configured isolated local test DB outside sandbox. Sandbox connection failures are environment failures, not domain RED.
+
+Refreshed Blueprint0018 section6 A/section9, ADR0015/0025/0042/0044/0045, payment HTTP validator/controller, allocation/priority/replay, revision workflow and settlement owner. Existing BuildNoteRevisionSettlementTest already proves upward formula; no redundant unit case added.
+
+New tests/Feature/Note/PrimitivePaymentDebtCashChainFeatureTest.php and tests/Support/BuildsPrimitiveLifecycleFixture.php. No production changes. Fixture uses injected ClockPort/Carbon at2026-09-15 with minute advances, balanced stock opening movements/costing, active Q qty2 package template, real HTTP create with inline DP and subsequent payment/revision requests. Exact A1–A5 values preserved. Proof covers source/event and allocation counts, priority, each event's credit/tender/change, immutable earlier payment/cash/revision records, new active identities, same-key replay and changed payload rejection, atomic invalid overpayment/short tender, one final operational close and no final-payment stock effect.
+
+Classifications: TEST WRONG only. Corrected surplus table name, cash-detail primary key, required HTTP selected rows, and settled resolver result shape. An initially overstrict assertion demanded immutable per-payment component distribution after revision; ADR0045 expressly permits redistribution. Replaced with per-payment amount conservation plus exact aggregate external53127/product109459 priority; original event payload assertions retained. No chronology/replay-order business rule invented, no production behavior changed to satisfy this assumption.
+
+Baseline:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Unit/Application/Note/Services/BuildNoteRevisionSettlementTest.php tests/Feature/Note/ExistingNoteCashSettlementIntentFeatureTest.php tests/Feature/Note/CreateTransactionWorkspaceInlinePaymentLifecycleFeatureTest.php --stop-on-failure --compact
+
+GREEN19 passed /170 assertions /6.61s.
+
+Focused final:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitivePaymentDebtCashChainFeatureTest.php --stop-on-failure --compact
+
+GREEN1 passed /109 assertions /5.95s, exit0.
+
+Combined adjacent (before final two additional assertions):
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitivePaymentDebtCashChainFeatureTest.php tests/Feature/Note/ExistingNoteCashSettlementIntentFeatureTest.php tests/Feature/Note/CreateTransactionWorkspaceInlinePaymentLifecycleFeatureTest.php tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php tests/Unit/Application/Note/Services/BuildNoteRevisionSettlementTest.php --stop-on-failure --compact
+
+GREEN22 passed /298 assertions /6.56s, exit0. git diff --check clean. No major gate run for this test-only slice; previous broad gate remains2b. Commit/push pending below. Next active slice4 only, Chain B.
