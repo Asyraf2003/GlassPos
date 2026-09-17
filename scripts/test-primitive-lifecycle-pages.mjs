@@ -15,8 +15,9 @@ let origin;
 const publicRoot = resolve('public');
 const server = createServer((request, response) => {
   const pathname = new URL(request.url, 'http://localhost').pathname;
-  const page = /^\/(a3-detail|a3-editor|a5-detail)\.html$/.test(pathname);
-  const path = page ? join(directory, pathname.slice(1)) : resolve(publicRoot, '.' + pathname);
+  const page = /^\/((?:a3-detail|a3-editor|a3-validation|a5-detail|b4-detail|b6-detail)(?:-handset)?)\.html$/.test(pathname);
+  const requestedPage = request.headers['x-proof-handset'] === '1' ? pathname.replace('.html', '-handset.html') : pathname;
+  const path = page ? join(directory, requestedPage.slice(1)) : resolve(publicRoot, '.' + pathname);
   if ((!page && !path.startsWith(publicRoot + '/')) || !existsSync(path) || request.method !== 'GET') {
     response.writeHead(404); response.end(); return;
   }
@@ -67,14 +68,21 @@ try {
     await until(() => evaluate(`location.pathname === '/${name}.html' && document.readyState === 'complete'`), name);
   };
   await call('Page.enable');
+  await call('Network.enable');
   for (const width of [1280, 390]) {
     await call('Emulation.setDeviceMetricsOverride', {width, height: 844, deviceScaleFactor: 1, mobile: width === 390});
+    await call('Network.setExtraHTTPHeaders', {headers: {'X-Proof-Handset': width === 390 ? '1' : '0'}});
     await navigate('a3-detail');
+    assert.equal(await evaluate(`document.body.dataset.noteDevice`), width === 390 ? 'handset' : 'desktop');
     await evaluate(`document.querySelector('[data-payment-intent="pay"]').click()`);
     await until(() => evaluate(`document.querySelector('#note-payment-modal').classList.contains('show')`), 'modal opens');
     await sleep(400);
     assert.equal(await evaluate(`document.querySelector('#note-payment-modal').contains(document.activeElement)`), true, 'focus is in payment modal');
     await evaluate(`(() => { const input = document.querySelector('#detail_payment_amount_paid_display'); input.value = '112903'; input.dispatchEvent(new Event('input', {bubbles: true})); document.querySelector('#detail-payment-open-cash').click(); const tender = document.querySelector('#inline_payment_amount_received_display'); tender.value = '120011'; tender.dispatchEvent(new Event('input', {bubbles: true})); })()`);
+    assert.equal(await evaluate(`document.getElementById('detail-payment-submit-cash').disabled`), false);
+    await evaluate(`(() => {const input=document.getElementById('inline_payment_amount_received_display');input.value='1';input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+    assert.equal(await evaluate(`document.getElementById('detail-payment-submit-cash').disabled`), true, 'insufficient tender disables save');
+    await evaluate(`(() => {const input=document.getElementById('inline_payment_amount_received_display');input.value='120011';input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
     const money = await evaluate(`['workspace-cash-payable-text','workspace-cash-change-text','workspace-cash-remaining-text'].map(id => Number(document.getElementById(id).textContent.replace(/\\D/g,'')))`);
     assert.deepEqual(money, [112903, 7108, 137983]);
     await evaluate(`document.querySelector('#detail-payment-back-cash').click(); document.querySelector('#detail-payment-open-cash').click()`);
@@ -84,6 +92,14 @@ try {
     assert.ok(bounds.left >= 0 && bounds.right <= bounds.width + 1, 'modal fits viewport');
     const screenshot = await call('Page.captureScreenshot', {format: 'png'});
     writeFileSync(join(directory, `a4-cash-${width}.png`), Buffer.from(screenshot.data, 'base64'));
+    assert.equal(await evaluate(`['workspace-cash-payable-text','workspace-cash-change-text','workspace-cash-remaining-text'].every(id => {const e=document.getElementById(id);return e.scrollWidth <= e.clientWidth + 1;})`), true, 'cash amounts fit');
+    await evaluate(`document.getElementById('detail-payment-submit-cash').scrollIntoView({block:'center'})`);
+    assert.equal(await evaluate(`(() => {const r=document.getElementById('detail-payment-submit-cash').getBoundingClientRect();return r.top >= 0 && r.bottom <= innerHeight;})()`), true, 'save reachable by modal scroll');
+    await evaluate(`document.querySelector('#note-payment-modal .btn-close').click()`);
+    await until(() => evaluate(`!document.body.classList.contains('modal-open') && !document.querySelector('.modal-backdrop')`), 'modal closes and releases scroll');
+    await evaluate(`document.querySelector('[data-payment-intent="pay"]').click()`);
+    await sleep(400);
+    assert.equal(await evaluate(`Number(document.getElementById('detail_payment_amount_paid').value)`), 112903, 'reopen preserves intent');
     await navigate('a5-detail');
     assert.equal(await evaluate(`document.querySelector('[data-payment-intent="settle"]') === null`), true, 'closed note has no settle action');
     const history = await call('Page.getNavigationHistory');
@@ -100,6 +116,35 @@ try {
     await until(() => evaluate(`location.pathname === '/a5-detail.html' && document.readyState === 'complete' && performance.getEntriesByType('navigation')[0]?.type === 'reload'`), 'Forward freshness');
     assert.equal(await evaluate(`document.querySelector('[data-payment-intent="settle"]') === null`), true);
     console.log(JSON.stringify({width, checkpoint: 'A3/A4/A5', money, modalFocus: true, navigation: 'Back/reload/Forward', screenshot: join(directory, `a4-cash-${width}.png`)}));
+  }
+  for (const width of [1280, 390]) {
+    await call('Emulation.setDeviceMetricsOverride', {width, height: 844, deviceScaleFactor: 1, mobile: width === 390});
+    await call('Network.setExtraHTTPHeaders', {headers: {'X-Proof-Handset': width === 390 ? '1' : '0'}});
+    await navigate('a3-validation');
+    await until(() => evaluate(`!!document.querySelector('.swal2-popup.swal2-show')`), 'server validation feedback visible');
+    await sleep(400); // Let the production feedback animation settle before visual evidence.
+    assert.equal(await evaluate(`(() => {const e=document.querySelector('.swal2-popup');const r=e.getBoundingClientRect();return r.left >= 0 && r.right <= innerWidth + 1 && r.top >= 0 && r.bottom <= innerHeight + 1 && e.textContent.includes('amount paid');})()`), true, 'validation message readable within viewport');
+    const validationScreenshot = await call('Page.captureScreenshot', {format:'png'});
+    writeFileSync(join(directory, `validation-${width}.png`), Buffer.from(validationScreenshot.data, 'base64'));
+    await evaluate(`document.querySelector('.swal2-confirm').click()`);
+    for (const checkpoint of ['b4-detail', 'b6-detail', 'a3-editor']) {
+      await navigate(checkpoint);
+      await evaluate(`document.querySelectorAll('details').forEach(e => e.open = true)`);
+      assert.equal(await evaluate(`document.documentElement.scrollWidth <= innerWidth + 1`), true, `${checkpoint} no horizontal overflow`);
+      if (checkpoint !== 'a3-editor') {
+        const refunds = await evaluate(`Array.from(document.querySelectorAll('[data-refund-history-event]')).map(e => e.textContent)`);
+        assert.equal(refunds.length, 3);
+        for (const amount of ['20.002', '89.457', '33.080']) assert.ok(refunds.some(text => text.includes(amount)));
+        assert.equal(await evaluate(`document.body.textContent.includes('Refund historis, bukan tagihan aktif')`), true);
+        if (checkpoint === 'b6-detail') {
+          assert.equal(await evaluate(`document.body.textContent.includes('Pengembalian Surplus Revisi') && document.body.textContent.includes('11.736')`), true);
+        }
+        assert.equal(await evaluate(`Array.from(document.querySelectorAll('[data-payment-aggregate]')).every(e => e.scrollWidth <= e.clientWidth + 1)`), true, 'summary amounts fit');
+      }
+      const screenshot = await call('Page.captureScreenshot', {format:'png', captureBeyondViewport:true});
+      writeFileSync(join(directory, `${checkpoint}-${width}.png`), Buffer.from(screenshot.data, 'base64'));
+      console.log(JSON.stringify({width, checkpoint, layout:true, history:checkpoint !== 'a3-editor'}));
+    }
   }
   console.log(`Rendered-page browser proof PASS; artifacts ${directory}`);
 } finally {
