@@ -458,3 +458,48 @@ Exact scope inventory from git diff967b5d93..9ccbe9c5 (includes changes another 
 - tests/Feature/Reporting/ServicePackageProfitBreakdownHttpWorkflowFeatureTest.php
 - tests/Feature/Reporting/TransactionReportRevisionCashTruthFeatureTest.php
 - tests/TestCase.php
+
+## Slice 8 — COMPLETE / GREEN (2026-09-17)
+
+Slice7 receipt3eef7451 push confirmed exit0. Slice8 consumes exact A and B checkpoint values, with production HTTP/domain actions building the fixtures. No lifecycle arithmetic engine added. Only production change: NoteDetailPageDataBuilder exposes root current_total_rupiah; shared payment-summary-actions labels the immutable snapshot Total Revisi and shows Tagihan Aktif when root current total differs. B4 explicitly displays395933 snapshot versus253394 active, B6 displays427741/241658/186083 while historical payments remain395933 and three refund source amounts remain20002/89457/33080. No lifecycle state repair on page reads.
+
+Baseline:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/CashierNoteDetailBillingUsesCurrentRevisionFeatureTest.php tests/Feature/Note/EditTransactionWorkspaceRevisionPaymentCharacterizationTest.php --compact --stop-on-failure
+
+GREEN6 passed/87 assertions/5.99s. Existing node scripts/test-cashier-payment-intent.mjs baseline all13 cases PASS, exit0.
+
+Classifications:
+
+- TEST WRONG: A presentation test assumed closed-note GET workspace must403; actual200. Existing CashierProtectedNoteRoutesAccessGuardFeatureTest explicitly permits GET; ClosedNoteRevisionPolicyFeatureTest/CashierClosedNoteWorkspaceReplacementSubmitFeatureTest prohibit PATCH. Replaced transport assumption with actual fresh-base PATCH403 and unchanged state; no mutation assertion weakened. Initial1 failed/27 assertions/6.10s; corrected focused+access9 passed/49 assertions/5.93s.
+- TEST WRONG / harness timing: DevTools Page.reload raced production page-freshness.js automatic Back reload. Dedicated tab and bounded waiting for navigation.type=reload fix the harness; production freshness unchanged.
+- B4 initial1 failed/1 passed/34 assertions/5.77s: grand_total_rupiah is explicitly sourced from immutable revision395933, not active root253394. The test's field assumption was wrong; Blueprint section7 permits snapshot only with clear labeling. PRODUCTION BUG in rendered ambiguity: generic Total did not identify snapshot or show active charge. Preserved old field semantics and added root current-total presentation; final test requires both values and both labels. No refund arithmetic changed.
+
+Files:
+
+- app/Application/Note/Services/NoteDetailPageDataBuilder.php
+- resources/views/shared/notes/partials/payment-summary-actions.blade.php
+- tests/Feature/Note/PrimitiveLifecyclePresentationContractFeatureTest.php
+- tests/Browser/cashier-payment-intent.html (optional backend settlement fixture fields)
+- scripts/test-primitive-lifecycle-presentation.mjs
+- scripts/test-primitive-lifecycle-pages.mjs
+- this handoff
+
+Focused/browser commands:
+
+    node scripts/test-primitive-lifecycle-presentation.mjs
+    node scripts/test-primitive-lifecycle-pages.mjs
+
+First runner:12 scenarios PASS, exit0; A1/A4/A5/B8 each workspace/detail/Simple use exact Blueprint inputs. Simple uses existing exact-tender behavior; credited amount matches all surfaces, detailed cash preserves distinct tender/change. B8 fixture corrected to268777 net/158964 credit/170003 tender before its first execution.
+
+Second runner: HTTP2 passed/53 assertions/6.06s, then actual application-rendered DOM with production Bootstrap/JS at widths1280 and390 PASS. Checks modal focus, exact112903 credit/120011 tender/7108 change/137983 remaining, modal viewport fit, Back cash pane, Back/reload/Forward with real page-freshness, and no settle action after A5. HTML is exported from real HTTP fixtures before DB rollback; browser navigation uses these immutable rendered pages and local public assets. This proves rendered interaction, not a second independent live-server payment acceptance (HTTP test owns acceptance). Browser screenshots inspected at /tmp/glasspos-primitive-pages-FCV2ZN/a4-cash-1280.png and a4-cash-390.png; mobile screenshot viewed directly, readable amounts and buttons, transient standard success toast remains at top. Original intermediate screenshot /tmp/glasspos-primitive-pages-Xf6Ouf/a4-cash-1280.png was also viewed.
+
+Final focused+adjacent:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveLifecyclePresentationContractFeatureTest.php tests/Feature/Note/CashierNoteDetailBillingUsesCurrentRevisionFeatureTest.php tests/Feature/Note/CashierNoteRefundHistoryPresentationFeatureTest.php tests/Feature/Note/PaymentTimelineRevisionTruthFeatureTest.php tests/Feature/Note/NoteDetailSurplusDispositionPayloadFeatureTest.php tests/Feature/Note/CashierNoteDetailDevicePresentationFeatureTest.php tests/Feature/Note/AdminNoteDetailDevicePresentationFeatureTest.php tests/Feature/Note/CashierCreateWorkspacePresentationFeatureTest.php --compact --stop-on-failure
+
+GREEN20 passed/447 assertions/12.56s, exit0. PHPStan --memory-limit=1G --no-progress PASS; app line audit PASS; git diff --check3eef7451..HEAD exit0. No new major make verify gate in this small presentation slice; last major1721/12100 through Slice7 remains accurately scoped.
+
+Publication: owner requires sai push for every change. All Slice8 changes pushed through fdcbaef9; intermediate commits6d5d22e3,2d784572,74d0fa2e,caf62f86,9f000364,d2c4c473,5630148b,8602df6c,d3367f42. SSH push of2d784572 initially failed publickey, then sai push succeeded with per-process HTTPS URL rewrite and GitHub CLI credential helper; no permanent Git config change. Later sai pushes use the same per-process HTTPS environment. Final proof commitfdcbaef9 push exit0. This receipt committed/pushed separately.
+
+Exact next active slice9 Reporting Chain E and cross-date dataset contract. Slices10–12 have not started. No unresolved owner-level gap in Slice8's exercised contracts; no historical closure reopened.
