@@ -46,6 +46,7 @@ final class CashierProductReplacementBackdatedPriceFinanceFeatureTest extends Te
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-1']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-1'),
                 'note' => [
                     'customer_name' => 'Budi Revised Product',
                     'customer_phone' => '08123456789',
@@ -201,6 +202,7 @@ final class CashierProductReplacementBackdatedPriceFinanceFeatureTest extends Te
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-1']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-1'),
                 'note' => [
                     'customer_name' => 'Budi Revised Product Net Refund',
                     'customer_phone' => '08123456789',
@@ -403,6 +405,7 @@ final class CashierProductReplacementBackdatedPriceFinanceFeatureTest extends Te
             ->patch(
                 route('admin.notes.workspace.update', ['noteId' => 'note-1']),
                 [
+            'base_revision_id' => $this->revisionBaseForTest('note-1'),
                     'note' => [
                         'customer_name' => 'Budi Underpriced Revision Snapshot',
                         'customer_phone' => '08123456789',

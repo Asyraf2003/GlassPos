@@ -28,7 +28,7 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
 
         $revision = $this->app->make(CreateNoteRevisionHandler::class)->handle(
             'note-ledger-revision-refund-001',
-            $this->revisionPayload(),
+            array_replace($this->revisionPayload(), ['base_revision_id' => $this->revisionBaseForTest('note-ledger-revision-refund-001')]),
             'admin-report-proof-001',
             false,
         );

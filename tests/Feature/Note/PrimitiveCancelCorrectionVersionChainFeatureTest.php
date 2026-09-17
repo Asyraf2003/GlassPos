@@ -51,7 +51,7 @@ final class PrimitiveCancelCorrectionVersionChainFeatureTest extends TestCase
         $r1Lines = $this->primitiveRows('note_revision_lines');
         $this->assertDatabaseHas('inventory_movements', ['source_id' => $oldPart, 'source_type' => 'work_item_store_stock_line', 'qty_delta' => -2]);
         $this->advancePrimitiveTime();
-        $this->patch(route('cashier.notes.workspace.update', ['noteId' => $noteId]), $this->primitiveWorkspace([$items[1]], 'chain-c-remove-unpaid'))->assertSessionHasNoErrors();
+        $this->patch(route('cashier.notes.workspace.update', ['noteId' => $noteId]), array_replace($this->primitiveWorkspace([$items[1]], 'chain-c-remove-unpaid'), ['base_revision_id' => $this->revisionBaseForTest($noteId)]))->assertSessionHasNoErrors();
         $this->projection($noteId, 63719, 0, 63719, 'open');
         $this->assertDatabaseCount('note_revisions', 2);
         $this->assertDatabaseCount('customer_refunds', 0);
@@ -67,7 +67,7 @@ final class PrimitiveCancelCorrectionVersionChainFeatureTest extends TestCase
         self::assertSame($stock, $this->primitiveRows('inventory_movements'));
         $items[0]['product_lines'][0]['qty'] = 1;
         $this->advancePrimitiveTime();
-        $this->actingAs($admin)->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), $this->primitiveWorkspace($items, 'chain-c-new-product'))->assertSessionHasNoErrors();
+        $this->actingAs($admin)->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), array_replace($this->primitiveWorkspace($items, 'chain-c-new-product'), ['base_revision_id' => $this->revisionBaseForTest($noteId)]))->assertSessionHasNoErrors();
         $this->projection($noteId, 111232, 63719, 47513, 'open');
         $this->assertDatabaseCount('note_revisions', 3);
         $newP = (string) DB::table('work_items')->where('transaction_type', 'store_stock_sale_only')->value('id');

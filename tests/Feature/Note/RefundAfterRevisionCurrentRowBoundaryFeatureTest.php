@@ -27,7 +27,7 @@ final class RefundAfterRevisionCurrentRowBoundaryFeatureTest extends TestCase
 
         $revision = $this->app->make(CreateNoteRevisionHandler::class)->handle(
             'note-refund-revision-001',
-            $this->revisionPayload(),
+            array_replace($this->revisionPayload(), ['base_revision_id' => $this->revisionBaseForTest('note-refund-revision-001')]),
             'admin-test-001',
             false,
         );

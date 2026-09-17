@@ -27,6 +27,7 @@ final class NoteReplacementOverpaidAllocationReplayFeatureTest extends TestCase
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-1']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-1'),
                 'note' => [
                     'customer_name' => 'Budi Capped Downward Revision',
                     'customer_phone' => '08123456789',
@@ -102,6 +103,7 @@ final class NoteReplacementOverpaidAllocationReplayFeatureTest extends TestCase
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-1']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-1'),
                 'note' => [
                     'customer_name' => 'Budi Downward Surplus Revision',
                     'customer_phone' => '08123456789',

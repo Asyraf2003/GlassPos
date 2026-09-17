@@ -48,6 +48,7 @@ final class PrimitiveFullyRefundedNewReceivableFeatureTest extends TestCase
         $oldRevisions = DB::table('note_revisions')->orderBy('id')->get()->toJson();
         $oldRevisionId = (string) DB::table('notes')->value('current_revision_id');
         $this->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), [
+            'base_revision_id' => $this->revisionBaseForTest($noteId),
             'idempotency_key' => 'fully-refunded-new-work', 'reason' => 'New current service only',
             'note' => ['customer_name' => 'New work after refund', 'transaction_date' => $date],
             'items' => [['entry_mode' => 'service', 'service' => ['name' => 'New service', 'price_rupiah' => 63719]]],

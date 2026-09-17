@@ -66,7 +66,7 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
 
         $revision = app(CreateNoteRevisionHandler::class)->handle(
             $noteId,
-            $this->upwardStoreStockRevisionPayload(),
+            array_replace($this->upwardStoreStockRevisionPayload(), ['base_revision_id' => $this->revisionBaseForTest($noteId)]),
             'admin-0062-a',
             false,
         );
@@ -262,7 +262,7 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
 
         $revision = app(CreateNoteRevisionHandler::class)->handle(
             $noteId,
-            $this->downwardStoreStockRevisionPayload(),
+            array_replace($this->downwardStoreStockRevisionPayload(), ['base_revision_id' => $this->revisionBaseForTest($noteId)]),
             'admin-0062-b',
             false,
         );
@@ -498,7 +498,7 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
 
         $revision = app(CreateNoteRevisionHandler::class)->handle(
             $noteId,
-            $this->unpaidStoreStockRevisionPayload(),
+            array_replace($this->unpaidStoreStockRevisionPayload(), ['base_revision_id' => $this->revisionBaseForTest($noteId)]),
             'admin-0062-c',
             true,
         );
@@ -676,7 +676,7 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
 
         $revision = app(CreateNoteRevisionHandler::class)->handle(
             $noteId,
-            $this->refundedStoreStockRevisionPayload(),
+            array_replace($this->refundedStoreStockRevisionPayload(), ['base_revision_id' => $this->revisionBaseForTest($noteId)]),
             'admin-0062-d',
             false,
         );
@@ -871,7 +871,7 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
 
         $revision = app(CreateNoteRevisionHandler::class)->handle(
             $noteId,
-            $this->refundedStoreStockRevisionPayload(),
+            array_replace($this->refundedStoreStockRevisionPayload(), ['base_revision_id' => $this->revisionBaseForTest($noteId)]),
             'admin-0062-target',
             false,
         );
@@ -1205,7 +1205,7 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
 
         $revision = app(CreateNoteRevisionHandler::class)->handle(
             $noteId,
-            $this->masterPriceSnapshotRevisionPayload(),
+            array_replace($this->masterPriceSnapshotRevisionPayload(), ['base_revision_id' => $this->revisionBaseForTest($noteId)]),
             'admin-0062-e',
             false,
         );

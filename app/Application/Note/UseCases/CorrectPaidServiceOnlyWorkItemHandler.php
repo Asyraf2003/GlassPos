@@ -15,7 +15,7 @@ final class CorrectPaidServiceOnlyWorkItemHandler
     ) {
     }
 
-    public function handle(string $noteId, int $lineNo, string $serviceName, int $servicePriceRupiah, string $partSource, string $reason, string $performedByActorId): Result
+    public function handle(string $noteId, int $lineNo, string $serviceName, int $servicePriceRupiah, string $partSource, string $reason, string $performedByActorId, string $baseRevisionId = ''): Result
     {
         try {
             if ($lineNo <= 0) {
@@ -38,6 +38,7 @@ final class CorrectPaidServiceOnlyWorkItemHandler
                 $partSource,
                 $reason,
                 $performedByActorId,
+                $baseRevisionId,
             );
         } catch (DomainException $e) {
             return Result::failure($e->getMessage(), ['work_item' => ['INVALID_WORK_ITEM_STATE']]);

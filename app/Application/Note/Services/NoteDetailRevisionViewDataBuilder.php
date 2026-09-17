@@ -16,6 +16,7 @@ final class NoteDetailRevisionViewDataBuilder
 
     /**
      * @return array{
+     *   current_revision_id: ?string,
      *   customer_name: string,
      *   customer_phone: ?string,
      *   transaction_date: string,
@@ -26,6 +27,7 @@ final class NoteDetailRevisionViewDataBuilder
     {
         if (! $this->revisions->hasRevision($note->id())) {
             return [
+                'current_revision_id' => null,
                 'customer_name' => $note->customerName(),
                 'customer_phone' => $note->customerPhone(),
                 'transaction_date' => $note->transactionDate()->format('Y-m-d'),
@@ -36,6 +38,7 @@ final class NoteDetailRevisionViewDataBuilder
         $current = $this->revisions->resolveOrFail($note->id());
 
         return [
+            'current_revision_id' => $current->id(),
             'customer_name' => $current->customerName(),
             'customer_phone' => $current->customerPhone(),
             'transaction_date' => $current->transactionDate()->format('Y-m-d'),

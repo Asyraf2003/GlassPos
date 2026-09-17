@@ -76,7 +76,7 @@ final class PrimitiveRefundRevisionReceivableChainFeatureTest extends TestCase
         $admin = $this->loginAsAuthorizedAdmin();
         $this->advancePrimitiveTime();
         $items = array_slice($this->primitiveItems(51983), 1);
-        $this->actingAs($admin)->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), $this->primitiveWorkspace($items, 'chain-b-downward'))->assertSessionHasNoErrors();
+        $this->actingAs($admin)->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), array_replace($this->primitiveWorkspace($items, 'chain-b-downward'), ['base_revision_id' => $this->revisionBaseForTest($noteId)]))->assertSessionHasNoErrors();
         $this->projection($noteId, 241658, 241658, 0);
         self::assertSame(241658, (int) DB::table('payment_component_allocations')->sum('allocated_amount_rupiah'));
         $this->assertDatabaseCount('note_revision_surplus_dispositions', 1);
@@ -93,7 +93,7 @@ final class PrimitiveRefundRevisionReceivableChainFeatureTest extends TestCase
         $this->advancePrimitiveTime();
         $items = $this->primitiveItems(70211);
         $reordered = [$items[3], $items[2], $items[1], ['entry_mode' => 'product', 'product_lines' => [['product_id' => 'primitive-r', 'qty' => 5, 'unit_price_rupiah' => 33571]]]];
-        $this->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), $this->primitiveWorkspace($reordered, 'chain-b-upward'))->assertSessionHasNoErrors();
+        $this->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), array_replace($this->primitiveWorkspace($reordered, 'chain-b-upward'), ['base_revision_id' => $this->revisionBaseForTest($noteId)]))->assertSessionHasNoErrors();
         $this->projection($noteId, 427741, 241658, 186083);
         self::assertSame(241658, (int) DB::table('payment_component_allocations')->sum('allocated_amount_rupiah'));
         $this->assertDatabaseHas('notes', ['id' => $noteId, 'note_state' => 'open']);

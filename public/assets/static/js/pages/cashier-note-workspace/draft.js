@@ -147,6 +147,10 @@
         return config;
       }
 
+      if (config.workspaceMode === "edit") {
+        const baseInput = document.querySelector('[name="base_revision_id"]');
+        if (baseInput) baseInput.value = String(draftPayload.base_revision_id || "");
+      }
       const merged = {
         ...config,
         oldNote:
@@ -276,6 +280,7 @@
     return {
       workspace_mode: config.workspaceMode || "create",
       note_id: config.noteId || null,
+      base_revision_id: valueOf('[name="base_revision_id"]') || null,
       note: {
         customer_name: valueOf("#note_customer_name"),
         customer_phone: valueOf("#note_customer_phone"),

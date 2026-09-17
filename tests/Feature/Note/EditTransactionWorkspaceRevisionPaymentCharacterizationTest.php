@@ -88,6 +88,7 @@ final class EditTransactionWorkspaceRevisionPaymentCharacterizationTest extends 
         ]);
 
         $this->actingAs($admin)->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), [
+            'base_revision_id' => $this->revisionBaseForTest($noteId),
             'reason' => 'Batch 2 upward package revision.',
             'note' => [
                 'customer_name' => 'Batch 2 Edit Up DP Revised',
@@ -220,6 +221,7 @@ final class EditTransactionWorkspaceRevisionPaymentCharacterizationTest extends 
         $this->seedSingleStoreStockCurrentRevisionFromActiveRows($noteId, $noteId . '-r001', 'Batch 2 Edit Down Paid', '2026-06-10');
 
         $this->actingAs($admin)->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), [
+            'base_revision_id' => $this->revisionBaseForTest($noteId),
             'reason' => 'Batch 2 downward package revision.',
             'note' => [
                 'customer_name' => 'Batch 2 Edit Down Paid Revised',

@@ -8,6 +8,7 @@ use App\Adapters\In\Http\Controllers\Note\Support\NoteRouteAreaResolver;
 use App\Adapters\In\Http\Requests\Note\StoreNoteRevisionRequest;
 use App\Application\Note\UseCases\CreateNoteRevisionHandler;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 
 final class StoreNoteRevisionController extends Controller
@@ -17,7 +18,7 @@ final class StoreNoteRevisionController extends Controller
         StoreNoteRevisionRequest $request,
         CreateNoteRevisionHandler $handler,
         NoteRouteAreaResolver $routes,
-    ): RedirectResponse {
+    ): RedirectResponse|JsonResponse {
         $user = $request->user();
         $actorId = $user !== null ? (string) $user->getAuthIdentifier() : null;
 
@@ -33,6 +34,9 @@ final class StoreNoteRevisionController extends Controller
         );
 
         if ($result->isFailure()) {
+            if ($request->expectsJson() && ($result->data()['code'] ?? null) === 'STALE_REVISION') {
+                return response()->json(['success' => false, 'code' => 'STALE_REVISION', 'message' => $result->message()], 409);
+            }
             return back()
                 ->withErrors(['revision' => $result->message() ?? 'Revisi nota gagal disimpan.'])
                 ->withInput();

@@ -28,6 +28,7 @@ final class RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest extends T
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-refund-revision-1']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-refund-revision-1'),
                 'note' => [
                     'customer_name' => 'Budi Refund Revised',
                     'customer_phone' => '08123456789',
@@ -190,6 +191,7 @@ final class RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest extends T
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-refund-revision-1']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-refund-revision-1'),
                 'note' => [
                     'customer_name' => 'Budi Refund Revised',
                     'customer_phone' => '08123456789',

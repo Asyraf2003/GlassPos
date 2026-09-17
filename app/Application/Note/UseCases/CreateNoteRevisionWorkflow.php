@@ -47,11 +47,15 @@ final class CreateNoteRevisionWorkflow
             return CreateNoteRevisionResult::failure('Root note tidak ditemukan.');
         }
 
+        $current = $this->current->resolveOrFail($root->id());
+        if (trim((string) ($payload['base_revision_id'] ?? '')) !== $current->id()) {
+            return CreateNoteRevisionResult::failure('STALE_REVISION: Nota telah berubah. Muat ulang editor sebelum menyimpan.', ['code' => 'STALE_REVISION']);
+        }
+
         if ($enforceWorkspaceEditability) {
             $this->guard->assertEditable($root->id());
         }
 
-        $current = $this->current->resolveOrFail($root->id());
         $number = $this->current->nextRevisionNumber($root->id());
         $reason = (string) ($payload['reason'] ?? '');
         $replacement = $this->payloadNotes->build(

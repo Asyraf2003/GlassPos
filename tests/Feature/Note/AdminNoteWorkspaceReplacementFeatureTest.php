@@ -58,6 +58,7 @@ final class AdminNoteWorkspaceReplacementFeatureTest extends TestCase
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-admin-1']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-admin-1'),
                 'note' => [
                     'customer_name' => 'Budi Baru Admin',
                     'customer_phone' => '08123456789',

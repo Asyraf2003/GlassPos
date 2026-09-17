@@ -22,7 +22,7 @@ final class NoteRevisionStoreStockInventoryLifecycleFeatureTest extends TestCase
 
         $result = $this->app->make(CreateNoteRevisionHandler::class)->handle(
             'note-stock-revision-001',
-            $this->revisionPayload(),
+            array_replace($this->revisionPayload(), ['base_revision_id' => $this->revisionBaseForTest('note-stock-revision-001')]),
             'admin-test-001',
             false,
         );

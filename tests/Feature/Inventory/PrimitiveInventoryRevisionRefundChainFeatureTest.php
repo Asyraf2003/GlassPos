@@ -42,7 +42,7 @@ final class PrimitiveInventoryRevisionRefundChainFeatureTest extends TestCase
         $items[2]['requires_service_product_template'] = false;
         $items[2]['historical_package_snapshot'] = true;
         $items[2]['package_total_rupiah'] = 127894;
-        $this->patch(route('cashier.notes.workspace.update', ['noteId' => $id]), $this->primitiveWorkspace($items, 'chain-d-qty-revision'))->assertSessionHasNoErrors();
+        $this->patch(route('cashier.notes.workspace.update', ['noteId' => $id]), array_replace($this->primitiveWorkspace($items, 'chain-d-qty-revision'), ['base_revision_id' => $this->revisionBaseForTest($id)]))->assertSessionHasNoErrors();
         $p2 = $this->stockLine('primitive-p');
         $q2 = $this->stockLine('primitive-q');
         self::assertNotSame($p1, $p2);

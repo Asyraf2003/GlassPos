@@ -79,6 +79,7 @@ final class PrimitiveMutationBoundaryCharacterizationTest extends TestCase
         $this->loginAsKasir();
         $before = $this->effects();
         $this->post(route('cashier.notes.corrections.service-only.store', ['noteId' => $noteId]), [
+            'base_revision_id' => $this->revisionBaseForTest($noteId),
             'line_no' => 1, 'service_name' => 'Paid service', 'service_price_rupiah' => 61987,
             'part_source' => 'none', 'reason' => 'Slice 2b price correction 1732',
         ])->assertRedirect()->assertSessionHasNoErrors()->assertSessionHas('success');

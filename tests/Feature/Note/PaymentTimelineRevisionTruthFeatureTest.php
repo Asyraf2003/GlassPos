@@ -55,7 +55,7 @@ final class PaymentTimelineRevisionTruthFeatureTest extends TestCase
         $this->setTestNow('2026-09-05 12:00:00');
         $revision = app(CreateNoteRevisionHandler::class)->handle(
             'timeline-revision-up',
-            $this->revisionPayload(650000, 'revision-up'),
+            array_replace($this->revisionPayload(650000, 'revision-up'), ['base_revision_id' => $this->revisionBaseForTest('timeline-revision-up')]),
             (string) $admin->getAuthIdentifier(),
             false,
         );
@@ -93,7 +93,7 @@ final class PaymentTimelineRevisionTruthFeatureTest extends TestCase
         $this->setTestNow('2026-09-05 12:00:00');
         $revision = app(CreateNoteRevisionHandler::class)->handle(
             'timeline-revision-down',
-            $this->revisionPayload(100000, 'revision-down'),
+            array_replace($this->revisionPayload(100000, 'revision-down'), ['base_revision_id' => $this->revisionBaseForTest('timeline-revision-down')]),
             (string) $admin->getAuthIdentifier(),
             false,
         );

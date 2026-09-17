@@ -42,6 +42,9 @@
             @if (($workspaceMode ?? 'create') === 'edit')
                 @method('PATCH')
             @endif
+            @if (($workspaceMode ?? 'create') === 'edit')
+                <input type="hidden" name="base_revision_id" value="{{ $baseRevisionId ?? '' }}">
+            @endif
             <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', $idempotencyKey ?? '') }}">
 
             <div class="workspace-pos-layout">

@@ -71,9 +71,9 @@ final class TransactionWorkspaceServiceCatalogSyncFeatureTest extends TestCase
         $this->seedOpenNote();
 
         $this->get(route('cashier.notes.show', ['noteId' => 'note-service-catalog-1']))->assertOk();
-        $this->patch(route('cashier.notes.workspace.update', ['noteId' => 'note-service-catalog-1']), $this->payload([
+        $this->patch(route('cashier.notes.workspace.update', ['noteId' => 'note-service-catalog-1']), array_replace($this->payload([
             'service' => ['name' => 'Setting In Besar', 'price_rupiah' => 85000],
-        ]))->assertRedirect(route('cashier.notes.show', ['noteId' => 'note-service-catalog-1']));
+        ]), ['base_revision_id' => $this->revisionBaseForTest('note-service-catalog-1')]))->assertRedirect(route('cashier.notes.show', ['noteId' => 'note-service-catalog-1']));
 
         $this->assertDatabaseHas('service_catalog_items', [
             'normalized_name' => 'setting in besar',

@@ -136,6 +136,7 @@
                         <form method="POST" action="{{ $serviceOnlyCorrectionAction }}">
                             @csrf
                             <input type="hidden" name="_correction_form" value="service_only">
+                            <input type="hidden" name="base_revision_id" value="{{ old('base_revision_id', $note['current_revision_id'] ?? '') }}">
 
                             <div class="mb-3">
                                 <label class="form-label">Baris Service</label>

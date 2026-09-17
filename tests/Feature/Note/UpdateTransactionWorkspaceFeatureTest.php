@@ -60,6 +60,7 @@ final class UpdateTransactionWorkspaceFeatureTest extends TestCase
         $response = $this->actingAs($user)->patch(
             route('cashier.notes.workspace.update', ['noteId' => 'note-update-1']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-update-1'),
                 'note' => [
                     'customer_name' => 'Budi Baru',
                     'customer_phone' => '0822222222',
@@ -164,6 +165,7 @@ final class UpdateTransactionWorkspaceFeatureTest extends TestCase
         $response = $this->actingAs($user)->patch(
             route('cashier.notes.workspace.update', ['noteId' => 'note-update-payment-1']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-update-payment-1'),
                 'note' => [
                     'customer_name' => 'Budi Bayar',
                     'customer_phone' => '0822222222',

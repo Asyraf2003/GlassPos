@@ -41,6 +41,7 @@ final class CashierServiceStoreStockReplacementBackdatedPriceFinanceFeatureTest 
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-service-stock-1']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-service-stock-1'),
                 'note' => [
                     'customer_name' => 'Budi Revised Service Stock',
                     'customer_phone' => '08123456789',

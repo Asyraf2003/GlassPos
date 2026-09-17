@@ -23,7 +23,7 @@ final class NoteRevisionRefundDueCarryForwardFeatureTest extends TestCase
 
         $result = $this->app->make(CreateNoteRevisionHandler::class)->handle(
             'note-refund-due-001',
-            [
+            array_replace([
                 'reason' => 'Later revision after refund_due.',
                 'note' => [
                     'customer_name' => 'Budi Refund Due Revised',
@@ -44,7 +44,7 @@ final class NoteRevisionRefundDueCarryForwardFeatureTest extends TestCase
                         'external_purchase_lines' => [],
                     ],
                 ],
-            ],
+            ], ['base_revision_id' => $this->revisionBaseForTest('note-refund-due-001')]),
             'admin-test-001',
             false,
         );

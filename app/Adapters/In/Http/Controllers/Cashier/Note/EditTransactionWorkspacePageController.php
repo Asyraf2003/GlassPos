@@ -67,7 +67,12 @@ final class EditTransactionWorkspacePageController extends Controller
             ? trim($oldIdempotencyKey)
             : $uuid->generate();
 
+        $baseRevisionId = $sessionHasOldInput
+            ? (string) $request->old('base_revision_id', '')
+            : ($draftPayload !== [] ? (string) ($draftPayload['base_revision_id'] ?? '') : $page['currentRevisionId']);
+
         return view('cashier.notes.workspace.create', $page + [
+            'baseRevisionId' => $baseRevisionId,
             'noteId' => trim($noteId),
             'oldNote' => $resolvedNote,
             'oldItems' => $resolvedItems,

@@ -386,6 +386,7 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
 
             $this->actingAs($admin)
                 ->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), [
+            'base_revision_id' => $this->revisionBaseForTest($noteId),
                     'note' => [
                         'customer_name' => 'Sesudah Revision UI',
                         'customer_phone' => '08123456789',

@@ -71,6 +71,7 @@ final class RefundRevisionOperationalReopenFeatureTest extends TestCase
         $clock->time = $clock->time->modify('+10 minutes');
         $reopenedAt = $clock->now()->format('Y-m-d H:i:s');
         $this->actingAs($admin)->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), [
+            'base_revision_id' => $this->revisionBaseForTest($noteId),
             'reason' => 'Authorized new receivable after refund',
             'note' => ['customer_name' => 'Operational reopen', 'transaction_date' => $date],
             'items' => [

@@ -66,6 +66,7 @@ final class CorrectPaidServiceOnlyWritesMutationTimelineFeatureTest extends Test
             ServiceDetail::PART_SOURCE_NONE,
             'Koreksi nominal',
             'actor-1',
+            $this->revisionBaseForTest('note-1'),
         );
 
         $this->assertTrue($result->isSuccess());

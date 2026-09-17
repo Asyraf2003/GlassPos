@@ -70,6 +70,7 @@ final class NoteEditRefundSettlementDecisionPolicyTest extends TestCase
 
         $this->actingAs($admin)
             ->patch(route('admin.notes.workspace.update', ['noteId' => 'note-0041-a']), [
+            'base_revision_id' => $this->revisionBaseForTest('note-0041-a'),
                 'note' => [
                     'customer_name' => 'ADR 0041 Customer Revised',
                     'customer_phone' => '08123456789',
@@ -164,6 +165,7 @@ final class NoteEditRefundSettlementDecisionPolicyTest extends TestCase
 
         $this->actingAs($admin)
             ->patch(route('admin.notes.workspace.update', ['noteId' => 'note-0042-full']), [
+            'base_revision_id' => $this->revisionBaseForTest('note-0042-full'),
                 'note' => [
                     'customer_name' => 'ADR 0042 Fully Refunded Revised',
                     'customer_phone' => '08123456789',

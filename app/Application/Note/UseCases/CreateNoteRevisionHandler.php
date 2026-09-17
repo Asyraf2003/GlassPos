@@ -26,6 +26,7 @@ final class CreateNoteRevisionHandler
         bool $enforceWorkspaceEditability = true,
     ): CreateNoteRevisionResult {
         $started = false;
+        $payload['_note_root_id'] = trim($noteRootId);
         $payload['_actor_id'] = trim((string) $actorId);
 
         $replayed = $this->idempotency->replay($payload);
@@ -46,9 +47,11 @@ final class CreateNoteRevisionHandler
                 $enforceWorkspaceEditability,
             );
 
-            if ($result->isSuccess()) {
-                $this->idempotency->succeed($payload, trim($noteRootId), $result);
+            if ($result->isFailure()) {
+                $this->transactions->rollBack();
+                return $result;
             }
+            $this->idempotency->succeed($payload, trim($noteRootId), $result);
 
             $this->transactions->commit();
 

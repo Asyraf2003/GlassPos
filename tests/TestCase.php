@@ -51,6 +51,13 @@ abstract class TestCase extends BaseTestCase
         return $user;
     }
 
+    protected function revisionBaseForTest(string $noteId): string
+    {
+        app(\App\Application\Note\Services\EnsureInitialNoteRevisionExists::class)
+            ->handle($noteId, $noteId.'-r001');
+        return (string) DB::table('notes')->where('id', $noteId)->value('current_revision_id');
+    }
+
     protected function syncSupplierInvoiceProjectionForTest(string $supplierInvoiceId): void
     {
         app(SupplierInvoiceListProjectionService::class)

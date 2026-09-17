@@ -25,8 +25,7 @@ final class ClosedNoteRevisionPolicyFeatureTest extends TestCase
         $this->seedClosedPaidServiceOnlyNote();
 
         $response = $this->actingAs($user)->patch(
-            route('admin.notes.workspace.update', ['noteId' => 'note-closed-policy-001']),
-            $this->revisionPayload('Budi Closed Policy Admin Revised', 120000),
+            route('admin.notes.workspace.update', ['noteId' => 'note-closed-policy-001']), array_replace($this->revisionPayload('Budi Closed Policy Admin Revised', 120000), ['base_revision_id' => $this->revisionBaseForTest('note-closed-policy-001')]),
         );
 
         $response->assertRedirect(route('admin.notes.show', ['noteId' => 'note-closed-policy-001']));
@@ -75,8 +74,7 @@ final class ClosedNoteRevisionPolicyFeatureTest extends TestCase
         $this->seedClosedPaidServiceOnlyNote();
 
         $response = $this->actingAs($user)->patch(
-            route('cashier.notes.workspace.update', ['noteId' => 'note-closed-policy-001']),
-            $this->revisionPayload('Budi Closed Policy Cashier Revised', 120000),
+            route('cashier.notes.workspace.update', ['noteId' => 'note-closed-policy-001']), array_replace($this->revisionPayload('Budi Closed Policy Cashier Revised', 120000), ['base_revision_id' => $this->revisionBaseForTest('note-closed-policy-001')]),
         );
 
         $response->assertForbidden();

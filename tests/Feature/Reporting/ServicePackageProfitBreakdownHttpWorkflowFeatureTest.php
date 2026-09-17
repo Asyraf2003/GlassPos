@@ -300,6 +300,7 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
         $this->loginAsAuthorizedAdmin();
 
         $revision = $this->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), [
+            'base_revision_id' => $this->revisionBaseForTest($noteId),
             'reason' => 'HTTP revision package after product price changed.',
             'note' => [
                 'customer_name' => 'HTTP Revision Package Customer Revised',

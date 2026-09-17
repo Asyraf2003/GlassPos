@@ -40,7 +40,7 @@ final class NoteRevisionRollbackFeatureTest extends TestCase
         try {
             $this->app->make(CreateNoteRevisionHandler::class)->handle(
                 'note-rollback-001',
-                $this->revisionPayload(),
+            array_replace($this->revisionPayload(), ['base_revision_id' => $this->revisionBaseForTest('note-rollback-001')]),
                 'admin-test-001',
                 false,
             );

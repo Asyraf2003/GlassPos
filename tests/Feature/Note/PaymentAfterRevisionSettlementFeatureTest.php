@@ -28,7 +28,7 @@ final class PaymentAfterRevisionSettlementFeatureTest extends TestCase
 
         $revision = $this->app->make(CreateNoteRevisionHandler::class)->handle(
             'note-payment-after-revision-001',
-            $this->upwardRevisionPayload(),
+            array_replace($this->upwardRevisionPayload(), ['base_revision_id' => $this->revisionBaseForTest('note-payment-after-revision-001')]),
             'admin-payment-after-revision-001',
             false,
         );
@@ -107,7 +107,7 @@ final class PaymentAfterRevisionSettlementFeatureTest extends TestCase
 
         $revision = $this->app->make(CreateNoteRevisionHandler::class)->handle(
             'note-payment-after-revision-001',
-            $this->upwardRevisionPayload(),
+            array_replace($this->upwardRevisionPayload(), ['base_revision_id' => $this->revisionBaseForTest('note-payment-after-revision-001')]),
             'admin-payment-after-revision-001',
             false,
         );

@@ -38,8 +38,12 @@ final class CorrectPaidServiceOnlyWorkItemMutation
         string $partSource,
         string $reason,
         string $actorId,
+        string $baseRevisionId = '',
     ): array {
         $note = $this->notes->getByIdForUpdate(trim($noteId)) ?? throw new DomainException('Note tidak ditemukan.');
+        if ($baseRevisionId === '' || $this->current->resolveOrFail($note->id())->id() !== $baseRevisionId) {
+            throw new DomainException('STALE_REVISION: Nota telah berubah. Muat ulang editor sebelum menyimpan.');
+        }
         $this->paidStatus->assertPaidForCorrection($note);
         $target = $this->findWorkItem($note, $lineNo);
         if ($target->transactionType() !== WorkItem::TYPE_SERVICE_ONLY) {
@@ -49,6 +53,7 @@ final class CorrectPaidServiceOnlyWorkItemMutation
         $before = $this->snapshots->build($note);
         $this->bootstrap->handle($note->id(), $note->id().'-r001', $actorId);
         $draft = $this->payloads->build($note, $target, $detail, $reason);
+        $draft['payload']['base_revision_id'] = $baseRevisionId;
         // The correction transaction owns atomicity; reuse the revision workflow and its ledgers.
         $result = $this->revisions->execute($note->id(), $draft['payload'], $actorId, false);
         if ($result->isFailure()) {

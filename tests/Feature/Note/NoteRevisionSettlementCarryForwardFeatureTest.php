@@ -35,12 +35,12 @@ final class NoteRevisionSettlementCarryForwardFeatureTest extends TestCase
 
         $result = $this->app->make(CreateNoteRevisionHandler::class)->handle(
             'note-carry-001',
-            $this->revisionPayload(
+            array_replace($this->revisionPayload(
                 customerName: 'Budi Carry Partial Revised',
                 transactionDate: '2026-05-21',
                 serviceName: 'Servis Carry Partial Revised',
                 servicePriceRupiah: 120000,
-            ),
+            ), ['base_revision_id' => $this->revisionBaseForTest('note-carry-001')]),
             'admin-test-001',
             false,
         );
@@ -89,12 +89,12 @@ final class NoteRevisionSettlementCarryForwardFeatureTest extends TestCase
 
         $result = $this->app->make(CreateNoteRevisionHandler::class)->handle(
             'note-carry-refund-001',
-            $this->revisionPayload(
+            array_replace($this->revisionPayload(
                 customerName: 'Budi Carry Refund Revised',
                 transactionDate: '2026-05-21',
                 serviceName: 'Servis Carry Refund Revised',
                 servicePriceRupiah: 70000,
-            ),
+            ), ['base_revision_id' => $this->revisionBaseForTest('note-carry-refund-001')]),
             'admin-test-001',
             false,
         );

@@ -70,6 +70,7 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
                 'reason' => 'Package multi-product revision submit characterization.',
                 'note' => [
                     'customer_name' => 'Budi Edit Package Multi Revised',
@@ -282,6 +283,7 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
             ->patch(
                 route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
                 [
+            'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
                     'reason' => 'Package template lock mismatch characterization.',
                     'note' => [
                         'customer_name' => 'Budi Edit Package Multi Revised',
@@ -443,6 +445,7 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
                 'reason' => 'Package multi-product inventory revision characterization.',
                 'note' => [
                     'customer_name' => 'Budi Edit Package Multi Inventory Revised',
@@ -654,6 +657,7 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
                 'reason' => 'Package multi-product payment settlement characterization.',
                 'note' => [
                     'customer_name' => 'Budi Edit Package Multi Payment Revised',
@@ -847,6 +851,7 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
                 'reason' => 'Package multi-product downward overpaid settlement characterization.',
                 'note' => [
                     'customer_name' => 'Budi Edit Package Multi Overpaid Revised',
@@ -1040,6 +1045,7 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
                 'reason' => 'Package multi-product refund boundary characterization.',
                 'note' => [
                     'customer_name' => 'Budi Edit Package Multi Refund Revised',
@@ -1288,6 +1294,7 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
                 'reason' => 'Package multi-product exact-paid settlement characterization.',
                 'note' => [
                     'customer_name' => 'Budi Edit Package Multi Exact Paid Revised',

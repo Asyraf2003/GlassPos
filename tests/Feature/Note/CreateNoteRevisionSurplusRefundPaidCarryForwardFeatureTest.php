@@ -23,7 +23,7 @@ final class CreateNoteRevisionSurplusRefundPaidCarryForwardFeatureTest extends T
 
         $result = $this->app->make(CreateNoteRevisionHandler::class)->handle(
             'note-s12-001',
-            [
+            array_replace([
                 'reason' => 'Later revision after surplus refund_paid.',
                 'note' => [
                     'customer_name' => 'Budi S12 Revised',
@@ -44,7 +44,7 @@ final class CreateNoteRevisionSurplusRefundPaidCarryForwardFeatureTest extends T
                         'external_purchase_lines' => [],
                     ],
                 ],
-            ],
+            ], ['base_revision_id' => $this->revisionBaseForTest('note-s12-001')]),
             'admin-test-001',
             false,
         );

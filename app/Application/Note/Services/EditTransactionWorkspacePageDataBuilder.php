@@ -68,6 +68,7 @@ final class EditTransactionWorkspacePageDataBuilder
         );
 
         return [
+            'currentRevisionId' => $currentRevision->id(),
             'pageTitle' => 'Edit Nota',
             'workspaceMode' => 'edit',
             'formAction' => $this->urls->route($routeNames['workspace_update'], ['noteId' => $normalized]),

@@ -25,6 +25,7 @@ final class CashierEditPageUsesCurrentRevisionFeatureTest extends TestCase
         $this->actingAs($user)->get(route('cashier.notes.show', ['noteId' => 'note-1']))->assertOk();
 
         $this->actingAs($user)->patch(route('cashier.notes.workspace.update', ['noteId' => 'note-1']), [
+            'base_revision_id' => $this->revisionBaseForTest('note-1'),
             'note' => [
                 'customer_name' => 'Budi Revised Edit Page',
                 'customer_phone' => '081234',

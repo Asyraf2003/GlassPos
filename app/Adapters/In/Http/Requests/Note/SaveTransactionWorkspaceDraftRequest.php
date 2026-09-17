@@ -25,6 +25,7 @@ final class SaveTransactionWorkspaceDraftRequest extends FormRequest
     {
         return [
             'workspace_mode' => ['required', 'in:create,edit'],
+            'base_revision_id' => ['nullable', 'string', 'max:255'],
             'note_id' => ['nullable', 'string'],
             'note' => ['nullable', 'array'],
             'items' => ['nullable', 'array'],
@@ -38,6 +39,7 @@ final class SaveTransactionWorkspaceDraftRequest extends FormRequest
     public function draftPayload(): array
     {
         return [
+            'base_revision_id' => $this->input('base_revision_id'),
             'note' => is_array($this->input('note')) ? $this->input('note') : [],
             'items' => is_array($this->input('items')) ? array_values($this->input('items')) : [],
             'inline_payment' => is_array($this->input('inline_payment')) ? $this->input('inline_payment') : [],

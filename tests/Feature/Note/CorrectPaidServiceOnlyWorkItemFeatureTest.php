@@ -33,6 +33,7 @@ final class CorrectPaidServiceOnlyWorkItemFeatureTest extends TestCase
             ServiceDetail::PART_SOURCE_CUSTOMER_OWNED,
             'Salah input harga jasa.',
             'owner-1',
+            $this->revisionBaseForTest('note-1'),
         );
 
         $this->assertInstanceOf(Result::class, $result);
@@ -106,6 +107,7 @@ final class CorrectPaidServiceOnlyWorkItemFeatureTest extends TestCase
             ServiceDetail::PART_SOURCE_CUSTOMER_OWNED,
             '   ',
             'owner-1',
+            $this->revisionBaseForTest('note-1'),
         );
 
         $this->assertTrue($result->isFailure());
@@ -138,6 +140,7 @@ final class CorrectPaidServiceOnlyWorkItemFeatureTest extends TestCase
             ServiceDetail::PART_SOURCE_CUSTOMER_OWNED,
             'Salah input harga jasa.',
             'owner-1',
+            $this->revisionBaseForTest('note-1'),
         );
 
         $this->assertTrue($result->isFailure());
@@ -164,6 +167,7 @@ final class CorrectPaidServiceOnlyWorkItemFeatureTest extends TestCase
             ServiceDetail::PART_SOURCE_CUSTOMER_OWNED,
             'Tidak boleh untuk tipe lain.',
             'owner-1',
+            $this->revisionBaseForTest('note-1'),
         );
 
         $this->assertTrue($result->isFailure());

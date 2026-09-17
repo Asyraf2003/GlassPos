@@ -12,6 +12,7 @@ final class UpdateTransactionWorkspaceRules
     public static function build(): array
     {
         return [
+            'base_revision_id' => ['required', 'string', 'max:255'],
             'note' => ['required', 'array'],
             'note.customer_name' => ['required', 'string'],
             'note.customer_phone' => ['nullable', 'string'],

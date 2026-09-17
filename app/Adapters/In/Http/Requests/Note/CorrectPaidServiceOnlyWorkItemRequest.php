@@ -20,6 +20,7 @@ final class CorrectPaidServiceOnlyWorkItemRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'base_revision_id' => ['required', 'string', 'max:255'],
             'line_no' => ['required', 'integer', 'min:1'],
             'service_name' => ['required', 'string'],
             'service_price_rupiah' => ['required', 'integer', 'min:1'],

@@ -46,6 +46,7 @@ final class CashierClosedNoteWorkspaceReplacementSubmitFeatureTest extends TestC
         $response = $this->actingAs($user)->patch(
             route('cashier.notes.workspace.update', ['noteId' => 'note-1']),
             [
+            'base_revision_id' => $this->revisionBaseForTest('note-1'),
                 'note' => [
                     'customer_name' => 'Budi Baru',
                     'customer_phone' => '08123456789',

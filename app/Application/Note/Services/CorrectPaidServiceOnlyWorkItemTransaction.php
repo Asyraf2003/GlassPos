@@ -26,7 +26,8 @@ final class CorrectPaidServiceOnlyWorkItemTransaction
         int $servicePriceRupiah,
         string $partSource,
         string $reason,
-        string $performedByActorId
+        string $performedByActorId,
+        string $baseRevisionId = ''
     ): Result {
         $started = false;
 
@@ -42,6 +43,7 @@ final class CorrectPaidServiceOnlyWorkItemTransaction
                 $partSource,
                 $reason,
                 $performedByActorId,
+                $baseRevisionId,
             );
 
             $refundReq = $this->finalizer->finalize(
@@ -63,6 +65,9 @@ final class CorrectPaidServiceOnlyWorkItemTransaction
                 $this->transactions->rollBack();
             }
 
+            if (str_starts_with($e->getMessage(), 'STALE_REVISION:')) {
+                return Result::failure($e->getMessage(), ['revision' => ['STALE_REVISION']]);
+            }
             return Result::failure($e->getMessage(), ['work_item' => ['INVALID_WORK_ITEM_STATE']]);
         } catch (Throwable $e) {
             if ($started) {

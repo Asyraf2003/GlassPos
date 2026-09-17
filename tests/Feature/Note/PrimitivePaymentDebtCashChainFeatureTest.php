@@ -58,8 +58,7 @@ final class PrimitivePaymentDebtCashChainFeatureTest extends TestCase
         $lines = $this->primitiveRows('note_revision_lines');
         $oldRowIds = DB::table('work_items')->pluck('id')->all();
         $this->advancePrimitiveTime();
-        $this->actingAs($cashier)->patch(route('cashier.notes.workspace.update', ['noteId' => $noteId]),
-            $this->primitiveWorkspace($this->primitiveItems(81258), 'chain-a-upward'))
+        $this->actingAs($cashier)->patch(route('cashier.notes.workspace.update', ['noteId' => $noteId]), array_replace($this->primitiveWorkspace($this->primitiveItems(81258), 'chain-a-upward'), ['base_revision_id' => $this->revisionBaseForTest($noteId)]))
             ->assertRedirect()->assertSessionHasNoErrors();
         $this->checkpoint($noteId, 413472, 162586, 250886, 2, 3, 'open');
         self::assertSame($payments, $this->primitiveRows('customer_payments'));

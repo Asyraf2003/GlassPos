@@ -29,6 +29,7 @@ final class AddNoteRowsRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'base_revision_id' => ['required', 'string', 'max:255'],
             'rows' => ['required', 'array', 'min:1'],
             'rows.*.line_type' => ['required', 'string', 'in:product,service'],
             'rows.*.product_id' => ['nullable', 'string'],
