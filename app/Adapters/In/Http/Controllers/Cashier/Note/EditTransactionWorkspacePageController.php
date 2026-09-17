@@ -71,7 +71,7 @@ final class EditTransactionWorkspacePageController extends Controller
             ? (string) $request->old('base_revision_id', '')
             : ($draftPayload !== [] ? (string) ($draftPayload['base_revision_id'] ?? '') : $page['currentRevisionId']);
 
-        return view('cashier.notes.workspace.create', $page + [
+        return view('cashier.notes.workspace.create', array_replace($page, [
             'baseRevisionId' => $baseRevisionId,
             'noteId' => trim($noteId),
             'oldNote' => $resolvedNote,
@@ -81,6 +81,6 @@ final class EditTransactionWorkspacePageController extends Controller
             'hasOldInput' => $sessionHasOldInput || $draftPayload !== [],
             'deviceClass' => $devices->isHandset($request) ? 'handset' : 'desktop',
             'presentationMode' => 'detail',
-        ]);
+        ]));
     }
 }

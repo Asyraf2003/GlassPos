@@ -67,7 +67,7 @@ final class PrimitiveInventoryRevisionRefundChainFeatureTest extends TestCase
         $accessBefore = DB::table('audit_logs')->where('event', 'admin_transaction_capability_used')->count();
         $before = $this->evidence();
         $update = route('admin.notes.workspace.update', ['noteId' => $id]);
-        $this->actingAs($admin)->patch($update, $this->primitiveWorkspace($items, 'chain-d-insufficient'))->assertSessionHasErrors();
+        $this->actingAs($admin)->patch($update, array_replace($this->primitiveWorkspace($items, 'chain-d-insufficient'), ['base_revision_id' => $this->revisionBaseForTest($id)]))->assertSessionHasErrors();
         self::assertSame($accessBefore + 1, DB::table('audit_logs')->where('event', 'admin_transaction_capability_used')->count());
         foreach ($this->evidence() as $table => $rows) {
             self::assertSame($before[$table], $rows, 'Insufficient R stock rollback: '.$table);
@@ -75,6 +75,7 @@ final class PrimitiveInventoryRevisionRefundChainFeatureTest extends TestCase
         $items[2]['product_lines'][0]['qty'] = 2;
         $items[2]['package_total_rupiah'] = 109125;
         $valid = $this->primitiveWorkspace($items, 'chain-d-replacement');
+        $valid['base_revision_id'] = $this->revisionBaseForTest($id);
         $this->patch($update, $valid)->assertSessionHasNoErrors();
         $p3 = $this->stockLine('primitive-p', $p2);
         $r3 = $this->stockLine('primitive-r');

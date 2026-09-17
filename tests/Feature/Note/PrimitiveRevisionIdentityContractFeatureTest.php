@@ -88,6 +88,39 @@ final class PrimitiveRevisionIdentityContractFeatureTest extends TestCase
         $this->patch($update, $fresh)->assertSessionHasNoErrors();
         $this->assertDatabaseCount('note_revisions', 3);
         $this->assertDatabaseHas('notes', ['id' => $id, 'total_rupiah' => 90001]);
+        $this->post(route('notes.workspace.store'), $this->primitiveWorkspace([$item], 'identity-other-root'))->assertSessionHasNoErrors();
+        $other = (string) DB::table('notes')->where('id', '<>', $id)->value('id');
+        $otherUpdate = route('cashier.notes.workspace.update', ['noteId' => $other]);
+        $before = $this->domainEvidence();
+        $this->patch($otherUpdate, $first)->assertSessionHasErrors('revision');
+        self::assertSame($before, $this->domainEvidence(), 'A successful key cannot replay into another root');
+        $otherPayload = $first;
+        $otherPayload['idempotency_key'] = 'identity-other-fresh-key';
+        $this->patchJson($otherUpdate, $otherPayload)->assertStatus(409)->assertJsonPath('code', 'STALE_REVISION');
+        self::assertSame($before, $this->domainEvidence());
+    }
+
+    public function test_nominal_correction_requires_its_editor_base_and_stale_rejection_preserves_surplus_history(): void
+    {
+        $this->preparePrimitiveFixture();
+        $cashier = $this->loginAsKasir();
+        $item = ['entry_mode' => 'service', 'service' => ['name' => 'QA service', 'price_rupiah' => 63719]];
+        $create = $this->primitiveWorkspace([$item], 'identity-paid');
+        $create['inline_payment'] = ['decision' => 'pay_full', 'payment_method' => 'cash', 'paid_at' => '2026-09-15', 'amount_paid_rupiah' => 63719, 'amount_received_rupiah' => 70003];
+        $this->post(route('notes.workspace.store'), $create)->assertSessionHasNoErrors();
+        $id = (string) DB::table('notes')->value('id');
+        $base = $this->revisionBaseForTest($id);
+        $admin = $this->loginAsAuthorizedAdmin();
+        $this->actingAs($admin)->post(route('admin.notes.reopen', ['noteId' => $id]), ['reason' => 'Correction identity proof'])->assertSessionHasNoErrors();
+        $this->actingAs($cashier);
+        $payload = ['base_revision_id' => $base, 'line_no' => 1, 'service_name' => 'QA service', 'service_price_rupiah' => 61987,
+            'part_source' => 'none', 'reason' => 'Nominal revision with explicit base'];
+        $route = route('cashier.notes.corrections.service-only.store', ['noteId' => $id]);
+        $this->post($route, $payload)->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('note_revision_surplus_refund_payments', ['amount_rupiah' => 1732]);
+        $before = $this->domainEvidence();
+        $this->postJson($route, $payload)->assertStatus(409)->assertJsonPath('code', 'STALE_REVISION');
+        self::assertSame($before, $this->domainEvidence());
     }
 
     private function domainEvidence(): array

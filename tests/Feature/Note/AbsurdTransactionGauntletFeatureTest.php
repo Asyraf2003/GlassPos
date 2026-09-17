@@ -73,6 +73,7 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
 
         // CHECKPOINT 3: edit the still-open note. Quantity mix and total both change.
         $revisionPayload = $this->upwardRevisionPayload();
+        $revisionPayload['base_revision_id'] = $this->revisionBaseForTest($noteId);
         $this->actingAs($admin)
             ->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), $revisionPayload)
             ->assertRedirect(route('admin.notes.show', ['noteId' => $noteId]))
@@ -317,6 +318,7 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
         // Gross paid 880k - ordinary refunds 440k - revised obligation 150k = surplus 290k.
         // This revision uses separate surplus-refund tables; blocked refund policy stays unchanged.
         $finalRevisionPayload = $this->finalDownwardExternalRevisionPayload();
+        $finalRevisionPayload['base_revision_id'] = $this->revisionBaseForTest($noteId);
         $this->actingAs($admin)
             ->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), $finalRevisionPayload)
             ->assertRedirect(route('admin.notes.show', ['noteId' => $noteId]))

@@ -36,7 +36,7 @@ final class AddNoteRowsController extends Controller
 
         if ($result->isFailure()) {
             if ($request->expectsJson() && ($result->data()['code'] ?? null) === 'STALE_REVISION') {
-                return response()->json(['success' => false, 'code' => 'STALE_REVISION', 'message' => $result->message()], 409);
+                return response()->json(['success' => false, 'data' => null, 'code' => 'STALE_REVISION', 'message' => $result->message(), 'errors' => ['revision' => ['STALE_REVISION']]], 409);
             }
             return back()->withErrors(['note' => $result->message() ?? 'Baris nota gagal ditambahkan.'])->withInput();
         }

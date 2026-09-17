@@ -33,7 +33,7 @@ final class CorrectPaidServiceOnlyWorkItemController extends Controller
 
         if ($result->isFailure()) {
             if ($request->expectsJson() && in_array('STALE_REVISION', $result->errors()['revision'] ?? [], true)) {
-                return response()->json(['success' => false, 'code' => 'STALE_REVISION', 'message' => $result->message()], 409);
+                return response()->json(['success' => false, 'data' => null, 'code' => 'STALE_REVISION', 'message' => $result->message(), 'errors' => ['revision' => ['STALE_REVISION']]], 409);
             }
             return back()->withErrors(['correction' => $result->message() ?? 'Correction nominal gagal disimpan.'])->withInput();
         }

@@ -67,7 +67,6 @@ final class CreateNoteRevisionWorkflow
 
         $revisionId = sprintf('%s-r%03d', $root->id(), $number);
         $createdAt = $this->clock->now();
-
         $this->applier->apply($root, $replacement, $payload['items'] ?? []);
         $this->reopen->reopenIfNeeded($root, $revisionId, $actorId, $reason, $createdAt);
         $paymentSummary = $this->payments->record($root, $payload['inline_payment'] ?? []);
