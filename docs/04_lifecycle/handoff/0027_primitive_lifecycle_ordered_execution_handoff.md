@@ -250,3 +250,29 @@ Final focused+adjacent:
 GREEN7 passed /230 assertions /6.52s, exit0. No major gate in this test-only slice. Commit/push pending. Next active Slice5 supported Chain C only; diagnostic probes already resolved in2a/2b are adjacent regressions, not reopened findings.
 
 Slice4 publication: assistant commit3caa7869; git push origin main exit0,69375390→3caa7869. Slice5 active.
+
+## Slice 5 — Chain C distinct draft / revision / payment / refund — COMPLETE
+
+New tests/Feature/Note/PrimitiveCancelCorrectionVersionChainFeatureTest.php; no production changes. Exact C0–C6 executed via HTTP with injected fixture clock. Refreshed draft request/controller/writer/deleter, revision stock reversal, ADR0015/0045 and Blueprint C. Diagnostic2a/2b remain closed and run as adjacent proof.
+
+C0 saves scratch draft without note/payment/refund/history/stock effects. C1 creates unpaid158745, issues P2 and deletes only creating actor's draft; other actor draft byte-for-byte unchanged. C2 removes unpaid P through R2, reverses its stock under transaction_workspace_updated, preserves R1 and creates no refund/due. C3 cash63719/tender70003/change6284 closes without stock effect. C4 authorized R3 adds fresh P1, opens debt47513; C5 transfer settles and closes second time. C6 refund47513 returns new source P1, keeps active service63719 settled. Refund replay/current refunded target/new-key stale old ID create no money/stock/projection changes. Four non-opening stock movements, distinct revision and refund sources.
+
+Classification: no meaningful failure; focused first run GREEN. No contract decision or production repair required.
+
+Baseline:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveMutationBoundaryCharacterizationTest.php tests/Feature/Note/NoteRevisionStoreStockInventoryLifecycleFeatureTest.php --stop-on-failure --compact
+
+GREEN3 passed /51 assertions /5.73s.
+
+Focused:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveCancelCorrectionVersionChainFeatureTest.php --stop-on-failure --compact
+
+GREEN1 passed /62 assertions /6.10s.
+
+Final focused+adjacent:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveCancelCorrectionVersionChainFeatureTest.php tests/Feature/Note/PrimitiveMutationBoundaryCharacterizationTest.php tests/Feature/Note/NoteRevisionStoreStockInventoryLifecycleFeatureTest.php tests/Feature/Note/CorrectPaidServiceOnlyWorkItemFeatureTest.php tests/Feature/Note/RefundRevisionOperationalReopenFeatureTest.php --stop-on-failure --compact
+
+GREEN9 passed /168 assertions /6.54s, exit0. No major gate for this test-only slice. Commit/push pending. Next active Slice6, Chain D exact source/cost/cardinality and rollback. Owner said continue across date rollover2026-09-17; explicit test fixture stays2026-09-15.
