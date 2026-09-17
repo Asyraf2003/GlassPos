@@ -6,7 +6,7 @@ const checkpoints = [
   {name: 'A1', total: 395933, net: 0, mode: 'partial', paid: 73129, tender: 100003},
   {name: 'A4', total: 413472, net: 162586, mode: 'partial', paid: 112903, tender: 120011},
   {name: 'A5', total: 413472, net: 275489, mode: 'full', paid: 137983, tender: 150007},
-  {name: 'B8', total: 427741, net: 296973, mode: 'full', paid: 130768, tender: 141807},
+  {name: 'B8', total: 427741, net: 268777, mode: 'full', paid: 158964, tender: 170003},
 ];
 for (const point of checkpoints) {
   const payments = [];
