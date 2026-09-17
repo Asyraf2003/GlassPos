@@ -4,7 +4,9 @@ const params = new URLSearchParams(location.search);
 const surface = params.get('surface') || 'workspace';
 const mode = params.get('mode') || 'partial';
 const total = Number(params.get('total') || 780000);
-const intent = mode === 'full' ? total : Number(params.get('intent') || 280000);
+const netPaid = Number(params.get('net_paid') || 0);
+const outstanding = total - netPaid;
+const intent = mode === 'full' ? outstanding : Number(params.get('intent') || 280000);
 const tender = Number(params.get('tender') || 300000);
 const method = params.get('method') || 'cash';
 const workspace = surface !== 'detail';
@@ -21,6 +23,12 @@ const add = (tag, id, name = '', value = '') => {
 const hidden = (id, name, value = '') => { const el = add('input', id, name, value); el.type = 'hidden'; return el; };
 const modal = add('div', workspace ? 'workspace-payment-modal' : 'note-payment-modal');
 modal.dataset.allowPartial = '1';
+if (workspace && params.has('net_paid')) {
+  modal.dataset.backendPaymentBasis = 'backend_outstanding_settlement';
+  modal.dataset.backendPayableRupiah = String(outstanding);
+  modal.dataset.backendGrossTotalRupiah = String(total);
+  modal.dataset.backendNetPaidRupiah = String(netPaid);
+}
 if (workspace) {
   hidden('inline_payment_decision_hidden', 'decision', 'skip');
   hidden('inline_payment_method_hidden', 'method');
@@ -36,7 +44,7 @@ if (workspace) {
   hidden('detail_payment_amount_paid', 'paid'); hidden('detail_payment_amount_received', 'received');
   hidden('detail_payment_method', 'method');
   add('input', 'detail_payment_amount_paid_display'); add('div', 'payment-selected-row-ids');
-  const row = add('div', 'row'); row.dataset.paymentRowSource = '1'; row.dataset.outstandingRupiah = total; row.dataset.rowId = 'intent-service';
+  const row = add('div', 'row'); row.dataset.paymentRowSource = '1'; row.dataset.outstandingRupiah = outstanding; row.dataset.rowId = 'intent-service';
   const choice = add('button', 'choice'); choice.className = 'js-open-payment-intent'; choice.dataset.paymentIntent = mode === 'partial' ? 'pay' : 'settle';
   for (const id of ['detail-payment-open-cash', 'detail-payment-back-cash', 'detail-payment-submit-cash', 'detail-payment-submit-transfer']) add('button', id);
 }
@@ -70,7 +78,7 @@ script.onload = async () => {
       form.requestSubmit();
     }
     await Promise.resolve();
-    const paid = Number(submitted.paid || (mode === 'full' ? total : 0));
+    const paid = Number(submitted.paid || (mode === 'full' ? outstanding : 0));
     if (paid !== intent) throw Error(`submitted paid expected ${intent}, actual ${paid}`);
     if (method === 'cash') {
       const expectedTender = surface === 'simple' ? intent : tender;
@@ -79,7 +87,7 @@ script.onload = async () => {
         const numberText = id => Number(byId(id).textContent.replace(/\D/g, ''));
         if (numberText('workspace-cash-payable-text') !== intent) throw Error('cash target differs from intent');
         if (numberText('workspace-cash-change-text') !== tender - intent) throw Error('cash change differs from tender minus intent');
-        if (numberText('workspace-cash-remaining-text') !== total - intent) throw Error('remaining differs from obligation minus intent');
+        if (numberText('workspace-cash-remaining-text') !== outstanding - intent) throw Error('remaining differs from obligation minus intent');
       }
     } else if (submitted.received) throw Error('transfer contains cash tender');
     const output = document.createElement('pre'); output.id = 'payload'; output.textContent = JSON.stringify({...submitted, paid}); document.body.append(output);
