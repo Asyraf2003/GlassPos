@@ -60,7 +60,6 @@ final class EditTransactionWorkspacePageDataBuilder
             'customer_phone' => $currentRevision->customerPhone() ?? '',
             'transaction_date' => $today,
         ];
-
         $currentLines = $currentRevision->lines();
         $lineSettlements = $this->revisionSettlements->build($note->id(), $currentLines);
         $oldItems = $this->revisionItems->mapLines(

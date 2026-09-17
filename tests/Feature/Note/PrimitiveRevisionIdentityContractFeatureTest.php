@@ -129,6 +129,42 @@ final class PrimitiveRevisionIdentityContractFeatureTest extends TestCase
         self::assertSame($before, $this->domainEvidence());
     }
 
+    public function test_reorder_remove_and_readd_keep_immutable_snapshot_identity_and_labels(): void
+    {
+        $this->preparePrimitiveFixture();
+        $this->loginAsKasir();
+        $product = ['entry_mode' => 'product', 'product_lines' => [['product_id' => 'primitive-p', 'qty' => 1, 'unit_price_rupiah' => 47513]]];
+        $service = ['entry_mode' => 'service', 'service' => ['name' => 'QA service', 'price_rupiah' => 63719]];
+        $this->post(route('notes.workspace.store'), $this->primitiveWorkspace([$product, $service], 'identity-shape-create'))->assertSessionHasNoErrors();
+        $id = (string) DB::table('notes')->value('id');
+        $r1 = $this->revisionBaseForTest($id);
+        $original = DB::table('note_revision_lines')->where('note_revision_id', $r1)->orderBy('line_no')->get();
+        $originalJson = $original->toJson();
+        $update = route('cashier.notes.workspace.update', ['noteId' => $id]);
+        foreach ([[$service, $product], [$service], [$service, $product]] as $index => $items) {
+            $payload = $this->primitiveWorkspace($items, 'identity-shape-'.$index);
+            $payload['base_revision_id'] = (string) DB::table('notes')->where('id', $id)->value('current_revision_id');
+            $this->patch($update, $payload)->assertSessionHasNoErrors();
+            self::assertSame($originalJson, DB::table('note_revision_lines')->where('note_revision_id', $r1)->orderBy('line_no')->get()->toJson());
+        }
+        $current = (string) DB::table('notes')->where('id', $id)->value('current_revision_id');
+        $newProduct = DB::table('note_revision_lines')->where('note_revision_id', $current)->where('line_no', 2)->first();
+        self::assertNotSame($original[0]->work_item_root_id, $newProduct->work_item_root_id);
+        $oldPart = json_decode($original[0]->payload, true)['store_stock_lines'][0];
+        $newPart = json_decode($newProduct->payload, true)['store_stock_lines'][0];
+        self::assertNotSame($oldPart['id'], $newPart['id']);
+        self::assertSame('QA P', $oldPart['product_name_snapshot']);
+        DB::table('products')->where('id', 'primitive-p')->update(['nama_barang' => 'Later master label']);
+        $snapshot = app(\App\Ports\Out\Note\NoteRevisionReaderPort::class)->findById($r1);
+        self::assertSame('QA P', app(\App\Application\Note\Services\NoteRevisionLineSnapshotLabelResolver::class)->resolve($snapshot->lines()[0]));
+        self::assertSame($originalJson, DB::table('note_revision_lines')->where('note_revision_id', $r1)->orderBy('line_no')->get()->toJson());
+        $before = $this->domainEvidence();
+        $this->postJson(route('cashier.notes.rows.store', ['noteId' => $id]), [
+            'base_revision_id' => $r1, 'rows' => [['line_type' => 'product', 'product_id' => 'primitive-p', 'qty' => 1]],
+        ])->assertStatus(409)->assertJsonPath('code', 'STALE_REVISION');
+        self::assertSame($before, $this->domainEvidence());
+    }
+
     private function domainEvidence(): array
     {
         $rows = [];
