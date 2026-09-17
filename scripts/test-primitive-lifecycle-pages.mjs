@@ -28,7 +28,7 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 origin = `http://127.0.0.1:${server.address().port}`;
 const profile = join(directory, 'chromium');
 const browser = spawn(process.env.CHROMIUM_BIN || 'chromium', ['--headless=new', '--no-sandbox', '--disable-gpu',
-  '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], {stdio: 'ignore'});
+  '--disable-dev-shm-usage', '--no-first-run', '--no-default-browser-check', '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], {stdio: 'ignore'});
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const until = async (condition, label) => {
   for (let i = 0; i < 100; i++) { if (await condition()) return; await sleep(100); }
@@ -38,8 +38,8 @@ let socket;
 try {
   await until(() => existsSync(join(profile, 'DevToolsActivePort')), 'Chromium startup');
   const port = readFileSync(join(profile, 'DevToolsActivePort'), 'utf8').split('\n')[0];
-  const tabs = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
-  socket = new WebSocket(tabs.find(tab => tab.type === 'page').webSocketDebuggerUrl);
+  const tab = await (await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, {method: 'PUT'})).json();
+  socket = new WebSocket(tab.webSocketDebuggerUrl);
   await new Promise(resolve => socket.addEventListener('open', resolve, {once: true}));
   let sequence = 0;
   const pending = new Map();
@@ -47,10 +47,10 @@ try {
     const message = JSON.parse(event.data);
     if (!message.id) return;
     const task = pending.get(message.id); pending.delete(message.id);
-    if (message.error) task.reject(Error(JSON.stringify(message.error))); else task.resolve(message.result);
+    if (message.error) task.reject(Error(task.method + ': ' + JSON.stringify(message.error))); else task.resolve(message.result);
   });
   const call = (method, params = {}) => new Promise((resolve, reject) => {
-    const id = ++sequence; pending.set(id, {resolve, reject}); socket.send(JSON.stringify({id, method, params}));
+    const id = ++sequence; pending.set(id, {resolve, reject, method}); socket.send(JSON.stringify({id, method, params}));
   });
   const evaluate = async expression => {
     const result = await call('Runtime.evaluate', {expression, returnByValue: true, awaitPromise: true});
