@@ -67,6 +67,7 @@ final class NoteDetailPageDataBuilder
                 [
                     'id' => $note->id(),
                     'current_revision_id' => $revisionView['current_revision_id'],
+                    'current_total_rupiah' => $note->totalRupiah()->amount(),
                     'customer_name' => $revisionView['customer_name'],
                     'customer_phone' => $revisionView['customer_phone'],
                     'transaction_date' => $revisionView['transaction_date'],

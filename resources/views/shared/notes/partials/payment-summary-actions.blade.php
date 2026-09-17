@@ -9,12 +9,19 @@
 
     <div class="note-detail-payment-metrics mb-3">
       <div class="note-detail-payment-metric">
-        <span>Total</span>
+        <span>Total Revisi</span>
         <strong
           data-payment-aggregate="grand_total"
           data-rupiah="{{ $note['grand_total_rupiah'] }}"
         >{{ number_format($note['grand_total_rupiah'], 0, ',', '.') }}</strong>
       </div>
+
+      @if (isset($note['current_total_rupiah']) && $note['current_total_rupiah'] !== $note['grand_total_rupiah'])
+        <div class="note-detail-payment-metric">
+          <span>Tagihan Aktif</span>
+          <strong data-payment-aggregate="current_total" data-rupiah="{{ $note['current_total_rupiah'] }}">{{ number_format($note['current_total_rupiah'], 0, ',', '.') }}</strong>
+        </div>
+      @endif
 
       <div class="note-detail-payment-metric">
         <span>Dibayar</span>

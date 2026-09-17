@@ -96,8 +96,9 @@ final class PrimitiveLifecyclePresentationContractFeatureTest extends TestCase
             'selected_row_ids' => [$oldProduct], 'refunded_at' => '2026-09-15', 'reason' => 'Presentation source refund', 'idempotency_key' => 'presentation-b-refund',
         ])->assertSessionHasNoErrors();
         $before = $this->readEvidence();
-        $b4 = $this->get($show)->assertOk()->viewData('note');
-        self::assertSame([253394, 253394, 0], [$b4['grand_total_rupiah'], $b4['net_paid_rupiah'], $b4['outstanding_rupiah']]);
+        $b4 = $this->get($show)->assertOk()->assertSee('Total Revisi')->assertSee('Tagihan Aktif')->assertSee('253.394')->viewData('note');
+        self::assertSame(395933, $b4['grand_total_rupiah'], 'Immutable revision snapshot remains explicitly named');
+        self::assertSame([253394, 253394, 0], [$b4['current_total_rupiah'], $b4['net_paid_rupiah'], $b4['outstanding_rupiah']]);
         self::assertEqualsCanonicalizing([20002, 89457, 33080], array_column($b4['refund_timeline'], 'amount_rupiah'));
         self::assertSame($before, $this->readEvidence());
         $this->loginAsAuthorizedAdmin();
