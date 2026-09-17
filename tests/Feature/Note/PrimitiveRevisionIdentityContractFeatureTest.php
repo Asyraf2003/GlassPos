@@ -81,6 +81,10 @@ final class PrimitiveRevisionIdentityContractFeatureTest extends TestCase
         // A saved stale draft keeps its R1 token when R2 is now current.
         $this->postJson(route('cashier.notes.workspace.draft.save'), $stale + ['workspace_mode' => 'edit', 'note_id' => $id])->assertOk();
         $this->get($edit)->assertOk()->assertSee('name="base_revision_id" value="'.$r1.'"', false);
+        $missingDraft = $stale;
+        unset($missingDraft['base_revision_id']);
+        $this->postJson(route('cashier.notes.workspace.draft.save'), $missingDraft + ['workspace_mode' => 'edit', 'note_id' => $id])->assertOk();
+        $this->get($edit)->assertOk()->assertViewHas('baseRevisionId', '');
         // Explicit refresh replaces the editable state and base together, without committing the draft.
         $beforeRefresh = $this->domainEvidence();
         $this->get($edit.'?fresh=1')->assertOk()->assertViewHas('baseRevisionId', $r2)
