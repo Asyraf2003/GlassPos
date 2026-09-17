@@ -65,7 +65,11 @@ final class PrimitiveLifecyclePresentationContractFeatureTest extends TestCase
         self::assertSame([100003, null, 120011, 150007], array_column($events, 'amount_received_rupiah'));
         self::assertSame([26874, null, 7108, 12024], array_column($events, 'change_rupiah'));
         self::assertSame($before, $this->readEvidence());
-        $this->get($edit)->assertForbidden();
+        // Existing access contract permits GET; the closed-note mutation must be rejected.
+        $revision['base_revision_id'] = (string) DB::table('notes')->where('id', $id)->value('current_revision_id');
+        $revision['idempotency_key'] = 'presentation-closed-edit';
+        $this->patch(route('cashier.notes.workspace.update', ['noteId' => $id]), $revision)->assertForbidden();
+        self::assertSame($before, $this->readEvidence());
     }
 
     private function readEvidence(): array
