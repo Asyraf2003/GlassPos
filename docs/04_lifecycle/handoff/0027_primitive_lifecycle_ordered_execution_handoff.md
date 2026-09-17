@@ -356,3 +356,105 @@ Focused command from repository root:
 Latest proof GREEN2 passed /49 assertions /6.81s, exit0. Covers matching base, stale form/JSON rejection and raw domain cardinality, exact replay, changed-payload conflict, missing/unrelated base, different target root, stored stale draft, next current revision and stale nominal correction after surplus payout. Previous continuation adjacent proof4/298 and13/185 exists, but final adjacent and broad verification remain pending. Full test suite currently running to identify callers needing explicit base fixture migration. No Slice7 completion or current broad GREEN claim.
 
 Remaining active work: add-rows proof and fixture migration; legacy/draft refresh behavior; final revision/idempotency/draft adjacent regressions and static checks. Exact next active slice remains7. Slices8–12 have not started. No new unresolved owner semantic gap has been established. Latest broad GREEN still applies only through Slice6 at967b5d93.
+
+## Slice 7 — COMPLETE / GREEN (2026-09-17)
+
+Owner base-revision contract is implemented on existing public workspace revision, nominal correction and add-rows paths. Create remains base-free. Root comparison happens under the existing transaction/root lock; unsuccessful workflow rolls back idempotency processing receipt. Actor/key replay and changed-payload conflict precede stale checking, with root identity included in semantic hash. Browser errors retain redirect/session behavior, JSON stale returns409/code STALE_REVISION. Drafts preserve base; missing draft base stays empty; explicit “Muat revisi terbaru” refreshes state and base together. Existing legacy editor bootstraps R1 before submission. No concurrent barrier redesign; Slice11 owns that proof.
+
+Additional classifications:
+
+- TEST WRONG: first full test run6 failed/1714 passed/12021 assertions/85.38s, all six old caller fixtures omitted the owner-required base. Explicit request bases added; replay payload captures one original base. A mechanical edit accidentally added base_revision_id to an idempotency_records DB expectation (not a column):1 failed/16 passed/412 assertions; removed that accidental expectation, preserved the original receipt assertion.
+- PRODUCTION BUG: reordered/remove/re-add snapshot proof found product_name_snapshot stored as QA P but NoteRevisionLineSnapshotLabelResolver returned Line1. RED1 failed/2 passed/65 assertions/6.07s. Resolver now prioritizes immutable product_name_snapshot; no master lookup or old snapshot rewrite. Focused identity+add-rows GREEN5 passed/81 assertions/6.34s.
+- Tool/configuration: standalone PHPStan default128MB exhausted; rerun --memory-limit=1G passed. App line audit found one101-line builder; removed one blank line, no bypass label. Major gate subsequently passed.
+
+Regressions for original six fixture failures plus identity:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveRevisionIdentityContractFeatureTest.php tests/Feature/Note/AddNoteRowsHttpFeatureTest.php tests/Feature/Note/CorrectPaidServiceOnlyWorkItemHttpFeatureTest.php tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php tests/Feature/Reporting/PackageAutoSplitRevisionReportImpactFeatureTest.php tests/Feature/Reporting/TransactionReportRevisionCashTruthFeatureTest.php --compact --stop-on-failure
+
+GREEN19 passed/466 assertions/7.39s, exit0.
+
+Final focused+adjacent (includes stricter exact replay/conflict messages, missing-base draft and explicit refresh):
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveRevisionIdentityContractFeatureTest.php tests/Feature/Note/AddNoteRowsHttpFeatureTest.php tests/Feature/Note/PrimitiveCancelCorrectionVersionChainFeatureTest.php tests/Feature/Note/CreateTransactionWorkspaceLineTypeCharacterizationTest.php tests/Feature/Note/CashierWorkspaceServiceProductTemplateMinimumContractFeatureTest.php tests/Feature/Note/EditTransactionWorkspaceRevisionPaymentCharacterizationTest.php tests/Feature/Note/CorrectPaidServiceOnlyWorkItemHttpFeatureTest.php --compact --stop-on-failure
+
+GREEN26 passed/356 assertions/7.24s, exit0.
+
+Major gate:
+
+    make verify > /tmp/glasspos-0018-slice7-verify.log 2>&1
+
+GREEN exit0; PHPStan2118 files no errors, line/Blade/contract audits PASS;1721 passed/12100 assertions/78.70s. Gate began at8839827b; only stricter replay/conflict test assertions changed afterward in9ccbe9c5 and passed the final26/356 suite above. No production changes after gate start. git diff --check967b5d93..HEAD exit0. Working tree clean before this receipt.
+
+Publication follows the owner's newer “sai push after changes” instruction. Confirmed script pushes to main: c2f8d87a,6605282d,0ef329f2,0a479bc4,cb545cd4,c76c9a3e,1c18b96d,8839827b,9ccbe9c5; every invocation exited0. Latest tested proof commit9ccbe9c5 is pushed. This completion receipt is published separately via sai push. Exact next active slice8 presentation contract. Slices9–12 not started; earlier closed0065 and Slices1–6 remain closed.
+
+### Slice 7 changed production and test files
+
+Exact scope inventory from git diff967b5d93..9ccbe9c5 (includes changes another process committed in a59da03a/7b276002; attribution above):
+
+- app/Adapters/In/Http/Controllers/Cashier/Note/EditTransactionWorkspacePageController.php
+- app/Adapters/In/Http/Controllers/Note/AddNoteRowsController.php
+- app/Adapters/In/Http/Controllers/Note/CorrectPaidServiceOnlyWorkItemController.php
+- app/Adapters/In/Http/Controllers/Note/StoreNoteRevisionController.php
+- app/Adapters/In/Http/Requests/Note/AddNoteRowsRequest.php
+- app/Adapters/In/Http/Requests/Note/CorrectPaidServiceOnlyWorkItemRequest.php
+- app/Adapters/In/Http/Requests/Note/SaveTransactionWorkspaceDraftRequest.php
+- app/Adapters/In/Http/Requests/Note/UpdateTransactionWorkspaceRules.php
+- app/Application/Note/Services/BuildAddNoteRowsRevisionPayload.php
+- app/Application/Note/Services/CorrectPaidServiceOnlyWorkItemMutation.php
+- app/Application/Note/Services/CorrectPaidServiceOnlyWorkItemTransaction.php
+- app/Application/Note/Services/EditTransactionWorkspacePageDataBuilder.php
+- app/Application/Note/Services/NoteDetailPageDataBuilder.php
+- app/Application/Note/Services/NoteDetailRevisionViewDataBuilder.php
+- app/Application/Note/Services/NoteRevisionLineSnapshotLabelResolver.php
+- app/Application/Note/UseCases/CorrectPaidServiceOnlyWorkItemHandler.php
+- app/Application/Note/UseCases/CreateNoteRevisionHandler.php
+- app/Application/Note/UseCases/CreateNoteRevisionWorkflow.php
+- public/assets/static/js/pages/cashier-note-workspace/draft.js
+- resources/views/cashier/notes/partials/correction-actions.blade.php
+- resources/views/cashier/notes/workspace/create.blade.php
+- tests/Feature/Inventory/PrimitiveInventoryRevisionRefundChainFeatureTest.php
+- tests/Feature/Note/AbsurdTransactionGauntletFeatureTest.php
+- tests/Feature/Note/AddNoteRowsHttpFeatureTest.php
+- tests/Feature/Note/AdminNoteWorkspaceReplacementFeatureTest.php
+- tests/Feature/Note/CashierClosedNoteWorkspaceReplacementSubmitFeatureTest.php
+- tests/Feature/Note/CashierEditPageUsesCurrentRevisionFeatureTest.php
+- tests/Feature/Note/CashierNoteDetailBillingUsesCurrentRevisionFeatureTest.php
+- tests/Feature/Note/CashierNoteDetailUsesCurrentRevisionLinesFeatureTest.php
+- tests/Feature/Note/CashierNoteRefundHistoryPresentationFeatureTest.php
+- tests/Feature/Note/CashierNoteRevisionSubmitFeatureTest.php
+- tests/Feature/Note/CashierProductReplacementBackdatedPriceFinanceFeatureTest.php
+- tests/Feature/Note/CashierServiceStoreStockReplacementBackdatedPriceFinanceFeatureTest.php
+- tests/Feature/Note/ClosedNoteRevisionPolicyFeatureTest.php
+- tests/Feature/Note/CorrectPaidServiceOnlyWorkItemFeatureTest.php
+- tests/Feature/Note/CorrectPaidServiceOnlyWorkItemHttpFeatureTest.php
+- tests/Feature/Note/CorrectPaidServiceOnlyWritesMutationTimelineFeatureTest.php
+- tests/Feature/Note/CreateNoteRevisionSurplusRefundPaidCarryForwardFeatureTest.php
+- tests/Feature/Note/EditTransactionWorkspacePackageAutoSplitCharacterizationTest.php
+- tests/Feature/Note/EditTransactionWorkspaceRevisionPaymentCharacterizationTest.php
+- tests/Feature/Note/NoteEditRefundSettlementDecisionPolicyTest.php
+- tests/Feature/Note/NoteReplacementOverpaidAllocationReplayFeatureTest.php
+- tests/Feature/Note/NoteRevisionRefundDueCarryForwardFeatureTest.php
+- tests/Feature/Note/NoteRevisionRollbackFeatureTest.php
+- tests/Feature/Note/NoteRevisionSettlementCarryForwardFeatureTest.php
+- tests/Feature/Note/NoteRevisionStoreStockInventoryLifecycleFeatureTest.php
+- tests/Feature/Note/NoteRevisionStoreStockRollbackFeatureTest.php
+- tests/Feature/Note/PaymentAfterRevisionSettlementFeatureTest.php
+- tests/Feature/Note/PaymentTimelineRevisionTruthFeatureTest.php
+- tests/Feature/Note/PrimitiveCancelCorrectionVersionChainFeatureTest.php
+- tests/Feature/Note/PrimitiveFullyRefundedNewReceivableFeatureTest.php
+- tests/Feature/Note/PrimitiveMutationBoundaryCharacterizationTest.php
+- tests/Feature/Note/PrimitivePaymentDebtCashChainFeatureTest.php
+- tests/Feature/Note/PrimitiveRefundRevisionReceivableChainFeatureTest.php
+- tests/Feature/Note/PrimitiveRevisionIdentityContractFeatureTest.php
+- tests/Feature/Note/PrimitiveSettlementSourceParityFeatureTest.php
+- tests/Feature/Note/RefundAfterRevisionCurrentRowBoundaryFeatureTest.php
+- tests/Feature/Note/RefundRevisionOperationalReopenFeatureTest.php
+- tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php
+- tests/Feature/Note/TransactionCashLedgerAfterRevisionRefundFeatureTest.php
+- tests/Feature/Note/TransactionEditRefundPaymentStockReportingHardeningTest.php
+- tests/Feature/Note/TransactionWorkspaceServiceCatalogSyncFeatureTest.php
+- tests/Feature/Note/UpdateTransactionWorkspaceFeatureTest.php
+- tests/Feature/Reporting/PackageAutoSplitRevisionReportImpactFeatureTest.php
+- tests/Feature/Reporting/ServicePackageProfitBreakdownHttpWorkflowFeatureTest.php
+- tests/Feature/Reporting/TransactionReportRevisionCashTruthFeatureTest.php
+- tests/TestCase.php
