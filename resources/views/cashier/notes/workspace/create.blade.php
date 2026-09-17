@@ -37,6 +37,13 @@
         </header>
         @endif
 
+        @if (($workspaceMode ?? 'create') === 'edit')
+            <p class="small text-muted">
+                <a href="{{ request()->url() }}?fresh=1">Muat revisi terbaru</a>
+                untuk mulai ulang editor dari nota terkini. Perubahan yang belum disimpan tidak ikut dimuat.
+            </p>
+        @endif
+
         <form action="{{ $formAction ?? route('notes.workspace.store') }}" method="POST" novalidate id="cashier-note-workspace-form">
             @csrf
             @if (($workspaceMode ?? 'create') === 'edit')

@@ -40,9 +40,13 @@ final class EditTransactionWorkspacePageController extends Controller
 
         $routeArea = $request->routeIs('admin.notes.*') ? 'admin' : 'cashier';
         $page = $builder->build($noteId, $routeArea);
+        $fresh = $request->boolean('fresh');
+        if ($fresh) {
+            $request->session()->forget('_old_input');
+        }
         $oldInput = $request->session()->get('_old_input', []);
         $sessionHasOldInput = is_array($oldInput) && $oldInput !== [];
-        $draftPayload = $draftPayloads->load($request, $noteId, $sessionHasOldInput);
+        $draftPayload = $fresh ? [] : $draftPayloads->load($request, $noteId, $sessionHasOldInput);
 
         $oldNote = old('note');
         $oldItems = old('items');
@@ -78,7 +82,7 @@ final class EditTransactionWorkspacePageController extends Controller
             'oldItems' => $resolvedItems,
             'oldInlinePayment' => $resolvedInlinePayment,
             'idempotencyKey' => $idempotencyKey,
-            'hasOldInput' => $sessionHasOldInput || $draftPayload !== [],
+            'hasOldInput' => $fresh || $sessionHasOldInput || $draftPayload !== [],
             'deviceClass' => $devices->isHandset($request) ? 'handset' : 'desktop',
             'presentationMode' => 'detail',
         ]));
