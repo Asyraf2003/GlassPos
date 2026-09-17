@@ -60,11 +60,11 @@ final class PrimitiveRevisionIdentityContractFeatureTest extends TestCase
         $this->assertDatabaseHas('notes', ['id' => $id, 'total_rupiah' => 81258]);
         // Exact retry is replayed before checking the now-stale R1 base.
         $this->postJson(route('cashier.notes.workspace.draft.save'), $stale + ['workspace_mode' => 'edit', 'note_id' => $id])->assertOk();
-        $this->patch($update, $first)->assertSessionHasNoErrors();
+        $this->patch($update, $first)->assertSessionHasNoErrors()->assertSessionHas('success', 'Revisi nota sudah diproses sebelumnya.');
         self::assertSame($before, $this->domainEvidence());
         $changed = $first;
         $changed['items'][0]['service']['price_rupiah'] = 90001;
-        $this->patch($update, $changed)->assertSessionHasErrors('revision');
+        $this->patch($update, $changed)->assertSessionHasErrors(['revision' => 'Idempotency key revisi sudah dipakai untuk payload berbeda.']);
         self::assertSame($before, $this->domainEvidence());
         $this->patchJson($update, $stale)->assertStatus(409)->assertJsonPath('code', 'STALE_REVISION');
         self::assertSame($before, $this->domainEvidence());
@@ -102,7 +102,7 @@ final class PrimitiveRevisionIdentityContractFeatureTest extends TestCase
         $other = (string) DB::table('notes')->where('id', '<>', $id)->value('id');
         $otherUpdate = route('cashier.notes.workspace.update', ['noteId' => $other]);
         $before = $this->domainEvidence();
-        $this->patch($otherUpdate, $first)->assertSessionHasErrors('revision');
+        $this->patch($otherUpdate, $first)->assertSessionHasErrors(['revision' => 'Idempotency key revisi sudah dipakai untuk payload berbeda.']);
         self::assertSame($before, $this->domainEvidence(), 'A successful key cannot replay into another root');
         $otherPayload = $first;
         $otherPayload['idempotency_key'] = 'identity-other-fresh-key';
