@@ -76,6 +76,52 @@ final class PrimitiveLifecyclePresentationContractFeatureTest extends TestCase
         self::assertSame($before, $this->readEvidence());
     }
 
+    public function test_chain_b_refund_and_reopened_receivable_present_current_money_separately_from_history(): void
+    {
+        $this->preparePrimitiveFixture();
+        $cashier = $this->loginAsKasir();
+        $create = $this->primitiveWorkspace($this->primitiveItems(), 'presentation-b-create');
+        $create['inline_payment'] = ['decision' => 'pay_partial', 'payment_method' => 'cash', 'paid_at' => '2026-09-15',
+            'amount_paid_rupiah' => 73129, 'amount_received_rupiah' => 100003];
+        $this->post(route('notes.workspace.store'), $create)->assertSessionHasNoErrors();
+        $id = (string) DB::table('notes')->value('id');
+        $payment = route('cashier.notes.payments.store', ['noteId' => $id]);
+        $show = route('cashier.notes.show', ['noteId' => $id]);
+        $this->advancePrimitiveTime();
+        $this->post($payment, $this->primitivePayment('presentation-b-dp2', 89457, 'transfer'))->assertSessionHasNoErrors();
+        $this->advancePrimitiveTime();
+        $this->post($payment, $this->primitivePayment('presentation-b-full', 233347, 'cash', 250009))->assertSessionHasNoErrors();
+        $oldProduct = (string) DB::table('work_items')->where('transaction_type', 'store_stock_sale_only')->value('id');
+        $this->post(route('cashier.notes.refunds.store', ['noteId' => $id]), [
+            'selected_row_ids' => [$oldProduct], 'refunded_at' => '2026-09-15', 'reason' => 'Presentation source refund', 'idempotency_key' => 'presentation-b-refund',
+        ])->assertSessionHasNoErrors();
+        $before = $this->readEvidence();
+        $b4 = $this->get($show)->assertOk()->viewData('note');
+        self::assertSame([253394, 253394, 0], [$b4['grand_total_rupiah'], $b4['net_paid_rupiah'], $b4['outstanding_rupiah']]);
+        self::assertEqualsCanonicalizing([20002, 89457, 33080], array_column($b4['refund_timeline'], 'amount_rupiah'));
+        self::assertSame($before, $this->readEvidence());
+        $this->loginAsAuthorizedAdmin();
+        $down = $this->primitiveWorkspace(array_slice($this->primitiveItems(51983), 1), 'presentation-b-down');
+        $down['base_revision_id'] = $this->revisionBaseForTest($id);
+        $this->patch(route('admin.notes.workspace.update', ['noteId' => $id]), $down)->assertSessionHasNoErrors();
+        $items = $this->primitiveItems(70211);
+        $up = $this->primitiveWorkspace([$items[3], $items[2], $items[1], ['entry_mode' => 'product',
+            'product_lines' => [['product_id' => 'primitive-r', 'qty' => 5, 'unit_price_rupiah' => 33571]]]], 'presentation-b-up');
+        $up['base_revision_id'] = $this->revisionBaseForTest($id);
+        $this->patch(route('admin.notes.workspace.update', ['noteId' => $id]), $up)->assertSessionHasNoErrors();
+        $this->actingAs($cashier);
+        $before = $this->readEvidence();
+        $b6 = $this->get($show)->assertOk()->assertSee('186.083')->assertSee('241.658')->viewData('note');
+        self::assertSame([427741, 241658, 186083], [$b6['grand_total_rupiah'], $b6['net_paid_rupiah'], $b6['outstanding_rupiah']]);
+        self::assertSame(395933, array_sum(array_column($b6['payment_timeline'], 'payment_amount_rupiah')));
+        self::assertTrue($b6['can_show_settle_payment_action']);
+        self::assertSame('open', $b6['note_state']);
+        self::assertSame($b4['refund_timeline'], $b6['refund_timeline']);
+        $editor = $this->get(route('cashier.notes.workspace.edit', ['noteId' => $id]))->assertOk();
+        self::assertSame(186083, $editor->viewData('workspacePaymentSettlement')['amount_rupiah']);
+        self::assertSame($before, $this->readEvidence());
+    }
+
     private function exportBrowserPage(string $name, string $html): void
     {
         $directory = getenv('PRIMITIVE_PRESENTATION_EXPORT_DIR');

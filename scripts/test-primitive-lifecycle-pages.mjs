@@ -79,6 +79,7 @@ try {
     assert.deepEqual(money, [112903, 7108, 137983]);
     await evaluate(`document.querySelector('#detail-payment-back-cash').click(); document.querySelector('#detail-payment-open-cash').click()`);
     assert.equal(await evaluate(`Number(document.getElementById('workspace-cash-payable-text').textContent.replace(/\\D/g,''))`), 112903);
+    await evaluate(`(() => {const input=document.getElementById('inline_payment_amount_received_display');input.value='120011';input.dispatchEvent(new Event('input',{bubbles:true}));})()`);
     const bounds = await evaluate(`(() => {const r=document.querySelector('#note-payment-modal .modal-dialog').getBoundingClientRect();return {left:r.left,right:r.right,width:innerWidth};})()`);
     assert.ok(bounds.left >= 0 && bounds.right <= bounds.width + 1, 'modal fits viewport');
     const screenshot = await call('Page.captureScreenshot', {format: 'png'});
@@ -94,7 +95,11 @@ try {
     await call('Page.reload');
     await sleep(500);
     assert.equal(await evaluate(`document.body.textContent.includes('250.886')`), true, 'reload retains A3 outstanding');
-    console.log(JSON.stringify({width, checkpoint: 'A3/A4/A5', money, modalFocus: true, navigation: 'Back/reload', screenshot: join(directory, `a4-cash-${width}.png`)}));
+    const forward = await call('Page.getNavigationHistory');
+    await call('Page.navigateToHistoryEntry', {entryId: forward.entries[forward.currentIndex + 1].id});
+    await until(() => evaluate(`location.pathname === '/a5-detail.html' && document.readyState === 'complete' && performance.getEntriesByType('navigation')[0]?.type === 'reload'`), 'Forward freshness');
+    assert.equal(await evaluate(`document.querySelector('[data-payment-intent="settle"]') === null`), true);
+    console.log(JSON.stringify({width, checkpoint: 'A3/A4/A5', money, modalFocus: true, navigation: 'Back/reload/Forward', screenshot: join(directory, `a4-cash-${width}.png`)}));
   }
   console.log(`Rendered-page browser proof PASS; artifacts ${directory}`);
 } finally {
