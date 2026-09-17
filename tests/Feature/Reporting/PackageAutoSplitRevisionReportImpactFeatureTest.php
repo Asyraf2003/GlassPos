@@ -26,6 +26,7 @@ final class PackageAutoSplitRevisionReportImpactFeatureTest extends TestCase
         $result = $this->app->make(CreateNoteRevisionHandler::class)->handle(
             'note-report-package-revision-001',
             [
+                'base_revision_id' => $this->revisionBaseForTest('note-report-package-revision-001'),
                 'reason' => 'Report impact package multi-product downward revision.',
                 'note' => [
                     'customer_name' => 'Budi Package Revision Report',
@@ -114,6 +115,7 @@ final class PackageAutoSplitRevisionReportImpactFeatureTest extends TestCase
         $result = $this->app->make(CreateNoteRevisionHandler::class)->handle(
             'note-report-package-revision-001',
             [
+                'base_revision_id' => $this->revisionBaseForTest('note-report-package-revision-001'),
                 'reason' => 'Report export package multi-product downward revision.',
                 'note' => [
                     'customer_name' => 'Budi Package Revision Report',

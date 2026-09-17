@@ -56,6 +56,7 @@ final class CorrectPaidServiceOnlyWorkItemHttpFeatureTest extends TestCase
         $response = $this->from(route('cashier.notes.show', ['noteId' => 'note-1']))
             ->actingAs($user)
             ->post('/cashier/notes/note-1/corrections/service-only', [
+                'base_revision_id' => $this->revisionBaseForTest('note-1'),
                 'line_no' => 1,
                 'service_name' => 'Servis Koreksi',
                 'service_price_rupiah' => 40000,
@@ -84,6 +85,7 @@ final class CorrectPaidServiceOnlyWorkItemHttpFeatureTest extends TestCase
         $response = $this->from(route('cashier.notes.show', ['noteId' => 'note-1']))
             ->actingAs($user)
             ->post('/cashier/notes/note-1/corrections/service-only', [
+                'base_revision_id' => $this->revisionBaseForTest('note-1'),
                 'line_no' => 1,
                 'service_name' => 'Servis Koreksi',
                 'service_price_rupiah' => 40000,
@@ -113,6 +115,7 @@ final class CorrectPaidServiceOnlyWorkItemHttpFeatureTest extends TestCase
         $response = $this->from(route('cashier.notes.show', ['noteId' => 'note-1']))
             ->actingAs($user)
             ->post('/cashier/notes/note-1/corrections/service-only', [
+                'base_revision_id' => $this->revisionBaseForTest('note-1'),
                 'line_no' => 1,
                 'service_name' => 'Servis Koreksi',
                 'service_price_rupiah' => 30000,

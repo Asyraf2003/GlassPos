@@ -36,6 +36,7 @@ final class TransactionReportRevisionCashTruthFeatureTest extends TestCase
         self::assertTrue($created->isSuccess(), (string) $created->message());
         $noteId = $created->data()['note']['id'];
 
+        $payload['base_revision_id'] = $this->revisionBaseForTest($noteId);
         $payload['reason'] = 'Downward correction after full payment';
         $payload['idempotency_key'] = 'report-cash-revision';
         $payload['note']['transaction_date'] = '2026-09-13';

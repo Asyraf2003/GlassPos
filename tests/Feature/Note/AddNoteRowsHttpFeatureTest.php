@@ -54,7 +54,10 @@ final class AddNoteRowsHttpFeatureTest extends TestCase
             'part_source' => ServiceDetail::PART_SOURCE_NONE,
         ]);
 
+        $this->actingAs($user)->get(route('cashier.notes.workspace.edit', ['noteId' => 'note-1']))->assertOk();
+        $base = (string) DB::table('notes')->where('id', 'note-1')->value('current_revision_id');
         $response = $this->actingAs($user)->post('/cashier/notes/note-1/rows', [
+            'base_revision_id' => $base,
             'rows' => [[
                 'line_type' => 'service',
                 'service_name' => 'Servis B',
@@ -62,7 +65,13 @@ final class AddNoteRowsHttpFeatureTest extends TestCase
             ]],
         ]);
 
-        $response->assertRedirect(route('cashier.notes.show', ['noteId' => 'note-1']));
+        $response->assertRedirect(route('cashier.notes.show', ['noteId' => 'note-1']))->assertSessionHasNoErrors();
+        $this->assertDatabaseCount('note_revisions', 2);
+        $this->postJson('/cashier/notes/note-1/rows', [
+            'base_revision_id' => $base,
+            'rows' => [['line_type' => 'service', 'service_name' => 'Stale row', 'service_price_rupiah' => 90001]],
+        ])->assertStatus(409)->assertJsonPath('code', 'STALE_REVISION');
+        $this->assertDatabaseCount('note_revisions', 2);
         $this->assertDatabaseHas('work_items', [
             'note_id' => 'note-1',
             'line_no' => 2,
