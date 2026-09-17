@@ -31,7 +31,12 @@ const browser = spawn(process.env.CHROMIUM_BIN || 'chromium', ['--headless=new',
   '--disable-dev-shm-usage', '--no-first-run', '--no-default-browser-check', '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], {stdio: 'ignore'});
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const until = async (condition, label) => {
-  for (let i = 0; i < 100; i++) { if (await condition()) return; await sleep(100); }
+  for (let i = 0; i < 100; i++) {
+    try { if (await condition()) return; } catch (error) {
+      if (!/Not attached to an active page|Execution context was destroyed|Cannot find context/.test(error.message)) throw error;
+    }
+    await sleep(100);
+  }
   throw new Error(`Timeout: ${label}`);
 };
 let socket;
@@ -83,6 +88,9 @@ try {
     const history = await call('Page.getNavigationHistory');
     await call('Page.navigateToHistoryEntry', {entryId: history.entries[history.currentIndex - 1].id});
     await until(() => evaluate(`location.pathname === '/a3-detail.html' && document.readyState === 'complete'`), 'Back');
+    // Production page-freshness reloads automatically after Back; wait for that navigation.
+    await until(() => evaluate(`performance.getEntriesByType('navigation')[0]?.type === 'reload' && document.readyState === 'complete'`), 'Back freshness reload');
+    await sleep(300);
     await call('Page.reload');
     await sleep(500);
     assert.equal(await evaluate(`document.body.textContent.includes('250.886')`), true, 'reload retains A3 outstanding');
