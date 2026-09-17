@@ -21,6 +21,7 @@ final class NoteRevisionLineSnapshotLabelResolver
         if ($storeLines !== []) {
             $first = is_array($storeLines[0]) ? $storeLines[0] : [];
             $label = $this->firstNonEmpty([
+                $first['product_name_snapshot'] ?? null,
                 $first['product_label'] ?? null,
                 $first['product_name'] ?? null,
                 $first['product_nama_barang'] ?? null,
