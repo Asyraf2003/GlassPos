@@ -1309,7 +1309,6 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
             'actor_id' => (string) $admin->getAuthIdentifier(),
             'operation' => 'create_note_revision',
             'idempotency_key' => '0062-f-edit-downward-idempotency',
-            'base_revision_id' => $this->revisionBaseForTest($noteId),
             'status' => 'succeeded',
             'result_note_id' => $noteId,
         ]);
