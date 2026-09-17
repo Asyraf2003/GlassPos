@@ -276,3 +276,37 @@ Final focused+adjacent:
     php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveCancelCorrectionVersionChainFeatureTest.php tests/Feature/Note/PrimitiveMutationBoundaryCharacterizationTest.php tests/Feature/Note/NoteRevisionStoreStockInventoryLifecycleFeatureTest.php tests/Feature/Note/CorrectPaidServiceOnlyWorkItemFeatureTest.php tests/Feature/Note/RefundRevisionOperationalReopenFeatureTest.php --stop-on-failure --compact
 
 GREEN9 passed /168 assertions /6.54s, exit0. No major gate for this test-only slice. Commit/push pending. Next active Slice6, Chain D exact source/cost/cardinality and rollback. Owner said continue across date rollover2026-09-17; explicit test fixture stays2026-09-15.
+
+Slice5 publication observation: another local process committed the test and Slice4 receipt as aeef02a3; assistant commit6f7896b7 contains Slice5 proof only. Initial SSH push failed (agent has no identities), and Slice6 baseline encountered stopped DB. MariaDB subsequently active; retry baseline GREEN10/155. GitHub CLI authentication exists; HTTPS credential-helper push attempted, result recorded later. No credentials/configuration rewritten.
+
+Slice5 HTTPS publication confirmed: git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push https://github.com/Asyraf2003/GlassPos.git main exited0, remote aeef02a3→6f7896b7. Existing SSH origin configuration preserved.
+
+## Slice 6 — Chain D inventory identity / source / cost — focused GREEN; major gate pending
+
+New tests/Feature/Inventory/PrimitiveInventoryRevisionRefundChainFeatureTest.php; no production edits. Refreshed inventory issue/reversal, active replacement, rollback tests, editable historical package mapper and ADR0007/0008/0045. Template validation stays active on create; revision uses the supported historical_package_snapshot/requires_service_product_template=false payload emitted by RevisionWorkspaceServiceStoreStockMapper, with exact41983 service component.
+
+Baseline10 passed /155 assertions /6.17s after environment-only DB connection refusal recovered. Command:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/NoteRevisionStoreStockInventoryLifecycleFeatureTest.php tests/Feature/Note/NoteRevisionStoreStockRollbackFeatureTest.php tests/Feature/Note/EditTransactionWorkspacePackageAutoSplitCharacterizationTest.php --stop-on-failure --compact
+
+First meaningful RED: TEST WRONG, rollback snapshot included pre-transaction admin_transaction_capability_used access audit. Narrow rerun identified audit_logs only; domain money/stock/revision rows rolled back. Accepted ADR0007 requires capability usage audit. Test now explicitly requires one access event and compares all mutation evidence unchanged; no mutation assertion weakened and no production patch.
+
+Exact D1–D7 proven. Full ten-row set includes product/source type/source ID/qty/original unit cost/total cost. Six issues, three revision returns, one refund return; historical initial issues unchanged. R20 rejection rolls back money, current/revision rows, stock, costing, and mutation audit; valid R2 then succeeds. D5 same-key replay and fresh-key stale P2 refund do not change domain effects. Final P16/Q23/R17, inventory values315536/264569/233053; net movement COGS47139. Final partial/final cash causes no stock events.
+
+Focused:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Inventory/PrimitiveInventoryRevisionRefundChainFeatureTest.php --stop-on-failure --compact
+
+GREEN1 passed /88 assertions /5.60s.
+
+Focused+adjacent:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Inventory/PrimitiveInventoryRevisionRefundChainFeatureTest.php tests/Feature/Note/NoteRevisionStoreStockInventoryLifecycleFeatureTest.php tests/Feature/Note/NoteRevisionStoreStockRollbackFeatureTest.php tests/Feature/Note/EditTransactionWorkspacePackageAutoSplitCharacterizationTest.php tests/Feature/Note/PrimitiveRefundRevisionReceivableChainFeatureTest.php --stop-on-failure --compact
+
+GREEN12 passed /310 assertions /6.43s. Major gate now running:
+
+    make verify > /tmp/glasspos-0018-slice6-verify.log 2>&1
+
+No broad pass claimed yet. Commit/push pending major gate. Next active after GREEN: Slice7 first identity probe, stale-base edit/public request contract. Do not skip this known gap to later slices.
+
+Slice6 major gate GREEN: make verify exit0; PHPStan no errors, line/Blade/contract audits PASS;1718 passed /12022 assertions /78.33s. Slice6 COMPLETE. No production files changed during Chains A–D. Commit/push pending; next active Slice7 stale-base identity probe only.
