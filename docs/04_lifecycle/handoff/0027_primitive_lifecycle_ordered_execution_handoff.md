@@ -340,3 +340,19 @@ Owner decision needed before next implementation: define the required editing-ba
 Adjacent tests after RED: not run; baseline above and broad1718/12022 gate before this test remain the last GREEN evidence. No broad GREEN claim applies to the working tree containing this deliberately failing test. Slice7 commit SHA: NONE. Push status: NOT COMMITTED / NOT PUSHED. Handoff including this STOP and Slice6 publication receipt is local/uncommitted. Latest published GREEN commit967b5d93. Preserve local RED evidence for the owner; do not accidentally include it in a GREEN publication.
 
 Exact next active slice remains7, first stale-base contract decision and repair only after authorization. Remaining Slice7 probes and slices8–12 remain pending. Historical0065 and completed1–2c remain CLOSED. No production files changed in this continuation.
+
+## Slice 7 — owner contract resolved; implementation in progress (2026-09-17)
+
+The owner explicitly requires base_revision_id on existing-note edits, authoritative comparison inside the root lock, STALE_REVISION with JSON409 or established form session error, and zero domain effects on stale rejection. Exact successful idempotency replay precedes stale validation; changed payload remains conflict. Drafts preserve the observed base, including stale bases; missing base must not default to current. Legacy editor uses existing initial-revision bootstrap. Slice11 retains concurrent-race ownership.
+
+Repository observation supersedes the earlier LOCAL ONLY receipt: another local process committed a59da03a and 7b276002 (Update project). Do not attribute those commits to this assistant. Owner then explicitly instructed `sai push` after every file change. This changes publication cadence; intermediate publication is not a GREEN claim. The script stages all files, commits, and pushes. Assistant ran `sai push "wip: extend stale revision contract proof and response handling"`: commit c2f8d87a, push exit0, main7b276002→c2f8d87a.
+
+Implemented paths currently include workspace revision request/workflow/handler/controller; editor and draft base propagation; paid nominal correction request/locked mutation/form; add-rows public route delegation to existing immutable revision workflow. Idempotency semantic hash includes target root. Stale workflow failure rolls back processing receipt and all transactional effects. Test fixtures supply explicit observed revision identity, with retry payloads preserving their original base.
+
+Focused command from repository root:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveRevisionIdentityContractFeatureTest.php --compact
+
+Latest proof GREEN2 passed /49 assertions /6.81s, exit0. Covers matching base, stale form/JSON rejection and raw domain cardinality, exact replay, changed-payload conflict, missing/unrelated base, different target root, stored stale draft, next current revision and stale nominal correction after surplus payout. Previous continuation adjacent proof4/298 and13/185 exists, but final adjacent and broad verification remain pending. Full test suite currently running to identify callers needing explicit base fixture migration. No Slice7 completion or current broad GREEN claim.
+
+Remaining active work: add-rows proof and fixture migration; legacy/draft refresh behavior; final revision/idempotency/draft adjacent regressions and static checks. Exact next active slice remains7. Slices8–12 have not started. No new unresolved owner semantic gap has been established. Latest broad GREEN still applies only through Slice6 at967b5d93.
