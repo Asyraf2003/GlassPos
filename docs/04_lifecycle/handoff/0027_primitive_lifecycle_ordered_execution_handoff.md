@@ -310,3 +310,33 @@ GREEN12 passed /310 assertions /6.43s. Major gate now running:
 No broad pass claimed yet. Commit/push pending major gate. Next active after GREEN: Slice7 first identity probe, stale-base edit/public request contract. Do not skip this known gap to later slices.
 
 Slice6 major gate GREEN: make verify exit0; PHPStan no errors, line/Blade/contract audits PASS;1718 passed /12022 assertions /78.33s. Slice6 COMPLETE. No production files changed during Chains A–D. Commit/push pending; next active Slice7 stale-base identity probe only.
+
+Slice6 publication: assistant commit967b5d93; HTTPS git push exit0,6f7896b7→967b5d93. Latest broad GREEN1718/12022 applies through Slice6. Slice7 first stale-editor probe active; current request rules expose no base revision/version field, workflow resolves current server pointer without comparing an editing base. ADR0045 explicitly requires characterization before implementation for this condition.
+
+## Slice 7 — first stale-editor identity probe — STOP: CONTRACT GAP
+
+Date2026-09-17. Slice3/4/5/6 are GREEN and published; Slice7 is not GREEN. Slices8–12 have NOT started. User mandated STOP where public request cannot express correctness; no owner decision inferred from general repair authorization.
+
+Refreshed ADR0045 Stale Edit / Lost Update Contract, Blueprint0018 V04/section9 Slice7, UpdateTransactionWorkspaceRequest/Rules/InputNormalizer/Controller, CreateNoteRevisionHandler/Workflow and idempotency service. Public update rules have no base_revision_id/expected_revision/version input. Controller passes validated request; workflow locks the root then resolves its latest current revision but never compares it to the editor's base. A row lock serializes writes without detecting a stale editor. Distinct command keys do not convey an editing base.
+
+Nearest existing baseline:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/EditTransactionWorkspaceRevisionPaymentCharacterizationTest.php --stop-on-failure --compact
+
+GREEN5 passed /80 assertions /8.21s.
+
+New LOCAL ONLY test: tests/Feature/Note/PrimitiveRevisionIdentityContractFeatureTest.php. One bounded HTTP identity probe, with real create and two editor GETs before either submission. R1 service63719; first editor commits R2 service81258; second editor's stale R1 draft submits51983 using a distinct command key. No invented base-version request field or direct lifecycle DB writes.
+
+Focused command:
+
+    php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveRevisionIdentityContractFeatureTest.php --stop-on-failure --compact
+
+RED1 failed /8 assertions /6.15s, exit1. Failure at test line50: expected pointerR2, actualR3; actual revision count3, total51983, HTTP302. Thus newer accepted value81258 was silently superseded by stale editor content. Normative assertion is retained; no acceptance assertion added to bless current last-write-wins.
+
+Classification: CONTRACT GAP at public request boundary, with directly proven behavior contrary to ADR0045. Root cause: missing client editing-base identity plus no base/current comparison under the revision lock. This is an explicit owner STOP condition even though silent overwrite is already forbidden. Implementing a base token or another conflict policy requires the public-contract decision. No production fix, no ADR edit, no second identity probe, no downstream continuation.
+
+Owner decision needed before next implementation: define the required editing-base identity in the public update payload, handling for absent/stale tokens and caller compatibility, then authorize validation/comparison under the existing lock. Recommended direction is explicit base revision identity with stale rejection and refresh; do not invent merge/last-write-wins semantics.
+
+Adjacent tests after RED: not run; baseline above and broad1718/12022 gate before this test remain the last GREEN evidence. No broad GREEN claim applies to the working tree containing this deliberately failing test. Slice7 commit SHA: NONE. Push status: NOT COMMITTED / NOT PUSHED. Handoff including this STOP and Slice6 publication receipt is local/uncommitted. Latest published GREEN commit967b5d93. Preserve local RED evidence for the owner; do not accidentally include it in a GREEN publication.
+
+Exact next active slice remains7, first stale-base contract decision and repair only after authorization. Remaining Slice7 probes and slices8–12 remain pending. Historical0065 and completed1–2c remain CLOSED. No production files changed in this continuation.
