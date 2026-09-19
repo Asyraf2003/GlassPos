@@ -548,3 +548,41 @@ Visual consistency inspection: Blueprint0014 supersedes compulsory workspace ste
 Explicit proof limits / MANUAL QA remaining for Blueprint0018 Slice12: physical handset keyboard/safe-area/PWA behavior and live-server browser payment/refund submission/retry with persisted refresh across the complete battle cards. Chromium responsive emulation is not physical-device evidence. Exported pages execute real production markup/assets and navigation reload behavior, but their underlying HTTP fixture is rolled back; HTTP tests independently prove accepted mutations and subsequent read-only persisted reads. These unexecuted end-to-end/device checks remain pending, not GREEN. No remaining Slice8 scoped semantic or responsive-browser blocker.
 
 Publication: implementation proof commit130e8b96654982886bf2df278854e721eb8995b7 is already published and verified equal to origin/main. This recovery receipt is published separately via sai push; final receipt SHA/push output and clean status are reported in the session closeout. STOP after Slice8. Do not interpret the earlier handoff's proposed next Slice9 as authorization to start it in this session.
+
+## Slice 9 — Chain E reporting (2026-09-20 continuation)
+
+Status: focused and adjacent GREEN; major gate/publication pending until the receipt below. Started from clean74fb9983fb2d8a00e5e875cd3c18054efdf922e4, matching origin/main after fetch. Recovered existing characterization2ffdbddb080599f114eb6233096d21f19d6fea3e rather than recreating the chain. Its unchanged baseline passed1 test/114 assertions. A usage-limit interruption preserved the three uncommitted timestamp assertions; subsequent environment reset removed temporary DB/process/log files, not repository work. No Slice8 redesign or reopened closure.
+
+First meaningful RED: PRODUCTION BUG,1 failed/67 assertions. E5 surplus disposition occurred_at was2026-09-15 00:00:00 instead of actual action2026-09-15 09:04:00. CreateNoteRevisionSettlementCommitter passes note business date to automatic surplus recorders, which incorrectly also used it as audit/action time. ADR0027 temporal policy and Blueprint0018 forbid this. Small repair: both recorders use settlement.createdAt, captured from ClockPort by the revision workflow, for occurredAt; payout effectiveDate remains the business date. No historical backfill, reporting repair, amount change, schema or public-envelope change.
+
+Changed files:
+
+- app/Application/Note/Services/AutoSettleNoteRevisionSurplusRefundDueRecorder.php
+- app/Application/Note/Services/AutoSettleNoteRevisionSurplusRefundPaymentRecorder.php
+- tests/Feature/Reporting/PrimitiveLifecycleReportingChainFeatureTest.php
+- tests/Support/AssertsPrimitiveReportingSurfaces.php (new)
+- this handoff
+
+Test-only classifications during expansion: incorrect page route name (missing .index); expected surplus audit in outbox although contextual binding writes canonical audit_events synchronously with FK references; package service_price is only the auto-split fee, while total_service_component includes fee plus package profit and preserves exact41983. These were TEST WRONG, corrected against inspected routes/bindings/composer/row mapper, without changing Chain E literals. First major gate caught typed auth factory user() lookup in helper; corrected to guard()->user(), with no suppression.
+
+Execution context: /home/asyraf/projects/laravel/GlassPos. Disposable MariaDB port3318, database glasspos_slice9_test, root without password; no production data. After environment reset, initialize with mariadb-install-db --datadir=/tmp/glasspos-slice9-db --auth-root-authentication-method=normal --skip-test-db; start mariadbd --datadir=/tmp/glasspos-slice9-db --socket=/tmp/glasspos-slice9.sock --port=3318 --bind-address=127.0.0.1 --pid-file=/tmp/glasspos-slice9.pid --log-error=/tmp/glasspos-slice9-db.log; create only glasspos_slice9_test. Approved local socket execution required outside sandbox.
+
+Focused:
+
+    env DB_HOST=127.0.0.1 DB_PORT=3318 DB_DATABASE=glasspos_slice9_test DB_USERNAME=root DB_PASSWORD= php -d memory_limit=-1 vendor/bin/pest tests/Feature/Reporting/PrimitiveLifecycleReportingChainFeatureTest.php --compact --stop-on-failure
+
+GREEN1 passed/367 assertions/1.55s. Earlier minimal timestamp repair passed1/117. All E1–E8 original amounts unchanged. E4/E5/E6/E7/E8 real page/PDF/Excel HTTP requests consume the real transaction source reader with identical filters/numeric source rows, not canned report results; page arrays and PDF view-builder inputs match authoritative dataset, actual XLSX summary/detail cells match integer values. Actual PDF generation succeeds. Twice-read datasets and full domain snapshots remain unchanged, covering child rows, payment cash details, both allocation types, refund allocations, settlements/due/payout, stock balance/cost/movements, mutation snapshots, projection, idempotency and both canonical/legacy audit stores. Package component totals, stock ledger/value reconciliation and unfinished debt queue match each checkpoint's defined scope. Sep15 current-note report includes latest settled state; Sep16 note-date dataset empty; cash ledger Sep15 excludes158964 and Sep16 includes it. Final payment recorded_at remains2026-09-16 10:11:12; E5 canonical audit events retain09:04:00 while payout business date staysSep15.
+
+Focused plus adjacent:
+
+    env DB_HOST=127.0.0.1 DB_PORT=3318 DB_DATABASE=glasspos_slice9_test DB_USERNAME=root DB_PASSWORD= php -d memory_limit=-1 vendor/bin/pest tests/Feature/Reporting/PrimitiveLifecycleReportingChainFeatureTest.php tests/Feature/Reporting/GetTransactionReportDatasetFeatureTest.php tests/Feature/Reporting/TransactionSummaryPerNoteHardeningFeatureTest.php tests/Feature/Reporting/TransactionReportRevisionCashTruthFeatureTest.php tests/Feature/Reporting/GetInventoryStockValueReportDatasetFeatureTest.php tests/Feature/Reporting/ServicePackageProfitBreakdownHttpWorkflowFeatureTest.php tests/Feature/ReportingExports/TransactionReportExcelExportFeatureTest.php tests/Feature/ReportingExports/TransactionReportPdfExportFeatureTest.php tests/Feature/Note/TransactionCashLedgerAfterRevisionRefundFeatureTest.php tests/Feature/Note/CreateNoteRevisionSurplusRefundPaidCarryForwardFeatureTest.php tests/Feature/Note/NoteRevisionRollbackFeatureTest.php --compact --stop-on-failure
+
+GREEN20 passed/656 assertions/2.36s. Later auth guard typing correction is covered by the final major gate below.
+
+Major gate command:
+
+    env DB_HOST=127.0.0.1 DB_PORT=3318 DB_DATABASE=glasspos_slice9_test DB_USERNAME=root DB_PASSWORD= make verify > /tmp/glasspos-0018-slice9-verify.log 2>&1
+
+Proof limits: this slice proves report dataset/export consumption, not new PDF visual design, physical handset behavior, complete live-server battle cards, or concurrency. Those remain Slice12 and Slice11 respectively. No browser/device claim added. No report-side domain mutation or repair. Slice10 durable audit/atomicity is not closed by surplus audit timestamp proof. Exact next active slice after GREEN/publication: Slice10 only.
+
+Final major gate GREEN exit0: PHPStan2121 files/no errors; line/Blade/contract audits PASS;1724 passed/12531 assertions/56.74s. git diff --check PASS. Slice9 COMPLETE / GREEN for its automated reporting scope. Implementation and this receipt are committed/published next; exact commit SHA and verified push are recorded in the following publication receipt. Slice10 remains next, not yet executed.

@@ -11,11 +11,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\BuildsPrimitiveLifecycleFixture;
+use Tests\Support\AssertsPrimitiveReportingSurfaces;
 use Tests\TestCase;
 
 final class PrimitiveLifecycleReportingChainFeatureTest extends TestCase
 {
     use BuildsPrimitiveLifecycleFixture;
+    use AssertsPrimitiveReportingSurfaces;
     use RefreshDatabase;
 
     protected function tearDown(): void
@@ -53,6 +55,13 @@ final class PrimitiveLifecycleReportingChainFeatureTest extends TestCase
         $down['base_revision_id'] = $this->revisionBaseForTest($id);
         $this->patch(route('admin.notes.workspace.update', ['noteId' => $id]), $down)->assertSessionHasNoErrors();
         $this->checkpoint([241658, 395933, 142539, 11736, 241658, 0, 23006, 165525]);
+        self::assertSame('2026-09-15 09:04:00', DB::table('note_revision_surplus_dispositions')->value('occurred_at'));
+        self::assertSame('2026-09-15 09:04:00', DB::table('note_revision_surplus_refund_payments')->value('occurred_at'));
+        self::assertSame('2026-09-15', DB::table('note_revision_surplus_refund_payments')->value('effective_date'));
+        $auditIds = [DB::table('note_revision_surplus_dispositions')->value('audit_event_id'),
+            DB::table('note_revision_surplus_refund_payments')->value('audit_event_id')];
+        self::assertSame(['2026-09-15 09:04:00', '2026-09-15 09:04:00'],
+            DB::table('audit_events')->whereIn('id', $auditIds)->pluck('occurred_at')->all());
         $this->advancePrimitiveTime();
         $items = $this->primitiveItems(70211);
         $up = $this->primitiveWorkspace([$items[3], $items[2], $items[1], ['entry_mode' => 'product',
@@ -70,6 +79,8 @@ final class PrimitiveLifecycleReportingChainFeatureTest extends TestCase
         $final['paid_at'] = '2026-09-16';
         $this->post($payment, $final)->assertSessionHasNoErrors();
         $this->checkpoint([427741, 582016, 142539, 11736, 427741, 0, 91551, 283063]);
+        $beforePeriodReads = $this->evidence();
+        self::assertSame('2026-09-16 10:11:12', Carbon::parse(DB::table('customer_payments')->where('amount_rupiah', 158964)->value('recorded_at'))->format('Y-m-d H:i:s'));
         $ledger = app(TransactionCashLedgerReportingQuery::class);
         self::assertSame(['total_in_rupiah' => 582016, 'cash_in_rupiah' => 465440, 'transfer_in_rupiah' => 116576, 'total_out_rupiah' => 154275], $ledger->reconciliation('2026-09-15', '2026-09-16'));
         $events = collect($ledger->rows('2026-09-15', '2026-09-16'));
@@ -82,6 +93,8 @@ final class PrimitiveLifecycleReportingChainFeatureTest extends TestCase
         $current = app(GetTransactionReportDatasetHandler::class)->handle('2026-09-15', '2026-09-15')->data();
         self::assertSame(0, $current['summary']['outstanding_rupiah']);
         self::assertSame(427741, $current['summary']['gross_transaction_rupiah']);
+        self::assertSame([], app(GetTransactionReportDatasetHandler::class)->handle('2026-09-16', '2026-09-16')->data()['rows']);
+        self::assertSame($beforePeriodReads, $this->evidence());
     }
 
     private function checkpoint(array $expected): void
@@ -104,6 +117,10 @@ final class PrimitiveLifecycleReportingChainFeatureTest extends TestCase
             if ($first !== null) self::assertSame($first, $all);
             $first = $all;
         }
+        $this->assertPrimitiveRelatedReports($expected[5], $expected[6]);
+        if (in_array($expected[0], [253394, 241658, 427741], true)) {
+            $this->assertPrimitiveReportSurfaces($first[0]);
+        }
         self::assertSame($before, $this->evidence(), 'Reporting must be read-only across raw domain effects');
     }
 
@@ -112,8 +129,18 @@ final class PrimitiveLifecycleReportingChainFeatureTest extends TestCase
         $rows = [];
         foreach (['notes', 'work_items', 'note_revisions', 'note_revision_lines', 'customer_payments', 'payment_allocations',
             'payment_component_allocations', 'customer_refunds', 'refund_component_allocations', 'note_revision_surplus_dispositions',
-            'note_revision_surplus_refund_payments', 'inventory_movements', 'note_mutation_events', 'audit_events', 'audit_outbox', 'audit_logs'] as $table) {
-            $rows[$table] = $this->primitiveRows($table);
+            'note_revision_surplus_refund_payments', 'inventory_movements', 'note_mutation_events', 'audit_events', 'audit_outbox', 'audit_logs',
+            'customer_payment_cash_details', 'note_revision_settlements', 'note_mutation_snapshots', 'audit_event_snapshots',
+            'work_item_store_stock_lines', 'work_item_external_purchase_lines', 'work_item_service_details',
+            'product_inventory', 'product_inventory_costing', 'note_history_projection', 'idempotency_records'] as $table) {
+            $key = match ($table) {
+                'work_item_service_details' => 'work_item_id',
+                'product_inventory', 'product_inventory_costing' => 'product_id',
+                'note_history_projection' => 'note_id',
+                'customer_payment_cash_details' => 'customer_payment_id',
+                default => 'id',
+            };
+            $rows[$table] = DB::table($table)->orderBy($key)->get()->toJson();
         }
         return $rows;
     }

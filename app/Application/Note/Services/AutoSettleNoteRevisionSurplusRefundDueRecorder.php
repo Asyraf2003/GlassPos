@@ -45,7 +45,7 @@ final class AutoSettleNoteRevisionSurplusRefundDueRecorder
             reason: $reason,
             actorId: $actorId,
             actorRole: 'admin',
-            occurredAt: $effectiveAt,
+            occurredAt: $settlement->createdAt,
             sourceChannel: self::SOURCE_CHANNEL,
             requestId: sprintf('auto-refund-due:%s', $settlement->id),
             correlationId: $correlationId,

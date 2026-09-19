@@ -50,7 +50,7 @@ final class AutoSettleNoteRevisionSurplusRefundPaymentRecorder
             actorId: $actorId,
             actorRole: 'admin',
             idempotencyKey: sprintf('auto-refund-paid:%s', $settlement->id),
-            occurredAt: $effectiveAt,
+            occurredAt: $settlement->createdAt,
             sourceChannel: self::SOURCE_CHANNEL,
             requestId: sprintf('auto-refund-paid:%s', $settlement->id),
             correlationId: $correlationId,
