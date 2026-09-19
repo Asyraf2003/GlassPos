@@ -503,3 +503,48 @@ GREEN20 passed/447 assertions/12.56s, exit0. PHPStan --memory-limit=1G --no-prog
 Publication: owner requires sai push for every change. All Slice8 changes pushed through fdcbaef9; intermediate commits6d5d22e3,2d784572,74d0fa2e,caf62f86,9f000364,d2c4c473,5630148b,8602df6c,d3367f42. SSH push of2d784572 initially failed publickey, then sai push succeeded with per-process HTTPS URL rewrite and GitHub CLI credential helper; no permanent Git config change. Later sai pushes use the same per-process HTTPS environment. Final proof commitfdcbaef9 push exit0. This receipt committed/pushed separately.
 
 Exact next active slice9 Reporting Chain E and cross-date dataset contract. Slices10–12 have not started. No unresolved owner-level gap in Slice8's exercised contracts; no historical closure reopened.
+
+## Slice 8 recovery closeout — COMPLETE / GREEN (2026-09-19)
+
+Scope: Blueprint0018 Slice8 only. The recovery began with a clean tree at 2ffdbddb080599f114eb6233096d21f19d6fea3e, including the existing Slice8 receipt524fe04d and a pre-existing reporting commit. No Slice9 implementation was performed in this recovery. On continuation, the two recovered test changes had been committed outside this assistant's execution as 130e8b96654982886bf2df278854e721eb8995b7 (`Update project`); git fetch origin and HEAD...origin/main confirmed0/0. No uncommitted Slice8 production work was lost.
+
+Changed files for this recovery:
+
+- tests/Feature/Note/PrimitiveLifecyclePresentationContractFeatureTest.php
+- scripts/test-primitive-lifecycle-pages.mjs
+- this handoff
+
+No production change in this recovery. The prior Slice8 production fix remains the shared payment summary's explicit revision snapshot versus active charge labels. Existing public JSON/error envelopes and lifecycle arithmetic are unchanged.
+
+Semantic proof adds current detail/editor revision identity, B6 complete settlement tuple, surplus due/paid history11736 each with no pending cash-out action, rejected-payment validation and read-only snapshots including cash details, both payment allocation representations, refund allocations, revision settlements, child component rows, mutation snapshots and audit outbox. These are presentation/read invariants, not a duplicate finance engine.
+
+Classifications:
+
+- TEST WRONG: expanded evidence used the shared helper's id ordering on work_item_service_details, whose primary key is work_item_id. RED2 failed/7 assertions; corrected only the test snapshot ordering. Next focused GREEN2/58.
+- TEST WRONG: the second device export consumed an already-aged validation flash, causing browser timeout. An initial persistent session-error workaround leaked the error into the next successful request (RED1 failed/1 passed/55 assertions). Re-flashing the actual returned ViewErrorBag preserves the second render and normal flash lifetime. No production validation change.
+- Environment failures, not domain RED: default test DB connection refused (2 failed/0 assertions); sandbox denied MariaDB/PHPStan local sockets and, after continuation, Node child-process spawn. An isolated disposable MariaDB database and approved execution resolved these. No production database used.
+- No new PRODUCTION BUG, CONTRACT GAP or unresolved SOURCE CONFLICT established by the recovery.
+
+Execution context for all commands: /home/asyraf/projects/laravel/GlassPos. Disposable DB initialization: mariadb-install-db --datadir=/tmp/glasspos-slice8-recovery-db --auth-root-authentication-method=normal --skip-test-db. Server: mariadbd --datadir=/tmp/glasspos-slice8-recovery-db --socket=/tmp/glasspos-slice8-recovery.sock --port=3318 --bind-address=127.0.0.1 --pid-file=/tmp/glasspos-slice8-recovery.pid --log-error=/tmp/glasspos-slice8-db.log. Database: mariadb --protocol=tcp --host=127.0.0.1 --port=3318 --user=root -e 'CREATE DATABASE glasspos_slice8_test'.
+
+Final browser command:
+
+    env DB_HOST=127.0.0.1 DB_PORT=3318 DB_DATABASE=glasspos_slice8_test DB_USERNAME=root DB_PASSWORD= node scripts/test-primitive-lifecycle-pages.mjs
+
+GREEN exit0, HTTP2 passed/69 assertions/1.17s (includes extra handset export assertions). Chromium1280x844 and390x844: actual server-selected handset and desktop markup; modal open/focus, close/backdrop removal, reopen intent persistence, insufficient-tender disabled save, sufficient-tender enabled save, modal scroll to action, amount fit, A5 action absence, Back/reload/Forward freshness, server validation popup fit/dismissal, B4/B6 ordinary history source rows and separate surplus labels, editor/detail horizontal fit. Final artifacts /tmp/glasspos-primitive-pages-ip0MlM; validation-390.png visually inspected after animation settled. Earlier direct screenshot review included B4 handset, B6 desktop, editor handset and cash modal handset. Temporary artifacts are not durable publication assets.
+
+    node scripts/test-primitive-lifecycle-presentation.mjs
+
+GREEN exit0,12 scenarios: A1/A4/A5/B8 across workspace/detail/Simple; exact credited equality and intentional exact-tender Simple behavior. This runner's synthetic fixture does not prove a live browser submission.
+
+Final focused plus adjacent command:
+
+    env DB_HOST=127.0.0.1 DB_PORT=3318 DB_DATABASE=glasspos_slice8_test DB_USERNAME=root DB_PASSWORD= php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveLifecyclePresentationContractFeatureTest.php tests/Feature/Note/CashierNoteDetailBillingUsesCurrentRevisionFeatureTest.php tests/Feature/Note/CashierNoteRefundHistoryPresentationFeatureTest.php tests/Feature/Note/PaymentTimelineRevisionTruthFeatureTest.php tests/Feature/Note/NoteDetailSurplusDispositionPayloadFeatureTest.php tests/Feature/Note/CashierNoteDetailDevicePresentationFeatureTest.php tests/Feature/Note/AdminNoteDetailDevicePresentationFeatureTest.php tests/Feature/Note/CashierCreateWorkspacePresentationFeatureTest.php --compact --stop-on-failure
+
+GREEN20 passed/457 assertions/4.15s, exit0. make audit-contract GREEN (line/Blade/contract); ./vendor/bin/phpstan analyze --memory-limit=1G --no-progress GREEN/no errors; git diff --check GREEN. No new broad make verify: recovery changes only tests/browser proof/docs, and prior Slice8 production scope is the small shared presentation fix. Historical broad1721/12100 remains scoped to Slice7; no current full-suite GREEN claim, and pre-existing Slice9 tests were not executed as part of recovery.
+
+Visual consistency inspection: Blueprint0014 supersedes compulsory workspace stepper ceremony, while0011 remains the shared mobile card direction for detail/history. Workspace and detail styles both consume cashier-surface/cashier-border/accent tokens; detail handset uses shared numbered sections and the same payment-summary-actions partial as desktop/admin. Added active-charge metric reuses note-detail-payment-metric, not a new card style. Existing cash modal boxes use their established bordered panel treatments; buttons retain shared Bootstrap primary/outline roles and status badges. Screenshots show readable amounts, single-column handset content, consistent palette/section hierarchy, and no new visual fork. Existing workspace/detail radius and section-density differences follow their existing POS versus audit presentation roles; no unrelated redesign performed.
+
+Explicit proof limits / MANUAL QA remaining for Blueprint0018 Slice12: physical handset keyboard/safe-area/PWA behavior and live-server browser payment/refund submission/retry with persisted refresh across the complete battle cards. Chromium responsive emulation is not physical-device evidence. Exported pages execute real production markup/assets and navigation reload behavior, but their underlying HTTP fixture is rolled back; HTTP tests independently prove accepted mutations and subsequent read-only persisted reads. These unexecuted end-to-end/device checks remain pending, not GREEN. No remaining Slice8 scoped semantic or responsive-browser blocker.
+
+Publication: implementation proof commit130e8b96654982886bf2df278854e721eb8995b7 is already published and verified equal to origin/main. This recovery receipt is published separately via sai push; final receipt SHA/push output and clean status are reported in the session closeout. STOP after Slice8. Do not interpret the earlier handoff's proposed next Slice9 as authorization to start it in this session.
