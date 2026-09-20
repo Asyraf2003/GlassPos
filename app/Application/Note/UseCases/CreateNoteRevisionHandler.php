@@ -16,8 +16,7 @@ final class CreateNoteRevisionHandler
         private readonly CreateNoteRevisionWorkflow $workflow,
         private readonly CreateNoteRevisionIdempotencyService $idempotency,
         private readonly TransactionManagerPort $transactions,
-    ) {
-    }
+    ) {}
 
     /** @param array<string, mixed> $payload */
     public function handle(
@@ -50,6 +49,7 @@ final class CreateNoteRevisionHandler
 
             if ($result->isFailure()) {
                 $this->transactions->rollBack();
+
                 return $result;
             }
             $this->idempotency->succeed($payload, trim($noteRootId), $result);
