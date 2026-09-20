@@ -631,3 +631,43 @@ Proof limits: RefreshDatabase wraps the test in a database transaction; evidence
 Compatibility evidence: AuditLogAdminRowMapper exposes both legacy and canonical sources; payment_allocated is also used by AllocateCustomerPaymentHandler and CreateTransactionWorkspaceInlinePaymentRecorder. No removal/renaming or global binding change is authorized by this probe. ADR-0042 lists suggested revision/refund event names but does not name a new combined-payment event; no new event has been invented and this inspection alone does not establish that one is needed.
 
 Next critical step remains within Slice10: establish the smallest existing-contract payment capture mapping and legacy compatibility boundary before repair. Stop if a new semantic event/owner decision is required. Only after actual payment outbox capture is proven may the called writer failure be injected to verify rollback of money/allocation/cash detail/note/projection/idempotency/audit effects. Slices11–12 remain untouched. No commit/push in this checkpoint.
+
+## Slice 10 — payment success and actual canonical writer failure seam (2026-09-20)
+
+Scope: payment success plus one canonical outbox failure seam only. Existing production changes in commits41573464/e0176193 were inspected; no production/domain code or historical migrations changed in this checkpoint.
+
+Prior exit2 with61 assertions is classified TEST/ENVIRONMENT HARNESS FAILURE during cleanup, not domain RED. Migration2026_04_07_160100 leaves products.active_unique_marker in down(); that generated column depends on deleted_at. Later rollback of migration2026_04_06_230200 therefore fails when dropping deleted_at. Separate discovered migration defect/GAP, deferred outside Slice10.
+
+Harness: PrimitiveLifecycleAuditAtomicityFeatureTest now uses DatabaseTruncation with no outer transaction and no migrate:rollback. RefreshDatabaseState::$migrated is reset in tearDown so later tests recreate schema instead of inheriting committed fixture rows. An intermediate combined run exposed that fixture leak (9 allocations versus expected3); final rerun below proves the harness isolation correction. Disposable database is removed externally after tests.
+
+Execution context: repository root, isolated MariaDB localhost3319, database glasspos_slice10_test. All following results are assistant-executed local tool proof.
+
+Command prefix for test runs:
+
+    env APP_ENV=testing DB_CONNECTION=mysql DB_HOST=127.0.0.1 DB_PORT=3319 DB_DATABASE=glasspos_slice10_test DB_USERNAME=root DB_PASSWORD= php -d memory_limit=-1 vendor/bin/pest
+
+1. Focused success, rebuilt schema, before failure injection:
+
+       tests/Feature/Note/PrimitiveLifecycleAuditAtomicityFeatureTest.php --filter=test_successful_record_and_allocate_payment_requires_durable_audit_capture --compact --stop-on-failure
+
+   GREEN:1 passed/61 assertions/0.68s, exit0. Payment395933, six allocations, cash400003/change4070, closed note/projection, succeeded idempotency, legacy audit plus exactly one pending canonical payment_allocated outbox row. Semantic IDs, actor, timestamps and metadata checked. Transaction level0 before and after handler; no test transaction masks commit.
+
+2. Focused success plus failure seam:
+
+       tests/Feature/Note/PrimitiveLifecycleAuditAtomicityFeatureTest.php --compact --stop-on-failure
+
+   GREEN:2 passed/108 assertions/0.87s, exit0. Production writer binding is retained. A connection-local QueryExecuted listener throws the exact sentinel exception after the real adapter inserts payment_allocated into audit_outbox, while transaction level is1. Snapshot inside the listener proves payment, six allocations, cash detail, succeeded-idempotency row, close event/two snapshots, legacy audit and canonical outbox existed before failure; note/projection changed and outbox aggregate matches payment ID. All17 captured table row sets equal their pre-payment state after rollback, with transaction level0. Listener is restored in finally. Retry with the same idempotency key commits successfully.
+
+3. Final formatted test plus adjacent payment/audit regressions after harness isolation correction:
+
+       tests/Feature/Note/PrimitiveLifecycleAuditAtomicityFeatureTest.php tests/Feature/Payment/RecordAndAllocateNotePaymentFeatureTest.php tests/Feature/Note/PrimitivePaymentDebtCashChainFeatureTest.php tests/Feature/AuditLog/AuditOutboxRuntimeBindingTest.php tests/Feature/AuditLog/DatabaseAuditOutboxWriterAdapterTest.php --compact --stop-on-failure
+
+   GREEN:11 passed/262 assertions/2.06s, exit0. Pint --test on the changed test and git diff --check passed.
+
+External cleanup, separately from test outcome:
+
+    mariadb --protocol=tcp --host=127.0.0.1 --port=3319 --user=root --execute="DROP DATABASE glasspos_slice10_test; SELECT COUNT(*) AS remaining_test_databases FROM information_schema.schemata WHERE schema_name = 'glasspos_slice10_test';"
+
+Cleanup PASS exit0; remaining_test_databases=0. No historical migration rollback used. Recreate this disposable database before a later test run.
+
+Proof limits: this seam is an exception after a real SQL insert, not a simulated database outage or process crash. Commit/rollback are observed on the application connection; no independent connection durability or concurrency claim. Payment success and this failure seam are complete; Slice10 overall remains open. Refund/revision/surplus seams and Slices11–12 were not opened. Next: owner feedback on this payment checkpoint before selecting another seam. No commit/push performed.
