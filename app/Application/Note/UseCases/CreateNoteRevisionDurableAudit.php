@@ -17,8 +17,7 @@ final class CreateNoteRevisionDurableAudit
         private readonly ActorAccessReaderPort $actors,
         private readonly UuidPort $uuid,
         private readonly CreateNoteRevisionAuditPayloadBuilder $payloads,
-    ) {
-    }
+    ) {}
 
     public function record(string $noteRootId, string $parentRevisionId, ?string $actorId, string $reason, NoteRevision $revision): void
     {
