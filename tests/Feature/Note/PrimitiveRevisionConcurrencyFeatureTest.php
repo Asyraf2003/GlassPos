@@ -90,6 +90,17 @@ final class PrimitiveRevisionConcurrencyFeatureTest extends TestCase
                     JOIN information_schema.INNODB_TRX r ON r.trx_id = w.requesting_trx_id
                     JOIN information_schema.INNODB_TRX b ON b.trx_id = w.blocking_trx_id
                     WHERE r.trx_mysql_thread_id = ? AND b.trx_mysql_thread_id = ?', [$secondId, $firstId]);
+                if ($wait === null && $scenario === 'different-root') {
+                    // MariaDB can expose this unique-insert wait only in PROCESSLIST.
+                    // Keep A/B's original lock graph gate; this extra cross-root probe
+                    // requires the server to be executing the claim while winner is held.
+                    $query = DB::selectOne('SELECT ID, TIME, INFO FROM information_schema.PROCESSLIST WHERE ID = ?', [$secondId]);
+                    if ($query !== null && (int) $query->TIME >= 1
+                        && str_starts_with(strtolower((string) $query->INFO), 'insert into `idempotency_records`')) {
+                        self::assertSame(0, DB::table('idempotency_records')->where('operation', 'create_note_revision')->count());
+                        $wait = (object) ['waiting_id' => $secondId, 'winner_id' => $firstId, 'proof_kind' => 'server-executing-uncommitted-claim'];
+                    }
+                }
                 if ($wait !== null || is_file($dir.'/second-result.json')) {
                     break;
                 }
