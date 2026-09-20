@@ -104,6 +104,65 @@ final class PrimitiveRefundAuditAtomicityFeatureTest extends TestCase
         self::assertSame($after, $this->captureGraph(), 'Exact replay must not repeat refund, stock or audit.');
     }
 
+    public function test_direct_customer_refund_has_its_own_atomic_capture(): void
+    {
+        $this->preparePrimitiveFixture();
+        $cashier = $this->loginAsKasir();
+        $create = $this->primitiveWorkspace($this->primitiveItems(), 'audit-direct-create');
+        $create['inline_payment'] = ['decision' => 'pay_full', 'payment_method' => 'cash',
+            'paid_at' => '2026-09-15', 'amount_paid_rupiah' => 395933, 'amount_received_rupiah' => 400003];
+        $this->post(route('notes.workspace.store'), $create)->assertRedirect()->assertSessionHasNoErrors();
+        $noteId = (string) DB::table('notes')->value('id');
+        $paymentId = (string) DB::table('customer_payments')->value('id');
+        $rowId = (string) DB::table('work_items')->where('transaction_type', 'store_stock_sale_only')->value('id');
+        $handler = app(\App\Application\Payment\UseCases\RecordCustomerRefundHandler::class);
+        $command = fn () => $handler->handle($paymentId, $noteId, 142539, '2026-09-15', 'Direct refund audit probe', (string) $cashier->getAuthIdentifier(), [$rowId]);
+        $before = $this->captureGraph();
+        $connection = DB::connection();
+        self::assertSame(0, $connection->transactionLevel());
+        $dispatcher = $connection->getEventDispatcher();
+        self::assertNotNull($dispatcher);
+        $listener = clone $dispatcher;
+        $connection->setEventDispatcher($listener);
+        $failure = new RuntimeException('Injected direct refund capture failure');
+        $calls = 0;
+        $during = null;
+        $listener->listen(QueryExecuted::class, function (QueryExecuted $query) use ($failure, &$calls, &$during): void {
+            if (! str_starts_with(strtolower($query->sql), 'insert into `audit_outbox`') || ! in_array('customer_refund_recorded', $query->bindings, true)) {
+                return;
+            }
+            $calls++;
+            self::assertSame(1, $query->connection->transactionLevel());
+            $during = $this->captureGraph();
+            throw $failure;
+        });
+        $caughtFailure = null;
+        try {
+            $command();
+        } catch (RuntimeException $caught) {
+            $caughtFailure = $caught;
+        } finally {
+            $connection->setEventDispatcher($dispatcher);
+        }
+        self::assertSame(1, $calls, 'Direct refund must also call durable capture.');
+        self::assertSame($failure, $caughtFailure);
+        self::assertCount(1, $during['customer_refunds']);
+        self::assertCount(1, $during['refund_component_allocations']);
+        self::assertSame(0, DB::transactionLevel());
+        self::assertSame($before, $this->captureGraph());
+        $retry = $command();
+        self::assertTrue($retry->isSuccess(), $retry->message());
+        $refundId = $retry->data()['refund']['id'];
+        $event = DB::table('audit_outbox')->where('event_name', 'customer_refund_recorded')->sole();
+        self::assertSame($refundId, $event->aggregate_id);
+        $metadata = json_decode($event->metadata_json, true, flags: JSON_THROW_ON_ERROR);
+        self::assertSame($refundId, $metadata['refund_id']);
+        self::assertSame($paymentId, $metadata['customer_payment_id']);
+        self::assertSame($noteId, $metadata['note_id']);
+        self::assertSame(142539, $metadata['amount_rupiah']);
+        self::assertSame(0, DB::transactionLevel());
+    }
+
     private function captureGraph(): array
     {
         $tables = ['notes', 'work_items', 'work_item_service_details', 'work_item_store_stock_lines',
