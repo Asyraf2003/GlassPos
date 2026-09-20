@@ -24,6 +24,7 @@ final class RecordCustomerRefundTransaction
         private readonly AutoRefundNoteWhenFullyRefunded $refundLifecycle,
         private readonly AutoReverseRefundedStoreStockInventory $reverseRefundedInventory,
         private readonly NoteHistoryProjectionService $projection,
+        private readonly RecordCustomerRefundDurableAudit $durableAudit,
     ) {
     }
 
@@ -77,6 +78,7 @@ final class RecordCustomerRefundTransaction
                 ));
 
                 $this->projection->syncNote($noteId);
+                $this->durableAudit->record($recorded, $performedByActorId, $selectedRowIds);
 
                 return Result::success(
                     array_merge($this->formatSuccessPayload($refund), [
