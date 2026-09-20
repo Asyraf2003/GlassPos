@@ -6,6 +6,7 @@ namespace App\Application\Note\UseCases;
 
 use App\Application\Note\Services\CreateNoteRevisionIdempotencyService;
 use App\Core\Shared\Exceptions\DomainException;
+use App\Ports\Out\IdempotencyClaimConflictException;
 use App\Ports\Out\TransactionManagerPort;
 use Throwable;
 
@@ -56,6 +57,19 @@ final class CreateNoteRevisionHandler
             $this->transactions->commit();
 
             return $result;
+        } catch (IdempotencyClaimConflictException $e) {
+            if ($started) {
+                $this->transactions->rollBack();
+            }
+
+            // The unique insert already waited for the competing transaction.
+            // Read its committed result only after discarding this transaction's snapshot.
+            $winner = $this->idempotency->replay($payload);
+            if ($winner !== null) {
+                return $winner;
+            }
+
+            throw $e;
         } catch (DomainException $e) {
             if ($started) {
                 $this->transactions->rollBack();
