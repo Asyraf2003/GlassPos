@@ -146,7 +146,9 @@ final class PrimitiveRevisionConcurrencyFeatureTest extends TestCase
             DB::purge();
             DB::reconnect();
             DB::statement('SET SESSION innodb_lock_wait_timeout = 20');
-            file_put_contents($dir.'/'.$worker.'-connected', (string) DB::selectOne('SELECT CONNECTION_ID() AS id')->id);
+            // Publish readiness atomically; mere file existence can expose an empty connection ID.
+            file_put_contents($dir.'/'.$worker.'-connected.tmp', (string) DB::selectOne('SELECT CONNECTION_ID() AS id')->id);
+            rename($dir.'/'.$worker.'-connected.tmp', $dir.'/'.$worker.'-connected');
             if ($worker === 'first') {
                 $held = false;
                 DB::listen(function (QueryExecuted $query) use ($dir, &$held): void {
