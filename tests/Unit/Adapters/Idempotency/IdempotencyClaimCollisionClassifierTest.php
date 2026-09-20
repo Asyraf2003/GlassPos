@@ -37,12 +37,12 @@ final class IdempotencyClaimCollisionClassifierTest extends TestCase
         $previous = new PDOException($message);
         $previous->errorInfo = [$state, $code, $message];
         $error = new UniqueConstraintViolationException('mysql', 'insert into idempotency_records', [], $previous);
-        self::assertSame($expected, (new IdempotencyClaimCollisionClassifier())->matches($error));
+        self::assertSame($expected, (new IdempotencyClaimCollisionClassifier)->matches($error));
         DB::shouldReceive('table')->once()->with('idempotency_records')->andReturnSelf();
         DB::shouldReceive('insert')->once()->andThrow($error);
         $caught = null;
         try {
-            (new DatabaseIdempotencyRecordAdapter())->createProcessing('actor', 'create_note_revision', 'key', 'hash');
+            (new DatabaseIdempotencyRecordAdapter)->createProcessing('actor', 'create_note_revision', 'key', 'hash');
         } catch (Throwable $e) {
             $caught = $e;
         }
@@ -60,7 +60,7 @@ final class IdempotencyClaimCollisionClassifierTest extends TestCase
         DB::shouldReceive('table')->once()->with('idempotency_records')->andReturnSelf();
         DB::shouldReceive('insert')->once()->andThrow($error);
         try {
-            (new DatabaseIdempotencyRecordAdapter())->createProcessing('actor', 'create_note_revision', 'key', 'hash');
+            (new DatabaseIdempotencyRecordAdapter)->createProcessing('actor', 'create_note_revision', 'key', 'hash');
             self::fail('Database error must escape.');
         } catch (QueryException $caught) {
             self::assertSame($error, $caught);
