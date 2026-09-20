@@ -103,15 +103,17 @@ final class PrimitiveRevisionConcurrencyFeatureTest extends TestCase
                     JOIN information_schema.INNODB_TRX r ON r.trx_id = w.requesting_trx_id
                     JOIN information_schema.INNODB_TRX b ON b.trx_id = w.blocking_trx_id
                     WHERE r.trx_mysql_thread_id = ? AND b.trx_mysql_thread_id = ?', [$secondId, $firstId]);
-                if ($wait === null && $scenario === 'different-root') {
+                if ($wait === null && $scenario !== 'exact') {
                     // MariaDB can expose this unique-insert wait only in PROCESSLIST.
-                    // Keep A/B's original lock graph gate; this extra cross-root probe
+                    // Keep A's original lock graph gate; the additional probes
                     // requires the server to be executing the claim while winner is held.
                     $query = DB::selectOne('SELECT ID, TIME, INFO FROM information_schema.PROCESSLIST WHERE ID = ?', [$secondId]);
+                    $sql = strtolower((string) ($query->INFO ?? ''));
                     if ($query !== null && (int) $query->TIME >= 1
-                        && str_starts_with(strtolower((string) $query->INFO), 'insert into `idempotency_records`')) {
+                        && (str_starts_with($sql, 'insert into `idempotency_records`')
+                            || (str_contains($sql, 'from `notes`') && str_contains($sql, 'for update')))) {
                         self::assertSame(0, DB::table('idempotency_records')->where('operation', 'create_note_revision')->count());
-                        $wait = (object) ['waiting_id' => $secondId, 'winner_id' => $firstId, 'proof_kind' => 'server-executing-uncommitted-claim'];
+                        $wait = (object) ['waiting_id' => $secondId, 'winner_id' => $firstId, 'proof_kind' => 'server-executing-before-winner-release', 'sql' => $sql];
                     }
                 }
                 if ($wait !== null || is_file($dir.'/second-result.json')) {
