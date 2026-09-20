@@ -671,3 +671,19 @@ External cleanup, separately from test outcome:
 Cleanup PASS exit0; remaining_test_databases=0. No historical migration rollback used. Recreate this disposable database before a later test run.
 
 Proof limits: this seam is an exception after a real SQL insert, not a simulated database outage or process crash. Commit/rollback are observed on the application connection; no independent connection durability or concurrency claim. Payment success and this failure seam are complete; Slice10 overall remains open. Refund/revision/surplus seams and Slices11–12 were not opened. Next: owner feedback on this payment checkpoint before selecting another seam. No commit/push performed.
+
+## Slice 10 — revision and automatic surplus writer distinction (2026-09-20)
+
+Owner execution policy now permits serial continuation across GREEN checkpoints and requests sai push after each verified change. No checkpoint-only STOP gate.
+
+Revision without surplus initially succeeded with no canonical note_revision_created capture: focused1 failed/10 assertions, exit1. Existing event name is specified by ADR-0042. CreateNoteRevisionDurableAudit now writes that event in the existing revision transaction, preserving legacy capture, with revision/root/parent IDs, actual actor role, reason and revision action time. Production change was already present in commitccc9ba31 when this continuation resumed.
+
+PrimitiveRevisionAuditAtomicityFeatureTest verifies successful revision capture, failure after the actual revision outbox insert, and failure after actual automatic surplus payout canonical insert. Both failure seams run through the authorized admin HTTP route and restore27-table business snapshots; the single admin_transaction_capability_used attempt event occurs before the business transaction and is separately asserted, not misclassified as a rollback leak. Same-key retry succeeds.
+
+TEST WRONG corrections: closed-note direct handler default guard did not exercise authorized admin edit; HTTP route now owns authorization. Surplus does NOT use global outbox binding: InfrastructureServiceProvider contextually injects DatabaseAuditEventWriterAdapter due to hard audit_events foreign keys. This matches CLOSED FK compatibility in handoff0004 and Slice9's binding evidence. Test now targets actual audit_events insert and checks contextual binding, due/payout semantic IDs and FK event IDs. No FK, binding or historical migration changed. Automatic due and paid share the revision transaction; failure on the second canonical event rolls back the earlier due event/disposition, revision, stock replacement, allocations and all captured business effects. This does not establish standalone surplus-handler rollback equivalence.
+
+Final command from repo root:
+
+    env APP_ENV=testing DB_CONNECTION=mysql DB_HOST=127.0.0.1 DB_PORT=3319 DB_DATABASE=glasspos_slice10_test DB_USERNAME=root DB_PASSWORD= php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveRevisionAuditAtomicityFeatureTest.php tests/Feature/Note/NoteRevisionRollbackFeatureTest.php tests/Feature/Note/NoteRevisionStoreStockRollbackFeatureTest.php tests/Feature/Note/CreateNoteRevisionSurplusRefundPaidCarryForwardFeatureTest.php --compact --stop-on-failure
+
+GREEN6 passed/166 assertions/2.36s, exit0. A sandbox connection-denied run had0 assertions and is environment failure, resolved by approved execution. Pint formatted the changed test. Payment seam not repeated. Next required distinction: ordinary refund canonical capture, followed by any necessary standalone surplus transaction proof. Slice10 not complete; no Slice11 claim.
