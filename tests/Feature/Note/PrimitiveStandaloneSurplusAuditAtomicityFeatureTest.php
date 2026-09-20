@@ -36,7 +36,7 @@ final class PrimitiveStandaloneSurplusAuditAtomicityFeatureTest extends TestCase
         $dueCommand = new CreateNoteRevisionSurplusRefundDueCommand('atomic-surplus-settlement', 122000,
             'Standalone due probe', 'admin-test-001', 'admin');
         $due = $this->assertCanonicalFailureAndRetry($dueHandler, fn () => $dueHandler->handle($dueCommand), 'note_revision_surplus_dispositions');
-        self::assertTrue($due->isSuccess(), $due->message());
+        self::assertTrue($due->isSuccess(), $due->message() ?? 'Standalone due retry must succeed.');
         $disposition = DB::table('note_revision_surplus_dispositions')->sole();
         self::assertSame(122000, (int) $disposition->amount_rupiah);
         $this->assertDatabaseHas('audit_events', ['id' => $disposition->audit_event_id,
@@ -46,7 +46,7 @@ final class PrimitiveStandaloneSurplusAuditAtomicityFeatureTest extends TestCase
         $paidCommand = new RecordNoteRevisionSurplusRefundPaymentCommand($disposition->id, 50000,
             new DateTimeImmutable('2026-09-20'), 'Standalone paid probe', 'admin-test-001', 'admin', 'atomic-surplus-paid');
         $paid = $this->assertCanonicalFailureAndRetry($paidHandler, fn () => $paidHandler->handle($paidCommand), 'note_revision_surplus_refund_payments');
-        self::assertTrue($paid->isSuccess(), $paid->message());
+        self::assertTrue($paid->isSuccess(), $paid->message() ?? 'Standalone payout retry must succeed.');
         self::assertSame(72000, $paid->data()['remaining_refund_due_rupiah']);
         $payment = DB::table('note_revision_surplus_refund_payments')->sole();
         $this->assertDatabaseHas('audit_events', ['id' => $payment->audit_event_id,
@@ -96,6 +96,7 @@ final class PrimitiveStandaloneSurplusAuditAtomicityFeatureTest extends TestCase
         self::assertSame($before, $this->captureGraph(), 'Both canonical rows and all business surfaces must be restored.');
         $result = $command();
         self::assertSame(0, DB::transactionLevel());
+
         return $result;
     }
 
