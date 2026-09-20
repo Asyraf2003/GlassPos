@@ -158,6 +158,7 @@ final class PrimitiveRevisionConcurrencyFeatureTest extends TestCase
             self::assertArrayNotHasKey('exception', $second);
             self::assertFalse($second['success']);
             self::assertSame('STALE_REVISION', $second['data']['code']);
+
             return;
         }
         if ($scenario !== 'exact') {
@@ -169,6 +170,7 @@ final class PrimitiveRevisionConcurrencyFeatureTest extends TestCase
                 self::assertSame(1, DB::table('note_revisions')->where('note_root_id', $secondNoteId)->count());
                 $this->assertDatabaseHas('notes', ['id' => $secondNoteId, 'total_rupiah' => 63719]);
             }
+
             return;
         }
         self::assertTrue($second['success'] ?? false, 'Exact concurrent retry must replay, not fail: '.json_encode($second, JSON_THROW_ON_ERROR).'; proof='.$dir.'/proof.json');
@@ -229,6 +231,7 @@ final class PrimitiveRevisionConcurrencyFeatureTest extends TestCase
             sort($rows);
             $hashes[$table] = hash('sha256', json_encode($rows, JSON_THROW_ON_ERROR));
         }
+
         return $hashes;
     }
 
