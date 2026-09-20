@@ -7,8 +7,8 @@ namespace App\Application\Note\UseCases;
 use App\Application\Note\DTO\NoteRevisionSettlement;
 use App\Core\Note\Revision\NoteRevision;
 use App\Ports\Out\AuditLogPort;
-use App\Ports\Out\Note\NoteRevisionWriterPort;
 use App\Ports\Out\Note\NoteRevisionSettlementWriterPort;
+use App\Ports\Out\Note\NoteRevisionWriterPort;
 
 final class CreateNoteRevisionCommitter
 {
@@ -18,8 +18,7 @@ final class CreateNoteRevisionCommitter
         private readonly CreateNoteRevisionAuditPayloadBuilder $auditPayloads,
         private readonly AuditLogPort $audit,
         private readonly CreateNoteRevisionDurableAudit $durableAudit,
-    ) {
-    }
+    ) {}
 
     public function commit(
         string $noteRootId,
