@@ -10,7 +10,8 @@ use App\Application\Payment\UseCases\RecordAndAllocateNotePaymentHandler;
 use App\Ports\Out\AuditEventWriterPort;
 use App\Ports\Out\AuditLogPort;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
+use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -20,10 +21,15 @@ use Tests\TestCase;
 final class PrimitiveLifecycleAuditAtomicityFeatureTest extends TestCase
 {
     use BuildsPrimitiveLifecycleFixture;
-    use DatabaseMigrations;
+
+    // Real commits, no outer test transaction or historical migrate:rollback cleanup.
+    // The isolated disposable database is dropped externally after verification.
+    use DatabaseTruncation;
 
     protected function tearDown(): void
     {
+        // Committed rows must not leak into subsequent RefreshDatabase consumers.
+        RefreshDatabaseState::$migrated = false;
         Carbon::setTestNow();
         parent::tearDown();
     }
@@ -131,6 +137,86 @@ final class PrimitiveLifecycleAuditAtomicityFeatureTest extends TestCase
         foreach ($before['audit_outbox'] as $row) {
             self::assertSame($row, (array) DB::table('audit_outbox')->where('id', $row['id'])->sole());
         }
+    }
+
+    public function test_actual_outbox_writer_failure_rolls_back_the_entire_payment(): void
+    {
+        $this->preparePrimitiveFixture();
+        $cashier = $this->loginAsKasir();
+        $this->post(route('notes.workspace.store'), $this->primitiveWorkspace($this->primitiveItems(), 'audit-rollback-create'))
+            ->assertRedirect()->assertSessionHasNoErrors();
+        $noteId = (string) DB::table('notes')->value('id');
+        self::assertInstanceOf(DatabaseAuditLogAdapter::class, app(AuditLogPort::class));
+        self::assertInstanceOf(DatabaseAuditOutboxWriterAdapter::class, app(AuditEventWriterPort::class));
+        $handler = app(RecordAndAllocateNotePaymentHandler::class);
+        $payload = array_replace($this->primitivePayment('audit-rollback-full', 395933, 'cash', 400003), [
+            '_actor_id' => (string) $cashier->getAuthIdentifier(), 'note_id' => $noteId,
+        ]);
+        $before = $this->captureRuntimeRows();
+        self::assertSame(0, DB::transactionLevel());
+        $failure = new RuntimeException('Injected failure after canonical payment outbox insert.');
+        $during = null;
+        $writerCalls = 0;
+        $transactionLevel = null;
+        $connection = DB::connection();
+        $dispatcher = $connection->getEventDispatcher();
+        self::assertNotNull($dispatcher);
+        $isolatedDispatcher = clone $dispatcher;
+        $connection->setEventDispatcher($isolatedDispatcher);
+        // QueryExecuted fires after the real adapter inserts: no writer replacement or mock.
+        $isolatedDispatcher->listen(QueryExecuted::class, function (QueryExecuted $query) use (
+            &$during, &$writerCalls, &$transactionLevel, $failure,
+        ): void {
+            if (! str_starts_with(strtolower($query->sql), 'insert into `audit_outbox`')
+                || ! in_array('payment_allocated', $query->bindings, true)) {
+                return;
+            }
+            $writerCalls++;
+            $transactionLevel = $query->connection->transactionLevel();
+            $during = $this->captureRuntimeRows();
+            throw $failure;
+        });
+        try {
+            $handler->handle($noteId, 395933, '2026-09-15', $payload['selected_row_ids'], 'cash', 400003, $payload);
+            self::fail('The actual canonical writer failure must escape the payment handler.');
+        } catch (RuntimeException $caught) {
+            self::assertSame($failure, $caught);
+        } finally {
+            $connection->setEventDispatcher($dispatcher);
+        }
+
+        self::assertSame(1, $writerCalls, 'Exactly one actual payment outbox insert must reach the failure seam.');
+        self::assertSame(1, $transactionLevel, 'The writer must participate in the payment transaction.');
+        self::assertNotNull($during);
+        foreach (['customer_payments' => 1, 'payment_component_allocations' => 6,
+            'customer_payment_cash_details' => 1, 'idempotency_records' => 1,
+            'note_mutation_events' => 1, 'note_mutation_snapshots' => 2,
+            'audit_logs' => 1, 'audit_outbox' => 1] as $table => $delta) {
+            self::assertSame($delta, count($during[$table]) - count($before[$table]), $table.' must exist before the injected failure.');
+        }
+        self::assertNotSame($before['notes'], $during['notes']);
+        self::assertNotSame($before['note_history_projection'], $during['note_history_projection']);
+        $payment = $during['customer_payments'][0];
+        self::assertSame(395933, (int) $payment['amount_rupiah']);
+        $event = array_values(array_filter($during['audit_outbox'], fn (array $row): bool => $row['bounded_context'] === 'payment'));
+        self::assertCount(1, $event);
+        self::assertSame($payment['id'], $event[0]['aggregate_id']);
+        self::assertSame('payment_allocated', $event[0]['event_name']);
+        self::assertSame(0, DB::transactionLevel());
+        $after = $this->captureRuntimeRows();
+        foreach ($before as $table => $rows) {
+            self::assertSame($rows, $after[$table], $table.' must be restored byte-for-byte after writer failure.');
+        }
+
+        // The rolled-back idempotency key must remain usable for a real committed retry.
+        $retry = $handler->handle($noteId, 395933, '2026-09-15', $payload['selected_row_ids'], 'cash', 400003, $payload);
+        self::assertTrue($retry->isSuccess(), $retry->message() ?? 'Retry must succeed.');
+        self::assertSame(0, DB::transactionLevel());
+        $this->assertDatabaseCount('customer_payments', 1);
+        $this->assertDatabaseHas('audit_outbox', ['bounded_context' => 'payment',
+            'aggregate_id' => $retry->data()['payment_id'], 'event_name' => 'payment_allocated']);
+        $this->assertDatabaseHas('idempotency_records', ['operation' => 'record_note_payment',
+            'idempotency_key' => 'audit-rollback-full', 'status' => 'succeeded']);
     }
 
     /** @return array<string, list<array<string, mixed>>> */
