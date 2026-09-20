@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Adapters\Out\Idempotency;
 
 use App\Ports\Out\IdempotencyRecordPort;
+use App\Ports\Out\IdempotencyClaimConflictException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use JsonException;
@@ -41,7 +43,8 @@ final class DatabaseIdempotencyRecordAdapter implements IdempotencyRecordPort
         string $key,
         string $requestHash
     ): void {
-        DB::table('idempotency_records')->insert([
+        try {
+            DB::table('idempotency_records')->insert([
             'id' => (string) Str::uuid(),
             'actor_id' => $actorId,
             'operation' => $operation,
@@ -51,7 +54,14 @@ final class DatabaseIdempotencyRecordAdapter implements IdempotencyRecordPort
             'locked_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
-        ]);
+            ]);
+        } catch (UniqueConstraintViolationException $e) {
+            if (! (new IdempotencyClaimCollisionClassifier())->matches($e)) {
+                throw $e;
+            }
+
+            throw new IdempotencyClaimConflictException('Idempotency scope already claimed.', 0, $e);
+        }
     }
 
     /**
