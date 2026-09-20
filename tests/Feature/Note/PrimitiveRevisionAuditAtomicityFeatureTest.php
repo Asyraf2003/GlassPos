@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
+use App\Adapters\Out\Audit\DatabaseAuditEventWriterAdapter;
 use App\Adapters\Out\Audit\DatabaseAuditOutboxWriterAdapter;
+use App\Application\Note\Services\AutoSettleNoteRevisionSurplusRefundPaymentRecorder;
 use App\Application\Note\UseCases\CreateNoteRevisionHandler;
 use App\Ports\Out\AuditEventWriterPort;
 use Illuminate\Database\Events\QueryExecuted;
@@ -12,10 +14,10 @@ use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\DataProvider;
+use RuntimeException;
 use Tests\Support\BuildsPrimitiveLifecycleFixture;
 use Tests\TestCase;
-use RuntimeException;
-use PHPUnit\Framework\Attributes\DataProvider;
 
 final class PrimitiveRevisionAuditAtomicityFeatureTest extends TestCase
 {
@@ -90,13 +92,18 @@ final class PrimitiveRevisionAuditAtomicityFeatureTest extends TestCase
         self::assertSame(0, $connection->transactionLevel());
         self::assertInstanceOf(DatabaseAuditOutboxWriterAdapter::class, app(AuditEventWriterPort::class));
         $dispatcher = $connection->getEventDispatcher();
+        $auditTable = $surplus ? 'audit_events' : 'audit_outbox';
+        if ($surplus) {
+            $recorder = app(AutoSettleNoteRevisionSurplusRefundPaymentRecorder::class);
+            self::assertInstanceOf(DatabaseAuditEventWriterAdapter::class, (new \ReflectionProperty($recorder, 'auditWriter'))->getValue($recorder));
+        }
         self::assertNotNull($dispatcher);
         $listener = clone $dispatcher;
         $connection->setEventDispatcher($listener);
         $this->withoutExceptionHandling();
         $failure = new RuntimeException('Injected actual revision outbox failure');
-        $listener->listen(QueryExecuted::class, function (QueryExecuted $query) use ($eventName, $failure, &$during, &$calls, &$level): void {
-            if (! str_starts_with(strtolower($query->sql), 'insert into `audit_outbox`') || ! in_array($eventName, $query->bindings, true)) {
+        $listener->listen(QueryExecuted::class, function (QueryExecuted $query) use ($auditTable, $eventName, $failure, &$during, &$calls, &$level): void {
+            if (! str_starts_with(strtolower($query->sql), 'insert into `'.$auditTable.'`') || ! in_array($eventName, $query->bindings, true)) {
                 return;
             }
             $calls++;
@@ -148,9 +155,9 @@ final class PrimitiveRevisionAuditAtomicityFeatureTest extends TestCase
             $paid = DB::table('note_revision_surplus_refund_payments')->sole();
             self::assertSame($due->id, $paid->note_revision_surplus_disposition_id);
             self::assertSame(11736, (int) $paid->amount_rupiah);
-            $this->assertDatabaseHas('audit_outbox', ['aggregate_id' => $due->id, 'audit_event_id' => $due->audit_event_id,
+            $this->assertDatabaseHas('audit_events', ['aggregate_id' => $due->id, 'id' => $due->audit_event_id,
                 'event_name' => 'note_revision_surplus_refund_due_created']);
-            $this->assertDatabaseHas('audit_outbox', ['aggregate_id' => $paid->id,
+            $this->assertDatabaseHas('audit_events', ['aggregate_id' => $paid->id, 'id' => $paid->audit_event_id,
                 'event_name' => 'note_revision_surplus_refund_paid_recorded']);
         }
     }
@@ -170,7 +177,7 @@ final class PrimitiveRevisionAuditAtomicityFeatureTest extends TestCase
             usort($rows, fn (array $a, array $b): int => strcmp(json_encode($a, JSON_THROW_ON_ERROR), json_encode($b, JSON_THROW_ON_ERROR)));
             $snapshot[$table] = $rows;
         }
+
         return $snapshot;
     }
-
 }
