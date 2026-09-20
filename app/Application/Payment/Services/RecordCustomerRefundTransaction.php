@@ -25,8 +25,7 @@ final class RecordCustomerRefundTransaction
         private readonly AutoReverseRefundedStoreStockInventory $reverseRefundedInventory,
         private readonly NoteHistoryProjectionService $projection,
         private readonly RecordCustomerRefundDurableAudit $durableAudit,
-    ) {
-    }
+    ) {}
 
     /** @param list<string> $selectedRowIds */
     public function run(
