@@ -9,16 +9,18 @@ use App\Adapters\Out\Audit\DatabaseAuditOutboxWriterAdapter;
 use App\Application\Payment\UseCases\RecordAndAllocateNotePaymentHandler;
 use App\Ports\Out\AuditEventWriterPort;
 use App\Ports\Out\AuditLogPort;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 use Tests\Support\BuildsPrimitiveLifecycleFixture;
 use Tests\TestCase;
 
 final class PrimitiveLifecycleAuditAtomicityFeatureTest extends TestCase
 {
     use BuildsPrimitiveLifecycleFixture;
-    use RefreshDatabase;
+    use DatabaseMigrations;
 
     protected function tearDown(): void
     {
@@ -42,16 +44,18 @@ final class PrimitiveLifecycleAuditAtomicityFeatureTest extends TestCase
         self::assertInstanceOf(DatabaseAuditOutboxWriterAdapter::class, app(AuditEventWriterPort::class));
         $before = $this->captureRuntimeRows();
         $legacyIds = DB::table('audit_logs')->pluck('id')->all();
-        $this->advancePrimitiveTime();
+        Carbon::setTestNow('2026-09-16 10:11:12');
         $payload = array_replace($this->primitivePayment('audit-payment-full', 395933, 'cash', 400003), [
             '_actor_id' => (string) $cashier->getAuthIdentifier(), 'note_id' => $noteId,
         ]);
 
-        // Real application entry point, real transaction runner, real writers; no audit mock/failure injection.
+        // No surrounding test transaction: the real runner must commit the accepted payment.
+        self::assertSame(0, DB::transactionLevel());
         $result = app(RecordAndAllocateNotePaymentHandler::class)->handle(
             $noteId, 395933, '2026-09-15', $payload['selected_row_ids'], 'cash', 400003, $payload,
         );
         self::assertTrue($result->isSuccess(), $result->message() ?? 'Payment must succeed before assessing audit capture.');
+        self::assertSame(0, DB::transactionLevel());
         $paymentId = $result->data()['payment_id'];
         $after = $this->captureRuntimeRows();
         $deltas = [];
@@ -100,8 +104,33 @@ final class PrimitiveLifecycleAuditAtomicityFeatureTest extends TestCase
         }
 
         // ADR-0042 / Blueprint0018 A01 acceptance gate. Legacy success is never outbox compliance.
-        self::assertGreaterThan(0, $deltas['audit_outbox']['delta'],
+        self::assertSame(1, $deltas['audit_outbox']['delta'],
             'A01: payment succeeded but requires durable outbox capture. Actual runtime measurements: '.json_encode($deltas, JSON_THROW_ON_ERROR));
+        self::assertSame(1, $deltas['audit_logs']['delta']);
+        $event = DB::table('audit_outbox')->where('bounded_context', 'payment')->sole();
+        self::assertSame('customer_payment', $event->aggregate_type);
+        self::assertSame($paymentId, $event->aggregate_id);
+        self::assertSame('payment_allocated', $event->event_name);
+        self::assertSame('pending', $event->status);
+        self::assertSame(0, (int) $event->attempts);
+        self::assertSame((string) $cashier->getAuthIdentifier(), $event->actor_id);
+        self::assertSame('kasir', $event->actor_role);
+        foreach (['reason', 'source_channel', 'request_id', 'correlation_id', 'snapshots_json'] as $field) {
+            self::assertNull($event->{$field}, $field.' must not be fabricated.');
+        }
+        self::assertSame('2026-09-16 10:11:12', Carbon::parse($event->occurred_at)->format('Y-m-d H:i:s'));
+        $this->assertDatabaseHas('customer_payments', ['id' => $paymentId, 'paid_at' => '2026-09-15']);
+        self::assertSame('2026-09-16 10:11:12', Carbon::parse(DB::table('customer_payments')->where('id', $paymentId)->value('recorded_at'))->format('Y-m-d H:i:s'));
+        self::assertSame([
+            'payment_id' => $paymentId, 'note_id' => $noteId, 'amount_rupiah' => 395933,
+            'payment_method' => 'cash', 'amount_received_rupiah' => 400003, 'change_rupiah' => 4070,
+            'allocation_count' => 6, 'selected_row_ids' => $payload['selected_row_ids'],
+        ], json_decode($event->metadata_json, true, 512, JSON_THROW_ON_ERROR));
+        self::assertSame($before['audit_events'], $after['audit_events']);
+        self::assertSame($before['audit_event_snapshots'], $after['audit_event_snapshots']);
+        foreach ($before['audit_outbox'] as $row) {
+            self::assertSame($row, (array) DB::table('audit_outbox')->where('id', $row['id'])->sole());
+        }
     }
 
     /** @return array<string, list<array<string, mixed>>> */
