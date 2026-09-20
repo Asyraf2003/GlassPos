@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Note;
 
 use App\Adapters\Out\Audit\DatabaseAuditOutboxWriterAdapter;
+use App\Application\Payment\UseCases\RecordCustomerRefundHandler;
 use App\Ports\Out\AuditEventWriterPort;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
@@ -115,7 +116,7 @@ final class PrimitiveRefundAuditAtomicityFeatureTest extends TestCase
         $noteId = (string) DB::table('notes')->value('id');
         $paymentId = (string) DB::table('customer_payments')->value('id');
         $rowId = (string) DB::table('work_items')->where('transaction_type', 'store_stock_sale_only')->value('id');
-        $handler = app(\App\Application\Payment\UseCases\RecordCustomerRefundHandler::class);
+        $handler = app(RecordCustomerRefundHandler::class);
         $command = fn () => $handler->handle($paymentId, $noteId, 142539, '2026-09-15', 'Direct refund audit probe', (string) $cashier->getAuthIdentifier(), [$rowId]);
         $before = $this->captureGraph();
         $connection = DB::connection();
