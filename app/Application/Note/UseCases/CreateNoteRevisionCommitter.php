@@ -17,6 +17,7 @@ final class CreateNoteRevisionCommitter
         private readonly NoteRevisionSettlementWriterPort $settlements,
         private readonly CreateNoteRevisionAuditPayloadBuilder $auditPayloads,
         private readonly AuditLogPort $audit,
+        private readonly CreateNoteRevisionDurableAudit $durableAudit,
     ) {
     }
 
@@ -44,6 +45,7 @@ final class CreateNoteRevisionCommitter
             'note_revision_created',
             $this->auditPayloads->build($noteRootId, $parentRevisionId, $actorId, $reason, $revision),
         );
+        $this->durableAudit->record($noteRootId, $parentRevisionId, $actorId, $reason, $revision);
 
         return CreateNoteRevisionResult::success([
             'note_root_id' => $noteRootId,
