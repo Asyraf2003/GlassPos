@@ -8,6 +8,7 @@ use App\Application\Note\Services\NoteHistoryProjectionService;
 use App\Application\Payment\Services\AllocatePaymentErrorClassifier;
 use App\Application\Payment\Services\PaymentTransactionRetryRunner;
 use App\Application\Payment\Services\RecordAndAllocateNotePaymentAuditPayloadBuilder;
+use App\Application\Payment\Services\RecordAndAllocateNotePaymentDurableAudit;
 use App\Application\Payment\Services\RecordAndAllocateNotePaymentOperation;
 use App\Application\Payment\Services\RecordNotePaymentIdempotencyService;
 use App\Application\Shared\DTO\Result;
@@ -26,6 +27,7 @@ final class RecordAndAllocateNotePaymentHandler
         private readonly NoteHistoryProjectionService $projection,
         private readonly RecordNotePaymentIdempotencyService $idempotency,
         private readonly RecordAndAllocateNotePaymentAuditPayloadBuilder $auditPayloads,
+        private readonly RecordAndAllocateNotePaymentDurableAudit $durableAudit,
     ) {
     }
 
@@ -82,7 +84,7 @@ final class RecordAndAllocateNotePaymentHandler
                 if ($idempotencyPayload !== null) {
                     $this->idempotency->succeed($idempotencyPayload, trim($noteId), $result);
                 }
-
+                $this->durableAudit->record($recorded, $noteId, $selectedRowIds, $idempotencyPayload['_actor_id'] ?? null);
                 return $result;
             });
         } catch (DomainException $e) {

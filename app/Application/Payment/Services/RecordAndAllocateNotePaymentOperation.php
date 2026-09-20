@@ -81,6 +81,6 @@ final class RecordAndAllocateNotePaymentOperation
         $this->allocationWriter->createMany($allocations);
         $this->autoClose->closeIfEligible($note, $payment->id());
 
-        return new RecordedNotePayment($payment, count($allocations));
+        return new RecordedNotePayment($payment, count($allocations), $cashDetail);
     }
 }
