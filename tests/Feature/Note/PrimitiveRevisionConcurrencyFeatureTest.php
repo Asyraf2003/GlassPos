@@ -29,6 +29,21 @@ final class PrimitiveRevisionConcurrencyFeatureTest extends TestCase
 
     public function test_concurrent_exact_revision_replay_wins_over_stale_base(): void
     {
+        $this->runRevisionRace('exact');
+    }
+
+    public function test_concurrent_same_key_changed_payload_is_conflict(): void
+    {
+        $this->runRevisionRace('changed');
+    }
+
+    public function test_concurrent_same_key_different_root_is_conflict(): void
+    {
+        $this->runRevisionRace('different-root');
+    }
+
+    private function runRevisionRace(string $scenario): void
+    {
         self::assertTrue(function_exists('pcntl_fork'), 'True race proof requires pcntl_fork.');
         self::assertSame('mysql', DB::connection()->getDriverName(), 'This lock-wait probe targets disposable MariaDB.');
         $this->preparePrimitiveFixture();
@@ -39,6 +54,17 @@ final class PrimitiveRevisionConcurrencyFeatureTest extends TestCase
         $base = (string) DB::table('notes')->value('current_revision_id');
         $actorId = (string) $admin->getAuthIdentifier();
         $payload = array_replace($this->primitiveWorkspace($this->primitiveItems(70211), 'race-same-key'), ['base_revision_id' => $base]);
+        $secondNoteId = $noteId;
+        $secondPayload = $payload;
+        if ($scenario === 'changed') {
+            $secondPayload['items'][1]['service']['price_rupiah'] = 90001;
+        }
+        if ($scenario === 'different-root') {
+            $this->post(route('notes.workspace.store'), $this->primitiveWorkspace([$this->primitiveItems()[1]], 'race-other-root'))
+                ->assertRedirect()->assertSessionHasNoErrors();
+            $secondNoteId = (string) DB::table('notes')->where('id', '<>', $noteId)->value('id');
+            $secondPayload['base_revision_id'] = (string) DB::table('notes')->where('id', $secondNoteId)->value('current_revision_id');
+        }
         $dir = sys_get_temp_dir().'/glasspos-revision-race-'.bin2hex(random_bytes(8));
         self::assertTrue(mkdir($dir, 0700));
         self::assertSame(0, DB::transactionLevel());
@@ -48,7 +74,7 @@ final class PrimitiveRevisionConcurrencyFeatureTest extends TestCase
         try {
             $children[] = $this->forkRevision('first', $dir, $noteId, $actorId, $payload);
             $this->awaitFile($dir.'/first-held');
-            $children[] = $this->forkRevision('second', $dir, $noteId, $actorId, $payload);
+            $children[] = $this->forkRevision('second', $dir, $secondNoteId, $actorId, $secondPayload);
             $this->awaitFile($dir.'/second-connected');
             DB::purge();
             DB::reconnect();
@@ -86,11 +112,22 @@ final class PrimitiveRevisionConcurrencyFeatureTest extends TestCase
         file_put_contents($dir.'/proof.json', json_encode(['lock_wait' => $wait, 'first' => $first, 'second' => $second], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
         self::assertTrue($first['success'] ?? false, json_encode($first, JSON_THROW_ON_ERROR));
         // Effects must be exactly one even if the replay response contract is broken.
-        $this->assertDatabaseCount('note_revisions', 2);
+        self::assertSame(2, DB::table('note_revisions')->where('note_root_id', $noteId)->count());
         $this->assertDatabaseHas('notes', ['id' => $noteId, 'total_rupiah' => 402425]);
         self::assertSame(1, DB::table('idempotency_records')->where('operation', 'create_note_revision')->count());
         self::assertSame(1, DB::table('audit_outbox')->where('event_name', 'note_revision_created')->count());
         self::assertSame(0, DB::transactionLevel());
+        if ($scenario !== 'exact') {
+            self::assertArrayNotHasKey('exception', $second);
+            self::assertFalse($second['success']);
+            self::assertSame(['IDEMPOTENCY_KEY_PAYLOAD_MISMATCH'], $second['data']['idempotency_key']);
+            self::assertSame('Idempotency key revisi sudah dipakai untuk payload berbeda.', $second['message']);
+            if ($scenario === 'different-root') {
+                self::assertSame(1, DB::table('note_revisions')->where('note_root_id', $secondNoteId)->count());
+                $this->assertDatabaseHas('notes', ['id' => $secondNoteId, 'total_rupiah' => 63719]);
+            }
+            return;
+        }
         self::assertTrue($second['success'] ?? false, 'Exact concurrent retry must replay, not fail: '.json_encode($second, JSON_THROW_ON_ERROR).'; proof='.$dir.'/proof.json');
         self::assertSame($first['data']['revision_id'], $second['data']['revision_id']);
         self::assertSame('Revisi nota sudah diproses sebelumnya.', $second['message']);
