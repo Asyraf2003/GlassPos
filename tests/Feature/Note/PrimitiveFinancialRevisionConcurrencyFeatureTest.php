@@ -77,6 +77,7 @@ final class PrimitiveFinancialRevisionConcurrencyFeatureTest extends TestCase
         try {
             $children[] = $this->forkAction('first', $dir, $firstAction);
             $this->awaitFile($dir.'/first-held');
+            self::assertGreaterThanOrEqual(1, (int) file_get_contents($dir.'/first-held'));
             $children[] = $this->forkAction('second', $dir, $secondAction);
             $this->awaitFile($dir.'/second-connected');
             DB::purge();
@@ -94,14 +95,11 @@ final class PrimitiveFinancialRevisionConcurrencyFeatureTest extends TestCase
                     JOIN information_schema.INNODB_TRX b ON b.trx_id = w.blocking_trx_id
                     WHERE r.trx_mysql_thread_id = ? AND b.trx_mysql_thread_id = ?', [$secondId, $firstId]);
                 if ($wait === null) {
-                    // MariaDB can expose this unique-insert wait only in PROCESSLIST.
-                    // Keep A's original lock graph gate; the additional probes
-                    // requires the server to be executing the claim while winner is held.
+                    // Also retain server execution evidence when MariaDB omits a lock graph row.
                     $query = DB::selectOne('SELECT ID, TIME, INFO FROM information_schema.PROCESSLIST WHERE ID = ?', [$secondId]);
                     $sql = strtolower((string) ($query->INFO ?? ''));
                     if ($query !== null && (int) $query->TIME >= 1
-                        && (str_starts_with($sql, 'insert into `idempotency_records`')
-                            || (str_contains($sql, 'from `notes`') && str_contains($sql, 'for update')))) {
+                        && (str_contains($sql, 'from `notes`') && str_contains($sql, 'for update'))) {
                         self::assertSame(1, DB::table('note_revisions')->count());
                         $wait = (object) ['waiting_id' => $secondId, 'winner_id' => $firstId, 'proof_kind' => 'server-executing-before-winner-release', 'sql' => $sql];
                     }
@@ -128,6 +126,8 @@ final class PrimitiveFinancialRevisionConcurrencyFeatureTest extends TestCase
         file_put_contents($dir.'/proof.json', json_encode(['lock_wait' => $wait, 'first' => $first, 'second' => $second], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
         self::assertTrue($first['success'], json_encode($first, JSON_THROW_ON_ERROR));
         self::assertTrue($second['success'], json_encode($second, JSON_THROW_ON_ERROR));
+        self::assertSame(0, $first['transaction_level']);
+        self::assertSame(0, $second['transaction_level']);
         self::assertSame(2, DB::table('note_revisions')->count());
         self::assertSame(1, DB::table('audit_outbox')->where('event_name', 'note_revision_created')->count());
         self::assertSame(1, DB::table('customer_payments')->count());
