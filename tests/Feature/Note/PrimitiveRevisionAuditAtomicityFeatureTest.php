@@ -93,6 +93,7 @@ final class PrimitiveRevisionAuditAtomicityFeatureTest extends TestCase
         self::assertNotNull($dispatcher);
         $listener = clone $dispatcher;
         $connection->setEventDispatcher($listener);
+        $this->withoutExceptionHandling();
         $failure = new RuntimeException('Injected actual revision outbox failure');
         $listener->listen(QueryExecuted::class, function (QueryExecuted $query) use ($eventName, $failure, &$during, &$calls, &$level): void {
             if (! str_starts_with(strtolower($query->sql), 'insert into `audit_outbox`') || ! in_array($eventName, $query->bindings, true)) {
@@ -104,10 +105,10 @@ final class PrimitiveRevisionAuditAtomicityFeatureTest extends TestCase
             throw $failure;
         });
         try {
-            app(CreateNoteRevisionHandler::class)->handle($noteId, $payload, (string) $admin->getAuthIdentifier());
+            $this->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), $payload)->assertSessionHasNoErrors();
             self::fail('Canonical capture failure must escape.');
         } catch (RuntimeException $caught) {
-            self::assertSame($failure, $caught);
+            self::assertSame($failure, $caught, $caught->getMessage());
         } finally {
             $connection->setEventDispatcher($dispatcher);
         }
@@ -126,13 +127,21 @@ final class PrimitiveRevisionAuditAtomicityFeatureTest extends TestCase
         }
         self::assertSame(0, DB::transactionLevel());
         foreach ($this->captureGraph() as $table => $rows) {
+            if ($table === 'audit_logs') {
+                // HTTP authorization records the attempt before the business transaction starts.
+                $ids = array_column($before[$table], 'id');
+                $attempts = array_values(array_filter($rows, fn (array $row): bool => ! in_array($row['id'], $ids, true)));
+                self::assertCount(1, $attempts);
+                self::assertSame('admin_transaction_capability_used', $attempts[0]['event']);
+                self::assertSame((string) $admin->getAuthIdentifier(), json_decode($attempts[0]['context'], true)['actor_id']);
+                $rows = array_values(array_filter($rows, fn (array $row): bool => in_array($row['id'], $ids, true)));
+            }
             self::assertSame($before[$table], $rows, $table.' must roll back exactly.');
         }
-        $retry = app(CreateNoteRevisionHandler::class)->handle($noteId, $payload, (string) $admin->getAuthIdentifier());
-        self::assertTrue($retry->isSuccess(), $retry->message());
+        $this->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), $payload)->assertRedirect()->assertSessionHasNoErrors();
         self::assertSame(0, DB::transactionLevel());
         $this->assertDatabaseHas('idempotency_records', ['idempotency_key' => 'audit-seam-revision', 'status' => 'succeeded']);
-        $revisionId = $retry->data()['revision_id'];
+        $revisionId = (string) DB::table('notes')->where('id', $noteId)->value('current_revision_id');
         $this->assertDatabaseHas('audit_outbox', ['aggregate_id' => $revisionId, 'event_name' => 'note_revision_created']);
         if ($surplus) {
             $due = DB::table('note_revision_surplus_dispositions')->sole();
