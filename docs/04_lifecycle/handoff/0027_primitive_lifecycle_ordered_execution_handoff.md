@@ -588,3 +588,46 @@ Proof limits: this slice proves report dataset/export consumption, not new PDF v
 Final major gate GREEN exit0: PHPStan2121 files/no errors; line/Blade/contract audits PASS;1724 passed/12531 assertions/56.74s. git diff --check PASS. Slice9 COMPLETE / GREEN for its automated reporting scope. Implementation and this receipt are committed/published next; exact commit SHA and verified push are recorded in the following publication receipt. Slice10 remains next, not yet executed.
 
 Slice9 publication receipt:174584529dd4663bdbe6f55ea43a3dd4eba3c0f4 committed all five scoped files. Initial sai push via SSH failed publickey; retry through per-process HTTPS URL rewrite and gh auth git-credential succeeded exit0 (74fb9983..17458452 main -> main). No permanent Git configuration changed. git rev-parse HEAD origin/main returned174584529dd4663bdbe6f55ea43a3dd4eba3c0f4 for both; working tree clean before this receipt. This documentation receipt is published separately via sai push. Exact next active slice10 audit/atomicity; Slices11–12 remain pending, including physical-device/manual battle cards.
+
+## Slice 10 — actual payment audit path characterization (2026-09-20)
+
+Owner requires actual successful RecordAndAllocate payment evidence before any outbox failure injection. One critical step only: baseline plus runtime characterization. No production repair, writer mock, audit binding override, new semantic event, or Slice11 concurrency work in this checkpoint.
+
+Execution context: /home/asyraf/projects/laravel/GlassPos. Separate disposable MariaDB /tmp/glasspos-slice10-db, localhost3319, database glasspos_slice10_test, root with empty password. Sandbox socket creation failed with errno1; approved outside-sandbox server and test access succeeded. No production database used.
+
+Baseline command:
+
+    env DB_HOST=127.0.0.1 DB_PORT=3319 DB_DATABASE=glasspos_slice10_test DB_USERNAME=root DB_PASSWORD= php -d memory_limit=-1 vendor/bin/pest tests/Feature/Payment/RecordAndAllocateNotePaymentFeatureTest.php tests/Feature/Note/PrimitivePaymentDebtCashChainFeatureTest.php tests/Feature/AuditLog/AuditOutboxRuntimeBindingTest.php tests/Feature/AuditLog/DatabaseAuditOutboxWriterAdapterTest.php tests/Feature/Note/NoteRevisionRollbackFeatureTest.php --compact --stop-on-failure
+
+Baseline GREEN: 10 passed /167 assertions /0.89s, exit0 (assistant-executed local tool output).
+
+New test: tests/Feature/Note/PrimitiveLifecycleAuditAtomicityFeatureTest.php. Creates the existing mixed primitive fixture through the real workspace HTTP action with inline payment skipped. Captures all listed tables before payment, then directly resolves and invokes the real RecordAndAllocateNotePaymentHandler with logged-in cashier, selected current rows, explicit actor-scoped idempotency payload, cash395933/tender400003/change4070. Production AuditLogPort and global AuditEventWriterPort bindings are asserted, not replaced. No outbox processor is run.
+
+Focused command:
+
+    env DB_HOST=127.0.0.1 DB_PORT=3319 DB_DATABASE=glasspos_slice10_test DB_USERNAME=root DB_PASSWORD= php -d memory_limit=-1 vendor/bin/pest tests/Feature/Note/PrimitiveLifecycleAuditAtomicityFeatureTest.php --compact --stop-on-failure
+
+Exact RED: 1 failed /38 assertions /0.82s, exit1. All payment assertions pass before the final ADR-0042/A01 durable capture assertion fails: expected positive audit_outbox delta, actual0. Failure message contains before/after cardinalities and raw-row change indicators:
+
+| Surface | Before -> after / observed effect |
+|---|---|
+| customer_payments | 0 -> 1; cash395933, returned payment ID verified |
+| payment_allocations | 0 -> 0; unchanged legacy allocation set |
+| payment_component_allocations | 0 -> 6; product142539, external53127, service142993, store57274; sum395933 |
+| customer_payment_cash_details | 0 -> 1; credited395933/tender400003/change4070 |
+| notes | 1 -> 1; open -> closed; total395933/current revision retained |
+| note_history_projection | 1 -> 1; paid0/outstanding395933 -> paid395933/outstanding0 |
+| idempotency_records | 1 -> 2; new record_note_payment succeeded, actor/key/note/result payment ID verified |
+| note_mutation_events / snapshots | 0 -> 1 / 0 -> 2; note_closed |
+| audit_logs | 1 -> 2; payment_allocated context matches payment/note/amount/component count/selected IDs |
+| audit_outbox | 2 -> 2, entire row set unchanged; pre-existing create-time rows are NOT payment capture |
+| audit_events / audit_event_snapshots | 0 -> 0 / 0 -> 0, unchanged |
+| inventory movements / revisions / refunds / refund allocations | unchanged raw row sets |
+
+Classification: PRODUCTION BUG against ADR-0042 Audit Runtime Contract (money mutation requires same-transaction durable outbox capture), matching Blueprint0018 A01 SOURCE CONFLICT. Successful legacy payment_allocated capture does not satisfy canonical outbox compliance. Global writer resolution proves availability only; this runtime payment produces no outbox capture.
+
+Proof limits: RefreshDatabase wraps the test in a database transaction; evidence establishes application success and actual persisted row effects on that connection before test cleanup, not crash durability or separate-connection commit visibility. No failure injection/rollback atomicity claim, no new broad GREEN, and no Slice10 completion claim. The new acceptance test intentionally remains RED; do not change its expectation to accept missing outbox. PHP syntax check passed; git diff --check passed before receipt update.
+
+Compatibility evidence: AuditLogAdminRowMapper exposes both legacy and canonical sources; payment_allocated is also used by AllocateCustomerPaymentHandler and CreateTransactionWorkspaceInlinePaymentRecorder. No removal/renaming or global binding change is authorized by this probe. ADR-0042 lists suggested revision/refund event names but does not name a new combined-payment event; no new event has been invented and this inspection alone does not establish that one is needed.
+
+Next critical step remains within Slice10: establish the smallest existing-contract payment capture mapping and legacy compatibility boundary before repair. Stop if a new semantic event/owner decision is required. Only after actual payment outbox capture is proven may the called writer failure be injected to verify rollback of money/allocation/cash detail/note/projection/idempotency/audit effects. Slices11–12 remain untouched. No commit/push in this checkpoint.
