@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Adapters\Out\Idempotency;
 
-use App\Ports\Out\IdempotencyRecordPort;
 use App\Ports\Out\IdempotencyClaimConflictException;
+use App\Ports\Out\IdempotencyRecordPort;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -45,18 +45,18 @@ final class DatabaseIdempotencyRecordAdapter implements IdempotencyRecordPort
     ): void {
         try {
             DB::table('idempotency_records')->insert([
-            'id' => (string) Str::uuid(),
-            'actor_id' => $actorId,
-            'operation' => $operation,
-            'idempotency_key' => $key,
-            'request_hash' => $requestHash,
-            'status' => 'processing',
-            'locked_at' => now(),
-            'created_at' => now(),
-            'updated_at' => now(),
+                'id' => (string) Str::uuid(),
+                'actor_id' => $actorId,
+                'operation' => $operation,
+                'idempotency_key' => $key,
+                'request_hash' => $requestHash,
+                'status' => 'processing',
+                'locked_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         } catch (UniqueConstraintViolationException $e) {
-            if (! (new IdempotencyClaimCollisionClassifier())->matches($e)) {
+            if (! (new IdempotencyClaimCollisionClassifier)->matches($e)) {
                 throw $e;
             }
 
