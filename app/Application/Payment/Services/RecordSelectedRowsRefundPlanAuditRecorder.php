@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace App\Application\Payment\Services;
 
+use App\Application\Audit\DTO\AuditEventWrite;
 use App\Application\Payment\DTO\SelectedRowsRefundPlan;
+use App\Ports\Out\AuditEventWriterPort;
 use App\Ports\Out\AuditLogPort;
+use App\Ports\Out\ClockPort;
+use App\Ports\Out\UuidPort;
 
 final class RecordSelectedRowsRefundPlanAuditRecorder
 {
     public function __construct(
         private readonly AuditLogPort $audit,
-    ) {
-    }
+        private readonly AuditEventWriterPort $events,
+        private readonly ClockPort $clock,
+        private readonly UuidPort $uuid,
+    ) {}
 
     public function record(
         SelectedRowsRefundPlan $plan,
@@ -22,7 +28,7 @@ final class RecordSelectedRowsRefundPlanAuditRecorder
         array $processed,
         array $finalizedData,
     ): void {
-        $this->audit->record('selected_rows_refund_plan_recorded', [
+        $metadata = [
             'note_id' => $plan->noteId(),
             'actor_id' => $actorId,
             'actor_role' => $actorRole,
@@ -34,6 +40,22 @@ final class RecordSelectedRowsRefundPlanAuditRecorder
             'allocation_count' => $processed['allocation_count'],
             'total_refund_rupiah' => $plan->totalRefundRupiah(),
             'final_note_state' => $finalizedData['note_state'] ?? null,
-        ]);
+        ];
+        $this->audit->record('selected_rows_refund_plan_recorded', $metadata);
+        $this->events->write(new AuditEventWrite(
+            id: $this->uuid->generate(),
+            boundedContext: 'payment',
+            aggregateType: 'note',
+            aggregateId: $plan->noteId(),
+            eventName: 'selected_rows_refund_plan_recorded',
+            actorId: $actorId,
+            actorRole: $actorRole,
+            reason: trim($reason),
+            sourceChannel: null,
+            requestId: null,
+            correlationId: null,
+            occurredAt: $this->clock->now(),
+            metadata: $metadata,
+        ));
     }
 }
