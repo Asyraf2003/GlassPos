@@ -1,6 +1,10 @@
 <?php
 
 declare(strict_types=1);
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Tests\Support\BuildsPrimitiveLifecycleFixture;
+use Tests\TestCase;
 
 require dirname(__DIR__, 2).'/vendor/autoload.php';
 
@@ -10,16 +14,16 @@ if (getenv('APP_ENV') !== 'testing' || getenv('DB_DATABASE') !== 'glasspos_slice
     throw new RuntimeException('Live proof requires the isolated Slice12 testing database on localhost3319.');
 }
 
-final class PrimitiveLifecycleLiveFixture extends Tests\TestCase
+final class PrimitiveLifecycleLiveFixture extends TestCase
 {
-    use Tests\Support\BuildsPrimitiveLifecycleFixture;
+    use BuildsPrimitiveLifecycleFixture;
 
     public function generate(): void
     {
         $this->setUp();
-        self::assertSame(0, Illuminate\Support\Facades\DB::table('notes')->count(), 'Start with a clean disposable schema.');
+        self::assertSame(0, DB::table('notes')->count(), 'Start with a clean disposable schema.');
         $this->preparePrimitiveFixture();
-        Illuminate\Support\Carbon::setTestNow();
+        Carbon::setTestNow();
         $cashier = $this->loginAsKasir();
         $cashier->forceFill(['email' => 'slice12@example.test'])->save();
         $create = $this->primitiveWorkspace($this->primitiveItems(), 'slice12-live-create');
@@ -27,7 +31,7 @@ final class PrimitiveLifecycleLiveFixture extends Tests\TestCase
         $create['note']['transaction_date'] = (new DateTimeImmutable('now', new DateTimeZone(config('app.timezone'))))->format('Y-m-d');
         $create['inline_payment'] = ['decision' => 'pay_partial', 'payment_method' => 'cash', 'paid_at' => $create['note']['transaction_date'], 'amount_paid_rupiah' => 73129, 'amount_received_rupiah' => 100003];
         $this->post(route('notes.workspace.store'), $create)->assertSessionHasNoErrors();
-        $id = (string) Illuminate\Support\Facades\DB::table('notes')->value('id');
+        $id = (string) DB::table('notes')->value('id');
         $pay = route('cashier.notes.payments.store', ['noteId' => $id]);
         $this->post($pay, $this->primitivePayment('slice12-live-transfer', 89457, 'transfer'))->assertSessionHasNoErrors();
         $revision = array_replace($this->primitiveWorkspace($this->primitiveItems(81258), 'slice12-live-revision'), ['base_revision_id' => $this->revisionBaseForTest($id)]);
