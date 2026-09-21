@@ -19,6 +19,7 @@ final class PrimitiveLifecycleLiveFixture extends Tests\TestCase
         $this->setUp();
         self::assertSame(0, Illuminate\Support\Facades\DB::table('notes')->count(), 'Start with a clean disposable schema.');
         $this->preparePrimitiveFixture();
+        Illuminate\Support\Carbon::setTestNow();
         $cashier = $this->loginAsKasir();
         $cashier->forceFill(['email' => 'slice12@example.test'])->save();
         $create = $this->primitiveWorkspace($this->primitiveItems(), 'slice12-live-create');
