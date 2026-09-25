@@ -75,6 +75,24 @@ The following text is intentionally retained in the owner's own wording and has 
 >
 > 22. hmmm boleh" soft delete itu saya pikir data g ilang bukan ilang permanen gitu bukan bisa dipulihakan eh sebenrnya ada kasusnnya sih jadi ok hutang dari 22 ini kita bahas setelah anda baca keputusan saya, jangan lupa push main, terkadang beda teks raw saya vs pemahaman anda jadi beberapa handoff saya rasa perlu juga ttd mentah keputusan manusia bukan yg sudah diterjmahkan ai full
 
+## RAW OWNER DECISION ADDENDUM — 2026-09-26
+
+The following additional owner statements refine cancellation, UI compression, and restore semantics:
+
+> gap a itu konsepnya kayak maling, klo emangnya maling cuma sentuh barangnya tapi g dibawa dan di dunia nyata dia kasi lagi ke si kasir kasusnya sama saja kan? abstraknya di manusinya, gimana klo modelnya client narik ulur barangnyake tangan kasir? puluhan riwayat data barang keluar masuk? anjay
+>
+> no 3 anda kesannya saya liat agak ribet tapi primitiv sih jadi saya setuju tapi user g akan ngalami due dan paid, taunya balik yaa dikembalikan uangnya gitu
+>
+> no 4 bagian refund yg ada prod nya atau bagian paket saya rasa gaya ref nya udah gini deh
+>
+> no 5 yups, intinya itu kebiasaan toko langsung dieksekusi 1-2 klik, detail? yaa sebenrnya bukan jadi lebih detail tapi layernya turun gitu, jadi 1x klik di oto = klik 4-5 transaksi di backend, detail yaa klik 4-5x gitu normal dia, ini analoginya
+>
+> jawaban gap
+> a g paham, bahasa anda tinggi dan silau, rendahkan sedikit agar saya bisa melihatnya
+> b auto g dibuat, buat saja versi detailnya, auto dibuat karena kasir ngeluh ini kok proses lama bisa ngga ini auto a b c aja, nah auto lahir darisana bukan lahir dari build
+> c ok
+> d ok
+
 ## NORMALIZED OWNER DECISION SNAPSHOT
 
 These are working interpretations, not a replacement for the raw statements above.
@@ -82,44 +100,68 @@ These are working interpretations, not a replacement for the raw statements abov
 ### 1. Refund and cancellation remain distinct user/domain intents
 
 - Keep both `Refund` and `Batalkan Transaksi`.
-- A cancellation attempt must not silently reinterpret genuine realized transaction effects as pure cancellation.
-- If the current transaction has effects that belong to the refund lifecycle, the cashier should be directed into the existing refund workflow rather than creating a second cancellation finance engine.
-- Pure cancellation is for a transaction whose active business effect is considered invalid/semu/salah and should contribute zero to active business truth while preserving the history that the record existed.
+- If a recorded payment already exists, cancellation must route into the existing refund/financial lifecycle rather than silently removing or invalidating the payment.
+- If no payment exists, `Batalkan Transaksi` may neutralize the current transaction effects through the existing primitives.
+- External-purchase transaction data that has already become committed transaction data remains governed by the existing refund/external-purchase lifecycle rather than scratch cancellation semantics.
+- Wrong price or ordinary correction remains revision/versioning, not cancellation.
 
-### 2. Cancellation means zero active business effect, not erased database history
+### 2. Cancellation is a business-state abstraction, not a sensor log of every physical hand movement
+
+Owner analogy: a person may touch/take a product and hand it back before the transaction is finally cancelled. The system must not create dozens of stock movements merely because a customer and cashier physically pass an item back and forth.
+
+Contract direction:
+
+- record canonical business effects, not every transient physical handling event;
+- if the committed transaction created an inventory issue and the cancellation returns that transaction effect to zero, use the existing compensating/reversal primitive once;
+- do not model temporary hand-to-hand possession as repeated sale/return ledger events unless the business itself commits a distinct inventory event;
+- cancellation history records the transaction/cancellation reason and canonical compensating effects, not CCTV-like micro-events.
+
+### 3. Cancellation means zero active customer-transaction effect, not erased database history
 
 Working invariant for pure cancellation:
 
 - active revenue effect = 0
 - active receivable effect = 0
 - active profit effect = 0
-- active inventory effect = 0
 - active transaction effect = 0
+- transaction-owned inventory effect is neutralized through the proper compensating primitive
 - transaction/cancellation history remains reconstructable
 - cancellation reporting remains available
 
-The exact persistence representation is still open.
+If a real independent stock/material loss remains after cancellation, that loss must be represented by the existing stock/cost adjustment primitive rather than by keeping the cancelled sale active.
 
-### 3. Recorded payment is accountable financial history
+### 4. Root cancellation lifecycle marker is accepted in principle
+
+Owner accepts a root-level cancelled lifecycle marker whose meaning is only:
+
+> this note root is no longer an active customer business transaction.
+
+The exact schema spelling/metadata still requires source audit, but cancellation must not collapse financial, inventory, operational, and revision truth into one status flag. Each primitive remains authoritative for its own effect.
+
+### 5. Recorded payment is accountable financial history and uses refund semantics
 
 Latest owner direction supersedes the earlier draft assumption that a dummy/erroneous recorded payment necessarily requires a separate `payment_reversal` primitive.
 
 Current owner direction:
 
 - if no payment was ever recorded, a pure invalid/dummy note may remain a cancellation case;
-- if a payment was already recorded, even when physical money is later claimed to be absent, the record remains accountable and the money consequence must go through the refund/financial lifecycle rather than deleting or silently invalidating the payment row.
+- if a payment was already recorded, even when physical money is later claimed to be absent, the record remains accountable;
+- the financial consequence goes through the refund lifecycle;
+- backend may retain its existing `refund_due` / `refund_paid` primitives, but normal cashier UI does not need to expose those ledger steps as separate user actions;
+- cashier-facing semantics remain simply that the money is returned/refunded;
+- `refund_paid` must still mean actual money-out according to the existing financial contract.
 
-This decision must be reconciled carefully with cash-ledger semantics before ADR promotion.
-
-### 4. Wrong price / ordinary correction remains revision/versioning
+### 6. Wrong price / ordinary correction remains revision/versioning
 
 A wrong price is not automatically cancellation. Use the existing immutable revision/versioning model when the transaction remains a real transaction whose current truth is being corrected.
 
-### 5. Inventory must reuse existing primitives
+### 7. Inventory/refund/package behavior must reuse existing primitives
 
-Cancellation/refund must reuse existing inventory reversal/adjustment machinery rather than creating a second stock engine. Pure cancellation should remove active stock consequence through explicit compensating history, not by deleting movement history.
+Cancellation/refund must reuse existing inventory reversal/adjustment and refund/package machinery rather than creating a second stock/refund engine.
 
-### 6. Access should reuse the existing actor/date mental model
+Before designing new product/package refund behavior, audit the current implementation because the owner expects the existing refund flows may already express the needed return/no-return choices.
+
+### 8. Access should reuse the existing actor/date mental model
 
 Do not invent a cancellation-specific role hierarchy before proving the existing access policy is insufficient.
 
@@ -130,11 +172,7 @@ Current source/docs direction:
 - transaction-sensitive admin mutation remains subject to transaction capability and domain policy;
 - paid/closed/refunded state is not itself a blanket prohibition on official audited lifecycle flows.
 
-### 7. External-purchase data already persisted as transaction data belongs to transaction/refund lifecycle
-
-Do not treat an external-purchase line as scratch data merely because payment is still full debt. Once it is committed as transaction data, cancellation/refund decisions must respect the existing external-purchase transaction semantics.
-
-### 8. Reuse existing atomicity/concurrency/idempotency patterns
+### 9. Reuse existing atomicity/concurrency/idempotency patterns
 
 Cancellation must follow the existing transaction mental model rather than introducing a parallel mechanism:
 
@@ -144,29 +182,45 @@ Cancellation must follow the existing transaction mental model rather than intro
 - same key + changed semantic payload => conflict;
 - no duplicate stock/refund/report effects.
 
-### 9. Revision mental model: current accepted revision is authoritative, history remains
+### 10. Revision mental model: current accepted revision is authoritative, history remains
 
 The owner's "colokan" mental model is retained with one existing contract correction:
 
 - the latest accepted current revision drives current transaction truth;
 - older revisions remain historical and must not affect current projection merely because they still exist;
-- however, a stale editor based on an older revision must not silently overwrite a newer accepted revision;
+- a stale editor based on an older revision must not silently overwrite a newer accepted revision;
 - handoff0027 already locks `base_revision_id` / stale-revision rejection before a newer revision can be accepted.
 
 Payments/refunds/inventory remain immutable ledgers and are interpreted against the current revision; they are not physically moved into the latest revision.
 
-### 10. Simple/Auto and Detail remain presentation modes over the same engine
+### 11. Build Detail primitives first; Auto is a later compression learned from shop habit
 
-- Simple/Auto may compress the explanation and choose safe defaults only from proven facts.
-- Detail may expose the effect plan and require explicit operator choices where needed.
-- Neither mode owns separate finance/inventory logic.
+Do not invent Auto presets during the initial cancellation build.
 
-### 11. Draft discard remains distinct from persisted transaction cancellation
+Owner direction:
+
+- first build the complete Detail path using explicit primitive actions;
+- observe real cashier usage;
+- if cashiers repeatedly perform the same 4–5 backend/domain actions and complain that the flow is too slow, then introduce an Auto shortcut for that proven shop habit;
+- one Auto click may later compress several already-valid primitive actions;
+- Auto is therefore derived from observed operational repetition, not guessed during architecture design.
+
+### 12. Draft discard remains distinct from persisted transaction cancellation
 
 - unsaved workspace/draft => discard/delete scratch data;
 - successfully committed note root => use official edit/refund/cancellation lifecycle, not physical deletion.
 
-### 12. Soft delete is not selected as the normal note-cancellation mechanism
+### 13. Restore is a new accepted revision, not undelete
+
+Owner direction:
+
+- UI may say `Pulihkan`;
+- backend semantics are not `cancelled = false` and not Laravel soft-delete restore;
+- restoring a cancelled transaction creates a new accepted revision/version derived from the prior transaction truth;
+- the cancellation remains historical;
+- the new revision becomes current truth through the existing version graph and must create/recreate only the effects required by that new current state.
+
+### 14. Soft delete is not selected as the normal note-cancellation mechanism
 
 Do not add Laravel-style soft delete to `notes` merely to implement `Batalkan Transaksi`. A note is a transaction graph with payment/refund/inventory/revision/report/audit consequences; hiding only the root row would not neutralize those consequences.
 
@@ -180,32 +234,39 @@ Latest owner decision supersedes that candidate at the business-policy level:
 
 - once a payment has been recorded, it remains accountable and money handling belongs to the refund/financial lifecycle.
 
-Do not delete the historical discussion. The eventual ADR must explain the supersession and define the resulting cash/report semantics precisely.
+Do not delete the historical discussion. The eventual ADR must explain the supersession.
+
+The earlier interpretation that Auto should be designed up front as a safe-default cancellation/refund mode is also superseded:
+
+- Detail/primitive-complete behavior comes first;
+- Auto is introduced only after repeated real cashier behavior establishes which multi-step sequence should be compressed.
 
 ## CONTRACT GAPS STILL OPEN
 
-Do not promote this handoff into a final implementation contract until these are resolved:
+The remaining work is now primarily source audit and contract mapping rather than broad owner-business ambiguity:
 
-1. Exact criterion that separates a valid pure `Batalkan Transaksi` from a transaction that must be redirected to Refund.
-2. Exact root lifecycle representation for pure cancellation:
-   - whether `note_state = cancelled` is canonical;
-   - required metadata/event fields;
-   - separation from operational open/close state.
-3. Exact financial/report interpretation when a payment row exists but physical cash is claimed missing, given the owner's decision to keep it accountable through refund.
-4. Exact current-report treatment versus cancellation/history report fields and counts.
-5. Exact cancellation impact-plan UI contract for Simple/Auto versus Detail.
-6. Whether any existing access rule needs an owner-approved amendment before cancellation uses it; ADR-0019 is still marked draft.
-7. Exact effect-graph mapping for all current transaction components before implementation, including package/external-purchase/costing/projection/audit references.
-8. Exact cancellation event naming and source identity needed for audit/history.
-9. Whether a cancelled root is ever restorable. No normal `restore()` behavior is authorized by this handoff.
+1. Build the exact cancellation/refund eligibility matrix from current source:
+   - no recorded payment generally permits cancellation;
+   - recorded payment routes to refund;
+   - external-purchase committed data follows its existing transaction/refund lifecycle;
+   - verify package/service/product edge behavior against current implementation before adding exceptions.
+2. Audit the exact root lifecycle representation:
+   - confirm how `cancelled` should coexist with current operational open/close state;
+   - determine exact field/event metadata without making the status flag authoritative for money or stock.
+3. Audit existing product/package refund and stock-return/no-return behavior before changing it.
+4. Map every current transaction effect to its canonical primitive for cancellation, including inventory, costing/COGS, projection, reporting, audit/outbox, package and external purchase.
+5. Define cancellation report/UI presentation by reusing the closest existing transaction-history/report UX pattern; create a new pattern only where none exists.
+6. Confirm existing actor/date access rules are sufficient for cancellation; ADR-0019 remains marked draft and should not be silently promoted.
+7. Define exact cancellation event/source naming for audit/history.
+8. Define restore-as-next-revision details against ADR-0045: base revision, new revision identity, stock reissue if needed, payment/refund carry-forward rules, and stale protection.
 
 ## NEXT SAFE STEP
 
-Discuss and resolve the remaining contract gaps with the owner.
+Use current source to resolve the remaining mapping questions above.
 
-After owner decisions are explicit:
+After those source-backed contracts are explicit:
 
-1. preserve new raw owner statements in this handoff or its successor;
+1. preserve any new owner statement verbatim when it changes business semantics;
 2. promote permanent decisions to the appropriate ADR;
 3. update/supersede the cancellation section of the relevant active blueprint;
 4. only then prepare the implementation prompt/campaign.
