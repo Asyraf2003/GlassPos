@@ -74,6 +74,12 @@
           </div>
         </div>
       </div>
+
+      <script>
+        document.getElementById('note-restore-modal')?.addEventListener('shown.bs.modal', function () {
+          document.getElementById('note-lifecycle-reason')?.focus();
+        });
+      </script>
     @else
       <p class="mb-0">{{ $lifecycle['message'] }}</p>
     @endif
