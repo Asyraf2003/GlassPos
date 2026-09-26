@@ -84,7 +84,7 @@ final class WholeNoteCancellationConcurrencyFeatureTest extends TestCase
             ),
             'refund' => function () use ($noteId, $actorId): mixed {
                 $rowId = (string) DB::table('work_items')->where('note_id', $noteId)->value('id');
-                $planned = app(SelectedNoteRowsRefundPlanResolver::class)->resolve($noteId, [$rowId]);
+                $planned = app(SelectedNoteRowsRefundPlanResolver::class)->resolve($noteId, [$rowId], [$rowId => true]);
                 if ($planned->isFailure()) {
                     return $planned;
                 }

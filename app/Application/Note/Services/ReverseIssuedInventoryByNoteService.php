@@ -31,12 +31,16 @@ final class ReverseIssuedInventoryByNoteService
 
         foreach ($note->workItems() as $workItem) {
             foreach ($workItem->storeStockLines() as $line) {
-                if ($this->alreadyReversedByRefund($line->id()) || count(array_filter($refunds,
+                $componentRefunds = array_filter($refunds,
                     static fn ($refund): bool => $refund->workItemId() === $workItem->id()
-                        && (($refund->componentType() === PaymentComponentType::PRODUCT_ONLY_WORK_ITEM)
+                        && ($refund->componentType() === PaymentComponentType::PRODUCT_ONLY_WORK_ITEM
                             || ($refund->componentType() === PaymentComponentType::SERVICE_STORE_STOCK_PART
                                 && $refund->componentRefId() === $line->id()))
-                )) > 0) {
+                );
+                $refunded = array_sum(array_map(static fn ($refund): int => $refund->refundedAmountRupiah()->amount(), $componentRefunds));
+                $componentTotal = $workItem->transactionType() === 'store_stock_sale_only'
+                    ? $workItem->subtotalRupiah()->amount() : $line->lineTotalRupiah()->amount();
+                if ($this->alreadyReversedByRefund($line->id()) || ($componentTotal > 0 && $refunded >= $componentTotal)) {
                     continue;
                 }
 
