@@ -9,7 +9,7 @@
                         <div class="fw-bold">{{ $entry['event_label'] }}</div>
                         <div class="small text-muted">{{ \App\Support\ViewDateFormatter::display($entry['created_at'] ?? null, true) }}</div>
 
-                        @if ($entry['performed_by_actor_id'] ?? null)
+                        @if (in_array($entry['mutation_type'] ?? '', ['note_cancelled', 'note_restored'], true) && ($entry['performed_by_actor_id'] ?? null))
                             <div class="small text-muted">Aktor: {{ $entry['performed_by_actor_id'] }}</div>
                         @endif
 
