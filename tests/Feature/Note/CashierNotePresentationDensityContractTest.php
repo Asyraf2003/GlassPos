@@ -125,6 +125,7 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         self::assertStringContainsString('data-bs-target="#note-restore-modal"', $lifecycle);
         self::assertStringContainsString('id="note-restore-modal"', $lifecycle);
         self::assertStringContainsString('type="text"', $lifecycle);
+        self::assertStringContainsString('shown.bs.modal', $lifecycle);
         self::assertStringContainsString('Pulihkan sebagai revisi baru', $lifecycle);
 
         self::assertStringContainsString('note-detail-status-badge--info', $css);
