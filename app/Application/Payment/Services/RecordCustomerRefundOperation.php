@@ -27,11 +27,10 @@ final class RecordCustomerRefundOperation
         private readonly AllocateRefundAcrossComponents $refundAllocator,
         private readonly NoteReaderPort $notes,
         private readonly UuidPort $uuid,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param list<string> $selectedRowIds
+     * @param  list<string>  $selectedRowIds
      */
     public function execute(
         string $customerPaymentId,
@@ -47,6 +46,7 @@ final class RecordCustomerRefundOperation
         if ($payment === null || $note === null) {
             throw new DomainException('Target refund tidak ditemukan.');
         }
+        $note->assertNotCancelled();
 
         $amount = Money::fromInt($amountRupiah);
 

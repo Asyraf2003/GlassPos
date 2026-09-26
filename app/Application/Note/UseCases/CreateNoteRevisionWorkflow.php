@@ -29,11 +29,10 @@ final class CreateNoteRevisionWorkflow
         private readonly EditableWorkspaceNoteGuard $guard,
         private readonly NoteHistoryProjectionService $projection,
         private readonly ClockPort $clock,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      */
     public function execute(
         string $noteRootId,
@@ -46,6 +45,7 @@ final class CreateNoteRevisionWorkflow
         if ($root === null) {
             return CreateNoteRevisionResult::failure('Root note tidak ditemukan.');
         }
+        $root->assertNotCancelled();
 
         $current = $this->current->resolveOrFail($root->id());
         if (trim((string) ($payload['base_revision_id'] ?? '')) !== $current->id()) {

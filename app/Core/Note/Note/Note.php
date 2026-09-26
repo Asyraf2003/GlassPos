@@ -12,14 +12,19 @@ use DateTimeImmutable;
 final class Note
 {
     public const STATE_OPEN = 'open';
+
     public const STATE_CLOSED = 'closed';
+
     public const STATE_REFUNDED = 'refunded';
 
-    use NoteState;
-    use NoteValidation;
+    public const STATE_CANCELLED = 'cancelled';
+
+    use NoteCancellation;
     use NoteMutations;
     use NoteNormalization;
     use NoteOperationalStateMutations;
+    use NoteState;
+    use NoteValidation;
 
     public static function create(
         string $id,
@@ -27,8 +32,7 @@ final class Note
         ?string $customerPhone,
         DateTimeImmutable $date,
         ?string $operationalNote = null,
-    ): self
-    {
+    ): self {
         self::assertValidIdentity($id, $name);
 
         return new self(
@@ -69,7 +73,7 @@ final class Note
         self::assertValidOperationalState($noteState);
         $total->ensureNotNegative('Total note tidak boleh negatif.');
 
-        if ($workItems !== [] && !self::calculateTotalFromWorkItems($workItems)->equals($total)) {
+        if ($workItems !== [] && ! self::calculateTotalFromWorkItems($workItems)->equals($total)) {
             throw new DomainException('Total note tidak konsisten dengan subtotal work item.');
         }
 
@@ -89,5 +93,4 @@ final class Note
             self::normalizeActorId($reopenedByActorId),
         );
     }
-
 }

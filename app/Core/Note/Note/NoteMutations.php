@@ -17,6 +17,7 @@ trait NoteMutations
         DateTimeImmutable $transactionDate,
         ?string $operationalNote = null,
     ): void {
+        $this->assertNotCancelled();
         self::assertValidIdentity($this->id, $customerName);
 
         $this->customerName = trim($customerName);
@@ -29,6 +30,7 @@ trait NoteMutations
     /** @param list<WorkItem> $workItems */
     public function replaceWorkItems(array $workItems): void
     {
+        $this->assertNotCancelled();
         self::assertValidWorkItems($workItems);
         $this->assertWorkItemsBelongToThisNote($workItems);
         $this->assertNoDuplicateWorkItems($workItems);
@@ -39,6 +41,7 @@ trait NoteMutations
 
     public function addWorkItem(WorkItem $item): void
     {
+        $this->assertNotCancelled();
         if ($item->noteId() !== $this->id) {
             throw new DomainException('Work item tidak belong ke note ini.');
         }

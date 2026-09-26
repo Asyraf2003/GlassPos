@@ -13,8 +13,8 @@ use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\Note\NoteReaderPort;
 use App\Ports\Out\Payment\CustomerPaymentWriterPort;
 use App\Ports\Out\Payment\PaymentAllocationReaderPort;
-use App\Ports\Out\Payment\RefundComponentAllocationReaderPort;
 use App\Ports\Out\Payment\PaymentComponentAllocationWriterPort;
+use App\Ports\Out\Payment\RefundComponentAllocationReaderPort;
 use App\Ports\Out\UuidPort;
 
 final class RecordAndAllocateNotePaymentOperation
@@ -31,11 +31,10 @@ final class RecordAndAllocateNotePaymentOperation
         private readonly AutoCloseNoteWhenFullyPaid $autoClose,
         private readonly UuidPort $uuid,
         private readonly BuildCustomerPaymentCashDetail $cashDetails,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param list<string> $selectedRowIds
+     * @param  list<string>  $selectedRowIds
      */
     public function execute(
         string $noteId,
@@ -47,6 +46,7 @@ final class RecordAndAllocateNotePaymentOperation
     ): RecordedNotePayment {
         $note = $this->notes->getByIdForUpdate(trim($noteId))
             ?? throw new DomainException('Target payment allocation tidak ditemukan.');
+        $note->assertNotCancelled();
 
         $amount = Money::fromInt($amountRupiah);
         $payment = CustomerPayment::create(

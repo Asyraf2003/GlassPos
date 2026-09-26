@@ -25,26 +25,91 @@ trait NoteState
         private ?string $closedByActorId,
         private ?DateTimeImmutable $reopenedAt,
         private ?string $reopenedByActorId,
-    ) {
+    ) {}
+
+    public function id(): string
+    {
+        return $this->id;
     }
 
-    public function id(): string { return $this->id; }
-    public function customerName(): string { return $this->customerName; }
-    public function customerPhone(): ?string { return $this->customerPhone; }
-    public function transactionDate(): DateTimeImmutable { return $this->transactionDate; }
-    public function dueDate(): DateTimeImmutable { return $this->dueDate; }
-    public function operationalNote(): ?string { return $this->operationalNote; }
+    public function customerName(): string
+    {
+        return $this->customerName;
+    }
+
+    public function customerPhone(): ?string
+    {
+        return $this->customerPhone;
+    }
+
+    public function transactionDate(): DateTimeImmutable
+    {
+        return $this->transactionDate;
+    }
+
+    public function dueDate(): DateTimeImmutable
+    {
+        return $this->dueDate;
+    }
+
+    public function operationalNote(): ?string
+    {
+        return $this->operationalNote;
+    }
 
     /** @return list<WorkItem> */
-    public function workItems(): array { return $this->workItems; }
+    public function workItems(): array
+    {
+        return $this->workItems;
+    }
 
-    public function totalRupiah(): Money { return $this->totalRupiah; }
-    public function noteState(): string { return $this->noteState; }
-    public function closedAt(): ?DateTimeImmutable { return $this->closedAt; }
-    public function closedByActorId(): ?string { return $this->closedByActorId; }
-    public function reopenedAt(): ?DateTimeImmutable { return $this->reopenedAt; }
-    public function reopenedByActorId(): ?string { return $this->reopenedByActorId; }
-    public function isOpen(): bool { return $this->noteState === Note::STATE_OPEN; }
-    public function isClosed(): bool { return $this->noteState === Note::STATE_CLOSED; }
-    public function isRefunded(): bool { return $this->noteState === Note::STATE_REFUNDED; }
+    public function totalRupiah(): Money
+    {
+        return $this->totalRupiah;
+    }
+
+    public function noteState(): string
+    {
+        return $this->noteState;
+    }
+
+    public function closedAt(): ?DateTimeImmutable
+    {
+        return $this->closedAt;
+    }
+
+    public function closedByActorId(): ?string
+    {
+        return $this->closedByActorId;
+    }
+
+    public function reopenedAt(): ?DateTimeImmutable
+    {
+        return $this->reopenedAt;
+    }
+
+    public function reopenedByActorId(): ?string
+    {
+        return $this->reopenedByActorId;
+    }
+
+    public function isOpen(): bool
+    {
+        return $this->noteState === Note::STATE_OPEN;
+    }
+
+    public function isClosed(): bool
+    {
+        return $this->noteState === Note::STATE_CLOSED;
+    }
+
+    public function isRefunded(): bool
+    {
+        return $this->noteState === Note::STATE_REFUNDED;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->noteState === Note::STATE_CANCELLED;
+    }
 }

@@ -9,7 +9,8 @@ use App\Application\Note\Services\WorkItemStatusTransitionService;
 use App\Application\Shared\DTO\Result;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Ports\Out\AuditLogPort;
-use App\Ports\Out\Note\{NoteReaderPort, WorkItemWriterPort};
+use App\Ports\Out\Note\NoteReaderPort;
+use App\Ports\Out\Note\WorkItemWriterPort;
 use App\Ports\Out\TransactionManagerPort;
 use Throwable;
 
@@ -22,8 +23,7 @@ final class UpdateWorkItemStatusHandler
         private readonly WorkItemStatusTransitionService $transition,
         private readonly NotePaidStatusPolicy $paidStatus,
         private readonly AuditLogPort $audit
-    ) {
-    }
+    ) {}
 
     public function handle(string $noteId, int $lineNo, string $targetStatus): Result
     {
@@ -37,8 +37,9 @@ final class UpdateWorkItemStatusHandler
             $this->transactions->begin();
             $started = true;
 
-            $note = $this->notes->getById(trim($noteId))
+            $note = $this->notes->getByIdForUpdate(trim($noteId))
                 ?? throw new DomainException('Note tidak ditemukan.');
+            $note->assertNotCancelled();
 
             $this->paidStatus->assertNotPaidForStandardMutation($note);
 
