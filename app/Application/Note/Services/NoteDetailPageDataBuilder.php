@@ -11,7 +11,7 @@ final class NoteDetailPageDataBuilder
     public function __construct(
         private readonly NoteReaderPort $notes,
         private readonly NoteDetailOperationalPayloadBuilder $operationals,
-        private readonly NotePaymentStatusResolver $paymentStatuses,
+        private readonly NoteDetailHeaderPayloadBuilder $headerPayloads,
         private readonly NoteRefundPaymentOptionsBuilder $refundPaymentOptions,
         private readonly NoteProductOptionsBuilder $products,
         private readonly NoteCorrectionHistoryBuilder $history,
@@ -64,20 +64,7 @@ final class NoteDetailPageDataBuilder
             'pageTitle' => 'Detail Nota',
             'workspace_panel' => $workspacePanel,
             'note' => $this->notePayloads->build(
-                [
-                    'id' => $note->id(),
-                    'current_revision_id' => $revisionView['current_revision_id'],
-                    'current_total_rupiah' => $note->totalRupiah()->amount(),
-                    'customer_name' => $revisionView['customer_name'],
-                    'customer_phone' => $revisionView['customer_phone'],
-                    'transaction_date' => $revisionView['transaction_date'],
-                    'operational_note' => $note->operationalNote(),
-                    'note_state' => $note->noteState(),
-                    'payment_status' => $this->paymentStatuses->resolve(
-                        (int) $operational['grand_total_rupiah'],
-                        (int) $operational['net_paid_rupiah'],
-                    ),
-                ],
+                $this->headerPayloads->build($note, $revisionView, $operational),
                 $workspacePanel,
                 $operational,
                 $refundOptions,

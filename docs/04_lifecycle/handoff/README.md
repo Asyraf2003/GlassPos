@@ -46,6 +46,8 @@ This folder is only for active or latest handoffs. Once a session is closed, arc
 | `0031_restore_cancelled_note_c2_handoff.md` | Whole-note cancellation C2 restore as a new accepted revision | merged as PR #6; proof retained |
 | `0032_detail_refund_c3_handoff.md` | Detail refund C3: service, explicit stock choice, projections and serialization | focused proof complete; draft PR pending repository gate Issue #8 |
 
+| `0033_contract_gate_refactor_handoff.md` | Independent Issue #8 responsibility extraction | focused proof green; PR review/merge pending |
+
 ## Archive
 
 All old handoffs live in `docs/99_archive/handoff/`:

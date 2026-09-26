@@ -10,6 +10,8 @@ use DateTimeImmutable;
 
 trait NoteState
 {
+    use NoteLifecycleState;
+
     /** @param list<WorkItem> $workItems */
     private function __construct(
         private string $id,
@@ -66,50 +68,5 @@ trait NoteState
     public function totalRupiah(): Money
     {
         return $this->totalRupiah;
-    }
-
-    public function noteState(): string
-    {
-        return $this->noteState;
-    }
-
-    public function closedAt(): ?DateTimeImmutable
-    {
-        return $this->closedAt;
-    }
-
-    public function closedByActorId(): ?string
-    {
-        return $this->closedByActorId;
-    }
-
-    public function reopenedAt(): ?DateTimeImmutable
-    {
-        return $this->reopenedAt;
-    }
-
-    public function reopenedByActorId(): ?string
-    {
-        return $this->reopenedByActorId;
-    }
-
-    public function isOpen(): bool
-    {
-        return $this->noteState === Note::STATE_OPEN;
-    }
-
-    public function isClosed(): bool
-    {
-        return $this->noteState === Note::STATE_CLOSED;
-    }
-
-    public function isRefunded(): bool
-    {
-        return $this->noteState === Note::STATE_REFUNDED;
-    }
-
-    public function isCancelled(): bool
-    {
-        return $this->noteState === Note::STATE_CANCELLED;
     }
 }
