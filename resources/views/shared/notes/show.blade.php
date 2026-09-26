@@ -15,7 +15,7 @@
   @if (($noteDetailLayout ?? 'desktop') === 'desktop')
     <div class="note-detail-desktop note-detail-desktop-columns">
       <div class="note-detail-desktop-stack note-detail-desktop-stack--main" data-note-desktop-stack="main">
-        <details class="note-detail-desktop-panel" data-note-desktop-panel="info" open>
+        <details class="note-detail-desktop-panel" data-note-desktop-panel="info">
           <summary class="note-detail-desktop-summary">
             <span class="note-detail-desktop-title-group">
               <h4>Info Nota</h4>
@@ -42,7 +42,7 @@
           </div>
         </details>
 
-        <details class="note-detail-desktop-panel" data-note-desktop-panel="history-main" open>
+        <details class="note-detail-desktop-panel" data-note-desktop-panel="history-main">
           <summary class="note-detail-desktop-summary">
             <span class="note-detail-desktop-title-group">
               <h4>Riwayat Nota</h4>
@@ -74,7 +74,7 @@
           </div>
         </details>
 
-        <details class="note-detail-desktop-panel" data-note-desktop-panel="history-finance" open>
+        <details class="note-detail-desktop-panel" data-note-desktop-panel="history-finance">
           <summary class="note-detail-desktop-summary">
             <span class="note-detail-desktop-title-group">
               <h4>Riwayat Finansial</h4>
@@ -104,7 +104,7 @@
   @else
     <div class="note-detail-mobile-stack note-detail-handset">
       <div class="note-detail-mobile-stack-list">
-        <details class="note-detail-mobile-step" open>
+        <details class="note-detail-mobile-step">
           <summary class="note-detail-mobile-summary">
             <span class="note-detail-mobile-number">1</span>
             <div class="note-detail-mobile-heading flex-grow-1">
