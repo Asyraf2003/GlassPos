@@ -26,6 +26,7 @@ use App\Adapters\In\Http\Controllers\Note\CorrectPaidWorkItemStatusController;
 use App\Adapters\In\Http\Controllers\Note\CreateNoteController;
 use App\Adapters\In\Http\Controllers\Note\RecordClosedNoteRefundController;
 use App\Adapters\In\Http\Controllers\Note\RecordNotePaymentController;
+use App\Adapters\In\Http\Controllers\Note\RestoreCancelledNoteController;
 use App\Adapters\In\Http\Controllers\Note\StoreNoteRevisionController;
 use App\Adapters\In\Http\Controllers\Note\StoreTransactionWorkspaceController;
 use App\Adapters\In\Http\Middleware\IdentityAccess\EnsureAdminPageAccess;
@@ -67,6 +68,9 @@ Route::middleware(['auth', EnsureAdminPageAccess::class, 'app.shell'])
             Route::post('/{noteId}/cancel', CancelNoteController::class)
                 ->withoutMiddleware(EnsureTransactionEntryAllowed::class)
                 ->name('cancel');
+            Route::post('/{noteId}/restore', RestoreCancelledNoteController::class)
+                ->withoutMiddleware(EnsureTransactionEntryAllowed::class)
+                ->name('restore');
             Route::post('/{noteId}/refunds', RecordClosedNoteRefundController::class)->name('refunds.store');
             Route::post('/{noteId}/payments', RecordNotePaymentController::class)->name('payments.store');
             Route::post('/{noteId}/rows', AddNoteRowsController::class)->name('rows.store');
@@ -95,6 +99,9 @@ Route::middleware(['auth', EnsureCashierAreaAccess::class, EnsureTransactionEntr
             Route::post('/{noteId}/cancel', CancelNoteController::class)
                 ->withoutMiddleware(EnsureTransactionEntryAllowed::class)
                 ->name('cancel');
+            Route::post('/{noteId}/restore', RestoreCancelledNoteController::class)
+                ->withoutMiddleware(EnsureTransactionEntryAllowed::class)
+                ->name('restore');
             Route::post('/{noteId}/refunds', RecordClosedNoteRefundController::class)->name('refunds.store');
             Route::get('/{noteId}/workspace/edit', EditTransactionWorkspacePageController::class)->name('workspace.edit');
             Route::get(

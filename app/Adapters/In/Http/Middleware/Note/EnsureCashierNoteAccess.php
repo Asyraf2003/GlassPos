@@ -29,7 +29,9 @@ final class EnsureCashierNoteAccess
                 $canAccess = $this->accessData->ensureCanViewFinanceQueue($noteId);
             } elseif ($request->routeIs('cashier.notes.payments.store')) {
                 $canAccess = $this->accessData->ensureCanCollectOutstanding($noteId);
-            } elseif ($request->routeIs('cashier.notes.refunds.store') || $request->routeIs('cashier.notes.cancel')) {
+            } elseif ($request->routeIs('cashier.notes.refunds.store')
+                || $request->routeIs('cashier.notes.cancel')
+                || $request->routeIs('cashier.notes.restore')) {
                 $canAccess = $this->accessData->ensureCanView($noteId);
             } elseif ($request->routeIs('cashier.notes.workspace.edit')) {
                 $canAccess = $this->accessData->ensureCanOpenWorkspaceEdit($noteId);
