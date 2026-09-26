@@ -21,7 +21,17 @@ final class NoteCancellationAccess
 
     public function authorize(string $noteId, string $actorId): string
     {
-        $decision = $this->entry->decide($actorId, ['action' => 'cancel_note', 'note_id' => $noteId]);
+        return $this->authorizeAction($noteId, $actorId, 'cancel_note');
+    }
+
+    public function authorizeRestore(string $noteId, string $actorId): string
+    {
+        return $this->authorizeAction($noteId, $actorId, 'restore_cancelled_note');
+    }
+
+    private function authorizeAction(string $noteId, string $actorId, string $action): string
+    {
+        $decision = $this->entry->decide($actorId, ['action' => $action, 'note_id' => $noteId]);
         if ($decision->isFailure()) {
             throw new DomainException('CANCELLATION_FORBIDDEN');
         }

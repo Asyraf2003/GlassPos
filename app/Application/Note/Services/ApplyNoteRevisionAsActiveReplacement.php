@@ -6,6 +6,7 @@ namespace App\Application\Note\Services;
 
 use App\Application\Note\Services\RevisionWorkspace\RevisionSnapshotStoreStockLineTrustMarker;
 use App\Core\Note\Note\Note;
+use App\Core\Note\Revision\NoteRevision;
 use App\Ports\Out\Note\NoteWriterPort;
 
 final class ApplyNoteRevisionAsActiveReplacement
@@ -15,13 +16,9 @@ final class ApplyNoteRevisionAsActiveReplacement
         private readonly UpdateTransactionWorkspaceWorkItemPersister $workItems,
         private readonly NoteReplacementPaymentAllocationReconciler $payments,
         private readonly RevisionSnapshotStoreStockLineTrustMarker $snapshotTrust,
-    ) {
-    }
+    ) {}
 
-    /**
-     * @param mixed $items
-     */
-    public function apply(Note $root, Note $replacement, mixed $items): void
+    public function apply(Note $root, Note $replacement, mixed $items, ?NoteRevision $trustedSnapshot = null): void
     {
         $paymentAmounts = $this->payments->captureAllocatedAmounts($root->id());
 
@@ -34,7 +31,7 @@ final class ApplyNoteRevisionAsActiveReplacement
 
         $trustedItems = $this->snapshotTrust->mark(
             is_array($items) ? array_values($items) : [],
-            null,
+            $trustedSnapshot,
             $root->workItems(),
         );
 

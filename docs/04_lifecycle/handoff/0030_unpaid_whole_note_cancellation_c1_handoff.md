@@ -3,9 +3,9 @@
 ## Metadata
 - Date: 2026-09-26
 - Slice / topic: C1 atomic unpaid whole-note cancellation
-- Workflow step: implementation and verification; preparing traceable PR
-- Status: implementation/proof complete locally; review and merge pending
-- Progress: C1 evidence complete; campaign remains active
+- Workflow step: implementation, verification, review, and merge
+- Status: C1 merged as PR #4
+- Progress: C1 complete; campaign remains active
 
 ## Target Work Page
 Blueprint0019 C1: unpaid product/service/package cancellation through the existing note-root lifecycle, inventory, audit, idempotency, and reporting primitives.
@@ -92,4 +92,4 @@ Blueprint0019 C1: unpaid product/service/package cancellation through the existi
 - `.codex/` is untracked local context and is intentionally excluded from this slice.
 
 ## Next Step
-Review the complete C1 diff, finalize meaningful commits, push the active branch, open a PR that closes Issue #3, obtain independent real review, resolve findings, verify checks, and merge only when coherent/green.
+Sync accepted main and continue with the independently scoped C2 restore-as-new-revision Issue/branch/PR flow. C1's manual diff review was completed before merge; GitGuardian passed. No independent reviewer context was available and no self-approval was recorded.

@@ -11,6 +11,7 @@ use App\Application\Note\Services\NoteCurrentRevisionResolver;
 use App\Application\Note\Services\NoteHistoryProjectionService;
 use App\Application\Note\Services\NoteRevisionBootstrapFactory;
 use App\Application\Note\Services\ReopenNoteForRevisionOutstanding;
+use App\Core\Note\Revision\NoteRevision;
 use App\Ports\Out\ClockPort;
 use App\Ports\Out\Note\NoteReaderPort;
 
@@ -39,6 +40,7 @@ final class CreateNoteRevisionWorkflow
         array $payload,
         ?string $actorId,
         bool $enforceWorkspaceEditability = true,
+        ?NoteRevision $trustedSnapshot = null,
     ): CreateNoteRevisionResult {
         $root = $this->notes->getByIdForUpdate(trim($noteRootId));
 
@@ -67,7 +69,7 @@ final class CreateNoteRevisionWorkflow
 
         $revisionId = sprintf('%s-r%03d', $root->id(), $number);
         $createdAt = $this->clock->now();
-        $this->applier->apply($root, $replacement, $payload['items'] ?? []);
+        $this->applier->apply($root, $replacement, $payload['items'] ?? [], $trustedSnapshot);
         $this->reopen->reopenIfNeeded($root, $revisionId, $actorId, $reason, $createdAt);
         $paymentSummary = $this->payments->record($root, $payload['inline_payment'] ?? []);
 
