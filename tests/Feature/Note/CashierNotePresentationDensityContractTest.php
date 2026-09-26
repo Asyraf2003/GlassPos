@@ -135,7 +135,7 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         self::assertStringContainsString('--note-detail-content-size: 1rem', $css);
         self::assertStringContainsString('html[data-bs-theme="dark"] body[data-note-device] .note-detail-shell', $css);
         self::assertStringNotContainsString('fs-6', $status);
-        self::assertStringContainsString('var(--note-detail-content-size)', $status);
+        self::assertStringContainsString('font-size: var(--note-detail-content-size) !important;', $status);
     }
 
     private function readViewSource(string $path): string
