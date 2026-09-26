@@ -24,6 +24,11 @@ final class NoteCancellationEligibility
         if ($note->isCancelled()) {
             throw new DomainException('NOTE_ALREADY_CANCELLED');
         }
+        foreach ($note->workItems() as $item) {
+            if ($item->externalPurchaseLines() !== []) {
+                throw new DomainException('EXTERNAL_REFUND_REQUIRED');
+            }
+        }
         if ($this->payments->getTotalPaymentAmountByNoteId($note->id())->amount() > 0
             || $this->payments->getTotalAllocatedAmountByNoteId($note->id())->amount() > 0
             || $this->refunds->getTotalRefundedAmountByNoteId($note->id())->amount() > 0) {
@@ -38,11 +43,6 @@ final class NoteCancellationEligibility
         $current = $this->revisions->resolveOrFail($note->id());
         if (count($settlements) < $current->revisionNumber() - 1 || $note->closedAt() !== null || $note->isRefunded()) {
             throw new DomainException('CANCELLATION_HISTORY_UNRESOLVED');
-        }
-        foreach ($note->workItems() as $item) {
-            if ($item->externalPurchaseLines() !== []) {
-                throw new DomainException('EXTERNAL_REFUND_REQUIRED');
-            }
         }
     }
 }

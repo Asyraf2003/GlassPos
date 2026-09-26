@@ -42,7 +42,7 @@ final class CancelNoteController extends Controller
     {
         return match ($code) {
             'REFUND_REQUIRED' => 'Transaksi ini sudah memiliki pembayaran. Lanjutkan melalui Refund.',
-            'EXTERNAL_REFUND_REQUIRED' => 'Transaksi memiliki pembelian eksternal. Gunakan alur refund transaksi yang tersedia.',
+            'EXTERNAL_REFUND_REQUIRED' => 'Transaksi memuat pembelian luar. Pembatalan dan refund pembelian luar belum didukung pada alur ini. Transaksi tidak diubah.',
             'STALE_REVISION' => 'Transaksi berubah. Muat ulang sebelum membatalkan.',
             'NOTE_ALREADY_CANCELLED' => 'Transaksi sudah dibatalkan.',
             'CANCELLATION_DATE_FORBIDDEN' => 'Kasir hanya dapat membatalkan transaksi hari ini atau kemarin.',
