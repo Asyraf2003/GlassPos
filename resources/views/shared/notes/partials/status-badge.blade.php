@@ -15,6 +15,6 @@
   };
 @endphp
 
-<span class="note-detail-status-badge note-detail-status-badge--{{ $statusTone }}">
+<span class="note-detail-status-badge note-detail-status-badge--{{ $statusTone }} fs-6">
   {{ $statusText !== '' ? $statusText : '-' }}
 </span>
