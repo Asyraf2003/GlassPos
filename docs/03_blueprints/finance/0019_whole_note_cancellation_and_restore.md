@@ -136,3 +136,11 @@ Dependency sequence: Issue #8 branch/PR from main -> green review/merge -> sync 
 Issue #8 proof: affected baseline 42 tests / 630 assertions; final post-extraction 42 / 631, PHPStan, Pint, contract audit and diff check pass. Initial overlap observation failure and isolated-server restart are retained in [handoff0033](../../04_lifecycle/handoff/0033_contract_gate_refactor_handoff.md). No assertion weakening or C3 code is included.
 
 Integration checkpoint: Issue #8 closed through PR #10 (61c1812f). C3 synchronized with accepted main without conflict; repeated 160 tests / 2906 assertions, PHPStan, Pint, JS syntax, 9 browser DOM assertions and contract gate all pass. PR #9 can leave draft after final published-head checks. C4 has not started.
+
+## C4 active boundary — Issue #11
+
+Main 41453418 has C1/C2/C3 and #8 accepted. C4 preserves the ADR0046 unsupported external boundary: unpaid external, paid external and mixed roots cannot pure-cancel; selected external refund remains unsupported. A paid eligible non-external row on a mixed root retains C3 capability. Ordinary correction remains revision, never a suggested cancellation bypass. External service-only refund in ADR0042 remains an unimplemented specialized capability; supplier return/ownership is not inferred.
+
+Exact gap: cancellation currently advertises an available external refund route and paid external roots receive generic refund routing. Move the existing external guard before payment classification and make its response explicitly unsupported/no mutation. Prove unpaid/paid/mixed repeated rejection leaves business graph and reports unchanged, while ordinary paid refund remains green. No new money/stock writer or new event type is required. C5 will render this boundary explicitly.
+
+C4 proof: 22 tests / 217 assertions, PHPStan, Pint, contract audit and diff check pass. See handoff0034 for the preserved external support boundary and C5 integration requirements. C4 is implementation-complete pending its dedicated PR review/merge; no specialized external financial lifecycle was invented.
