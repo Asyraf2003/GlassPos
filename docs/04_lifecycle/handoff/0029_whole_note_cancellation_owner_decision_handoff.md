@@ -1,5 +1,16 @@
 # 0029 - Whole-Note Cancellation Owner Decision Handoff
 
+## Contract promotion — 2026-09-26
+
+Permanent cancellation/restore policy is promoted to
+[ADR-0046](../../02_architecture/adr/0046_whole_note_cancellation_and_revision_restore.md).
+Execution now follows [Blueprint0019](../../03_blueprints/finance/0019_whole_note_cancellation_and_restore.md)
+and [Issue #1](https://github.com/Asyraf2003/GlassPos/issues/1).
+The raw owner records below remain unchanged as historical decision evidence.
+Earlier mapping gaps/status below describe this handoff's original checkpoint;
+the new ADR/blueprint distinguish resolved contract choices from outstanding implementation.
+No production cancellation completion is claimed.
+
 ## Status
 
 - Date: 2026-09-26, Asia/Makassar
