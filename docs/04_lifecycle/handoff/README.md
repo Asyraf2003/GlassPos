@@ -43,7 +43,8 @@ This folder is only for active or latest handoffs. Once a session is closed, arc
 | `0028_blueprint0018_closeout.md` | Blueprint0018 automated/browser closeout | automated scope green; physical/manual acceptance remains pending |
 | `0029_whole_note_cancellation_owner_decision_handoff.md` | Whole-note cancellation / Batalkan Transaksi owner decisions | accepted raw owner evidence; normalized contract promoted to ADR-0046 |
 | `0030_unpaid_whole_note_cancellation_c1_handoff.md` | Whole-note cancellation C1 unpaid root cancellation | merged as PR #4; proof retained |
-| `0031_restore_cancelled_note_c2_handoff.md` | Whole-note cancellation C2 restore as a new accepted revision | implementation and proof complete locally; PR review/merge pending |
+| `0031_restore_cancelled_note_c2_handoff.md` | Whole-note cancellation C2 restore as a new accepted revision | merged as PR #6; proof retained |
+| `0032_detail_refund_c3_handoff.md` | Detail refund C3: service, explicit stock choice, projections and serialization | focused proof complete; draft PR pending repository gate Issue #8 |
 
 ## Archive
 
