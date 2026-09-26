@@ -144,3 +144,11 @@ Main 41453418 has C1/C2/C3 and #8 accepted. C4 preserves the ADR0046 unsupported
 Exact gap: cancellation currently advertises an available external refund route and paid external roots receive generic refund routing. Move the existing external guard before payment classification and make its response explicitly unsupported/no mutation. Prove unpaid/paid/mixed repeated rejection leaves business graph and reports unchanged, while ordinary paid refund remains green. No new money/stock writer or new event type is required. C5 will render this boundary explicitly.
 
 C4 proof: 22 tests / 217 assertions, PHPStan, Pint, contract audit and diff check pass. See handoff0034 for the preserved external support boundary and C5 integration requirements. C4 is implementation-complete pending its dedicated PR review/merge; no specialized external financial lifecycle was invented.
+
+## C5 active Detail integration — Issue #13
+
+C4 merged as PR #12 (aefd26f5). Add one read-only lifecycle presenter using current note/revision, existing cancellation eligibility and unrestored cancellation history. Preview canonical effects (zero active sale/receivable; inventory compensation; restore revision source/amount and fresh issue requirement) and post ordinary CSRF forms to accepted handlers. UI restore uses the last accepted revision, not an invented editable payload. Domain handlers remain final authority under lock.
+
+Use a read-only capability/date predicate for presentation; do not call the mutation-auditing TransactionEntryPolicy from GET. Retry keeps old key and observed base together only for the same lifecycle form; stale base must never be replaced silently with refreshed current identity. Include actor identity in existing history. Paid users see the existing selected Detail refund direction; external/unresolved cases show explicit restrictions. No new mutation endpoint or Auto. Characterize actual HTML forms and lifecycle chain before production edits; focused adjacent/access tests and contract gates before PR.
+
+C5 proof: 26 tests / 284 assertions passed; PHPStan, Pint, contract audit and diff check green. Actual rendered form chain, history escaping, stale retry and admin capability boundaries are recorded in handoff0035. C5 ready for dedicated PR review/merge, then C6 full/integrated acceptance.
