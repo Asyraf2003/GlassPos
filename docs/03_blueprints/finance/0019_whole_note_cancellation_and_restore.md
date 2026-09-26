@@ -1,8 +1,8 @@
 # Blueprint0019: Whole-Note Cancellation And Restore
 
-Status: active implementation blueprint; C0 is merged and C1 unpaid cancellation implementation is complete locally, with focused and broad proof recorded in handoff0030. C1 awaits PR review/merge. C2 restore and later slices remain open.
+Status: active implementation blueprint; C0 is merged in PR #2, C1 unpaid cancellation is merged in PR #4, and C2 restore implementation/proof is complete locally with PR review/merge pending. Later slices remain open.
 
-Traceability: [Issue #1](https://github.com/Asyraf2003/GlassPos/issues/1).
+Traceability: [C0 Issue #1](https://github.com/Asyraf2003/GlassPos/issues/1), [C1 Issue #3](https://github.com/Asyraf2003/GlassPos/issues/3) / [PR #4](https://github.com/Asyraf2003/GlassPos/pull/4), [C2 Issue #5](https://github.com/Asyraf2003/GlassPos/issues/5).
 
 ## Target and boundaries
 
@@ -70,8 +70,8 @@ Each slice has an Issue before implementation, its own branch from accepted main
 | Slice | Scope / acceptance | Dependencies |
 |---|---|---|
 | C0 | Promote owner policy to ADR-0046; source graph, conflicts, dependency map, proof gates and raw preservation. Docs-only independently valid merge. | Issue #1 |
-| C1 | Atomic unpaid product/service/package root cancellation: current rights/total, inventory compensation, current projection/report correctness, mutation guards, audit, HTTP authorization, stale/key behavior. Required runtime overlap/rollback proofs ship together. | C0; implementation and proof complete locally, PR preparation/review pending |
-| C2 | Restore cancelled root through new accepted revision; cancellation identity/base validation, source compensation skip, fresh stock issues, immutable history, rollback and replay. | C1 |
+| C1 | Atomic unpaid product/service/package root cancellation: current rights/total, inventory compensation, current projection/report correctness, mutation guards, audit, HTTP authorization, stale/key behavior. Required runtime overlap/rollback proofs ship together. | C0; merged as PR #4 |
+| C2 | Restore cancelled root through new accepted revision; cancellation identity/base validation, source compensation skip, fresh stock issues, immutable history, rollback and replay. | C1; implementation/proof complete locally, see handoff0031 |
 | C3 | Only refund Detail capabilities required by actual cancellation routing. Independently scoped service/partial/return-choice gaps may have separate flows when independently valid. No broad engine rewrite. | C0 plus demonstrated dependency |
 | C4 | Committed external-purchase boundary: paid/unpaid/mixed classification, no store-stock conversion, truthful refund eligibility. Preserve restrictions where accepted source contract is insufficient; request only genuinely new business decisions. | C0 and relevant C3 |
 | C5 | Existing Detail UI exposes cancel/restore, reason, server preview and refund routing; same domain engine, stale/retry/refresh history, no Auto. Unsupported refund cases are clearly blocked, not presented as completed. | C1/C2 and applicable C3/C4 |
@@ -81,7 +81,7 @@ Order: C0 -> C1 -> C2; bounded C3/C4 only when required; then C5 -> C6. Execute 
 
 ## ACTIVE STEP
 
-C1 implementation on branch `feat/3-unpaid-note-cancellation`, linked to Issue #3. Unpaid product/service/package cancellation, current-effect neutralization, compensation, lifecycle guards, durable history, and runtime overlap/rollback proof are implemented locally. Payment-present and external-purchase cases route to existing lifecycle boundaries with explicit rejection; no refund engine rewrite. Awaiting PR preparation/review and merge. See [handoff0030](../../04_lifecycle/handoff/0030_unpaid_whole_note_cancellation_c1_handoff.md).
+C2 implementation on branch `feat/5-restore-cancelled-note`, linked to Issue #5. Restore validates the cancellation identity and current base under the root lock, then creates an accepted child revision through the existing revision workflow. The old cancellation remains historical, and unsupported historical external-purchase snapshots are rejected. Focused, adjacent, rollback, and runtime overlap proof is recorded in [handoff0031](../../04_lifecycle/handoff/0031_restore_cancelled_note_c2_handoff.md). Awaiting PR preparation/review and merge.
 
 ## First RED and focused proof for C1
 
@@ -107,6 +107,6 @@ C1 implementation on branch `feat/3-unpaid-note-cancellation`, linked to Issue #
 
 ## PROOF / PROGRESS / NEXT
 
-C0 merged as PR #2. C1 implementation/proof is recorded in handoff0030; do not mark campaign complete until C2 restore, applicable bounded C3/C4 dependencies, C5 UI, and C6 integrated acceptance are complete.
+C0 merged as PR #2; C1 merged as PR #4; C2 local implementation/proof is recorded in handoff0031. Do not mark campaign complete until C2 merge, applicable bounded C3/C4 dependencies, C5 UI, and C6 integrated acceptance are complete.
 
-NEXT after C1 review/merge: sync latest main, create C2 Issue with explicit restore acceptance above, branch from accepted main, establish focused first RED, then implement restore as a new accepted revision. Stop only for a genuine new business ambiguity or execution blocker; owner decisions already recorded in0029 are not asked again.
+NEXT after C2 review/merge: sync latest main and evaluate bounded refund/external dependencies against the existing product paths. Continue to C5 only when those dependencies have an accepted safe boundary; then complete C6 integrated/browser and final broad verification. Owner decisions already recorded in0029 are not asked again.
