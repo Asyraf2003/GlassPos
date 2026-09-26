@@ -122,11 +122,16 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         self::assertStringNotContainsString('class="card', $payment);
         self::assertStringNotContainsString('class="card', $lifecycle);
 
+        self::assertStringContainsString('data-bs-target="#note-cancel-modal"', $lifecycle);
+        self::assertStringContainsString('id="note-cancel-modal"', $lifecycle);
         self::assertStringContainsString('data-bs-target="#note-restore-modal"', $lifecycle);
         self::assertStringContainsString('id="note-restore-modal"', $lifecycle);
         self::assertStringContainsString('type="text"', $lifecycle);
         self::assertStringContainsString('shown.bs.modal', $lifecycle);
+        self::assertStringContainsString('Batalkan Transaksi', $lifecycle);
         self::assertStringContainsString('Pulihkan sebagai revisi baru', $lifecycle);
+        self::assertStringContainsString('name="base_revision_id"', $lifecycle);
+        self::assertStringContainsString('name="idempotency_key"', $lifecycle);
 
         self::assertStringContainsString('note-detail-status-badge--info', $css);
         self::assertStringContainsString('note-detail-status-badge--success', $css);
@@ -136,7 +141,8 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         self::assertStringContainsString('--note-detail-content-size: 1rem', $css);
         self::assertStringContainsString('html[data-bs-theme="dark"] body[data-note-device] .note-detail-shell', $css);
         self::assertStringNotContainsString('fs-6', $status);
-        self::assertStringContainsString('font-size: var(--note-detail-content-size) !important;', $status);
+        self::assertStringContainsString('font-size: .8rem !important;', $status);
+        self::assertStringContainsString('min-height: 1.4rem;', $status);
     }
 
     private function readViewSource(string $path): string
