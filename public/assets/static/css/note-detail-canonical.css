@@ -1,0 +1,515 @@
+body[data-note-device] .note-detail-shell {
+    --note-detail-text: #000;
+    --note-detail-muted: #000;
+    --note-detail-page-title-size: 1.5rem;
+    --note-detail-card-title-size: 1.125rem;
+    --note-detail-content-size: 1rem;
+}
+
+html[data-bs-theme="dark"] body[data-note-device] .note-detail-shell {
+    --note-detail-text: #fff;
+    --note-detail-muted: #fff;
+}
+
+body[data-note-device] .layout-page-heading > h3 {
+    color: #000;
+    font-size: var(--note-detail-page-title-size, 1.5rem);
+    line-height: 1.25;
+}
+
+html[data-bs-theme="dark"] body[data-note-device] .layout-page-heading > h3 {
+    color: #fff;
+}
+
+body[data-note-device] .note-detail-desktop-summary,
+body[data-note-device] .note-detail-mobile-summary {
+    color: var(--note-detail-text);
+    font-size: var(--note-detail-card-title-size);
+}
+
+body[data-note-device] .note-detail-desktop-summary h4,
+body[data-note-device] .note-detail-mobile-title {
+    color: var(--note-detail-text);
+    font-size: inherit;
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+body[data-note-device] .note-detail-desktop-title-group,
+body[data-note-device] .note-detail-mobile-title-group {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .45rem;
+    min-width: 0;
+}
+
+body[data-note-device] .note-detail-desktop-body,
+body[data-note-device] .note-detail-mobile-body {
+    color: var(--note-detail-text);
+    font-size: var(--note-detail-content-size);
+}
+
+body[data-note-device] .note-detail-desktop-body .small,
+body[data-note-device] .note-detail-desktop-body small,
+body[data-note-device] .note-detail-desktop-body .text-muted,
+body[data-note-device] .note-detail-mobile-body .small,
+body[data-note-device] .note-detail-mobile-body small,
+body[data-note-device] .note-detail-mobile-body .text-muted {
+    color: var(--note-detail-text) !important;
+    font-size: var(--note-detail-content-size) !important;
+}
+
+body[data-note-device] .note-detail-status-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.7rem;
+    padding: .18rem .55rem;
+    border: 0;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+body[data-note-device] .note-detail-status-badge--info {
+    background: #0d6efd;
+    color: #fff;
+}
+
+body[data-note-device] .note-detail-status-badge--success {
+    background: #20c997;
+    color: #000;
+}
+
+body[data-note-device] .note-detail-status-badge--danger {
+    background: #dc3545;
+    color: #fff;
+}
+
+body[data-note-device] .note-detail-info-list {
+    display: grid;
+    margin: 0;
+}
+
+body[data-note-device] .note-detail-info-row {
+    display: grid;
+    grid-template-columns: minmax(8.5rem, .7fr) minmax(0, 1.3fr);
+    gap: 1rem;
+    align-items: start;
+    padding: .72rem 0;
+    border-top: 1px solid var(--note-detail-border);
+}
+
+body[data-note-device] .note-detail-info-row:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+body[data-note-device] .note-detail-info-row:last-child {
+    padding-bottom: 0;
+}
+
+body[data-note-device] .note-detail-info-label,
+body[data-note-device] .note-detail-info-value {
+    margin: 0;
+    color: var(--note-detail-text);
+    font-size: var(--note-detail-content-size);
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+body[data-note-device] .note-detail-info-label {
+    font-weight: 500;
+}
+
+body[data-note-device] .note-detail-info-value {
+    font-weight: 700;
+}
+
+body[data-note-device] .note-detail-info-value--reference {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+body[data-note-device] .note-detail-line-list {
+    display: grid;
+    gap: 0;
+}
+
+body[data-note-device] .note-detail-line-summary {
+    padding: 0 0 .8rem;
+    color: var(--note-detail-text);
+    font-size: var(--note-detail-content-size);
+    font-weight: 700;
+}
+
+body[data-note-device] .note-detail-line-row {
+    min-width: 0;
+    padding: 1rem 0;
+    border-top: 1px solid var(--note-detail-border);
+    color: var(--note-detail-text);
+    transition: background-color .15s ease, box-shadow .15s ease;
+}
+
+body[data-note-device] .note-detail-line-summary + .note-detail-line-row,
+body[data-note-device] .note-detail-line-row:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+body[data-note-device] .note-detail-line-row.refund-row-hoverable {
+    cursor: pointer;
+}
+
+body[data-note-device] .note-detail-line-row.refund-row-hoverable:hover {
+    margin-inline: -.82rem;
+    padding-inline: .82rem;
+    background: var(--note-detail-surface-subtle);
+}
+
+body[data-note-device] .note-detail-line-row.refund-row-selected {
+    margin-inline: -.82rem;
+    padding-inline: .82rem;
+    background: var(--note-detail-surface-subtle);
+    box-shadow: inset .22rem 0 0 var(--note-detail-accent);
+}
+
+body[data-note-device] .note-detail-line-header {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
+    gap: .7rem;
+    align-items: start;
+}
+
+body[data-note-device] .note-detail-line-number {
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--note-detail-border);
+    border-radius: 50%;
+    color: var(--note-detail-text);
+    background: transparent;
+    font-size: var(--note-detail-content-size);
+    font-weight: 800;
+}
+
+body[data-note-device] .note-detail-line-main {
+    min-width: 0;
+}
+
+body[data-note-device] .note-detail-line-title,
+body[data-note-device] .note-detail-line-subtitle,
+body[data-note-device] .note-detail-line-description,
+body[data-note-device] .note-detail-line-description div {
+    color: var(--note-detail-text);
+    font-size: var(--note-detail-content-size);
+    line-height: 1.45;
+}
+
+body[data-note-device] .note-detail-line-title {
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+body[data-note-device] .note-detail-line-subtitle {
+    margin-top: .15rem;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+body[data-note-device] .note-detail-line-main .small,
+body[data-note-device] .note-detail-line-main .text-muted {
+    color: var(--note-detail-text) !important;
+    font-size: var(--note-detail-content-size) !important;
+}
+
+body[data-note-device] .note-detail-line-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .8rem;
+    margin-top: .9rem;
+}
+
+body[data-note-device] .note-detail-line-metric {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+body[data-note-device] .note-detail-line-metric-label,
+body[data-note-device] .note-detail-line-metric-value {
+    color: var(--note-detail-text);
+    font-size: var(--note-detail-content-size);
+    line-height: 1.4;
+}
+
+body[data-note-device] .note-detail-line-metric-label {
+    font-weight: 500;
+}
+
+body[data-note-device] .note-detail-line-metric-value {
+    margin-top: .15rem;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+body[data-note-device] .note-detail-line-description {
+    margin-top: .8rem;
+    padding-top: .8rem;
+    border-top: 1px solid var(--note-detail-border);
+}
+
+body[data-note-device] .note-detail-line-empty {
+    color: var(--note-detail-text);
+    font-size: var(--note-detail-content-size);
+    padding: .5rem 0;
+}
+
+body[data-note-device] .note-detail-version-list,
+body[data-note-device] .note-detail-correction-list {
+    display: grid;
+}
+
+body[data-note-device] .note-detail-version-row,
+body[data-note-device] .note-detail-correction-row {
+    padding: 1rem 0;
+    border-top: 1px solid var(--note-detail-border);
+}
+
+body[data-note-device] .note-detail-version-row:first-child,
+body[data-note-device] .note-detail-correction-row:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+body[data-note-device] .note-detail-version-head,
+body[data-note-device] .note-detail-correction-head,
+body[data-note-device] .note-detail-version-line {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+body[data-note-device] .note-detail-version-name,
+body[data-note-device] .note-detail-version-time,
+body[data-note-device] .note-detail-version-line,
+body[data-note-device] .note-detail-version-summary,
+body[data-note-device] .note-detail-correction-row,
+body[data-note-device] .note-detail-correction-row * {
+    color: var(--note-detail-text);
+    font-size: var(--note-detail-content-size);
+    line-height: 1.45;
+}
+
+body[data-note-device] .note-detail-version-name,
+body[data-note-device] .note-detail-version-line strong,
+body[data-note-device] .note-detail-correction-head strong {
+    font-weight: 800;
+}
+
+body[data-note-device] .note-detail-version-lines {
+    display: grid;
+    gap: .45rem;
+    margin-top: .7rem;
+}
+
+body[data-note-device] .note-detail-version-line > :first-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+body[data-note-device] .note-detail-version-line > :last-child {
+    flex: 0 0 auto;
+    font-weight: 800;
+    text-align: right;
+}
+
+body[data-note-device] .note-detail-version-summary {
+    margin-top: .7rem;
+}
+
+body[data-note-device] .note-detail-correction-block {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--note-detail-border);
+}
+
+body[data-note-device] .note-detail-correction-title {
+    margin: 0 0 .75rem;
+    color: var(--note-detail-text);
+    font-size: var(--note-detail-content-size);
+    font-weight: 800;
+}
+
+body[data-note-device] .note-detail-payment-card,
+body[data-note-device] .note-detail-payment-card .card-body {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body[data-note-device] .note-detail-payment-metrics {
+    display: grid;
+    gap: 0;
+    margin-bottom: 1rem;
+}
+
+body[data-note-device] .note-detail-payment-metric {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .72rem 0;
+    border-bottom: 1px solid var(--note-detail-border);
+}
+
+body[data-note-device] .note-detail-payment-metric span,
+body[data-note-device] .note-detail-payment-metric strong {
+    color: var(--note-detail-text);
+    font-size: var(--note-detail-content-size);
+    line-height: 1.4;
+}
+
+body[data-note-device] .note-detail-payment-metric span {
+    font-weight: 500;
+}
+
+body[data-note-device] .note-detail-payment-metric strong {
+    font-weight: 800;
+    text-align: right;
+}
+
+body[data-note-device] .note-detail-payment-metric--outstanding {
+    border-bottom: 0;
+}
+
+body[data-note-device] .note-detail-payment-metric--outstanding strong {
+    font-size: var(--note-detail-content-size);
+}
+
+body[data-note-device] .note-detail-lifecycle {
+    color: var(--note-detail-text);
+    font-size: var(--note-detail-content-size);
+}
+
+body[data-note-device] .note-detail-lifecycle details > summary {
+    display: none;
+}
+
+body[data-note-device] .note-detail-lifecycle p,
+body[data-note-device] .note-detail-lifecycle label,
+body[data-note-device] .note-detail-lifecycle textarea,
+body[data-note-device] .note-detail-lifecycle button,
+body[data-note-device] .note-detail-lifecycle [role="alert"] {
+    color: var(--note-detail-text);
+    font-size: var(--note-detail-content-size);
+    line-height: 1.45;
+}
+
+body[data-note-device] .note-detail-lifecycle .form-control {
+    border-color: var(--note-detail-border);
+    background: transparent;
+    color: var(--note-detail-text);
+}
+
+body[data-note-device] .note-detail-history-stack .card,
+body[data-note-device] .note-detail-history-section,
+body[data-note-device] .note-payment-timeline {
+    border-radius: 0;
+    box-shadow: none;
+}
+
+body[data-note-device] .note-detail-history-stack .card,
+body[data-note-device] .note-detail-history-stack .card-header,
+body[data-note-device] .note-detail-history-stack .card-body {
+    border: 0;
+    background: transparent;
+}
+
+body[data-note-device] .note-detail-history-stack .card-header,
+body[data-note-device] .note-detail-history-stack .card-body {
+    padding-inline: 0;
+}
+
+body[data-note-device] .note-payment-timeline *,
+body[data-note-device] .note-detail-history-section * {
+    font-size: var(--note-detail-content-size);
+}
+
+body[data-note-device] .note-payment-timeline__title,
+body[data-note-device] .note-detail-history-heading h5 {
+    color: var(--note-detail-text);
+    font-size: var(--note-detail-content-size);
+    font-weight: 800;
+}
+
+body[data-note-device] .note-payment-timeline__count,
+body[data-note-device] .note-payment-timeline__event,
+body[data-note-device] .note-payment-timeline__event *,
+body[data-note-device] .note-detail-history-event,
+body[data-note-device] .note-detail-history-event * {
+    color: var(--note-detail-text);
+}
+
+body[data-note-device="desktop"] .note-detail-desktop-columns {
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 24rem);
+}
+
+body[data-note-device="handset"] .note-detail-mobile-summary {
+    grid-template-columns: 2.1rem minmax(0, 1fr) 2.1rem;
+}
+
+body[data-note-device="handset"] .note-detail-mobile-heading {
+    min-width: 0;
+}
+
+body[data-note-device="handset"] .note-detail-mobile-number {
+    color: var(--note-detail-text);
+    background: transparent;
+    border-color: var(--note-detail-border);
+}
+
+body[data-note-device="handset"] .note-detail-mobile-help {
+    display: none;
+}
+
+@media (max-width: 767.98px) {
+    body[data-note-device] .layout-page-heading > h3 {
+        font-size: var(--note-detail-page-title-size, 1.5rem) !important;
+    }
+
+    body[data-note-device] .note-detail-info-row {
+        grid-template-columns: minmax(7rem, .75fr) minmax(0, 1.25fr);
+        gap: .75rem;
+    }
+
+    body[data-note-device] .note-detail-line-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 380px) {
+    body[data-note-device] .note-detail-info-row {
+        grid-template-columns: 1fr;
+        gap: .18rem;
+    }
+
+    body[data-note-device] .note-detail-line-header {
+        grid-template-columns: 2rem minmax(0, 1fr);
+    }
+
+    body[data-note-device] .note-detail-line-header > .note-detail-status-badge {
+        grid-column: 2;
+        justify-self: start;
+    }
+}
