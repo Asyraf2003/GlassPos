@@ -80,7 +80,7 @@ final class RefundReportingOwnerDecisionV2CharacterizationTest extends TestCase
         ]);
     }
 
-    public function test_phase5_service_only_refund_is_default_blocked_without_manual_exception_path(): void
+    public function test_phase5_service_only_refund_uses_selected_refund_without_inventory(): void
     {
         $this->seedClosedServiceOnlyNote(
             noteId: 'note-batch3-service',
@@ -94,16 +94,15 @@ final class RefundReportingOwnerDecisionV2CharacterizationTest extends TestCase
             'note-batch3-service',
             50000,
             '2026-05-04',
-            'Phase 5 default service block.',
+            'ADR-0042 selected service refund.',
             'actor-phase5-refund',
             ['wi-batch3-service'],
         );
 
-        self::assertTrue($result->isFailure());
-        self::assertSame('Tidak ada komponen payment yang bisa direfund.', $result->message());
+        self::assertTrue($result->isSuccess(), $result->message());
 
-        $this->assertDatabaseCount('customer_refunds', 0);
-        $this->assertDatabaseCount('refund_component_allocations', 0);
+        $this->assertDatabaseCount('customer_refunds', 1);
+        $this->assertDatabaseCount('refund_component_allocations', 1);
         $this->assertDatabaseCount('inventory_movements', 0);
     }
 
@@ -195,17 +194,17 @@ final class RefundReportingOwnerDecisionV2CharacterizationTest extends TestCase
             servicePriority: 1,
         );
 
-        $serviceBlockedResult = app(RecordCustomerRefundHandler::class)->handle(
+        $serviceRefundResult = app(RecordCustomerRefundHandler::class)->handle(
             'payment-batch3-package-full',
             'note-batch3-package-full',
             70000,
             '2026-05-07',
-            'Phase 5 package service component default blocked.',
+            'ADR-0042 selected package service refund.',
             'actor-phase5-refund',
             ['wi-batch3-package-full::service_fee::wi-batch3-package-full'],
         );
 
-        self::assertTrue($serviceBlockedResult->isFailure());
+        self::assertTrue($serviceRefundResult->isSuccess());
 
         $productComponentRefundId = $this->recordRefund(
             'payment-batch3-package-full',
@@ -455,7 +454,7 @@ final class RefundReportingOwnerDecisionV2CharacterizationTest extends TestCase
     }
 
     /**
-     * @param list<string> $selectedRowIds
+     * @param  list<string>  $selectedRowIds
      */
     private function recordRefund(
         string $paymentId,
@@ -476,10 +475,7 @@ final class RefundReportingOwnerDecisionV2CharacterizationTest extends TestCase
 
         self::assertTrue($result->isSuccess(), $result->message() ?? 'Refund failed.');
 
-        $refundId = (string) DB::table('customer_refunds')
-            ->where('customer_payment_id', $paymentId)
-            ->where('note_id', $noteId)
-            ->value('id');
+        $refundId = (string) $result->data()['refund']['id'];
 
         self::assertNotSame('', $refundId);
 
@@ -497,7 +493,7 @@ final class RefundReportingOwnerDecisionV2CharacterizationTest extends TestCase
         $this->seedServiceDetailBase($workItemId, 'Batch 3 Service Only', $servicePriceRupiah, ServiceDetail::PART_SOURCE_NONE);
         $this->seedCustomerPaymentBase($paymentId, $servicePriceRupiah, '2026-05-02 09:00:00');
         $this->seedPaymentComponent(
-            'pca-' . $paymentId . '-service',
+            'pca-'.$paymentId.'-service',
             $paymentId,
             $noteId,
             $workItemId,
@@ -526,7 +522,7 @@ final class RefundReportingOwnerDecisionV2CharacterizationTest extends TestCase
         $this->seedCustomerPaymentBase($paymentId, $subtotal, '2026-05-02 09:00:00');
 
         $this->seedPaymentComponent(
-            'pca-' . $paymentId . '-external',
+            'pca-'.$paymentId.'-external',
             $paymentId,
             $noteId,
             $workItemId,
@@ -538,7 +534,7 @@ final class RefundReportingOwnerDecisionV2CharacterizationTest extends TestCase
         );
 
         $this->seedPaymentComponent(
-            'pca-' . $paymentId . '-service',
+            'pca-'.$paymentId.'-service',
             $paymentId,
             $noteId,
             $workItemId,
@@ -565,11 +561,11 @@ final class RefundReportingOwnerDecisionV2CharacterizationTest extends TestCase
         $this->seedNoteBase($noteId, 'Batch 3 Product Refund', '2026-05-01', $lineTotalRupiah, 'closed');
         $this->seedWorkItemBase($workItemId, $noteId, 1, WorkItem::TYPE_STORE_STOCK_SALE_ONLY, WorkItem::STATUS_OPEN, $lineTotalRupiah);
         $this->seedStoreStockLineBase($lineId, $workItemId, $productId, $qty, $lineTotalRupiah);
-        $this->seedInventoryStockOut('move-' . $lineId, $productId, $lineId, '2026-05-01', $qty, $originalUnitCostRupiah);
+        $this->seedInventoryStockOut('move-'.$lineId, $productId, $lineId, '2026-05-01', $qty, $originalUnitCostRupiah);
         $this->seedCustomerPaymentBase($paymentId, $lineTotalRupiah, '2026-05-02 09:00:00');
 
         $this->seedPaymentComponent(
-            'pca-' . $paymentId . '-product',
+            'pca-'.$paymentId.'-product',
             $paymentId,
             $noteId,
             $workItemId,
@@ -607,11 +603,11 @@ final class RefundReportingOwnerDecisionV2CharacterizationTest extends TestCase
                 'package_service_extra_rupiah' => max($servicePriceRupiah - 50000, 0),
             ]);
         $this->seedStoreStockLineBase($lineId, $workItemId, $productId, 1, $partTotalRupiah);
-        $this->seedInventoryStockOut('move-' . $lineId, $productId, $lineId, '2026-05-01', 1, $originalUnitCostRupiah);
+        $this->seedInventoryStockOut('move-'.$lineId, $productId, $lineId, '2026-05-01', 1, $originalUnitCostRupiah);
         $this->seedCustomerPaymentBase($paymentId, $subtotalRupiah, '2026-05-02 09:00:00');
 
         $this->seedPaymentComponent(
-            'pca-' . $paymentId . '-product',
+            'pca-'.$paymentId.'-product',
             $paymentId,
             $noteId,
             $workItemId,
@@ -623,7 +619,7 @@ final class RefundReportingOwnerDecisionV2CharacterizationTest extends TestCase
         );
 
         $this->seedPaymentComponent(
-            'pca-' . $paymentId . '-service',
+            'pca-'.$paymentId.'-service',
             $paymentId,
             $noteId,
             $workItemId,
@@ -640,7 +636,7 @@ final class RefundReportingOwnerDecisionV2CharacterizationTest extends TestCase
         $this->seedNotePaymentProduct(
             $productId,
             strtoupper(str_replace('-', '_', $productId)),
-            'Produk ' . $productId,
+            'Produk '.$productId,
             'Phase 1 Batch 3',
             100,
             (int) $priceRupiah,

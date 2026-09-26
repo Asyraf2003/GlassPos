@@ -46,7 +46,6 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $response->assertSee('"historical_package_snapshot":true', false);
     }
 
-
     public function test_admin_can_submit_service_store_stock_package_auto_split_multi_product_revision(): void
     {
         $this->seedOpenMultiProductPackageNote();
@@ -70,7 +69,7 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
             [
-            'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
+                'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
                 'reason' => 'Package multi-product revision submit characterization.',
                 'note' => [
                     'customer_name' => 'Budi Edit Package Multi Revised',
@@ -194,7 +193,6 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         self::assertCount(2, $decoded['store_stock_lines'] ?? []);
     }
 
-
     public function test_admin_cannot_submit_template_locked_package_revision_when_product_lines_do_not_match_active_template(): void
     {
         $this->seedOpenMultiProductPackageNote();
@@ -283,7 +281,7 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
             ->patch(
                 route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
                 [
-            'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
+                    'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
                     'reason' => 'Package template lock mismatch characterization.',
                     'note' => [
                         'customer_name' => 'Budi Edit Package Multi Revised',
@@ -374,7 +372,6 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $this->assertDatabaseCount('payment_component_allocations', 0);
     }
 
-
     public function test_package_auto_split_multi_product_revision_reverses_old_stock_and_issues_replacement_stock(): void
     {
         $this->seedOpenMultiProductPackageNote();
@@ -445,7 +442,7 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
             [
-            'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
+                'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
                 'reason' => 'Package multi-product inventory revision characterization.',
                 'note' => [
                     'customer_name' => 'Budi Edit Package Multi Inventory Revised',
@@ -657,7 +654,7 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
             [
-            'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
+                'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
                 'reason' => 'Package multi-product payment settlement characterization.',
                 'note' => [
                     'customer_name' => 'Budi Edit Package Multi Payment Revised',
@@ -778,7 +775,6 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         ]);
     }
 
-
     public function test_package_auto_split_multi_product_downward_revision_caps_replay_and_records_overpaid_settlement(): void
     {
         $this->seedOpenMultiProductPackageNote();
@@ -851,7 +847,7 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
             [
-            'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
+                'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
                 'reason' => 'Package multi-product downward overpaid settlement characterization.',
                 'note' => [
                     'customer_name' => 'Budi Edit Package Multi Overpaid Revised',
@@ -972,7 +968,6 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         ]);
     }
 
-
     public function test_package_auto_split_multi_product_refund_after_downward_revision_targets_current_replacement_components_only(): void
     {
         $this->seedOpenMultiProductPackageNote();
@@ -1045,7 +1040,7 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
             [
-            'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
+                'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
                 'reason' => 'Package multi-product refund boundary characterization.',
                 'note' => [
                     'customer_name' => 'Budi Edit Package Multi Refund Revised',
@@ -1140,6 +1135,7 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
             ->from(route('admin.notes.show', ['noteId' => 'note-edit-package-multi-001']))
             ->post(route('admin.notes.refunds.store', ['noteId' => 'note-edit-package-multi-001']), [
                 'selected_row_ids' => ['wi-edit-package-multi-001'],
+                'stock_returns' => ['wi-edit-package-multi-001' => true],
                 'refunded_at' => '2026-06-02',
                 'reason' => 'Attempt stale package multi row refund.',
             ])
@@ -1152,7 +1148,8 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $this->actingAs($user)
             ->from(route('admin.notes.show', ['noteId' => 'note-edit-package-multi-001']))
             ->post(route('admin.notes.refunds.store', ['noteId' => 'note-edit-package-multi-001']), [
-                'selected_row_ids' => [$workItemId],
+                'selected_row_ids' => array_map(static fn ($lineId): string => $workItemId.'::service_store_stock_part::'.$lineId, $replacementLineIds->values()->all()),
+                'stock_returns' => [$workItemId => true],
                 'refunded_at' => '2026-06-02',
                 'reason' => 'Refund current replacement package multi product components.',
             ])
@@ -1220,7 +1217,6 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
             'status' => WorkItem::STATUS_OPEN,
         ]);
     }
-
 
     public function test_package_auto_split_multi_product_exact_paid_revision_records_paid_settlement(): void
     {
@@ -1294,7 +1290,7 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
         $response = $this->actingAs($user)->patch(
             route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
             [
-            'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
+                'base_revision_id' => $this->revisionBaseForTest('note-edit-package-multi-001'),
                 'reason' => 'Package multi-product exact-paid settlement characterization.',
                 'note' => [
                     'customer_name' => 'Budi Edit Package Multi Exact Paid Revised',
@@ -1414,7 +1410,6 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
             'settlement_status' => 'paid',
         ]);
     }
-
 
     private function seedOpenMultiProductPackageNote(): void
     {

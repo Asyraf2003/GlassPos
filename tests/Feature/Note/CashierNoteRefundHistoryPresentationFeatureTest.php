@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
+use App\Application\Note\Services\NoteOutstandingPaymentAmountResolver;
+use App\Ports\Out\ClockPort;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -13,11 +15,12 @@ use Tests\TestCase;
 final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
 {
     use RefreshDatabase;
+    use SeedsMinimalProductFixture;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->app->instance(\App\Ports\Out\ClockPort::class, new class implements \App\Ports\Out\ClockPort
+        $this->app->instance(ClockPort::class, new class implements ClockPort
         {
             public function now(): \DateTimeImmutable
             {
@@ -25,8 +28,6 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
             }
         });
     }
-
-    use SeedsMinimalProductFixture;
 
     public function test_full_product_refund_refresh_exposes_ledger_history_on_desktop_and_handset(): void
     {
@@ -77,6 +78,7 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
             $this->actingAs($cashier)
                 ->post(route('cashier.notes.refunds.store', ['noteId' => $noteId]), [
                     'selected_row_ids' => [$rowId],
+                    'stock_returns' => [$rowId => true],
                     'refunded_at' => '2026-09-14',
                     'reason' => $reason,
                     'idempotency_key' => 'refund-history-refund',
@@ -182,7 +184,8 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
 
             $this->actingAs($cashier)
                 ->post(route('cashier.notes.refunds.store', ['noteId' => $noteId]), [
-                    'selected_row_ids' => [$rowId],
+                    'selected_row_ids' => [$rowId.'::service_store_stock_part::'.$stockLineId],
+                    'stock_returns' => [$rowId => true],
                     'refunded_at' => '2026-09-14',
                     'reason' => $reason,
                     'idempotency_key' => 'package-refund-component',
@@ -249,7 +252,6 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
             Carbon::setTestNow();
         }
     }
-
 
     public function test_refund_then_revision_refresh_keeps_refund_historical_and_new_revision_current(): void
     {
@@ -386,7 +388,7 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
 
             $this->actingAs($admin)
                 ->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), [
-            'base_revision_id' => $this->revisionBaseForTest($noteId),
+                    'base_revision_id' => $this->revisionBaseForTest($noteId),
                     'note' => [
                         'customer_name' => 'Sesudah Revision UI',
                         'customer_phone' => '08123456789',
@@ -461,7 +463,6 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
             Carbon::setTestNow();
         }
     }
-
 
     public function test_refund_then_legitimate_new_payment_refresh_settles_current_revision_without_hiding_history(): void
     {
@@ -661,7 +662,7 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
             self::assertSame(50000, $beforeNote['outstanding_rupiah']);
             self::assertTrue($beforeNote['can_show_payment_form']);
 
-            $paymentOutstanding = app(\App\Application\Note\Services\NoteOutstandingPaymentAmountResolver::class)
+            $paymentOutstanding = app(NoteOutstandingPaymentAmountResolver::class)
                 ->resolveFull($noteId);
             self::assertTrue($paymentOutstanding->isSuccess(), $paymentOutstanding->message() ?? 'Payment outstanding resolver gagal.');
             self::assertSame(250000, $paymentOutstanding->data()['grand_total_rupiah']);
@@ -753,7 +754,6 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
         }
     }
 
-
     public function test_duplicate_refund_replay_renders_one_historical_event_after_refresh(): void
     {
         Carbon::setTestNow('2026-09-14 13:00:00');
@@ -809,6 +809,7 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
             $reason = 'Refund replay tidak boleh menggandakan history';
             $payload = [
                 'selected_row_ids' => [$rowId],
+                'stock_returns' => [$rowId => true],
                 'refunded_at' => '2026-09-14',
                 'reason' => $reason,
                 'idempotency_key' => 'refund-replay-ui-001',
@@ -869,5 +870,4 @@ final class CashierNoteRefundHistoryPresentationFeatureTest extends TestCase
             Carbon::setTestNow();
         }
     }
-
 }

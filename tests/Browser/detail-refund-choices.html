@@ -1,0 +1,58 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Detail refund choice DOM smoke</title>
+<!-- Run with Chromium headless --allow-file-access-from-files --dump-dom using this file's absolute file URL. -->
+<div id="note-refund-modal">
+  <form id="note-refund-form">
+    <div id="note-refund-hidden-selected-rows"></div>
+    <input id="refund_amount_rupiah">
+    <input id="note-refund-reason" name="reason">
+    <input name="idempotency_key" value="browser-refund-key">
+    <div id="note-refund-selected-lines"></div>
+    <span id="refund-modal-stock-return-count"></span>
+    <div id="refund-modal-store-returns"></div>
+    <button type="submit" id="note-refund-submit">Refund</button>
+  </form>
+</div>
+<button id="note-refund-open-button">Open</button>
+<div data-refund-row="1" data-row-id="product-row" data-line-no="1" data-line-label="Product"
+  data-refundable-rupiah="142539" data-refund-impact='{"refund_amount_rupiah":142539,"effect_summary":{"stock_store_return_count":3},"store_returns":[{"product_label":"Product","qty":3}]}'></div>
+<div data-refund-row="1" data-row-id="service-row" data-line-no="2" data-line-label="Service"
+  data-refundable-rupiah="63719" data-refund-impact='{"refund_amount_rupiah":63719,"effect_summary":{"stock_store_return_count":0},"store_returns":[]}'></div>
+<pre id="result">PENDING</pre>
+<script src="../../public/assets/static/js/pages/cashier-note-refund.js"></script>
+<script>
+window.addEventListener('load', () => {
+  const check = (condition, message) => { if (!condition) throw new Error(message); };
+  const form = document.querySelector('form');
+  const submit = document.getElementById('note-refund-submit');
+  const stockSelect = () => form.querySelector('[data-stock-choice]');
+  const count = () => document.getElementById('refund-modal-stock-return-count').textContent;
+  try {
+    sessionStorage.clear();
+    document.querySelector('[data-row-id="product-row"]').click();
+    check(stockSelect().value === '' && submit.disabled, 'No guessed return choice');
+    const reason = document.getElementById('note-refund-reason');
+    reason.value = 'Customer keeps damaged item';
+    reason.dispatchEvent(new Event('input', { bubbles: true }));
+    check(submit.disabled, 'Reason alone must not allow missing choice');
+    stockSelect().value = '0';
+    stockSelect().dispatchEvent(new Event('change', { bubbles: true }));
+    check(!submit.disabled && count() === '0', 'No-return enables refund without stock return');
+    check(new FormData(form).get('stock_returns[product-row]') === '0', 'POST carries explicit no-return');
+    document.querySelector('[data-row-id="service-row"]').click();
+    check(form.querySelectorAll('[data-stock-choice]').length === 1, 'Service has no physical stock choice');
+    check(document.getElementById('refund_amount_rupiah').value === '206258', 'Preview combines server-provided row amounts');
+    stockSelect().value = '1';
+    stockSelect().dispatchEvent(new Event('change', { bubbles: true }));
+    check(count() === '3' && new FormData(form).get('stock_returns[product-row]') === '1', 'Return updates preview and payload');
+    check(new FormData(form).getAll('selected_row_ids[]').length === 2, 'POST includes selected rows');
+    reason.value = '';
+    reason.dispatchEvent(new Event('input', { bubbles: true }));
+    check(submit.disabled, 'Reason remains required after choosing stock');
+    document.getElementById('result').textContent = 'PASS: 9 DOM assertions';
+  } catch (error) {
+    document.getElementById('result').textContent = 'FAIL: ' + error.message;
+  }
+});
+</script>

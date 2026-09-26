@@ -12,10 +12,10 @@ use App\Core\Payment\PaymentComponentAllocation\PaymentComponentAllocation;
 final class SelectedNoteRowsRefundPlanFactory
 {
     /**
-     * @param list<string> $selectedIds
-     * @param list<string> $selectedWorkItemIds
-     * @param list<PaymentComponentAllocation> $paymentAllocations
-     * @param list<object> $paymentBuckets
+     * @param  list<string>  $selectedIds
+     * @param  list<string>  $selectedWorkItemIds
+     * @param  list<PaymentComponentAllocation>  $paymentAllocations
+     * @param  list<object>  $paymentBuckets
      */
     public function build(
         string $noteId,
@@ -23,6 +23,7 @@ final class SelectedNoteRowsRefundPlanFactory
         array $selectedWorkItemIds,
         array $paymentAllocations,
         array $paymentBuckets,
+        array $stockReturns = [],
     ): SelectedRowsRefundPlan {
         $paidRowIds = [];
 
@@ -36,12 +37,13 @@ final class SelectedNoteRowsRefundPlanFactory
             array_values(array_diff($selectedWorkItemIds, array_values(array_unique($paidRowIds)))),
             $paymentBuckets,
             $this->cancellableRowIds($selectedIds, $paymentAllocations),
+            $stockReturns,
         );
     }
 
     /**
-     * @param list<string> $selectedIds
-     * @param list<PaymentComponentAllocation> $allocations
+     * @param  list<string>  $selectedIds
+     * @param  list<PaymentComponentAllocation>  $allocations
      * @return list<string>
      */
     private function cancellableRowIds(array $selectedIds, array $allocations): array
@@ -63,7 +65,7 @@ final class SelectedNoteRowsRefundPlanFactory
     }
 
     /**
-     * @param list<PaymentComponentAllocation> $allocations
+     * @param  list<PaymentComponentAllocation>  $allocations
      * @return list<PaymentComponentAllocation>
      */
     private function rowAllocations(string $rowId, array $allocations): array

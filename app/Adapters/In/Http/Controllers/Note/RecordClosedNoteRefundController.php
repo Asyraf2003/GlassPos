@@ -7,7 +7,6 @@ namespace App\Adapters\In\Http\Controllers\Note;
 use App\Adapters\In\Http\Controllers\Note\Support\ClosedNoteRefundResponseFactory;
 use App\Adapters\In\Http\Controllers\Note\Support\NoteRouteAreaResolver;
 use App\Adapters\In\Http\Requests\Note\RecordClosedNoteRefundRequest;
-use App\Application\Note\Services\NoteOperationalStatusResolver;
 use App\Application\Note\Services\SelectedNoteRowsRefundPlanResolver;
 use App\Application\Payment\DTO\SelectedRowsRefundPlan;
 use App\Application\Payment\Services\RecordSelectedRowsRefundIdempotencyService;
@@ -25,11 +24,13 @@ final class RecordClosedNoteRefundController extends Controller
         RecordSelectedRowsRefundPlanTransaction $transaction,
         NoteRouteAreaResolver $routes,
         NoteReaderPort $notes,
-        NoteOperationalStatusResolver $statuses,
         RecordSelectedRowsRefundIdempotencyService $idempotency,
         ClosedNoteRefundResponseFactory $responses,
     ): RedirectResponse {
         $data = $request->validated();
+        $data['stock_returns'] = array_map(static fn ($value): bool => (bool) $value, $data['stock_returns'] ?? []);
+        $data['selected_row_ids'] = array_map('trim', $data['selected_row_ids']);
+        sort($data['selected_row_ids']);
         $actorId = (string) $request->user()->getAuthIdentifier();
         $actorRole = $request->routeIs('admin.notes.*') ? 'admin' : 'kasir';
         $idempotencyPayload = $data + [
@@ -45,9 +46,7 @@ final class RecordClosedNoteRefundController extends Controller
                 : $responses->success($request, $routes, $replayed->message());
         }
 
-        $selectedRowIds = is_array($data['selected_row_ids'] ?? null)
-            ? array_values($data['selected_row_ids'])
-            : [];
+        $selectedRowIds = $data['selected_row_ids'];
 
         $note = $notes->getById(trim($noteId));
 
@@ -55,11 +54,7 @@ final class RecordClosedNoteRefundController extends Controller
             return $responses->failed('Nota tidak ditemukan.');
         }
 
-        if (! $statuses->isClose($note)) {
-            return $responses->failed('Refund hanya bisa dicatat untuk nota yang sudah close/lunas.');
-        }
-
-        $planResult = $plans->resolve($noteId, $selectedRowIds);
+        $planResult = $plans->resolve($noteId, $selectedRowIds, $data['stock_returns'] ?? []);
 
         if ($planResult->isFailure()) {
             return $responses->failed($planResult->message());

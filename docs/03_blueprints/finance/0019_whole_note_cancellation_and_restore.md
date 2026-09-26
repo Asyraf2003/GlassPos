@@ -1,6 +1,6 @@
 # Blueprint0019: Whole-Note Cancellation And Restore
 
-Status: active implementation blueprint; C0 is merged in PR #2, C1 unpaid cancellation is merged in PR #4, and C2 restore implementation/proof is complete locally with PR review/merge pending. Later slices remain open.
+Status: active implementation blueprint; C0 is merged in PR #2, C1 unpaid cancellation is merged in PR #4, and C2 restore is merged in PR #6. C3 is active; later slices remain open.
 
 Traceability: [C0 Issue #1](https://github.com/Asyraf2003/GlassPos/issues/1), [C1 Issue #3](https://github.com/Asyraf2003/GlassPos/issues/3) / [PR #4](https://github.com/Asyraf2003/GlassPos/pull/4), [C2 Issue #5](https://github.com/Asyraf2003/GlassPos/issues/5).
 
@@ -71,7 +71,7 @@ Each slice has an Issue before implementation, its own branch from accepted main
 |---|---|---|
 | C0 | Promote owner policy to ADR-0046; source graph, conflicts, dependency map, proof gates and raw preservation. Docs-only independently valid merge. | Issue #1 |
 | C1 | Atomic unpaid product/service/package root cancellation: current rights/total, inventory compensation, current projection/report correctness, mutation guards, audit, HTTP authorization, stale/key behavior. Required runtime overlap/rollback proofs ship together. | C0; merged as PR #4 |
-| C2 | Restore cancelled root through new accepted revision; cancellation identity/base validation, source compensation skip, fresh stock issues, immutable history, rollback and replay. | C1; implementation/proof complete locally, see handoff0031 |
+| C2 | Restore cancelled root through new accepted revision; cancellation identity/base validation, source compensation skip, fresh stock issues, immutable history, rollback and replay. | C1; merged as PR #6, see handoff0031 |
 | C3 | Only refund Detail capabilities required by actual cancellation routing. Independently scoped service/partial/return-choice gaps may have separate flows when independently valid. No broad engine rewrite. | C0 plus demonstrated dependency |
 | C4 | Committed external-purchase boundary: paid/unpaid/mixed classification, no store-stock conversion, truthful refund eligibility. Preserve restrictions where accepted source contract is insufficient; request only genuinely new business decisions. | C0 and relevant C3 |
 | C5 | Existing Detail UI exposes cancel/restore, reason, server preview and refund routing; same domain engine, stale/retry/refresh history, no Auto. Unsupported refund cases are clearly blocked, not presented as completed. | C1/C2 and applicable C3/C4 |
@@ -81,7 +81,13 @@ Order: C0 -> C1 -> C2; bounded C3/C4 only when required; then C5 -> C6. Execute 
 
 ## ACTIVE STEP
 
-C2 implementation on branch `feat/5-restore-cancelled-note`, linked to Issue #5. Restore validates the cancellation identity and current base under the root lock, then creates an accepted child revision through the existing revision workflow. The old cancellation remains historical, and unsupported historical external-purchase snapshots are rejected. Focused, adjacent, rollback, and runtime overlap proof is recorded in [handoff0031](../../04_lifecycle/handoff/0031_restore_cancelled_note_c2_handoff.md). Awaiting PR preparation/review and merge.
+C2 merged as [PR #6](https://github.com/Asyraf2003/GlassPos/pull/6). C3 is tracked by [Issue #7](https://github.com/Asyraf2003/GlassPos/issues/7) on `feat/7-detail-refund-cancellation`.
+
+C3 closes the accepted ADR-0042 service/stock-choice gaps in the existing selected-row Detail refund. Source uses `PaymentComponentType::SERVICE_FEE` for both standalone and package service allocations. Preserve default unselected refund policy; explicit selected-row refunds include eligible service fees. External-purchase rows remain rejected until C4. The route may serve a mixed root only when each selected row is paid/closed.
+
+HTTP contract change: stock-bearing selected rows require `stock_returns[work_item_id]` with an explicit boolean choice. Missing/extra/invalid choices reject; service-only requires no stock choice. The server derives money from current allocations, validates the plan again under the canonical root lock, and persists choices in transactional audit metadata. Replay normalizes boolean encodings and selection order; changed choices conflict. This replaces automatic stock return for this Detail entry point. Other refund entry points retain their existing contracts.
+
+A no-return refunded stock component remains history during later revisions; revision replacement must not return its original issue. Required proof: initial RED from actual create/payment/refund, service and mixed root, product/package return/no-return, exact replay versus changed choice, source-cost return, shadow revision, actual outbox rollback/retry, real runtime overlap on the touched root-lock boundary, UI payload/preview and adjacent regression. Run related suites per slice; reserve whole-repository verification for campaign closeout unless the blast radius changes.
 
 ## First RED and focused proof for C1
 
@@ -107,9 +113,9 @@ C2 implementation on branch `feat/5-restore-cancelled-note`, linked to Issue #5.
 
 ## PROOF / PROGRESS / NEXT
 
-C0 merged as PR #2; C1 merged as PR #4; C2 local implementation/proof is recorded in handoff0031. Do not mark campaign complete until C2 merge, applicable bounded C3/C4 dependencies, C5 UI, and C6 integrated acceptance are complete.
+C0 merged as PR #2; C1 merged as PR #4; C2 merged as PR #6. C3 implementation and focused proof are recorded in handoff0032. Do not mark campaign complete until applicable bounded C3/C4 dependencies, C5 UI, and C6 integrated acceptance are complete.
 
-NEXT after C2 review/merge: sync latest main and evaluate bounded refund/external dependencies against the existing product paths. Continue to C5 only when those dependencies have an accepted safe boundary; then complete C6 integrated/browser and final broad verification. Owner decisions already recorded in0029 are not asked again.
+NEXT: finish green PR #9 review/merge after the independently merged Issue #8 / PR #10 prerequisite; then evaluate bounded C4 external dependencies against existing product paths. Continue to C5 only when those dependencies have an accepted safe boundary; then complete C6 integrated/browser and final broad verification. Owner decisions already recorded in0029 are not asked again.
 
 ## Issue #8: independent contract-gate prerequisite
 
@@ -128,3 +134,5 @@ Proof: reproduce the contract gate failure, characterize the existing note/state
 Dependency sequence: Issue #8 branch/PR from main -> green review/merge -> sync C3 with accepted main -> rerun contract gate and focused C3 proof -> mark PR #9 ready/merge. C4 must not start before PR #9 is merged. No C3 implementation is included in this branch.
 
 Issue #8 proof: affected baseline 42 tests / 630 assertions; final post-extraction 42 / 631, PHPStan, Pint, contract audit and diff check pass. Initial overlap observation failure and isolated-server restart are retained in [handoff0033](../../04_lifecycle/handoff/0033_contract_gate_refactor_handoff.md). No assertion weakening or C3 code is included.
+
+Integration checkpoint: Issue #8 closed through PR #10 (61c1812f). C3 synchronized with accepted main without conflict; repeated 160 tests / 2906 assertions, PHPStan, Pint, JS syntax, 9 browser DOM assertions and contract gate all pass. PR #9 can leave draft after final published-head checks. C4 has not started.

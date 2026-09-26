@@ -14,12 +14,11 @@ final class CurrentRevisionDetailRowMapper
         private readonly CurrentRevisionDetailBaseRowMapper $baseRows,
         private readonly CurrentRevisionDetailRefundPayloadMapper $refunds,
         private readonly CurrentRevisionLineBillingComponentMapper $billingComponents,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param list<NoteRevisionLineSnapshot> $lines
-     * @param array<string, array<string, int|string>> $settlements
+     * @param  list<NoteRevisionLineSnapshot>  $lines
+     * @param  array<string, array<string, int|string>>  $settlements
      * @return list<array<string, mixed>>
      */
     public function map(array $lines, array $settlements): array
@@ -28,7 +27,7 @@ final class CurrentRevisionDetailRowMapper
     }
 
     /**
-     * @param array<string, array<string, int|string>> $settlements
+     * @param  array<string, array<string, int|string>>  $settlements
      * @return array<string, mixed>
      */
     private function mapLine(NoteRevisionLineSnapshot $line, array $settlements): array
@@ -49,7 +48,8 @@ final class CurrentRevisionDetailRowMapper
                 'line_status' => $lineStatus,
                 'can_edit' => $lineStatus === WorkItemOperationalStatusResolver::STATUS_OPEN,
                 'can_pay' => $lineStatus === WorkItemOperationalStatusResolver::STATUS_OPEN,
-                'can_refund' => $lineStatus === WorkItemOperationalStatusResolver::STATUS_CLOSE,
+                'can_refund' => $lineStatus === WorkItemOperationalStatusResolver::STATUS_CLOSE
+                    && empty($payload['external_purchase_lines']),
                 'can_view_detail' => true,
             ],
         );

@@ -48,7 +48,7 @@ final class PrimitiveRefundRevisionReceivableChainFeatureTest extends TestCase
         $oldPart = (string) DB::table('work_item_store_stock_lines')->where('work_item_id', $oldP)->value('id');
         $this->advancePrimitiveTime();
         $refundRoute = route('cashier.notes.refunds.store', ['noteId' => $noteId]);
-        $refund = ['selected_row_ids' => [$oldP], 'refunded_at' => '2026-09-15', 'reason' => 'Chain B one logical refund', 'idempotency_key' => 'chain-b-refund'];
+        $refund = ['selected_row_ids' => [$oldP], 'stock_returns' => [$oldP => true], 'refunded_at' => '2026-09-15', 'reason' => 'Chain B one logical refund', 'idempotency_key' => 'chain-b-refund'];
         $this->post($refundRoute, $refund)->assertSessionHasNoErrors();
         $this->projection($noteId, 253394, 253394, 0);
         $this->assertDatabaseCount('customer_refunds', 3);

@@ -26,6 +26,7 @@ final class NoteEditRefundSettlementDecisionPolicyTest extends TestCase
             ->from(route('admin.notes.show', ['noteId' => 'note-0041-a']))
             ->post(route('admin.notes.refunds.store', ['noteId' => 'note-0041-a']), [
                 'selected_row_ids' => ['wi-0041-refund-a', 'wi-0041-refund-b'],
+                'stock_returns' => ['wi-0041-refund-a' => true, 'wi-0041-refund-b' => true],
                 'refunded_at' => '2026-06-30',
                 'reason' => 'ADR-0041 partial refund before edit.',
             ])
@@ -70,7 +71,7 @@ final class NoteEditRefundSettlementDecisionPolicyTest extends TestCase
 
         $this->actingAs($admin)
             ->patch(route('admin.notes.workspace.update', ['noteId' => 'note-0041-a']), [
-            'base_revision_id' => $this->revisionBaseForTest('note-0041-a'),
+                'base_revision_id' => $this->revisionBaseForTest('note-0041-a'),
                 'note' => [
                     'customer_name' => 'ADR 0041 Customer Revised',
                     'customer_phone' => '08123456789',
@@ -144,6 +145,7 @@ final class NoteEditRefundSettlementDecisionPolicyTest extends TestCase
             ->from(route('admin.notes.show', ['noteId' => 'note-0042-full']))
             ->post(route('admin.notes.refunds.store', ['noteId' => 'note-0042-full']), [
                 'selected_row_ids' => ['wi-0042-full-a', 'wi-0042-full-b'],
+                'stock_returns' => ['wi-0042-full-a' => true, 'wi-0042-full-b' => true],
                 'refunded_at' => '2026-06-30',
                 'reason' => 'ADR-0042 full refund before new edit.',
             ])
@@ -165,7 +167,7 @@ final class NoteEditRefundSettlementDecisionPolicyTest extends TestCase
 
         $this->actingAs($admin)
             ->patch(route('admin.notes.workspace.update', ['noteId' => 'note-0042-full']), [
-            'base_revision_id' => $this->revisionBaseForTest('note-0042-full'),
+                'base_revision_id' => $this->revisionBaseForTest('note-0042-full'),
                 'note' => [
                     'customer_name' => 'ADR 0042 Fully Refunded Revised',
                     'customer_phone' => '08123456789',
@@ -259,7 +261,7 @@ final class NoteEditRefundSettlementDecisionPolicyTest extends TestCase
     }
 
     /**
-     * @param list<array<string, mixed>> $rows
+     * @param  list<array<string, mixed>>  $rows
      */
     private function detailRowsContain(array $rows, string $label): bool
     {
@@ -273,7 +275,7 @@ final class NoteEditRefundSettlementDecisionPolicyTest extends TestCase
     }
 
     /**
-     * @param list<array<string, mixed>> $entries
+     * @param  list<array<string, mixed>>  $entries
      */
     private function revisionTimelineContains(array $entries, string $label): bool
     {
@@ -315,15 +317,15 @@ final class NoteEditRefundSettlementDecisionPolicyTest extends TestCase
 
         $this->seedCurrentRevision(
             $noteId,
-            $noteId . '-r001',
+            $noteId.'-r001',
             'ADR 0041 Customer',
             null,
             $date,
             60000,
             [
-                $this->productRevisionLine($noteId . '-r001-line-01', 'wi-0041-refund-a', 'ssl-0041-refund-a', 1, 'product-0041-refund-a', 'Refunded Product A', 10000),
-                $this->productRevisionLine($noteId . '-r001-line-02', 'wi-0041-refund-b', 'ssl-0041-refund-b', 2, 'product-0041-refund-b', 'Refunded Product B', 20000),
-                $this->productRevisionLine($noteId . '-r001-line-03', 'wi-0041-active', 'ssl-0041-active', 3, 'product-0041-active', 'Active Product C', 30000),
+                $this->productRevisionLine($noteId.'-r001-line-01', 'wi-0041-refund-a', 'ssl-0041-refund-a', 1, 'product-0041-refund-a', 'Refunded Product A', 10000),
+                $this->productRevisionLine($noteId.'-r001-line-02', 'wi-0041-refund-b', 'ssl-0041-refund-b', 2, 'product-0041-refund-b', 'Refunded Product B', 20000),
+                $this->productRevisionLine($noteId.'-r001-line-03', 'wi-0041-active', 'ssl-0041-active', 3, 'product-0041-active', 'Active Product C', 30000),
             ],
         );
 
@@ -387,14 +389,14 @@ final class NoteEditRefundSettlementDecisionPolicyTest extends TestCase
 
         $this->seedCurrentRevision(
             $noteId,
-            $noteId . '-r001',
+            $noteId.'-r001',
             'ADR 0042 Fully Refunded',
             null,
             $date,
             30000,
             [
-                $this->productRevisionLine($noteId . '-r001-line-01', 'wi-0042-full-a', 'ssl-0042-full-a', 1, 'product-0042-full-a', 'Full Refund Product A', 10000),
-                $this->productRevisionLine($noteId . '-r001-line-02', 'wi-0042-full-b', 'ssl-0042-full-b', 2, 'product-0042-full-b', 'Full Refund Product B', 20000),
+                $this->productRevisionLine($noteId.'-r001-line-01', 'wi-0042-full-a', 'ssl-0042-full-a', 1, 'product-0042-full-a', 'Full Refund Product A', 10000),
+                $this->productRevisionLine($noteId.'-r001-line-02', 'wi-0042-full-b', 'ssl-0042-full-b', 2, 'product-0042-full-b', 'Full Refund Product B', 20000),
             ],
         );
 

@@ -197,6 +197,7 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
             ->from(route('admin.notes.show', ['noteId' => $noteId]))
             ->post(route('admin.notes.refunds.store', ['noteId' => $noteId]), [
                 'selected_row_ids' => [$oldProductRowId],
+                'stock_returns' => [$oldProductRowId => true],
                 'refunded_at' => '2026-09-12',
                 'reason' => 'Gauntlet stale pre-revision row must fail.',
                 'idempotency_key' => 'gauntlet-refund-stale-001',
@@ -223,6 +224,7 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
         // the backend must derive Rp240k from authoritative payment/component state.
         $productRefundPayload = [
             'selected_row_ids' => [$productRowId],
+            'stock_returns' => [$productRowId => true],
             'refunded_at' => '2026-09-12',
             'reason' => 'Gauntlet refund standalone product row.',
             'idempotency_key' => 'gauntlet-refund-product-001',
@@ -248,7 +250,8 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
         // The Rp180k service remains active; both internal products return exactly once.
         $this->actingAs($admin)
             ->post(route('admin.notes.refunds.store', ['noteId' => $noteId]), [
-                'selected_row_ids' => [$packageRowId],
+                'selected_row_ids' => DB::table('work_item_store_stock_lines')->where('work_item_id', $packageRowId)->pluck('id')->map(static fn ($id): string => $packageRowId.'::service_store_stock_part::'.$id)->all(),
+                'stock_returns' => [$packageRowId => true],
                 'refunded_at' => '2026-09-12',
                 'reason' => 'Gauntlet refund package row with two stock components.',
                 'idempotency_key' => 'gauntlet-refund-package-001',
@@ -269,7 +272,7 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
         ]);
         $this->assertDatabaseMissing('work_items', ['id' => $packageRowId, 'status' => 'canceled']);
 
-        // CHECKPOINT 9: service-only refund is blocked without money or inventory mutation.
+        // CHECKPOINT 9: paid service refunds money without an inventory movement.
         $movementCountBeforeServiceRefund = DB::table('inventory_movements')->count();
         $refundAllocationCountBeforeBlockedAttempts = DB::table('refund_component_allocations')->count();
         $this->actingAs($admin)
@@ -277,14 +280,14 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
             ->post(route('admin.notes.refunds.store', ['noteId' => $noteId]), [
                 'selected_row_ids' => [$serviceRowId],
                 'refunded_at' => '2026-09-12',
-                'reason' => 'Gauntlet service-only refund remains policy-blocked.',
+                'reason' => 'Gauntlet service-only refund under ADR-0042.',
                 'idempotency_key' => 'gauntlet-refund-service-001',
             ])
-            ->assertSessionHasErrors(['refund']);
+            ->assertSessionHasNoErrors();
 
-        self::assertSame(440000, (int) DB::table('customer_refunds')->sum('amount_rupiah'));
+        self::assertSame(530000, (int) DB::table('customer_refunds')->sum('amount_rupiah'));
         self::assertSame($movementCountBeforeServiceRefund, DB::table('inventory_movements')->count());
-        self::assertSame($refundAllocationCountBeforeBlockedAttempts, DB::table('refund_component_allocations')->count());
+        self::assertSame($refundAllocationCountBeforeBlockedAttempts + 1, DB::table('refund_component_allocations')->count());
 
         // CHECKPOINT 10: external purchase refund is explicitly blocked by current policy.
         $this->actingAs($admin)
@@ -296,26 +299,26 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
                 'idempotency_key' => 'gauntlet-refund-external-blocked-001',
             ])
             ->assertSessionHasErrors(['refund']);
-        self::assertSame(440000, (int) DB::table('customer_refunds')->sum('amount_rupiah'));
+        self::assertSame(530000, (int) DB::table('customer_refunds')->sum('amount_rupiah'));
         self::assertSame($movementCountBeforeServiceRefund, DB::table('inventory_movements')->count());
-        self::assertSame($refundAllocationCountBeforeBlockedAttempts, DB::table('refund_component_allocations')->count());
+        self::assertSame($refundAllocationCountBeforeBlockedAttempts + 1, DB::table('refund_component_allocations')->count());
 
         $this->assertDatabaseHas('notes', [
             'id' => $noteId,
             'note_state' => 'closed',
-            // Package snapshot 380k + external 170k + service-only 90k.
+            // Package snapshot 380k + external 170k; service-only is refunded.
             // The package's 200k component refund is separate from row cancellation.
-            'total_rupiah' => 640000,
+            'total_rupiah' => 550000,
         ]);
         $this->assertDatabaseHas('note_history_projection', [
             'note_id' => $noteId,
-            'net_paid_rupiah' => 440000,
+            'net_paid_rupiah' => 350000,
             'outstanding_rupiah' => 0,
         ]);
 
         // CHECKPOINT 11: explicit admin correction replaces the active rows with external-only Rp150k.
-        // It removes package service Rp180k and service-only Rp90k, and lowers external cost Rp20k.
-        // Gross paid 880k - ordinary refunds 440k - revised obligation 150k = surplus 290k.
+        // It removes package service Rp180k and lowers external cost Rp20k.
+        // Gross paid 880k - ordinary refunds 530k - revised obligation 150k = surplus 200k.
         // This revision uses separate surplus-refund tables; blocked refund policy stays unchanged.
         $finalRevisionPayload = $this->finalDownwardExternalRevisionPayload();
         $finalRevisionPayload['base_revision_id'] = $this->revisionBaseForTest($noteId);
@@ -338,15 +341,15 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
             'note_root_id' => $noteId,
             'gross_total_rupiah' => 150000,
             'carry_forward_paid_rupiah' => 880000,
-            'carry_forward_refunded_rupiah' => 440000,
-            'net_paid_rupiah' => 440000,
+            'carry_forward_refunded_rupiah' => 530000,
+            'net_paid_rupiah' => 350000,
             'outstanding_rupiah' => 0,
-            'surplus_rupiah' => 290000,
+            'surplus_rupiah' => 200000,
             'settlement_status' => 'overpaid_pending',
         ]);
-        self::assertSame(440000, (int) DB::table('customer_refunds')->where('note_id', $noteId)->sum('amount_rupiah'));
-        self::assertSame(290000, (int) DB::table('note_revision_surplus_dispositions')->where('note_root_id', $noteId)->sum('amount_rupiah'));
-        self::assertSame(290000, (int) DB::table('note_revision_surplus_refund_payments')->where('note_root_id', $noteId)->sum('amount_rupiah'));
+        self::assertSame(530000, (int) DB::table('customer_refunds')->where('note_id', $noteId)->sum('amount_rupiah'));
+        self::assertSame(200000, (int) DB::table('note_revision_surplus_dispositions')->where('note_root_id', $noteId)->sum('amount_rupiah'));
+        self::assertSame(200000, (int) DB::table('note_revision_surplus_refund_payments')->where('note_root_id', $noteId)->sum('amount_rupiah'));
 
         // CHECKPOINT 12: final DB truth. Every physical item has returned to the supplier-received stock.
         $this->assertInventory('gauntlet-product-a', 10, 40000, 400000);
@@ -358,8 +361,8 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
         self::assertSame(3, DB::table('inventory_movements')->where('source_type', 'work_item_store_stock_line_reversal')->count());
 
         self::assertSame(880000, (int) DB::table('customer_payments')->where('id', '<>', '')->sum('amount_rupiah'));
-        self::assertSame(440000, (int) DB::table('customer_refunds')->where('note_id', $noteId)->sum('amount_rupiah'));
-        self::assertSame(290000, (int) DB::table('note_revision_surplus_refund_payments')->where('note_root_id', $noteId)->sum('amount_rupiah'));
+        self::assertSame(530000, (int) DB::table('customer_refunds')->where('note_id', $noteId)->sum('amount_rupiah'));
+        self::assertSame(200000, (int) DB::table('note_revision_surplus_refund_payments')->where('note_root_id', $noteId)->sum('amount_rupiah'));
         self::assertSame(
             150000,
             (int) DB::table('customer_payments')->sum('amount_rupiah')
@@ -368,8 +371,8 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
             'Gross customer cash-in minus ordinary refunds minus revision-surplus refunds must equal the final active note total.',
         );
 
-        self::assertSame(2, DB::table('audit_logs')->where('event', 'selected_rows_refund_plan_recorded')->count());
-        self::assertSame(1, DB::table('note_mutation_events')
+        self::assertSame(3, DB::table('audit_logs')->where('event', 'selected_rows_refund_plan_recorded')->count());
+        self::assertSame(2, DB::table('note_mutation_events')
             ->where('note_id', $noteId)
             ->where('mutation_type', 'note_rows_canceled_via_refund')
             ->count());

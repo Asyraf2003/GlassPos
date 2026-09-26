@@ -11,8 +11,7 @@ final class NoteDetailRowPresentationSupport
     public function __construct(
         private readonly NoteDetailRowPrimaryLabelResolver $primaryLabels,
         private readonly NoteDetailRowSubtitleBuilder $subtitles,
-    ) {
-    }
+    ) {}
 
     public function typeLabel(WorkItem $item): string
     {
@@ -42,7 +41,7 @@ final class NoteDetailRowPresentationSupport
         }
 
         if ($storeStockCount > 0) {
-            return 'Uang balik mungkin dan stok toko kembali.';
+            return 'Pengembalian uang; pilih apakah barang kembali ke stok toko.';
         }
 
         if ($externalPurchaseCount > 0) {

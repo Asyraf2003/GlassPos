@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
-use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
@@ -17,7 +17,7 @@ final class ClosedNoteFullRefundLifecycleFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
-    public function test_full_refund_for_closed_service_only_note_is_default_blocked(): void
+    public function test_full_refund_for_closed_service_only_note_refunds_money_without_inventory(): void
     {
         $user = $this->seedKasir();
         $this->seedClosedPaidServiceOnlyNote();
@@ -32,14 +32,14 @@ final class ClosedNoteFullRefundLifecycleFeatureTest extends TestCase
                 'reason' => 'Refund penuh servis',
             ])
             ->assertRedirect(route('cashier.notes.index'))
-            ->assertSessionHasErrors(['refund']);
+            ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseCount('customer_refunds', 0);
-        $this->assertDatabaseCount('refund_component_allocations', 0);
+        $this->assertDatabaseCount('customer_refunds', 1);
+        $this->assertDatabaseCount('refund_component_allocations', 1);
 
         $this->assertDatabaseHas('notes', [
             'id' => 'note-1',
-            'note_state' => 'closed',
+            'note_state' => 'refunded',
         ]);
     }
 

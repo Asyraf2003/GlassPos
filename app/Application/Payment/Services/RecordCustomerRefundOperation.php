@@ -47,6 +47,12 @@ final class RecordCustomerRefundOperation
             throw new DomainException('Target refund tidak ditemukan.');
         }
         $note->assertNotCancelled();
+        $selectedWorkItems = PaymentComponentSelectionIds::workItemIds($selectedRowIds);
+        foreach ($note->workItems() as $item) {
+            if (in_array($item->id(), $selectedWorkItems, true) && $item->externalPurchaseLines() !== []) {
+                throw new DomainException('Tidak ada komponen payment yang bisa direfund.');
+            }
+        }
 
         $amount = Money::fromInt($amountRupiah);
 

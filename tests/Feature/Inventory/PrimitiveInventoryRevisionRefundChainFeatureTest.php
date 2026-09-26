@@ -55,7 +55,7 @@ final class PrimitiveInventoryRevisionRefundChainFeatureTest extends TestCase
         $this->checkpoint($id, 377057, 377057, 0, 0, [15, 20, 19]);
         $p2Row = (string) DB::table('work_item_store_stock_lines')->where('id', $p2)->value('work_item_id');
         $this->advancePrimitiveTime();
-        $refund = ['selected_row_ids' => [$p2Row], 'refunded_at' => '2026-09-15', 'reason' => 'Chain D paid P2 return', 'idempotency_key' => 'chain-d-refund'];
+        $refund = ['selected_row_ids' => [$p2Row], 'stock_returns' => [$p2Row => true], 'refunded_at' => '2026-09-15', 'reason' => 'Chain D paid P2 return', 'idempotency_key' => 'chain-d-refund'];
         $refundRoute = route('cashier.notes.refunds.store', ['noteId' => $id]);
         $this->post($refundRoute, $refund)->assertSessionHasNoErrors();
         $this->checkpoint($id, 282031, 377057, 95026, 0, [17, 20, 19]);
@@ -147,6 +147,7 @@ final class PrimitiveInventoryRevisionRefundChainFeatureTest extends TestCase
         foreach (['product_inventory', 'product_inventory_costing'] as $table) {
             $result[$table] = DB::table($table)->orderBy('product_id')->get()->toJson();
         }
+
         return $result;
     }
 }

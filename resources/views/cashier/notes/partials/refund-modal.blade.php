@@ -24,7 +24,7 @@
                 <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
                   <div>
                     <div class="fw-semibold">Rincian Terpilih</div>
-                    <div class="small text-muted">Hanya rincian yang Anda klik akan diproses. Rincian yang belum dibayar akan dibatalkan tanpa pengembalian uang.</div>
+                    <div class="small text-muted">Hanya rincian yang Anda klik akan diproses. Hanya rincian lunas yang dapat direfund. Pilih keputusan pengembalian barang untuk setiap rincian stok.</div>
                   </div>
                   <span class="badge border" id="refund-modal-selected-count">0</span>
                 </div>
@@ -83,7 +83,7 @@
                       type="text"
                       id="note-refund-reason"
                       name="reason"
-                      value="{{ old('reason', 'Pengembalian dana / pembatalan rincian') }}"
+                      value="{{ old('reason', '') }}"
                       class="form-control"
                       required
                       autocomplete="off"

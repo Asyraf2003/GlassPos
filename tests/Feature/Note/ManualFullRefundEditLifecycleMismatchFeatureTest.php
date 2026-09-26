@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
+use App\Adapters\Out\Reporting\Queries\TransactionSummaryReportingQuery;
 use App\Application\Note\Services\NoteDetailPageDataBuilder;
 use App\Application\Note\Services\NoteHistoryProjectionService;
 use App\Application\Note\Services\NoteOperationalStatusResolver;
-use App\Adapters\Out\Reporting\Queries\TransactionSummaryReportingQuery;
 use App\Application\Reporting\Services\TransactionSummaryPerNoteBuilder;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
 use App\Core\Payment\PaymentComponentAllocation\PaymentComponentType;
+use App\Ports\Out\Note\NoteReaderPort;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use App\Ports\Out\Note\NoteReaderPort;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
 use Tests\TestCase;
 
@@ -101,7 +101,8 @@ final class ManualFullRefundEditLifecycleMismatchFeatureTest extends TestCase
         $this->actingAs($admin)
             ->from(route('admin.notes.show', ['noteId' => 'note-owner-0045']))
             ->post(route('admin.notes.refunds.store', ['noteId' => 'note-owner-0045']), [
-                'selected_row_ids' => ['wi-owner-new-package'],
+                'selected_row_ids' => ['wi-owner-new-package::service_store_stock_part::ssl-owner-new-1', 'wi-owner-new-package::service_store_stock_part::ssl-owner-new-2'],
+                'stock_returns' => ['wi-owner-new-package' => true],
                 'refunded_at' => '2026-06-26',
                 'reason' => 'Refund current package after historical package refund.',
             ])
@@ -184,9 +185,9 @@ final class ManualFullRefundEditLifecycleMismatchFeatureTest extends TestCase
             ServiceDetail::PART_SOURCE_NONE,
         );
 
-        $this->seedCurrentRevision($noteId, $noteId . '-r001', 'Pelanggan Owner Product Refund', null, '2026-06-26', 77500, [
+        $this->seedCurrentRevision($noteId, $noteId.'-r001', 'Pelanggan Owner Product Refund', null, '2026-06-26', 77500, [
             [
-                'id' => $noteId . '-r001-line-01',
+                'id' => $noteId.'-r001-line-01',
                 'work_item_root_id' => 'wi-owner-product-only',
                 'line_no' => 1,
                 'transaction_type' => WorkItem::TYPE_STORE_STOCK_SALE_ONLY,
@@ -208,7 +209,7 @@ final class ManualFullRefundEditLifecycleMismatchFeatureTest extends TestCase
                 ],
             ],
             [
-                'id' => $noteId . '-r001-line-02',
+                'id' => $noteId.'-r001-line-02',
                 'work_item_root_id' => 'wi-owner-service-only',
                 'line_no' => 2,
                 'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
@@ -326,13 +327,13 @@ final class ManualFullRefundEditLifecycleMismatchFeatureTest extends TestCase
 
         $this->seedCurrentRevision(
             $noteId,
-            $noteId . '-r005',
+            $noteId.'-r005',
             'Pelanggan Owner 0045',
             null,
             '2026-06-26',
             112500,
             [[
-                'id' => $noteId . '-r005-line-03',
+                'id' => $noteId.'-r005-line-03',
                 'work_item_root_id' => $newPackageId,
                 'line_no' => 3,
                 'transaction_type' => WorkItem::TYPE_SERVICE_WITH_STORE_STOCK_PART,
@@ -372,7 +373,7 @@ final class ManualFullRefundEditLifecycleMismatchFeatureTest extends TestCase
     }
 
     /**
-     * @param list<array{id:string,product_id:string,price:int}> $parts
+     * @param  list<array{id:string,product_id:string,price:int}>  $parts
      */
     private function seedPackageWorkItem(string $noteId, string $workItemId, int $lineNo, array $parts): void
     {
@@ -537,7 +538,7 @@ final class ManualFullRefundEditLifecycleMismatchFeatureTest extends TestCase
             ['id' => 'new-2', 'product_id' => 'prod-owner-2', 'source_id' => 'ssl-owner-new-2', 'out' => '2026-06-26 09:00:00', 'reversal' => false],
         ] as $row) {
             DB::table('inventory_movements')->insert([
-                'id' => 'im-out-' . $row['id'],
+                'id' => 'im-out-'.$row['id'],
                 'product_id' => $row['product_id'],
                 'movement_type' => 'stock_out',
                 'source_type' => 'work_item_store_stock_line',
@@ -555,7 +556,7 @@ final class ManualFullRefundEditLifecycleMismatchFeatureTest extends TestCase
             }
 
             DB::table('inventory_movements')->insert([
-                'id' => 'im-reversal-' . $row['id'],
+                'id' => 'im-reversal-'.$row['id'],
                 'product_id' => $row['product_id'],
                 'movement_type' => 'stock_in',
                 'source_type' => 'work_item_store_stock_line_reversal',

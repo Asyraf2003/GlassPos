@@ -38,7 +38,7 @@ final class PrimitiveFullyRefundedNewReceivableFeatureTest extends TestCase
         $oldRowId = (string) DB::table('work_items')->value('id');
         $oldPayment = (array) DB::table('customer_payments')->first();
         $this->post(route('admin.notes.refunds.store', ['noteId' => $noteId]), [
-            'selected_row_ids' => [$oldRowId], 'refunded_at' => $date,
+            'selected_row_ids' => [$oldRowId], 'stock_returns' => [$oldRowId => true], 'refunded_at' => $date,
             'reason' => 'Full old product refund', 'idempotency_key' => 'fully-refunded-refund',
         ])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertDatabaseHas('notes', ['id' => $noteId, 'note_state' => 'refunded']);

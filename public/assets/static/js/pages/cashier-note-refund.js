@@ -44,6 +44,7 @@
 
     const rows = () => Array.from(document.querySelectorAll('[data-refund-row="1"]'));
     const selectedIds = new Set();
+    const stockChoices = new Map();
 
     const readStoredSelections = () => {
       try {
@@ -93,7 +94,8 @@
     const stockReturnCount = () =>
       selectedRows().reduce((sum, row) => {
         const impact = parseRefundImpact(row);
-        return sum + parseNumber(impact.effect_summary?.stock_store_return_count);
+        return sum + (stockChoices.get(row.dataset.rowId) === '1'
+          ? parseNumber(impact.effect_summary?.stock_store_return_count) : 0);
       }, 0);
 
     const externalCount = () =>
@@ -105,7 +107,7 @@
     const hasReason = () => String(reasonInput.value || '').trim() !== '';
 
     const selectedStoreReturns = () =>
-      selectedRows().flatMap((row) => {
+      selectedRows().filter((row) => stockChoices.get(row.dataset.rowId) === '1').flatMap((row) => {
         const impact = parseRefundImpact(row);
         const items = Array.isArray(impact.store_returns) ? impact.store_returns : [];
 
@@ -159,6 +161,15 @@
             <div class="small text-muted">${escapeHtml(typeLabel)}</div>
             <div class="small text-muted">${escapeHtml(preview)}</div>
             <div class="small mt-2">Pengembalian uang: <strong>${refundable}</strong></div>
+            ${parseNumber(impact.effect_summary?.stock_store_return_count) > 0 ? `
+              <label class="form-label mt-2">Barang kembali ke stok toko?
+                <select class="form-select" name="stock_returns[${escapeHtml(row.dataset.rowId)}]"
+                  data-stock-choice="${escapeHtml(row.dataset.rowId)}" required>
+                  <option value="">Pilih keputusan stok</option>
+                  <option value="1" ${stockChoices.get(row.dataset.rowId) === '1' ? 'selected' : ''}>Ya, barang kembali</option>
+                  <option value="0" ${stockChoices.get(row.dataset.rowId) === '0' ? 'selected' : ''}>Tidak, barang tidak kembali</option>
+                </select>
+              </label>` : ''}
           </div>
         `;
       }).join('');
@@ -240,7 +251,10 @@
       openButton.style.pointerEvents = hasSelection ? 'auto' : 'none';
       openButton.setAttribute('aria-disabled', hasSelection ? 'false' : 'true');
 
-      submitButton.disabled = !hasSelection || refundableTotal() <= 0 || !hasReason();
+      const choicesComplete = selectedRows().every((row) =>
+        parseNumber(parseRefundImpact(row).effect_summary?.stock_store_return_count) === 0
+        || ['0', '1'].includes(stockChoices.get(row.dataset.rowId)));
+      submitButton.disabled = !hasSelection || refundableTotal() <= 0 || !hasReason() || !choicesComplete;
     };
 
     const syncSummary = () => {
@@ -385,8 +399,15 @@
       persistSelections();
     });
 
-    form.addEventListener('input', syncAll);
-    form.addEventListener('change', syncAll);
+    form.addEventListener('input', (event) => {
+      if (!event.target.matches('[data-stock-choice]')) syncButton();
+    });
+    form.addEventListener('change', (event) => {
+      if (event.target.matches('[data-stock-choice]')) {
+        stockChoices.set(event.target.dataset.stockChoice, event.target.value);
+      }
+      syncAll();
+    });
 
     modalEl.addEventListener('hidden.bs.modal', () => {
       if (selectedRows().length === 0) {

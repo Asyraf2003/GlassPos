@@ -10,14 +10,14 @@ use App\Application\Reporting\UseCases\GetTransactionReportDatasetHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Tests\Support\BuildsPrimitiveLifecycleFixture;
 use Tests\Support\AssertsPrimitiveReportingSurfaces;
+use Tests\Support\BuildsPrimitiveLifecycleFixture;
 use Tests\TestCase;
 
 final class PrimitiveLifecycleReportingChainFeatureTest extends TestCase
 {
-    use BuildsPrimitiveLifecycleFixture;
     use AssertsPrimitiveReportingSurfaces;
+    use BuildsPrimitiveLifecycleFixture;
     use RefreshDatabase;
 
     protected function tearDown(): void
@@ -45,7 +45,7 @@ final class PrimitiveLifecycleReportingChainFeatureTest extends TestCase
         $this->checkpoint([395933, 395933, 0, 0, 395933, 0, 82169, 260637]);
         $oldProduct = (string) DB::table('work_items')->where('transaction_type', 'store_stock_sale_only')->value('id');
         $this->advancePrimitiveTime();
-        $refund = ['selected_row_ids' => [$oldProduct], 'refunded_at' => '2026-09-15', 'reason' => 'Chain E source refund', 'idempotency_key' => 'report-e-refund'];
+        $refund = ['selected_row_ids' => [$oldProduct], 'stock_returns' => [$oldProduct => true], 'refunded_at' => '2026-09-15', 'reason' => 'Chain E source refund', 'idempotency_key' => 'report-e-refund'];
         $this->post(route('cashier.notes.refunds.store', ['noteId' => $id]), $refund)->assertSessionHasNoErrors();
         $this->checkpoint([253394, 395933, 142539, 0, 253394, 0, 23006, 177261]);
         $this->assertDatabaseHas('work_items', ['id' => $oldProduct, 'status' => 'canceled']);
@@ -114,7 +114,9 @@ final class PrimitiveLifecycleReportingChainFeatureTest extends TestCase
             self::assertSame(53127, $costs['external_purchase_cost_rupiah']);
             self::assertSame(0, $summary['remaining_refund_due_rupiah']);
             $all = [$report->data(), $profit->data(), app(TransactionCashLedgerReportingQuery::class)->rows('2026-09-15', '2026-09-16')];
-            if ($first !== null) self::assertSame($first, $all);
+            if ($first !== null) {
+                self::assertSame($first, $all);
+            }
             $first = $all;
         }
         $this->assertPrimitiveRelatedReports($expected[5], $expected[6]);
@@ -142,6 +144,7 @@ final class PrimitiveLifecycleReportingChainFeatureTest extends TestCase
             };
             $rows[$table] = DB::table($table)->orderBy($key)->get()->toJson();
         }
+
         return $rows;
     }
 }

@@ -574,3 +574,17 @@ ADR-0042 remains canonical for edit/refund settlement and shadow behavior.
 ADR-0045 clarifies that an edit revision versions the complete transaction graph needed to reconstruct historical truth, including product, service, package decomposition, and external-purchase snapshots.
 
 Where older implementation text looks like destructive work-item replacement, interpret current work-item rows as active operational replacement only. Historical truth must remain reconstructable from revision snapshots plus immutable payment/refund/inventory/audit ledgers.
+
+
+## Detail refund request boundary (Blueprint0019 C3)
+
+The selected-row Detail path used when a payment-present cancellation routes to Refund follows the accepted matrix above:
+
+- Selected rows must individually be paid/closed and current. An unrelated unpaid row does not disqualify the whole root.
+- Whole-row selection includes eligible service and store-stock allocations. Existing component selectors remain explicit component selections; a whole package row no longer silently means product only.
+- Each selected stock-bearing work item requires `stock_returns[work_item_id]` as an explicit boolean. No missing/default physical decision is inferred in Detail. Yes uses the existing source-cost inventory reversal once; no creates no inventory movement.
+- Money still comes from the existing allocation/refund plan. Service refund creates no inventory movement. A refunded component does not become receivable again merely because no stock returned, and later revision replacement must respect its refund history.
+- Persist the selected IDs and physical choices with actor/reason/time in the existing transactional audit boundary. Choices participate in semantic idempotency; normalize boolean encodings and selected-row order.
+- Revalidate the plan while holding the canonical note-root lock. Controller previews cannot authorize stale money or inventory effects.
+
+This is a bounded implementation of Detail, not an Auto preset. External-purchase eligibility remains the separate Blueprint0019 C4 boundary. Legacy service allocation that cannot be reconstructed safely stays rejected; no fabricated allocation/backfill is authorized.

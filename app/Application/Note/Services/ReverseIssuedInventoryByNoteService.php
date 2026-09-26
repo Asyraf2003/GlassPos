@@ -6,7 +6,9 @@ namespace App\Application\Note\Services;
 
 use App\Application\Inventory\Services\ReverseIssuedInventoryOperation;
 use App\Core\Note\Note\Note;
+use App\Core\Payment\PaymentComponentAllocation\PaymentComponentType;
 use App\Ports\Out\Inventory\InventoryMovementReaderPort;
+use App\Ports\Out\Payment\RefundComponentAllocationReaderPort;
 use DateTimeImmutable;
 
 final class ReverseIssuedInventoryByNoteService
@@ -16,8 +18,8 @@ final class ReverseIssuedInventoryByNoteService
     public function __construct(
         private readonly ReverseIssuedInventoryOperation $reverseIssuedInventory,
         private readonly InventoryMovementReaderPort $movements,
-    ) {
-    }
+        private readonly RefundComponentAllocationReaderPort $refunds,
+    ) {}
 
     public function execute(
         Note $note,
@@ -25,10 +27,16 @@ final class ReverseIssuedInventoryByNoteService
         string $reverseSourceType = 'transaction_workspace_updated',
     ): int {
         $reversedCount = 0;
+        $refunds = $this->refunds->listByNoteId($note->id());
 
         foreach ($note->workItems() as $workItem) {
             foreach ($workItem->storeStockLines() as $line) {
-                if ($this->alreadyReversedByRefund($line->id())) {
+                if ($this->alreadyReversedByRefund($line->id()) || count(array_filter($refunds,
+                    static fn ($refund): bool => $refund->workItemId() === $workItem->id()
+                        && (($refund->componentType() === PaymentComponentType::PRODUCT_ONLY_WORK_ITEM)
+                            || ($refund->componentType() === PaymentComponentType::SERVICE_STORE_STOCK_PART
+                                && $refund->componentRefId() === $line->id()))
+                )) > 0) {
                     continue;
                 }
 

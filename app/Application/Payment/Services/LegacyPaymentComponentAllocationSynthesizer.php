@@ -48,7 +48,9 @@ final class LegacyPaymentComponentAllocationSynthesizer
             static function (PaymentComponentAllocation $allocation) use ($paymentId, $selectedIds): bool {
                 return $allocation->customerPaymentId() === $paymentId
                     && PaymentComponentSelectionIds::matches($allocation, $selectedIds)
-                    && RefundComponentTypePolicy::isDefaultRefundable($allocation->componentType());
+                    && ($selectedIds !== []
+                        ? RefundComponentTypePolicy::isSelectedRowRefundable($allocation->componentType())
+                        : RefundComponentTypePolicy::isDefaultRefundable($allocation->componentType()));
             },
         );
 

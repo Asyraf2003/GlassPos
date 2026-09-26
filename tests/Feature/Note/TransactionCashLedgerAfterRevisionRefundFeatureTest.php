@@ -46,6 +46,7 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
             ->from(route('admin.notes.show', ['noteId' => 'note-ledger-revision-refund-001']))
             ->post(route('admin.notes.refunds.store', ['noteId' => 'note-ledger-revision-refund-001']), [
                 'selected_row_ids' => [$currentWorkItemId],
+                'stock_returns' => [$currentWorkItemId => true],
                 'refunded_at' => '2026-05-22',
                 'reason' => 'Report export proof after active revision refund.',
             ])
@@ -149,12 +150,12 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
     ): void {
         for ($row = 2; $row <= $detail->getHighestDataRow(); $row++) {
             if (
-                $detail->getCell('C' . $row)->getValue() === $noteId
-                && $detail->getCell('E' . $row)->getValue() === $eventType
-                && $detail->getCell('F' . $row)->getValue() === $direction
-                && $detail->getCell('H' . $row)->getValue() === $amountRupiah
-                && $detail->getCell('N' . $row)->getValue() === $sourceTable
-                && $detail->getCell('O' . $row)->getValue() === $sourceId
+                $detail->getCell('C'.$row)->getValue() === $noteId
+                && $detail->getCell('E'.$row)->getValue() === $eventType
+                && $detail->getCell('F'.$row)->getValue() === $direction
+                && $detail->getCell('H'.$row)->getValue() === $amountRupiah
+                && $detail->getCell('N'.$row)->getValue() === $sourceTable
+                && $detail->getCell('O'.$row)->getValue() === $sourceId
             ) {
                 $this->addToAssertionCount(1);
 
