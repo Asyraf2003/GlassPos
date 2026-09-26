@@ -35,6 +35,11 @@ final class DetailCancellationRestoreFeatureTest extends TestCase
         $this->from($url)->post(route('cashier.notes.cancel', ['noteId' => $note]), $cancel)->assertRedirect($url)->assertSessionHasNoErrors();
         $page = $this->get($url)->assertSee('Pulihkan')->assertSee('Revisi baru')->assertSee(e($cancel['reason']), false)
             ->assertDontSee($cancel['reason'], false)->assertSee((string) $actor->getAuthIdentifier());
+        self::assertSame(0, $page->viewData('note')['outstanding_rupiah']);
+        foreach ($page->viewData('note')['rows'] as $row) {
+            self::assertSame(0, $row['outstanding_rupiah']);
+            self::assertFalse($row['can_pay']);
+        }
         $restore = $this->form($page->getContent(), 'note-lifecycle-form');
         self::assertSame($cancel['base_revision_id'], $restore['base_revision_id']);
         self::assertSame($restore['base_revision_id'], $restore['source_revision_id']);
