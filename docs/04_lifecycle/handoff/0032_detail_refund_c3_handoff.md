@@ -4,7 +4,7 @@
 - Date: 2026-09-26
 - Active scope: Blueprint0019 C3, Issue #7
 - Branch: `feat/7-detail-refund-cancellation`, based on main `da5bc06b`
-- Status: implementation and focused proof complete; prepare draft PR, no merge while repository contract gate is red
+- Status: PR #9 synchronized with accepted main 61c1812f after Issue #8 / PR #10; combined proof green, final PR review/merge pending
 - Campaign: C0/C1/C2 merged; C3 not yet accepted; C4/C5/C6 remain
 
 ## FACT / contract
@@ -55,14 +55,14 @@ Other proof:
 - Chromium headless with `--allow-file-access-from-files --dump-dom file:///home/asus/projects/GlassPos/tests/Browser/detail-refund-choices.html`: **PASS: 9 DOM assertions**. Actual production JavaScript checks empty initial choice, no-return/return payload and preview, service without physical choice, selected IDs, required reason and server-supplied amount display. This is a static DOM smoke, not end-to-end cashier acceptance.
 - `php scripts/audit-blade-no-php.php`: pass.
 - `git diff --check`: pass.
-- `make audit-contract`: blocked by six inherited line-count failures, independently confirmed on origin/main and tracked by Issue #8. C3 introduces no additional over-limit files.
+- Initial `make audit-contract`: blocked by six inherited line-count failures tracked by Issue #8. Resolved independently in PR #10, merged as 61c1812f; combined C3 contract audit now passes.
 - No full repository test scan was run in C3; that remains the campaign-closeout gate.
 
 ## Diff review
 Manual diff-review pass covered public request change, under-lock eligibility, stock/receipt/audit atomicity, current component billing, external restriction, test fixture migrations and actual JavaScript behavior. Findings fixed during this pass: no-return stock incorrectly returned by later revision, refunded service still collectible, and Detail refund allocated to the wrong package component. Each is covered by a lifecycle test. No independent GitHub approval is claimed.
 
 ## GAP / known limits
-- Issue #8 blocks the full repository contract gate. Keep C3 PR draft until that independent baseline slice is resolved and the combined gate is verified.
+- Issue #8 is closed through merged PR #10. C3 was kept draft through the dependency merge and combined proof.
 - External-purchase rows remain rejected in both Detail and the underlying selected refund operation; C4 owns the boundary.
 - Legacy service notes without reconstructable component allocation remain safely rejected. No historical allocation backfill was invented.
 - This slice retains existing component/full-row eligibility and original-cost reversal mechanics; it does not redesign the refund engine or create component-specific amount editing.
@@ -70,4 +70,10 @@ Manual diff-review pass covered public request change, under-lock eligibility, s
 - `.codex/` is operator-local and excluded only through `.git/info/exclude`. Do not commit it or change repository `.gitignore` for it.
 
 ## NEXT
-Push verified C3 commits to the active branch and open a draft PR closing Issue #7. Resolve the separate Issue #8 contract gate on its own branch/PR, then revalidate C3 against accepted main before review/merge. Do not publish candidate work directly to main.
+Publish the sync/proof receipt to the existing C3 branch, complete PR #9 review/checks, then mark ready and merge only green. Do not begin C4 until PR #9 is merged. Do not publish candidate work directly to main.
+
+## Post-PR #10 integration proof
+
+Published C3 history was preserved by merging accepted main 61c1812f into the active branch. No merge conflict or production follow-up change was needed. The Detail page retains the extracted header builder and passes note identity to C3 component billing.
+
+Repeated on the combined tree: **160 tests / 2906 assertions passed**, PHPStan no errors, changed-PHP Pint, JavaScript syntax, `make audit-contract` and diff check passed. Chromium repeated **9 DOM assertions passed**. The real diff-review pass rechecked under-lock plan rebuild, claim replay, stock choices/revision boundaries, per-component billing, external guards and migrated fixture intent. No new blocking finding; no independent approval claimed. Broad test scan and physical cashier acceptance remain deferred to campaign closeout.

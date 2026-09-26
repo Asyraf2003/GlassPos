@@ -115,7 +115,7 @@ A no-return refunded stock component remains history during later revisions; rev
 
 C0 merged as PR #2; C1 merged as PR #4; C2 merged as PR #6. C3 implementation and focused proof are recorded in handoff0032. Do not mark campaign complete until applicable bounded C3/C4 dependencies, C5 UI, and C6 integrated acceptance are complete.
 
-NEXT after C2 review/merge: sync latest main and evaluate bounded refund/external dependencies against the existing product paths. Continue to C5 only when those dependencies have an accepted safe boundary; then complete C6 integrated/browser and final broad verification. Owner decisions already recorded in0029 are not asked again.
+NEXT: finish green PR #9 review/merge after the independently merged Issue #8 / PR #10 prerequisite; then evaluate bounded C4 external dependencies against existing product paths. Continue to C5 only when those dependencies have an accepted safe boundary; then complete C6 integrated/browser and final broad verification. Owner decisions already recorded in0029 are not asked again.
 
 ## Issue #8: independent contract-gate prerequisite
 
@@ -134,3 +134,5 @@ Proof: reproduce the contract gate failure, characterize the existing note/state
 Dependency sequence: Issue #8 branch/PR from main -> green review/merge -> sync C3 with accepted main -> rerun contract gate and focused C3 proof -> mark PR #9 ready/merge. C4 must not start before PR #9 is merged. No C3 implementation is included in this branch.
 
 Issue #8 proof: affected baseline 42 tests / 630 assertions; final post-extraction 42 / 631, PHPStan, Pint, contract audit and diff check pass. Initial overlap observation failure and isolated-server restart are retained in [handoff0033](../../04_lifecycle/handoff/0033_contract_gate_refactor_handoff.md). No assertion weakening or C3 code is included.
+
+Integration checkpoint: Issue #8 closed through PR #10 (61c1812f). C3 synchronized with accepted main without conflict; repeated 160 tests / 2906 assertions, PHPStan, Pint, JS syntax, 9 browser DOM assertions and contract gate all pass. PR #9 can leave draft after final published-head checks. C4 has not started.
