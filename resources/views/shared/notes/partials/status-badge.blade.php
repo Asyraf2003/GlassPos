@@ -17,7 +17,7 @@
 
 <span
   class="note-detail-status-badge note-detail-status-badge--{{ $statusTone }}"
-  style="font-size: .8rem !important; min-height: 1.4rem; padding: .08rem .42rem; line-height: 1;"
+  style="font-size: .8rem !important; min-height: 1.4rem; padding: .08rem .42rem; line-height: 1; color: #fff !important;"
 >
   {{ $statusText !== '' ? $statusText : '-' }}
 </span>
