@@ -14,8 +14,9 @@ use App\Application\Note\Services\BuildNoteRevisionSettlement;
 use App\Application\Note\Services\CurrentRevision\CurrentRevisionRowSettlementProjector;
 use App\Application\Note\Services\FinalizePaidNoteCorrection;
 use App\Application\Note\Services\NoteCorrectionSnapshotBuilder;
-use App\Application\Note\Services\NoteHistoryProjectionService;
 use App\Application\Note\Services\NoteCurrentRevisionResolver;
+use App\Application\Note\Services\NoteHistoryProjectionService;
+use App\Application\Note\Services\NoteLegacyPaymentSettlementReader;
 use App\Application\Note\Services\NoteOperationalStatusEvaluator;
 use App\Application\Note\Services\NoteOperationalStatusResolver;
 use App\Application\Note\Services\NoteOutstandingPaymentAmountResolver;
@@ -50,8 +51,7 @@ class NoteApplicationServiceProvider extends ServiceProvider
         ));
         $this->app->singleton(NoteOutstandingPaymentAmountResolver::class, fn ($app) => new NoteOutstandingPaymentAmountResolver(
             $app->make(NoteReaderPort::class),
-            $app->make(PaymentAllocationReaderPort::class),
-            $app->make(CustomerRefundReaderPort::class),
+            $app->make(NoteLegacyPaymentSettlementReader::class),
             $app->make(NoteCurrentRevisionResolver::class),
             $app->make(CurrentRevisionRowSettlementProjector::class),
         ));
