@@ -10,6 +10,33 @@ use JsonException;
 
 final class DatabaseNoteCorrectionHistoryReaderAdapter implements NoteCorrectionHistoryReaderPort
 {
+    public function isUnrestoredCancellation(string $noteId, string $cancellationEventId): bool
+    {
+        $exists = DB::table('note_mutation_events')
+            ->where('note_id', trim($noteId))
+            ->where('mutation_type', 'note_cancelled')
+            ->where('id', trim($cancellationEventId))
+            ->exists();
+        if (! $exists) {
+            return false;
+        }
+
+        $restoredSnapshots = DB::table('note_mutation_events as events')
+            ->join('note_mutation_snapshots as snapshots', 'snapshots.note_mutation_event_id', '=', 'events.id')
+            ->where('events.note_id', trim($noteId))
+            ->where('events.mutation_type', 'note_restored')
+            ->where('snapshots.snapshot_kind', 'after')
+            ->get(['snapshots.payload_json']);
+        foreach ($restoredSnapshots as $snapshot) {
+            $payload = $this->decode((string) $snapshot->payload_json);
+            if (($payload['meta']['cancellation_event_id'] ?? null) === trim($cancellationEventId)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public function findLatestNoteCorrections(string $noteId, int $limit = 10): array
     {
         $events = DB::table('note_mutation_events')
@@ -46,6 +73,7 @@ final class DatabaseNoteCorrectionHistoryReaderAdapter implements NoteCorrection
     {
         return match ($mutationType) {
             'note_cancelled' => 'Batalkan Transaksi',
+            'note_restored' => 'Pulihkan Transaksi',
             'paid_service_only_work_item_corrected' => 'Koreksi Nominal Servis',
             'paid_service_with_store_stock_part_service_fee_only_corrected' => 'Koreksi Biaya Servis + Sparepart Toko',
             'paid_service_with_external_purchase_service_fee_only_corrected' => 'Koreksi Biaya Servis + Sparepart Luar',

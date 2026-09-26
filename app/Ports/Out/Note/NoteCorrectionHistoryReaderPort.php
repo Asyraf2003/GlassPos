@@ -6,6 +6,8 @@ namespace App\Ports\Out\Note;
 
 interface NoteCorrectionHistoryReaderPort
 {
+    public function isUnrestoredCancellation(string $noteId, string $cancellationEventId): bool;
+
     /**
      * @return list<array<string, mixed>>
      */

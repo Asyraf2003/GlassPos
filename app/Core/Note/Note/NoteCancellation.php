@@ -29,4 +29,13 @@ trait NoteCancellation
             throw new DomainException('NOTE_CANCELLED');
         }
     }
+
+    public function beginRestoreAsAcceptedRevision(): void
+    {
+        if (! $this->isCancelled()) {
+            throw new DomainException('NOTE_NOT_CANCELLED');
+        }
+
+        $this->noteState = self::STATE_OPEN;
+    }
 }
