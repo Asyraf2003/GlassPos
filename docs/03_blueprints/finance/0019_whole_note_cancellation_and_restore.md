@@ -110,3 +110,21 @@ C2 implementation on branch `feat/5-restore-cancelled-note`, linked to Issue #5.
 C0 merged as PR #2; C1 merged as PR #4; C2 local implementation/proof is recorded in handoff0031. Do not mark campaign complete until C2 merge, applicable bounded C3/C4 dependencies, C5 UI, and C6 integrated acceptance are complete.
 
 NEXT after C2 review/merge: sync latest main and evaluate bounded refund/external dependencies against the existing product paths. Continue to C5 only when those dependencies have an accepted safe boundary; then complete C6 integrated/browser and final broad verification. Owner decisions already recorded in0029 are not asked again.
+
+## Issue #8: independent contract-gate prerequisite
+
+FACT: accepted main da5bc06b has six PHP files above the 100-line gate. Issue #8 tracks the blocker independently of C3/PR #9, which remains draft. This maintenance slice changes no business contract, SQL, public result shape, validation order, or transaction ownership.
+
+Boundaries selected from existing responsibilities:
+- Move correction-history presentation mapping into an adapter mapper; keep SQL and tolerant snapshot decoding in the reader.
+- Group note lifecycle accessors in a trait composed by the existing NoteState trait; keep state properties and all mutation methods intact.
+- Extract the current-base/editability check from revision orchestration; root lock and cancelled guard still precede it, and writes still follow it.
+- Group restore timeline and canonical audit recording in one recorder; both remain inside the caller-owned restore transaction with unchanged metadata and timestamp.
+- Extract Detail header payload mapping from page orchestration; continue reading the same current revision and operational values.
+- Separate legacy payment settlement reading from the current-revision resolver; preserve cancelled-root zero values, allocation/gross-payment fallback, refunds and partial-payment validation.
+
+Proof: reproduce the contract gate failure, characterize the existing note/state/history/outstanding/revision/cancellation/restore tests before editing production code, repeat those same tests after extraction, then PHPStan, changed-file formatting and `make audit-contract`. Review the diff for moved logic and unchanged call order. Do not add mechanical mirror tests or run the whole suite for this refactor.
+
+Dependency sequence: Issue #8 branch/PR from main -> green review/merge -> sync C3 with accepted main -> rerun contract gate and focused C3 proof -> mark PR #9 ready/merge. C4 must not start before PR #9 is merged. No C3 implementation is included in this branch.
+
+Issue #8 proof: affected baseline 42 tests / 630 assertions; final post-extraction 42 / 631, PHPStan, Pint, contract audit and diff check pass. Initial overlap observation failure and isolated-server restart are retained in [handoff0033](../../04_lifecycle/handoff/0033_contract_gate_refactor_handoff.md). No assertion weakening or C3 code is included.
