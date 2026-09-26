@@ -11,6 +11,7 @@
 
 @section('content')
 <section class="section note-detail-shell">
+  @include('shared.notes.partials.lifecycle-actions')
   @if (($noteDetailLayout ?? 'desktop') === 'desktop')
     <div class="note-detail-desktop note-detail-desktop-columns">
       <div class="note-detail-desktop-stack note-detail-desktop-stack--main" data-note-desktop-stack="main">

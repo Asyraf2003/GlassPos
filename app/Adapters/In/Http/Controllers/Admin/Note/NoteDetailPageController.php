@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Adapters\In\Http\Controllers\Admin\Note;
 
+use App\Adapters\In\Http\Controllers\Note\Support\NoteLifecycleFormData;
 use App\Adapters\In\Http\Support\HandsetRequestDetector;
 use App\Application\Note\Services\EnsureInitialNoteRevisionExists;
 use App\Application\Note\Services\NoteCorrectionUiOptionsBuilder;
@@ -24,6 +25,7 @@ final class NoteDetailPageController extends Controller
         EnsureInitialNoteRevisionExists $ensureInitialRevision,
         HandsetRequestDetector $devices,
         UuidPort $uuid,
+        NoteLifecycleFormData $lifecycle,
     ): View {
         $user = $request->user();
         $actorId = $user !== null ? (string) $user->getAuthIdentifier() : null;
@@ -50,6 +52,7 @@ final class NoteDetailPageController extends Controller
         $isHandset = $devices->isHandset($request);
 
         return view('shared.notes.show', $data + [
+            'lifecycle' => $lifecycle->build($request, $noteId, 'admin'),
             'backUrl' => route('admin.notes.index'),
             'detailConfig' => [
                 'workspace_edit_route' => 'admin.notes.workspace.edit',

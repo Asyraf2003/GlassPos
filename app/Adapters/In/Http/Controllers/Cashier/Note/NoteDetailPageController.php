@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Adapters\In\Http\Controllers\Cashier\Note;
 
+use App\Adapters\In\Http\Controllers\Note\Support\NoteLifecycleFormData;
 use App\Adapters\In\Http\Support\HandsetRequestDetector;
 use App\Application\Note\Services\CashierNoteDetailPageAccessData;
 use App\Application\Note\Services\EnsureInitialNoteRevisionExists;
@@ -26,6 +27,7 @@ final class NoteDetailPageController extends Controller
         EnsureInitialNoteRevisionExists $ensureInitialRevision,
         HandsetRequestDetector $devices,
         UuidPort $uuid,
+        NoteLifecycleFormData $lifecycle,
     ): View {
         try {
             $canView = $accessData->ensureCanView($noteId);
@@ -61,6 +63,7 @@ final class NoteDetailPageController extends Controller
         $isHandset = $devices->isHandset($request);
 
         return view('shared.notes.show', $data + [
+            'lifecycle' => $lifecycle->build($request, $noteId, 'cashier'),
             'backUrl' => route('cashier.notes.index'),
             'detailConfig' => [
                 'workspace_edit_route' => 'cashier.notes.workspace.edit',

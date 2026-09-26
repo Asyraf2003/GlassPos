@@ -13,6 +13,8 @@ final class NoteCorrectionHistoryRowMapper
         $meta = is_array($after['meta'] ?? null) ? $after['meta'] : (is_array($before['meta'] ?? null) ? $before['meta'] : []);
 
         return [
+            'event_id' => (string) $row->id,
+            'mutation_type' => (string) $row->mutation_type,
             'event_label' => $this->eventLabel((string) $row->mutation_type),
             'created_at' => (string) $row->occurred_at,
             'reason' => $row->reason !== null ? (string) $row->reason : null,
