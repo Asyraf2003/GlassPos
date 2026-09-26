@@ -12,8 +12,7 @@ final class RecordSelectedRowsRefundPlanBucketProcessor
     public function __construct(
         private readonly RecordCustomerRefundOperation $operation,
         private readonly AutoReverseRefundedStoreStockInventory $reverseInventory,
-    ) {
-    }
+    ) {}
 
     public function process(SelectedRowsRefundPlan $plan, string $refundedAt, string $reason): array
     {
@@ -31,7 +30,7 @@ final class RecordSelectedRowsRefundPlanBucketProcessor
             );
 
             $refund = $recorded->refund();
-            $this->reverseInventory->executeFullRowReversal($refund);
+            $this->reverseInventory->executeFullRowReversal($refund, $plan->stockReturns());
 
             $refundIds[] = $refund->id();
             $allocationCount += $recorded->allocationCount();

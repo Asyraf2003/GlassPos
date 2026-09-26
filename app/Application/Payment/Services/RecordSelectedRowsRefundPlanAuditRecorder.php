@@ -34,6 +34,7 @@ final class RecordSelectedRowsRefundPlanAuditRecorder
             'actor_role' => $actorRole,
             'reason' => trim($reason),
             'selected_row_ids' => $plan->selectedRowIds(),
+            'stock_returns' => $plan->stockReturns(),
             'unpaid_row_ids' => $plan->unpaidRowIds(),
             'cancellable_row_ids' => $plan->cancellableRowIds(),
             'refund_ids' => $processed['refund_ids'],

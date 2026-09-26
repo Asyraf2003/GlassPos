@@ -8,26 +8,20 @@ use App\Core\Shared\Exceptions\DomainException;
 
 final class SelectedRowsRefundPlan
 {
-    /**
-     * @param list<string> $selectedRowIds
-     * @param list<string> $unpaidRowIds
-     * @param list<SelectedRowsRefundPaymentBucket> $paymentBuckets
-     * @param list<string> $cancellableRowIds
-     */
     private function __construct(
         private readonly string $noteId,
         private readonly array $selectedRowIds,
         private readonly array $unpaidRowIds,
         private readonly array $paymentBuckets,
         private readonly array $cancellableRowIds,
-    ) {
-    }
+        private readonly array $stockReturns = [],
+    ) {}
 
     /**
-     * @param list<string> $selectedRowIds
-     * @param list<string> $unpaidRowIds
-     * @param list<SelectedRowsRefundPaymentBucket> $paymentBuckets
-     * @param list<string> $cancellableRowIds
+     * @param  list<string>  $selectedRowIds
+     * @param  list<string>  $unpaidRowIds
+     * @param  list<SelectedRowsRefundPaymentBucket>  $paymentBuckets
+     * @param  list<string>  $cancellableRowIds
      */
     public static function create(
         string $noteId,
@@ -35,8 +29,8 @@ final class SelectedRowsRefundPlan
         array $unpaidRowIds,
         array $paymentBuckets,
         array $cancellableRowIds = [],
-    ): self
-    {
+        array $stockReturns = [],
+    ): self {
         $normalizedNoteId = trim($noteId);
 
         if ($normalizedNoteId === '') {
@@ -53,7 +47,14 @@ final class SelectedRowsRefundPlan
             array_values($unpaidRowIds),
             $paymentBuckets,
             array_values($cancellableRowIds),
+            $stockReturns,
         );
+    }
+
+    /** @return array<string, bool> */
+    public function stockReturns(): array
+    {
+        return $this->stockReturns;
     }
 
     public function noteId(): string
@@ -91,6 +92,6 @@ final class SelectedRowsRefundPlan
 
     public function toArray(): array
     {
-        return (new SelectedRowsRefundPlanArraySerializer())->serialize($this);
+        return (new SelectedRowsRefundPlanArraySerializer)->serialize($this);
     }
 }

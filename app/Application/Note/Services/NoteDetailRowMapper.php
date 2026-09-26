@@ -12,8 +12,7 @@ final class NoteDetailRowMapper
         private readonly WorkItemOperationalStatusResolver $statuses,
         private readonly NoteDetailRowPresentationSupport $presentation,
         private readonly RefundImpactPayloadBuilder $refundImpact,
-    ) {
-    }
+    ) {}
 
     public function map(array $rows, array $settlements): array
     {
@@ -68,7 +67,7 @@ final class NoteDetailRowMapper
             'line_status' => $lineStatus,
             'can_edit' => $lineStatus === WorkItemOperationalStatusResolver::STATUS_OPEN,
             'can_pay' => $lineStatus === WorkItemOperationalStatusResolver::STATUS_OPEN,
-            'can_refund' => $lineStatus === WorkItemOperationalStatusResolver::STATUS_CLOSE,
+            'can_refund' => $lineStatus === WorkItemOperationalStatusResolver::STATUS_CLOSE && $externalLineCount === 0,
             'can_view_detail' => true,
         ];
     }

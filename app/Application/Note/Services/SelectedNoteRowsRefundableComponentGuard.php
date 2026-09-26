@@ -13,11 +13,11 @@ final class SelectedNoteRowsRefundableComponentGuard
     /**
      * Every submitted selector must contribute at least one structurally refundable component.
      *
-     * A package selector may include blocked service-fee components when it also contains
-     * a refundable store-stock component. A fully blocked selector must not be ignored.
+     * Selected package rows include service and store-stock components.
+     * A fully blocked selector must not be ignored.
      *
-     * @param list<string> $selectedIds
-     * @param list<PaymentComponentAllocation> $paymentAllocations
+     * @param  list<string>  $selectedIds
+     * @param  list<PaymentComponentAllocation>  $paymentAllocations
      */
     public function allSelectedIdsContribute(array $selectedIds, array $paymentAllocations): bool
     {

@@ -24,11 +24,11 @@ final class SelectedNoteRowsRefundPlanResolver
         private readonly SelectedNoteRowsRefundEligibilityGuard $eligibility,
         private readonly SelectedNoteRowsRefundableComponentGuard $refundableComponents,
         private readonly SelectedNoteRowsRefundPlanFactory $planFactory,
-    ) {
-    }
+        private readonly SelectedRowsRefundStockChoices $stockChoices,
+    ) {}
 
     /** @param list<string> $selectedRowIds */
-    public function resolve(string $noteId, array $selectedRowIds): Result
+    public function resolve(string $noteId, array $selectedRowIds, ?array $stockReturns = null): Result
     {
         $note = $this->notes->getById(trim($noteId));
         if ($note === null) {
@@ -53,6 +53,9 @@ final class SelectedNoteRowsRefundPlanResolver
         }
 
         $paymentAllocations = $this->paymentAllocations($note->id());
+        if ($stockReturns !== null && ($invalid = $this->stockChoices->validate($selectedIds, $paymentAllocations, $stockReturns)) !== null) {
+            return $invalid;
+        }
 
         if (! $this->refundableComponents->allSelectedIdsContribute($selectedIds, $paymentAllocations)) {
             return Result::failure(
@@ -80,6 +83,7 @@ final class SelectedNoteRowsRefundPlanResolver
             $selectedWorkItemIds,
             $paymentAllocations,
             $paymentBuckets,
+            $stockReturns ?? [],
         );
 
         return Result::success(['plan' => $plan, 'plan_array' => $plan->toArray()]);

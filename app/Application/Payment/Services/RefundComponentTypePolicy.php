@@ -18,6 +18,7 @@ final class RefundComponentTypePolicy
 
     public static function isSelectedRowRefundable(string $componentType): bool
     {
-        return self::isDefaultRefundable($componentType);
+        return self::isDefaultRefundable($componentType)
+            || trim($componentType) === PaymentComponentType::SERVICE_FEE;
     }
 }

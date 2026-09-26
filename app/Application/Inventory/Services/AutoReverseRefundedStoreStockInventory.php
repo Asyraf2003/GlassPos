@@ -17,8 +17,7 @@ final class AutoReverseRefundedStoreStockInventory
         private readonly InventoryMovementReaderPort $movements,
         private readonly ReverseIssuedInventoryOperation $reverseIssuedInventory,
         private readonly RefundedStoreStockComponentTargets $targets,
-    ) {
-    }
+    ) {}
 
     public function execute(CustomerRefund $refund): void
     {
@@ -36,7 +35,7 @@ final class AutoReverseRefundedStoreStockInventory
                 continue;
             }
 
-            $key = $type . '::' . $allocation->componentRefId();
+            $key = $type.'::'.$allocation->componentRefId();
             $allocatedAmount = $allocated[$key] ?? 0;
             $refundedAmount = $refunded[$key] ?? 0;
 
@@ -48,9 +47,12 @@ final class AutoReverseRefundedStoreStockInventory
         }
     }
 
-    public function executeFullRowReversal(CustomerRefund $refund): void
+    public function executeFullRowReversal(CustomerRefund $refund, ?array $stockReturns = null): void
     {
         foreach ($this->refundAllocations->listByNoteId($refund->noteId()) as $allocation) {
+            if ($stockReturns !== null && ($stockReturns[$allocation->workItemId()] ?? false) !== true) {
+                continue;
+            }
             if ($allocation->customerRefundId() !== $refund->id()) {
                 continue;
             }

@@ -9,11 +9,10 @@ final class NoteBillingProjectionComponentRowsBuilder
     public function __construct(
         private readonly NoteBillingProjectionComponentRowFactory $rows,
         private readonly NoteBillingProjectionRefundedStoreStockComponentSkipper $refundedStoreStock,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<string, mixed> $row
+     * @param  array<string, mixed>  $row
      * @return list<array<string, mixed>>
      */
     public function build(array $row): array
@@ -74,10 +73,10 @@ final class NoteBillingProjectionComponentRowsBuilder
             return null;
         }
 
-        $allocated = min(max($allocatedRemainder, 0), $total);
+        $allocated = min(max((int) ($component['allocated_rupiah'] ?? $allocatedRemainder), 0), $total);
         $allocatedRemainder -= $allocated;
 
-        $refunded = min(max($refundedRemainder, 0), $allocated);
+        $refunded = min(max((int) ($component['refunded_rupiah'] ?? $refundedRemainder), 0), $allocated);
         $refundedRemainder -= $refunded;
 
         if ($this->refundedStoreStock->shouldSkip($componentType, $componentRefId, $refunded, $allocated)) {

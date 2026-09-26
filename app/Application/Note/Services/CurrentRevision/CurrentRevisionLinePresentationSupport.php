@@ -24,7 +24,7 @@ final class CurrentRevisionLinePresentationSupport
         }
 
         if ($storeStockCount > 0) {
-            return 'Uang balik mungkin dan stok toko kembali.';
+            return 'Pengembalian uang; pilih apakah barang kembali ke stok toko.';
         }
 
         if ($externalPurchaseCount > 0) {
