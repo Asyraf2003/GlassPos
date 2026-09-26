@@ -1,6 +1,6 @@
 # Blueprint0019: Whole-Note Cancellation And Restore
 
-Status: active implementation blueprint; C0 is merged in PR #2, C1 unpaid cancellation is merged in PR #4, and C2 restore is merged in PR #6. C3 is active; later slices remain open.
+Status: active implementation blueprint; C0 is merged in PR #2, C1 unpaid cancellation is merged in PR #4, and C2 restore is merged in PR #6. C3 is merged in PR #9, C4 in PR #12 and C5 in PR #14. C6 integrated closeout is active under Issue #15.
 
 Traceability: [C0 Issue #1](https://github.com/Asyraf2003/GlassPos/issues/1), [C1 Issue #3](https://github.com/Asyraf2003/GlassPos/issues/3) / [PR #4](https://github.com/Asyraf2003/GlassPos/pull/4), [C2 Issue #5](https://github.com/Asyraf2003/GlassPos/issues/5).
 
@@ -81,7 +81,7 @@ Order: C0 -> C1 -> C2; bounded C3/C4 only when required; then C5 -> C6. Execute 
 
 ## ACTIVE STEP
 
-C2 merged as [PR #6](https://github.com/Asyraf2003/GlassPos/pull/6). C3 is tracked by [Issue #7](https://github.com/Asyraf2003/GlassPos/issues/7) on `feat/7-detail-refund-cancellation`.
+C1-C5 are accepted through PR #14. C6 is tracked by [Issue #15](https://github.com/Asyraf2003/GlassPos/issues/15); current acceptance findings/proof are in [closeout0036](../../04_lifecycle/handoff/0036_whole_note_cancellation_campaign_closeout.md). The following C3 notes are retained as implementation history.
 
 C3 closes the accepted ADR-0042 service/stock-choice gaps in the existing selected-row Detail refund. Source uses `PaymentComponentType::SERVICE_FEE` for both standalone and package service allocations. Preserve default unselected refund policy; explicit selected-row refunds include eligible service fees. External-purchase rows remain rejected until C4. The route may serve a mixed root only when each selected row is paid/closed.
 
@@ -152,3 +152,11 @@ C4 merged as PR #12 (aefd26f5). Add one read-only lifecycle presenter using curr
 Use a read-only capability/date predicate for presentation; do not call the mutation-auditing TransactionEntryPolicy from GET. Retry keeps old key and observed base together only for the same lifecycle form; stale base must never be replaced silently with refreshed current identity. Include actor identity in existing history. Paid users see the existing selected Detail refund direction; external/unresolved cases show explicit restrictions. No new mutation endpoint or Auto. Characterize actual HTML forms and lifecycle chain before production edits; focused adjacent/access tests and contract gates before PR.
 
 C5 proof: 26 tests / 284 assertions passed; PHPStan, Pint, contract audit and diff check green. Actual rendered form chain, history escaping, stale retry and admin capability boundaries are recorded in handoff0035. C5 ready for dedicated PR review/merge, then C6 full/integrated acceptance.
+
+## C6 integrated closeout — Issue #15
+
+C5 merged as PR #14 (b881de37). Run full make verify only on disposable localhost3321/glasspos_cancellation_c1_test. Audit missing integrated proof: cancellation-vs-paid-refund fixture still lacks C3 stock choice; reproduce and correct its input, never weaken lock-wait/effect assertions. Existing live browser refund interaction also predates explicit stock choice. Add a guarded C6 live fixture and browser runner reusing Blueprint0018 CDP pattern for actual cancel/restore/reload/replay on desktop/handset emulation. Add cancellation-specific current/report/export and cross-date compensation proof where not already covered. Distinguish automated completion from physical cashier/device sign-off. Keep baseline unrelated static findings explicit.
+
+C6 evidence-driven regression repair: first full scan found ordinary correction actor visibility regression and partial-refund revision compensation regression; browser screenshot found cancelled Detail still showing historical outstanding. Restrict actor display to cancellation/restore, skip later stock reversal only for fully refunded components (retain existing partial-refund reversal), and apply cancelled current-row rights in the workspace read model without rewriting immutable snapshot totals. RED/current proof is retained in closeout0036; no unrelated business policy changed. Baseline ProductCatalog audit-hex failures are tracked separately in Issue #16.
+
+Final C6 automated verification: `make verify` exit0, **1781 tests / 13627 assertions**, PHPStan and contract audits green; real desktop/handset-emulated cancellation/restore/reload/replay GREEN. Receipt0036 records discovered regressions/fixes and manual-only limits. Automated campaign ready for C6 PR acceptance; no Auto. Optional unrelated audit-hex remains Issue #16.
