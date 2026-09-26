@@ -41,7 +41,8 @@ This folder is only for active or latest handoffs. Once a session is closed, arc
 | `0026_primitive_lifecycle_slice1_d05_double_refund_replay_handoff.md` | Primitive lifecycle Slice 1 D05 refund/revision replay investigation | superseded by ordered execution handoff 0027 |
 | `0027_primitive_lifecycle_ordered_execution_handoff.md` | Blueprint0018 ordered primitive lifecycle execution | execution closed through Slice12; retained as proof history |
 | `0028_blueprint0018_closeout.md` | Blueprint0018 automated/browser closeout | automated scope green; physical/manual acceptance remains pending |
-| `0029_whole_note_cancellation_owner_decision_handoff.md` | Whole-note cancellation / Batalkan Transaksi owner decisions | active contract discussion; production implementation not authorized |
+| `0029_whole_note_cancellation_owner_decision_handoff.md` | Whole-note cancellation / Batalkan Transaksi owner decisions | accepted raw owner evidence; normalized contract promoted to ADR-0046 |
+| `0030_unpaid_whole_note_cancellation_c1_handoff.md` | Whole-note cancellation C1 unpaid root cancellation | implementation and proof complete locally; PR review/merge pending |
 
 ## Archive
 

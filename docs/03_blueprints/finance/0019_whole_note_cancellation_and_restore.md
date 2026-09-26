@@ -1,6 +1,6 @@
 # Blueprint0019: Whole-Note Cancellation And Restore
 
-Status: implementation blueprint; C0 documentation slice only. Production cancellation is NOT implemented.
+Status: active implementation blueprint; C0 is merged and C1 unpaid cancellation implementation is complete locally, with focused and broad proof recorded in handoff0030. C1 awaits PR review/merge. C2 restore and later slices remain open.
 
 Traceability: [Issue #1](https://github.com/Asyraf2003/GlassPos/issues/1).
 
@@ -70,7 +70,7 @@ Each slice has an Issue before implementation, its own branch from accepted main
 | Slice | Scope / acceptance | Dependencies |
 |---|---|---|
 | C0 | Promote owner policy to ADR-0046; source graph, conflicts, dependency map, proof gates and raw preservation. Docs-only independently valid merge. | Issue #1 |
-| C1 | Atomic unpaid product/service/package root cancellation: current rights/total, inventory compensation, current projection/report correctness, mutation guards, audit, HTTP authorization, stale/key behavior. Required runtime overlap/rollback proofs ship together. | C0 |
+| C1 | Atomic unpaid product/service/package root cancellation: current rights/total, inventory compensation, current projection/report correctness, mutation guards, audit, HTTP authorization, stale/key behavior. Required runtime overlap/rollback proofs ship together. | C0; implementation and proof complete locally, PR preparation/review pending |
 | C2 | Restore cancelled root through new accepted revision; cancellation identity/base validation, source compensation skip, fresh stock issues, immutable history, rollback and replay. | C1 |
 | C3 | Only refund Detail capabilities required by actual cancellation routing. Independently scoped service/partial/return-choice gaps may have separate flows when independently valid. No broad engine rewrite. | C0 plus demonstrated dependency |
 | C4 | Committed external-purchase boundary: paid/unpaid/mixed classification, no store-stock conversion, truthful refund eligibility. Preserve restrictions where accepted source contract is insufficient; request only genuinely new business decisions. | C0 and relevant C3 |
@@ -81,7 +81,7 @@ Order: C0 -> C1 -> C2; bounded C3/C4 only when required; then C5 -> C6. Execute 
 
 ## ACTIVE STEP
 
-C0 documentation contract and blueprint, linked to Issue #1. No PHP/JS/schema changes are authorized within this slice. Documentation proof: local references/source anchors resolve, handoff raw statements are unchanged, contract is consistent with accepted ledger boundaries and a real reviewer has inspected the diff.
+C1 implementation on branch `feat/3-unpaid-note-cancellation`, linked to Issue #3. Unpaid product/service/package cancellation, current-effect neutralization, compensation, lifecycle guards, durable history, and runtime overlap/rollback proof are implemented locally. Payment-present and external-purchase cases route to existing lifecycle boundaries with explicit rejection; no refund engine rewrite. Awaiting PR preparation/review and merge. See [handoff0030](../../04_lifecycle/handoff/0030_unpaid_whole_note_cancellation_c1_handoff.md).
 
 ## First RED and focused proof for C1
 
@@ -107,6 +107,6 @@ C0 documentation contract and blueprint, linked to Issue #1. No PHP/JS/schema ch
 
 ## PROOF / PROGRESS / NEXT
 
-C0 completion depends on verified documentation diff and PR review; runtime implementation progress remains zero until actual C1 evidence exists. Per-slice receipts belong in lifecycle handoff, not as invented GREEN here.
+C0 merged as PR #2. C1 implementation/proof is recorded in handoff0030; do not mark campaign complete until C2 restore, applicable bounded C3/C4 dependencies, C5 UI, and C6 integrated acceptance are complete.
 
-NEXT after C0 merge: create C1 Issue with explicit acceptance above, branch from latest main, establish focused baseline and first RED, then implement the smallest coordinated existing-primitive change. Stop only for a genuine new business ambiguity or execution blocker; owner decisions already recorded in0029 are not asked again.
+NEXT after C1 review/merge: sync latest main, create C2 Issue with explicit restore acceptance above, branch from accepted main, establish focused first RED, then implement restore as a new accepted revision. Stop only for a genuine new business ambiguity or execution blocker; owner decisions already recorded in0029 are not asked again.
