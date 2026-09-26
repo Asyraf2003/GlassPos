@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Adapters\In\Http\Controllers\Admin\Note\CreateNoteRevisionSurplusRefundDueController as AdminCreateNoteRevisionSurplusRefundDueController;
 use App\Adapters\In\Http\Controllers\Admin\Note\NoteDetailPageController as AdminNoteDetailPageController;
 use App\Adapters\In\Http\Controllers\Admin\Note\NoteHistoryPageController as AdminNoteHistoryPageController;
 use App\Adapters\In\Http\Controllers\Admin\Note\NoteHistoryTableDataController as AdminNoteHistoryTableDataController;
-use App\Adapters\In\Http\Controllers\Admin\Note\CreateNoteRevisionSurplusRefundDueController as AdminCreateNoteRevisionSurplusRefundDueController;
 use App\Adapters\In\Http\Controllers\Admin\Note\RecordNoteRevisionSurplusRefundPaymentController as AdminRecordNoteRevisionSurplusRefundPaymentController;
 use App\Adapters\In\Http\Controllers\Admin\Note\ReopenClosedNoteController as AdminReopenClosedNoteController;
 use App\Adapters\In\Http\Controllers\Cashier\Note\CreateTransactionWorkspacePageController;
@@ -20,6 +20,7 @@ use App\Adapters\In\Http\Controllers\Cashier\Note\SaveTransactionWorkspaceDraftC
 use App\Adapters\In\Http\Controllers\Cashier\Note\ServiceCatalogLookupController;
 use App\Adapters\In\Http\Controllers\Cashier\Note\ServiceCatalogStoreController;
 use App\Adapters\In\Http\Controllers\Note\AddNoteRowsController;
+use App\Adapters\In\Http\Controllers\Note\CancelNoteController;
 use App\Adapters\In\Http\Controllers\Note\CorrectPaidServiceOnlyWorkItemController;
 use App\Adapters\In\Http\Controllers\Note\CorrectPaidWorkItemStatusController;
 use App\Adapters\In\Http\Controllers\Note\CreateNoteController;
@@ -38,7 +39,6 @@ Route::middleware(['web', 'transaction.entry'])->group(function (): void {
     Route::post('/notes/create', CreateNoteController::class)->name('notes.create');
     Route::post('/notes/workspace/store', StoreTransactionWorkspaceController::class)->name('notes.workspace.store');
 });
-
 
 Route::middleware(['auth', EnsureAdminPageAccess::class, 'app.shell'])
     ->prefix('admin/notes')
@@ -64,6 +64,9 @@ Route::middleware(['auth', EnsureAdminPageAccess::class, 'app.shell'])
         Route::get('/{noteId}', AdminNoteDetailPageController::class)->name('show');
 
         Route::middleware(EnsureTransactionEntryAllowed::class)->group(function (): void {
+            Route::post('/{noteId}/cancel', CancelNoteController::class)
+                ->withoutMiddleware(EnsureTransactionEntryAllowed::class)
+                ->name('cancel');
             Route::post('/{noteId}/refunds', RecordClosedNoteRefundController::class)->name('refunds.store');
             Route::post('/{noteId}/payments', RecordNotePaymentController::class)->name('payments.store');
             Route::post('/{noteId}/rows', AddNoteRowsController::class)->name('rows.store');
@@ -89,6 +92,9 @@ Route::middleware(['auth', EnsureCashierAreaAccess::class, EnsureTransactionEntr
         Route::get('/workspace/create', CreateTransactionWorkspacePageController::class)->name('workspace.create');
 
         Route::middleware(EnsureCashierNoteAccess::class)->group(function (): void {
+            Route::post('/{noteId}/cancel', CancelNoteController::class)
+                ->withoutMiddleware(EnsureTransactionEntryAllowed::class)
+                ->name('cancel');
             Route::post('/{noteId}/refunds', RecordClosedNoteRefundController::class)->name('refunds.store');
             Route::get('/{noteId}/workspace/edit', EditTransactionWorkspacePageController::class)->name('workspace.edit');
             Route::get(

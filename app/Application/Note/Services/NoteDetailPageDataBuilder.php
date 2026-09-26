@@ -92,7 +92,8 @@ final class NoteDetailPageDataBuilder
                 $note->isOpen(),
                 $note->isClosed(),
                 $note->isRefunded(),
-                $hasOutstanding
+                $hasOutstanding,
+                $note->isCancelled(),
             ),
             'productOptions' => $this->products->build(),
         ];

@@ -11,6 +11,13 @@ trait ResolvesNoteOperationalCurrentRevisionSettlement
     /** @return array{gross_total_rupiah:int,net_paid_rupiah:int,outstanding_rupiah:int}|null */
     private function currentRevisionSettlement(Note $note): ?array
     {
+        if ($note->isCancelled()) {
+            return [
+                'gross_total_rupiah' => 0,
+                'net_paid_rupiah' => 0,
+                'outstanding_rupiah' => 0,
+            ];
+        }
         if ($this->currentRevision === null || $this->currentRevisionSettlements === null) {
             return null;
         }

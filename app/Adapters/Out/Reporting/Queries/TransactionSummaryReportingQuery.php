@@ -12,8 +12,7 @@ final class TransactionSummaryReportingQuery
         private readonly TransactionSummaryRefundDueTotalsQuery $refundDueTotals,
         private readonly TransactionSummarySurplusRefundPaymentTotalsQuery $surplusRefundPaymentTotals,
         private readonly TransactionSummaryCashPaymentTotalsQuery $cashPaymentTotals,
-    ) {
-    }
+    ) {}
 
     public function rows(string $fromTransactionDate, string $toTransactionDate): array
     {
@@ -32,6 +31,7 @@ final class TransactionSummaryReportingQuery
             ->leftJoinSub($surplusRefundPaymentTotals, 'surplus_refund_payment_totals', fn ($join) => $join->on('surplus_refund_payment_totals.note_id', '=', 'notes.id'))
             ->leftJoin('note_history_projection', 'note_history_projection.note_id', '=', 'notes.id')
             ->whereBetween('notes.transaction_date', [$fromTransactionDate, $toTransactionDate])
+            ->where('notes.note_state', '<>', 'cancelled')
             ->orderBy('notes.transaction_date')
             ->orderBy('notes.id')
             ->get([
@@ -78,5 +78,4 @@ final class TransactionSummaryReportingQuery
             'outstanding_rupiah' => array_sum(array_column($rows, 'outstanding_rupiah')),
         ];
     }
-
 }

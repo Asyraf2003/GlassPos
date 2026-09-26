@@ -10,12 +10,11 @@ use App\Core\Shared\ValueObjects\Money;
 
 final class NoteAddabilityPolicy
 {
-    public function __construct(private readonly NotePaidStatusPolicy $paidStatus)
-    {
-    }
+    public function __construct(private readonly NotePaidStatusPolicy $paidStatus) {}
 
     public function assertAllowed(Note $note): void
     {
+        $note->assertNotCancelled();
         if ($note->totalRupiah()->equals(Money::zero())) {
             return;
         }

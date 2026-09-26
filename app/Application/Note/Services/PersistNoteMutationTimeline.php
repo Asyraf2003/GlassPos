@@ -18,8 +18,7 @@ final class PersistNoteMutationTimeline
         private readonly NoteMutationEventWriterPort $events,
         private readonly NoteMutationSnapshotWriterPort $snapshots,
         private readonly UuidPort $uuid,
-    ) {
-    }
+    ) {}
 
     public function record(
         string $noteId,
@@ -33,7 +32,7 @@ final class PersistNoteMutationTimeline
         ?string $relatedCustomerPaymentId = null,
         ?string $relatedCustomerRefundId = null,
         array $metadata = [],
-    ): void {
+    ): string {
         $event = NoteMutationEvent::create(
             $this->uuid->generate(),
             $noteId,
@@ -51,6 +50,8 @@ final class PersistNoteMutationTimeline
             NoteMutationSnapshot::create($this->uuid->generate(), $event->id(), NoteMutationSnapshot::BEFORE, $this->encode($this->withMeta($before, $metadata))),
             NoteMutationSnapshot::create($this->uuid->generate(), $event->id(), NoteMutationSnapshot::AFTER, $this->encode($this->withMeta($after, $metadata))),
         ]);
+
+        return $event->id();
     }
 
     private function withMeta(array $payload, array $metadata): array
@@ -60,6 +61,7 @@ final class PersistNoteMutationTimeline
         }
 
         $payload['meta'] = $metadata;
+
         return $payload;
     }
 

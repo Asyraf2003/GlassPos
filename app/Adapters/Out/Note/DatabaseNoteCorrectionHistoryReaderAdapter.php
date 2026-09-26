@@ -45,6 +45,7 @@ final class DatabaseNoteCorrectionHistoryReaderAdapter implements NoteCorrection
     private function eventLabel(string $mutationType): string
     {
         return match ($mutationType) {
+            'note_cancelled' => 'Batalkan Transaksi',
             'paid_service_only_work_item_corrected' => 'Koreksi Nominal Servis',
             'paid_service_with_store_stock_part_service_fee_only_corrected' => 'Koreksi Biaya Servis + Sparepart Toko',
             'paid_service_with_external_purchase_service_fee_only_corrected' => 'Koreksi Biaya Servis + Sparepart Luar',
@@ -53,7 +54,7 @@ final class DatabaseNoteCorrectionHistoryReaderAdapter implements NoteCorrection
     }
 
     /**
-     * @param list<string> $eventIds
+     * @param  list<string>  $eventIds
      * @return array<string, array<string, array<string, mixed>>>
      */
     private function snapshotMap(array $eventIds): array
@@ -81,6 +82,7 @@ final class DatabaseNoteCorrectionHistoryReaderAdapter implements NoteCorrection
     {
         try {
             $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+
             return is_array($decoded) ? $decoded : [];
         } catch (JsonException) {
             return [];

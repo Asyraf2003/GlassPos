@@ -23,6 +23,7 @@ final class NoteOutstandingPaymentAmountResolver
         private readonly ?NoteCurrentRevisionResolver $currentRevision = null,
         private readonly ?CurrentRevisionRowSettlementProjector $currentRevisionSettlements = null,
     ) {}
+
     public function resolveFull(string $noteId): Result
     {
         $note = $this->notes->getById(trim($noteId));
@@ -48,6 +49,7 @@ final class NoteOutstandingPaymentAmountResolver
             ),
         ]);
     }
+
     public function resolvePartial(string $noteId, int $amountRupiah): Result
     {
         $full = $this->resolveFull($noteId);
@@ -71,9 +73,13 @@ final class NoteOutstandingPaymentAmountResolver
             'explanation' => $full->data()['explanation'] ?? [],
         ]);
     }
+
     /** @return array{gross_total_rupiah:int,net_paid_rupiah:int,outstanding_rupiah:int} */
     private function legacySettlement(Note $note): array
     {
+        if ($note->isCancelled()) {
+            return ['gross_total_rupiah' => 0, 'net_paid_rupiah' => 0, 'outstanding_rupiah' => 0];
+        }
         $grandTotal = $note->totalRupiah()->amount();
         $allocated = $this->allocations->getTotalAllocatedAmountByNoteId($note->id())->amount();
         $grossPaid = $this->allocations->getTotalPaymentAmountByNoteId($note->id())->amount();
@@ -86,6 +92,7 @@ final class NoteOutstandingPaymentAmountResolver
             'outstanding_rupiah' => max($grandTotal - $netPaid, 0),
         ];
     }
+
     private function explanation(int $grandTotal, int $netPaid, int $outstanding): array
     {
         return [

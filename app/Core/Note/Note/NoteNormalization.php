@@ -10,7 +10,7 @@ trait NoteNormalization
 {
     private static function assertValidOperationalState(string $noteState): void
     {
-        if (!in_array(trim($noteState), [Note::STATE_OPEN, Note::STATE_CLOSED, Note::STATE_REFUNDED], true)) {
+        if (! in_array(trim($noteState), [Note::STATE_OPEN, Note::STATE_CLOSED, Note::STATE_REFUNDED, Note::STATE_CANCELLED], true)) {
             throw new DomainException('State operasional note tidak valid.');
         }
     }
@@ -36,6 +36,7 @@ trait NoteNormalization
 
         return $normalized === '' ? null : $normalized;
     }
+
     private static function normalizeOperationalNote(?string $value): ?string
     {
         if ($value === null) {
@@ -46,5 +47,4 @@ trait NoteNormalization
 
         return $trimmed === '' ? null : $trimmed;
     }
-
 }
