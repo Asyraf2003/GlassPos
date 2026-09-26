@@ -1,5 +1,14 @@
 # Primitive Lifecycle Contract Map + Adversarial Torture Test Blueprint
 
+## Whole-note cancellation continuation
+
+The historical X05 whole-note cancellation gap is now specified by
+[ADR-0046](../../02_architecture/adr/0046_whole_note_cancellation_and_revision_restore.md)
+and implemented under [Blueprint0019](0019_whole_note_cancellation_and_restore.md).
+This is contract promotion, not a claim that cancellation is implemented. Slices1–12
+and their proof limits in handoffs0027/0028 remain unchanged. The original audit below
+retains its historical findings; it does not reopen closed work.
+
 ## 0. Status, scope, and evidence boundary
 
 Audit window: 2026-09-15–2026-09-16, Asia/Makassar. Status: **BLUEPRINT READY FOR REVIEW; CONTRACT GAPS REMAIN**. Example fixture business date remains 2026-09-15.

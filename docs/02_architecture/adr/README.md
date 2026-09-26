@@ -107,6 +107,14 @@ Implementation boundary:
 
 ## Current Cleanup Notes
 
+### ADR-0046
+
+Whole-note cancellation and restore: [contract](0046_whole_note_cancellation_and_revision_restore.md).
+Promotes owner business direction from handoff0029; records implementation decisions separately.
+Cancellation neutralizes current effects with immutable history; recorded payment/external purchase
+remains in the refund boundary; restore creates a new accepted revision. Production support is
+tracked by Blueprint0019, not implied by this ADR. ADR-0019 remains draft.
+
 ### ADR-0014
 
 Status:

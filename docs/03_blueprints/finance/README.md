@@ -19,4 +19,8 @@ Blueprints, DoD, and workflows for the finance domain.
 
 ## Related ADRs
 
+Active cancellation campaign: [Blueprint0019](0019_whole_note_cancellation_and_restore.md),
+governed by [ADR-0046](../../02_architecture/adr/0046_whole_note_cancellation_and_revision_restore.md).
+Blueprint0018 closed lifecycle proof remains the baseline; whole-note cancellation is a new scope.
+
 `docs/02_architecture/adr/0018_note_revision_settlement_external_product_lifecycle.md`, `docs/02_architecture/adr/0024_note_current_projection_and_current_only_refund.md`, `docs/02_architecture/adr/0025_note_revision_carry_forward_settlement.md`, `docs/02_architecture/adr/0026_note_revision_surplus_disposition.md`, `docs/02_architecture/adr/0027_note_revision_surplus_disposition_transaction_contract.md`, `docs/02_architecture/adr/0030_note_revision_payment_settlement_and_cashier_calculator_contract.md`
