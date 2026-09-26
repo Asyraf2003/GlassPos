@@ -1,7 +1,7 @@
 .note-payment-timeline {
-  margin-block: 1rem;
-  padding-block: 1rem;
-  border-block: 1px solid var(--note-detail-border);
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 .note-payment-timeline__header,
@@ -13,30 +13,39 @@
   gap: .75rem;
 }
 
-.note-payment-timeline__title {
-  margin: 0;
+.note-payment-timeline__title,
+.note-payment-timeline__subtitle,
+.note-payment-timeline__empty,
+.note-payment-timeline__count,
+.note-payment-timeline__event-head,
+.note-payment-timeline__amount,
+.note-payment-timeline__amount span,
+.note-payment-timeline__cash,
+.note-payment-timeline__allocation,
+.note-payment-timeline__remaining {
   color: var(--note-detail-text);
   font-size: 1rem;
+  line-height: 1.45;
+}
+
+.note-payment-timeline__title {
+  margin: 0;
   font-weight: 800;
 }
 
 .note-payment-timeline__subtitle,
 .note-payment-timeline__empty {
   margin: .2rem 0 0;
-  color: var(--note-detail-muted);
-  font-size: .82rem;
 }
 
 .note-payment-timeline__count {
   flex: 0 0 auto;
-  color: var(--note-detail-muted);
-  font-size: .78rem;
   font-weight: 700;
 }
 
 .note-payment-timeline__list {
   display: grid;
-  gap: .65rem;
+  gap: 0;
   margin: .85rem 0 0;
   padding: 0;
   list-style: none;
@@ -45,39 +54,34 @@
 .note-payment-timeline__event {
   display: grid;
   gap: .35rem;
-  padding: .8rem;
-  border: 1px solid var(--note-detail-border);
-  border-radius: .5rem;
-  background: var(--note-detail-surface-subtle);
+  padding: .85rem 0;
+  border-top: 1px solid var(--note-detail-border);
+  background: transparent;
 }
 
-.note-payment-timeline__event-head {
-  color: var(--note-detail-muted);
-  font-size: .78rem;
+.note-payment-timeline__event:first-child {
+  border-top: 0;
+  padding-top: 0;
 }
 
-.note-payment-timeline__event-head strong {
-  color: var(--note-detail-accent);
-}
-
-.note-payment-timeline__amount {
-  color: var(--note-detail-text);
-  font-size: 1rem;
-  font-weight: 800;
-}
-
-.note-payment-timeline__amount span,
-.note-payment-timeline__cash,
-.note-payment-timeline__allocation {
-  color: var(--note-detail-muted);
-  font-size: .82rem;
-  font-weight: 600;
-}
-
+.note-payment-timeline__event-head strong,
+.note-payment-timeline__amount,
 .note-payment-timeline__remaining {
-  color: var(--note-detail-text);
-  font-size: .88rem;
   font-weight: 800;
+}
+
+.note-detail-history-stack .note-detail-history-section {
+  margin: 1rem 0 0;
+  padding: 1rem 0 0;
+  border: 0;
+  border-top: 1px solid var(--note-detail-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.note-detail-history-stack .note-detail-history-heading {
+  margin-bottom: .8rem;
 }
 
 @media (max-width: 389.98px) {
