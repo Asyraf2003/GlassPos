@@ -4,17 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\Note\Services;
 
-use App\Application\Audit\DTO\AuditEventWrite;
 use App\Application\Note\UseCases\CreateNoteRevisionWorkflow;
 use App\Application\Shared\DTO\Result;
 use App\Core\Shared\Exceptions\DomainException;
-use App\Ports\Out\AuditEventWriterPort;
 use App\Ports\Out\ClockPort;
 use App\Ports\Out\Note\NoteCorrectionHistoryReaderPort;
 use App\Ports\Out\Note\NoteReaderPort;
 use App\Ports\Out\Note\NoteRevisionReaderPort;
 use App\Ports\Out\Note\NoteWriterPort;
-use App\Ports\Out\UuidPort;
 
 final class RestoreCancelledNoteWorkflow
 {
@@ -28,10 +25,8 @@ final class RestoreCancelledNoteWorkflow
         private readonly NoteCorrectionHistoryReaderPort $history,
         private readonly CreateNoteRevisionWorkflow $revisionWorkflow,
         private readonly NoteCorrectionSnapshotBuilder $snapshots,
-        private readonly PersistNoteMutationTimeline $timeline,
-        private readonly AuditEventWriterPort $events,
-        private readonly UuidPort $uuid,
         private readonly ClockPort $clock,
+        private readonly NoteRestoreAuditRecorder $audit,
     ) {}
 
     public function execute(array $command, string $role): Result
@@ -81,8 +76,7 @@ final class RestoreCancelledNoteWorkflow
         if ($revisionResult->isFailure()) {
             throw new DomainException($revisionResult->message() ?? 'NOTE_RESTORE_REVISION_FAILED');
         }
-        $after = $this->notes->getByIdForUpdate($root->id())
-            ?? throw new DomainException('NOTE_NOT_FOUND');
+        $after = $this->notes->getByIdForUpdate($root->id()) ?? throw new DomainException('NOTE_NOT_FOUND');
         $metadata = [
             'note_id' => $root->id(),
             'cancellation_event_id' => $command['cancellation_event_id'],
@@ -91,15 +85,7 @@ final class RestoreCancelledNoteWorkflow
             'restored_revision_id' => $revisionResult->data()['revision_id'],
             'restored_revision_number' => $revisionResult->data()['revision_number'],
         ];
-        $eventId = $this->timeline->record(
-            $root->id(), 'note_restored', $command['_actor_id'], $role,
-            $command['reason'], $at, $before, $this->snapshots->build($after), metadata: $metadata,
-        );
-        $this->events->write(new AuditEventWrite(
-            $this->uuid->generate(), 'note', 'note', $root->id(), 'note_restored',
-            $command['_actor_id'], $role, $command['reason'], 'application', null, null,
-            $at, [...$metadata, 'restore_event_id' => $eventId],
-        ));
+        $eventId = $this->audit->record($after, $command, $role, $at, $before, $metadata);
 
         return Result::success([
             'note_id' => $root->id(),

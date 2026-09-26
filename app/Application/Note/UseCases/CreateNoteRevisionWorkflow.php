@@ -6,7 +6,6 @@ namespace App\Application\Note\UseCases;
 
 use App\Application\Note\Services\ApplyNoteRevisionAsActiveReplacement;
 use App\Application\Note\Services\CreateTransactionWorkspaceInlinePaymentRecorder;
-use App\Application\Note\Services\EditableWorkspaceNoteGuard;
 use App\Application\Note\Services\NoteCurrentRevisionResolver;
 use App\Application\Note\Services\NoteHistoryProjectionService;
 use App\Application\Note\Services\NoteRevisionBootstrapFactory;
@@ -27,7 +26,7 @@ final class CreateNoteRevisionWorkflow
         private readonly ReopenNoteForRevisionOutstanding $reopen,
         private readonly CreateTransactionWorkspaceInlinePaymentRecorder $payments,
         private readonly CreateNoteRevisionPaymentResultFactory $paymentResults,
-        private readonly EditableWorkspaceNoteGuard $guard,
+        private readonly CreateNoteRevisionCurrentBaseGuard $baseGuard,
         private readonly NoteHistoryProjectionService $projection,
         private readonly ClockPort $clock,
     ) {}
@@ -50,12 +49,9 @@ final class CreateNoteRevisionWorkflow
         $root->assertNotCancelled();
 
         $current = $this->current->resolveOrFail($root->id());
-        if (trim((string) ($payload['base_revision_id'] ?? '')) !== $current->id()) {
-            return CreateNoteRevisionResult::failure('STALE_REVISION: Nota telah berubah. Muat ulang editor sebelum menyimpan.', ['code' => 'STALE_REVISION']);
-        }
-
-        if ($enforceWorkspaceEditability) {
-            $this->guard->assertEditable($root->id());
+        $invalid = $this->baseGuard->validate($root, $current, $payload, $enforceWorkspaceEditability);
+        if ($invalid !== null) {
+            return $invalid;
         }
 
         $number = $this->current->nextRevisionNumber($root->id());
