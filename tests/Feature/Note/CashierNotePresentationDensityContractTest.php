@@ -84,6 +84,54 @@ final class CashierNotePresentationDensityContractTest extends TestCase
         self::assertStringNotContainsString('Tagihan aktif dipilih otomatis. Rincian tagihan dikirim otomatis agar pembayaran tercatat sesuai urutan.', $paymentModal);
     }
 
+    public function test_note_detail_uses_canonical_flat_visual_contract(): void
+    {
+        $detail = $this->readViewSource('shared/notes/show.blade.php');
+        $header = $this->readViewSource('shared/notes/partials/header-summary.blade.php');
+        $lines = $this->readViewSource('shared/notes/partials/line-workspace.blade.php');
+        $versions = $this->readViewSource('shared/notes/partials/versioning-compact.blade.php');
+        $corrections = $this->readViewSource('cashier/notes/partials/correction-history.blade.php');
+        $payment = $this->readViewSource('shared/notes/partials/payment-summary-actions.blade.php');
+        $lifecycle = $this->readViewSource('shared/notes/partials/lifecycle-actions.blade.php');
+        $status = $this->readViewSource('shared/notes/partials/status-badge.blade.php');
+        $css = (string) file_get_contents(public_path('assets/static/css/note-detail-canonical.css'));
+
+        self::assertStringContainsString('note-detail-canonical.css', $detail);
+        self::assertStringContainsString("'label' => \$note['operational_status'] ?? '-'", $detail);
+        self::assertStringContainsString("'label' => \$note['payment_status_label'] ?? '-'", $detail);
+        self::assertGreaterThan(
+            strpos($detail, 'data-note-desktop-panel="history-finance"'),
+            strpos($detail, 'data-note-desktop-panel="lifecycle"'),
+        );
+
+        self::assertStringContainsString('note-detail-info-list', $header);
+        self::assertStringNotContainsString('note-detail-readonly-control', $header);
+        self::assertStringNotContainsString('note-detail-readonly-field--status', $header);
+
+        self::assertStringContainsString('note-detail-line-row', $lines);
+        self::assertStringNotContainsString('note-detail-line-card', $lines);
+        self::assertStringNotContainsString('<style>', $lines);
+        self::assertStringContainsString('data-refund-row="1"', $lines);
+        self::assertStringContainsString("@include('shared.notes.partials.status-badge'", $lines);
+
+        self::assertStringContainsString('note-detail-version-row--current', $versions);
+        self::assertStringContainsString('>v{{', $versions);
+        self::assertStringNotContainsString('Belum ada riwayat revisi.', $versions);
+        self::assertStringNotContainsString('class="card', $versions);
+        self::assertStringNotContainsString('class="card', $corrections);
+        self::assertStringNotContainsString('class="card', $payment);
+        self::assertStringNotContainsString('class="card', $lifecycle);
+
+        self::assertStringContainsString('note-detail-status-badge--info', $css);
+        self::assertStringContainsString('note-detail-status-badge--success', $css);
+        self::assertStringContainsString('note-detail-status-badge--danger', $css);
+        self::assertStringContainsString('--note-detail-page-title-size: 1.5rem', $css);
+        self::assertStringContainsString('--note-detail-card-title-size: 1.125rem', $css);
+        self::assertStringContainsString('--note-detail-content-size: 1rem', $css);
+        self::assertStringContainsString('html[data-bs-theme="dark"] body[data-note-device] .note-detail-shell', $css);
+        self::assertStringContainsString('fs-6', $status);
+    }
+
     private function readViewSource(string $path): string
     {
         return (string) file_get_contents(resource_path('views/'.$path));
