@@ -45,6 +45,8 @@ This folder is only for active or latest handoffs. Once a session is closed, arc
 | `0030_unpaid_whole_note_cancellation_c1_handoff.md` | Whole-note cancellation C1 unpaid root cancellation | merged as PR #4; proof retained |
 | `0031_restore_cancelled_note_c2_handoff.md` | Whole-note cancellation C2 restore as a new accepted revision | implementation and proof complete locally; PR review/merge pending |
 
+| `0033_contract_gate_refactor_handoff.md` | Independent Issue #8 responsibility extraction | focused proof green; PR review/merge pending |
+
 ## Archive
 
 All old handoffs live in `docs/99_archive/handoff/`:
