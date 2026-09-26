@@ -9,6 +9,10 @@
                         <div class="fw-bold">{{ $entry['event_label'] }}</div>
                         <div class="small text-muted">{{ \App\Support\ViewDateFormatter::display($entry['created_at'] ?? null, true) }}</div>
 
+                        @if ($entry['performed_by_actor_id'] ?? null)
+                            <div class="small text-muted">Aktor: {{ $entry['performed_by_actor_id'] }}</div>
+                        @endif
+
                         @if ($entry['reason'] !== null)
                             <div class="mt-2"><span class="text-muted">Alasan:</span> {{ $entry['reason'] }}</div>
                         @endif
