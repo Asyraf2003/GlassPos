@@ -94,6 +94,7 @@ try {
   await until(() => evaluate(`document.querySelector('#note-refund-modal').classList.contains('show')`), 'refund modal');
   await sleep(400);
   await evaluate(`const reason=document.querySelector('#note-refund-reason');reason.value='Slice12 live selected product refund';reason.dispatchEvent(new Event('input',{bubbles:true}))`);
+  await evaluate(`const choice=document.querySelector('[data-stock-choice]');choice.value='1';choice.dispatchEvent(new Event('change',{bubbles:true}))`);
   assert.equal(await evaluate(`document.querySelector('#note-refund-submit').disabled`), false);
   await evaluate(`document.querySelector('#note-refund-submit').click()`);
   await until(() => Number(db('SELECT COALESCE(SUM(amount_rupiah),0) FROM customer_refunds')) === 142539, 'refund committed');
