@@ -9,8 +9,8 @@ use App\Application\Note\Services\CreateTransactionWorkspaceInlinePaymentAmountR
 use App\Application\Note\Services\NoteOutstandingPaymentAmountResolver;
 use App\Application\Note\Services\NotePaymentSettlementPreviewResolver;
 use App\Application\Note\Services\NoteReplacementPaymentAllocationReconciler;
-use App\Ports\Out\ClockPort;
 use App\Application\Payment\UseCases\RecordAndAllocateNotePaymentHandler;
+use App\Ports\Out\ClockPort;
 use App\Ports\Out\Note\NoteReaderPort;
 use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -77,7 +77,7 @@ final class PrimitiveSettlementSourceParityFeatureTest extends TestCase
 
         $clock->time = $clock->time->modify('+1 minute');
         $this->post(route('admin.notes.refunds.store', ['noteId' => $noteId]), [
-            'selected_row_ids' => [$productRow], 'refunded_at' => $date,
+            'selected_row_ids' => [$productRow], 'stock_returns' => [$productRow => true], 'refunded_at' => $date,
             'reason' => 'D05 ordinary product refund', 'idempotency_key' => 'd05-refund',
         ])->assertRedirect()->assertSessionHasNoErrors();
         $refundRows = $this->rows('customer_refunds');
@@ -100,7 +100,7 @@ final class PrimitiveSettlementSourceParityFeatureTest extends TestCase
             $oldLines = $this->rows('note_revision_lines');
             $clock->time = $clock->time->modify('+1 minute');
             $this->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), [
-            'base_revision_id' => $this->revisionBaseForTest($noteId),
+                'base_revision_id' => $this->revisionBaseForTest($noteId),
                 'idempotency_key' => 'd05-revision-'.$revision,
                 'reason' => 'D05 service price increase '.$revision,
                 'note' => ['customer_name' => 'D05 settlement conservation', 'transaction_date' => $date],
@@ -140,7 +140,7 @@ final class PrimitiveSettlementSourceParityFeatureTest extends TestCase
         foreach ([4 => 151983, 5 => 190007] as $revision => $gross) {
             $clock->time = $clock->time->modify('+1 minute');
             $this->patch(route('admin.notes.workspace.update', ['noteId' => $noteId]), [
-            'base_revision_id' => $this->revisionBaseForTest($noteId),
+                'base_revision_id' => $this->revisionBaseForTest($noteId),
                 'idempotency_key' => 'd05-surplus-revision-'.$revision,
                 'reason' => 'Slice 1 surplus carry '.$revision,
                 'note' => ['customer_name' => 'D05 settlement conservation', 'transaction_date' => $date],

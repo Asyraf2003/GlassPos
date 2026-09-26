@@ -19,7 +19,8 @@ final class RefundRevisionOperationalReopenFeatureTest extends TestCase
 
     public function test_authorized_revision_after_refund_reopens_root_and_new_settlement_closes_it_again(): void
     {
-        $clock = new class implements ClockPort {
+        $clock = new class implements ClockPort
+        {
             public DateTimeImmutable $time;
 
             public function now(): DateTimeImmutable
@@ -62,7 +63,7 @@ final class RefundRevisionOperationalReopenFeatureTest extends TestCase
 
         $clock->time = $clock->time->modify('+10 minutes');
         $this->actingAs($admin)->post(route('admin.notes.refunds.store', ['noteId' => $noteId]), [
-            'selected_row_ids' => [$productRow], 'refunded_at' => $date,
+            'selected_row_ids' => [$productRow], 'stock_returns' => [$productRow => true], 'refunded_at' => $date,
             'reason' => 'Historical component refund', 'idempotency_key' => 'operational-reopen-refund',
         ])->assertSessionHasNoErrors();
         $this->assertDatabaseHas('notes', ['id' => $noteId, 'note_state' => 'closed', 'reopened_at' => null]);

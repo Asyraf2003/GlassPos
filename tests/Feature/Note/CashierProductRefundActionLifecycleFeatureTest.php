@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
+use App\Ports\Out\ClockPort;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -14,11 +15,12 @@ use Tests\TestCase;
 final class CashierProductRefundActionLifecycleFeatureTest extends TestCase
 {
     use RefreshDatabase;
+    use SeedsMinimalProductFixture;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->app->instance(\App\Ports\Out\ClockPort::class, new class implements \App\Ports\Out\ClockPort
+        $this->app->instance(ClockPort::class, new class implements ClockPort
         {
             public function now(): \DateTimeImmutable
             {
@@ -26,8 +28,6 @@ final class CashierProductRefundActionLifecycleFeatureTest extends TestCase
             }
         });
     }
-
-    use SeedsMinimalProductFixture;
 
     public static function rowKinds(): array
     {
@@ -64,14 +64,18 @@ final class CashierProductRefundActionLifecycleFeatureTest extends TestCase
             $page = $this->actingAs($cashier)->get($detail)->assertOk();
             self::assertFalse($page->viewData('note')['can_edit_workspace'], 'Cashier must not advertise an edit whose submit is forbidden.');
             $this->assertDatabaseHas('product_inventory', ['product_id' => 'refund-product', 'qty_on_hand' => 7]);
-            $refund = ['selected_row_ids' => [$rowId], 'refunded_at' => '2026-09-14', 'reason' => 'Whole row qty three refund', 'idempotency_key' => 'qty-three-refund'];
+            $refund = ['selected_row_ids' => [$rowId], 'stock_returns' => [$rowId => true], 'refunded_at' => '2026-09-14', 'reason' => 'Whole row qty three refund', 'idempotency_key' => 'qty-three-refund'];
             $this->actingAs($cashier)->post(route('cashier.notes.refunds.store', ['noteId' => $noteId]), $refund)->assertSessionHasNoErrors();
             $this->actingAs($cashier)->post(route('cashier.notes.refunds.store', ['noteId' => $noteId]), $refund)->assertSessionHasNoErrors();
             $page = $this->actingAs($cashier)->get($detail)->assertOk();
-            foreach (['can_show_payment_form', 'can_show_partial_payment_action', 'can_show_settle_payment_action', 'can_edit_workspace'] as $flag) self::assertFalse($page->viewData('note')[$flag], $flag);
+            foreach (['can_show_payment_form', 'can_show_partial_payment_action', 'can_show_settle_payment_action', 'can_edit_workspace'] as $flag) {
+                self::assertFalse($page->viewData('note')[$flag], $flag);
+            }
             $tables = ['customer_payments', 'payment_component_allocations', 'customer_refunds', 'refund_component_allocations', 'inventory_movements', 'note_history_projection'];
             $before = [];
-            foreach ($tables as $table) $before[$table] = DB::table($table)->get()->toJson();
+            foreach ($tables as $table) {
+                $before[$table] = DB::table($table)->get()->toJson();
+            }
             foreach (['partial', null] as $scope) {
                 $this->actingAs($cashier)->post(route('cashier.notes.payments.store', ['noteId' => $noteId]), [
                     'selected_row_ids' => [$rowId], 'payment_scope' => $scope,
@@ -79,13 +83,17 @@ final class CashierProductRefundActionLifecycleFeatureTest extends TestCase
                     'amount_paid' => $scope === 'partial' ? 100000 : 300000, 'amount_received' => 400000,
                 ])->assertSessionHasErrors();
             }
-            foreach ($tables as $table) self::assertSame($before[$table], DB::table($table)->get()->toJson(), $table.' changed after invalid repayment');
+            foreach ($tables as $table) {
+                self::assertSame($before[$table], DB::table($table)->get()->toJson(), $table.' changed after invalid repayment');
+            }
             self::assertSame($package ? 400000 : 300000, (int) DB::table('customer_payments')->sum('amount_rupiah'));
-            self::assertSame(300000, (int) DB::table('customer_refunds')->sum('amount_rupiah'));
-            self::assertSame(300000, (int) DB::table('refund_component_allocations')->sum('refunded_amount_rupiah'));
+            self::assertSame($package ? 400000 : 300000, (int) DB::table('customer_refunds')->sum('amount_rupiah'));
+            self::assertSame($package ? 400000 : 300000, (int) DB::table('refund_component_allocations')->sum('refunded_amount_rupiah'));
             $this->assertDatabaseHas('product_inventory', ['product_id' => 'refund-product', 'qty_on_hand' => 10]);
             $this->assertDatabaseHas('product_inventory_costing', ['product_id' => 'refund-product', 'inventory_value_rupiah' => 400000]);
             self::assertSame(2, DB::table('inventory_movements')->count());
-        } finally { Carbon::setTestNow(); }
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 }

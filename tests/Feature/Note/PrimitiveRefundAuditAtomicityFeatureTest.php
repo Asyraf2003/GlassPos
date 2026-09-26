@@ -41,7 +41,7 @@ final class PrimitiveRefundAuditAtomicityFeatureTest extends TestCase
             $this->primitivePayment('audit-refund-settle', 322804, 'transfer'))->assertSessionHasNoErrors();
         $productRow = (string) DB::table('work_items')->where('transaction_type', 'store_stock_sale_only')->value('id');
         $route = route('cashier.notes.refunds.store', ['noteId' => $noteId]);
-        $payload = ['selected_row_ids' => [$productRow], 'refunded_at' => '2026-09-15',
+        $payload = ['selected_row_ids' => [$productRow], 'stock_returns' => [$productRow => true], 'refunded_at' => '2026-09-15',
             'reason' => 'Atomic split refund', 'idempotency_key' => 'audit-refund-product'];
         $before = $this->captureGraph();
         $connection = DB::connection();

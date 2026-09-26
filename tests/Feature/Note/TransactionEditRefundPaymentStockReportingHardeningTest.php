@@ -479,6 +479,7 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
             ->from(route('admin.notes.show', ['noteId' => $noteId]))
             ->post(route('admin.notes.refunds.store', ['noteId' => $noteId]), [
                 'selected_row_ids' => [$oldWorkItemId],
+                'stock_returns' => [$oldWorkItemId => true],
                 'refunded_at' => '2026-05-21',
                 'reason' => '0062-C forged refund unpaid note',
             ])
@@ -628,7 +629,8 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         $this->actingAs($admin)
             ->from(route('admin.notes.show', ['noteId' => $noteId]))
             ->post(route('admin.notes.refunds.store', ['noteId' => $noteId]), [
-                'selected_row_ids' => [$oldWorkItemId],
+                'selected_row_ids' => [$oldWorkItemId.'::service_store_stock_part::'.$oldStoreStockLineId],
+                'stock_returns' => [$oldWorkItemId => true],
                 'refunded_at' => '2026-05-21',
                 'reason' => '0062-D refund store stock before edit.',
             ])
@@ -824,7 +826,8 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         $this->actingAs($admin)
             ->from(route('admin.notes.show', ['noteId' => $noteId]))
             ->post(route('admin.notes.refunds.store', ['noteId' => $noteId]), [
-                'selected_row_ids' => [$oldWorkItemId],
+                'selected_row_ids' => [$oldWorkItemId.'::service_store_stock_part::'.$oldStoreStockLineId],
+                'stock_returns' => [$oldWorkItemId => true],
                 'refunded_at' => '2026-05-21',
                 'reason' => $refundReason,
                 'idempotency_key' => '0062-target-refund',

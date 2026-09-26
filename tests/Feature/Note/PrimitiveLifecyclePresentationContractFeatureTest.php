@@ -7,6 +7,7 @@ namespace Tests\Feature\Note;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\ViewErrorBag;
 use Tests\Support\BuildsPrimitiveLifecycleFixture;
 use Tests\TestCase;
 
@@ -100,7 +101,7 @@ final class PrimitiveLifecyclePresentationContractFeatureTest extends TestCase
         $this->post($payment, $this->primitivePayment('presentation-b-full', 233347, 'cash', 250009))->assertSessionHasNoErrors();
         $oldProduct = (string) DB::table('work_items')->where('transaction_type', 'store_stock_sale_only')->value('id');
         $this->post(route('cashier.notes.refunds.store', ['noteId' => $id]), [
-            'selected_row_ids' => [$oldProduct], 'refunded_at' => '2026-09-15', 'reason' => 'Presentation source refund', 'idempotency_key' => 'presentation-b-refund',
+            'selected_row_ids' => [$oldProduct], 'stock_returns' => [$oldProduct => true], 'refunded_at' => '2026-09-15', 'reason' => 'Presentation source refund', 'idempotency_key' => 'presentation-b-refund',
         ])->assertSessionHasNoErrors();
         $before = $this->readEvidence();
         $b4Response = $this->get($show)->assertOk()->assertSee('Total Revisi')->assertSee('Tagihan Aktif')->assertSee('253.394');
@@ -138,7 +139,7 @@ final class PrimitiveLifecyclePresentationContractFeatureTest extends TestCase
         self::assertSame($before, $this->readEvidence());
     }
 
-    private function exportBrowserPage(string $name, string $html, string $url, ?\Illuminate\Support\ViewErrorBag $errors = null): void
+    private function exportBrowserPage(string $name, string $html, string $url, ?ViewErrorBag $errors = null): void
     {
         $directory = getenv('PRIMITIVE_PRESENTATION_EXPORT_DIR');
         if (is_string($directory) && is_dir($directory)) {
@@ -164,6 +165,7 @@ final class PrimitiveLifecyclePresentationContractFeatureTest extends TestCase
                 ? DB::table($table)->orderBy('work_item_id')->get()->map(fn ($row) => (array) $row)->all()
                 : $this->primitiveRows($table);
         }
+
         return $evidence;
     }
 }

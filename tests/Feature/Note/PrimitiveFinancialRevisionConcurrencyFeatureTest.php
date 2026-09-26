@@ -60,7 +60,7 @@ final class PrimitiveFinancialRevisionConcurrencyFeatureTest extends TestCase
         $firstAction = function () use ($refund, $cashier, $noteId, $oldRow, $payment): void {
             $this->actingAs($cashier);
             if ($refund) {
-                $this->post(route('cashier.notes.refunds.store', ['noteId' => $noteId]), ['selected_row_ids' => [$oldRow], 'refunded_at' => '2026-09-15', 'reason' => 'Concurrent paid product return', 'idempotency_key' => 'financial-race-refund'])->assertRedirect()->assertSessionHasNoErrors();
+                $this->post(route('cashier.notes.refunds.store', ['noteId' => $noteId]), ['selected_row_ids' => [$oldRow], 'stock_returns' => [$oldRow => true], 'refunded_at' => '2026-09-15', 'reason' => 'Concurrent paid product return', 'idempotency_key' => 'financial-race-refund'])->assertRedirect()->assertSessionHasNoErrors();
             } else {
                 $this->post(route('cashier.notes.payments.store', ['noteId' => $noteId]), $payment)->assertRedirect()->assertSessionHasNoErrors();
             }

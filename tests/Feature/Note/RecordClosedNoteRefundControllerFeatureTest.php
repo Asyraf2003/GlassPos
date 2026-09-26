@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
-use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
@@ -26,6 +26,7 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
             ->from(route('cashier.notes.index'))
             ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-1']), [
                 'selected_row_ids' => ['wi-1'],
+                'stock_returns' => ['wi-1' => true],
                 'refunded_at' => date('Y-m-d'),
                 'reason' => 'Koreksi line produk',
             ])
@@ -80,6 +81,7 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
 
         $payload = [
             'selected_row_ids' => ['wi-1'],
+            'stock_returns' => ['wi-1' => true],
             'refunded_at' => date('Y-m-d'),
             'reason' => 'Koreksi line produk double submit',
             'idempotency_key' => 'refund-main-idem-001',
@@ -123,13 +125,12 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('id="note-refund-form"', false);
         $response->assertSee('name="idempotency_key"', false);
-        $response->assertSee('Pengembalian dana / pembatalan rincian', false);
+        $response->assertSee('Pilih keputusan pengembalian barang', false);
         self::assertMatchesRegularExpression(
             '/<input[^>]+type="hidden"[^>]+name="idempotency_key"[^>]+value="[^"]{8,}"/',
             (string) $response->getContent(),
         );
     }
-
 
     public function test_cashier_cannot_record_refund_for_historical_note_outside_cashier_access_window(): void
     {
@@ -140,6 +141,7 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
             ->from(route('cashier.notes.index'))
             ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-1']), [
                 'selected_row_ids' => ['wi-1'],
+                'stock_returns' => ['wi-1' => true],
                 'refunded_at' => date('Y-m-d'),
                 'reason' => 'Unauthorized historical refund',
             ])
@@ -158,7 +160,6 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
         ]);
     }
 
-
     public function test_cashier_cannot_record_refund_for_open_partially_paid_row(): void
     {
         $user = $this->seedKasir();
@@ -168,6 +169,7 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
             ->from(route('cashier.notes.index'))
             ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-1']), [
                 'selected_row_ids' => ['wi-1'],
+                'stock_returns' => ['wi-1' => true],
                 'refunded_at' => date('Y-m-d'),
                 'reason' => 'Batalkan line open',
             ])
@@ -203,6 +205,7 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
             ->from(route('cashier.notes.index'))
             ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-1']), [
                 'selected_row_ids' => ['wi-1'],
+                'stock_returns' => ['wi-1' => true],
                 'refunded_at' => date('Y-m-d'),
                 'reason' => '',
             ])
@@ -221,6 +224,7 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
             ->from(route('cashier.notes.index'))
             ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-2']), [
                 'selected_row_ids' => ['wi-2'],
+                'stock_returns' => ['wi-2' => true],
                 'refunded_at' => date('Y-m-d'),
                 'reason' => 'Refund line kedua saja',
             ])
@@ -271,7 +275,6 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
         ]);
     }
 
-
     public function test_cashier_can_refund_legacy_paid_product_only_note_without_component_allocations(): void
     {
         $user = $this->seedKasir();
@@ -316,6 +319,7 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
             ->from(route('cashier.notes.index'))
             ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-legacy-refund-1']), [
                 'selected_row_ids' => ['wi-legacy-refund-1'],
+                'stock_returns' => ['wi-legacy-refund-1' => true],
                 'refunded_at' => $today,
                 'reason' => 'Refund legacy paid product line',
             ])
@@ -356,8 +360,6 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
             'total_rupiah' => 0,
         ]);
     }
-
-
 
     public function test_legacy_paid_service_only_refund_is_rejected_without_mutating_note(): void
     {
@@ -419,7 +421,6 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
             'mutation_type' => 'note_rows_canceled_via_refund',
         ]);
     }
-
 
     private function seedKasir(): User
     {

@@ -59,6 +59,7 @@ final class RefundAfterRevisionCurrentRowBoundaryFeatureTest extends TestCase
             ->from(route('admin.notes.show', ['noteId' => 'note-refund-revision-001']))
             ->post(route('admin.notes.refunds.store', ['noteId' => 'note-refund-revision-001']), [
                 'selected_row_ids' => ['wi-refund-revision-old-001'],
+                'stock_returns' => ['wi-refund-revision-old-001' => true],
                 'refunded_at' => '2026-05-22',
                 'reason' => 'Attempt stale historical row refund.',
             ])
@@ -72,6 +73,7 @@ final class RefundAfterRevisionCurrentRowBoundaryFeatureTest extends TestCase
             ->from(route('admin.notes.show', ['noteId' => 'note-refund-revision-001']))
             ->post(route('admin.notes.refunds.store', ['noteId' => 'note-refund-revision-001']), [
                 'selected_row_ids' => [$currentWorkItemId],
+                'stock_returns' => [$currentWorkItemId => true],
                 'refunded_at' => '2026-05-22',
                 'reason' => 'Refund current replacement row.',
             ])

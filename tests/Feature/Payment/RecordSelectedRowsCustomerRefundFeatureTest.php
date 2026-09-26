@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Payment;
 
-use App\Application\Payment\UseCases\RecordCustomerRefundHandler;
-use App\Ports\Out\Note\NoteReaderPort;
-use App\Core\Note\Note\Note;
 use App\Adapters\Out\Note\DatabaseNoteReaderAdapter;
+use App\Application\Payment\UseCases\RecordCustomerRefundHandler;
+use App\Core\Note\Note\Note;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
+use App\Ports\Out\Note\NoteReaderPort;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
@@ -32,7 +32,7 @@ final class RecordSelectedRowsCustomerRefundFeatureTest extends TestCase
             '2026-04-03',
             'Refund komponen produk line terpilih',
             'actor-1',
-            ['wi-2'],
+            ['wi-2::service_store_stock_part::sto-2'],
         );
 
         $this->assertTrue($result->isSuccess());
@@ -92,7 +92,6 @@ final class RecordSelectedRowsCustomerRefundFeatureTest extends TestCase
         $this->assertDatabaseCount('refund_component_allocations', 0);
     }
 
-
     public function test_selected_rows_refund_stores_operational_timestamps_on_refund_component_allocations(): void
     {
         $this->seedNote();
@@ -125,18 +124,16 @@ final class RecordSelectedRowsCustomerRefundFeatureTest extends TestCase
         }
     }
 
-
     public function test_selected_row_refund_locks_note_before_refund_allocation_reads(): void
     {
         $this->seedNote();
         $this->seedPaymentAndAllocations();
 
-        $spy = new class ($this->app->make(DatabaseNoteReaderAdapter::class)) implements NoteReaderPort {
+        $spy = new class($this->app->make(DatabaseNoteReaderAdapter::class)) implements NoteReaderPort
+        {
             public int $forUpdateCalls = 0;
 
-            public function __construct(private readonly NoteReaderPort $delegate)
-            {
-            }
+            public function __construct(private readonly NoteReaderPort $delegate) {}
 
             public function countAll(): int
             {

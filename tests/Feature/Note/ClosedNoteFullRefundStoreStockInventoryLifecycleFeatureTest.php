@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
-use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
@@ -17,7 +17,7 @@ final class ClosedNoteFullRefundStoreStockInventoryLifecycleFeatureTest extends 
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
-    public function test_refund_for_closed_store_stock_package_refunds_product_component_only_and_reverses_inventory(): void
+    public function test_refund_for_closed_store_stock_package_refunds_service_and_product_components_and_reverses_inventory(): void
     {
         $user = $this->seedKasir();
         $this->seedClosedPaidStoreStockNote();
@@ -26,6 +26,7 @@ final class ClosedNoteFullRefundStoreStockInventoryLifecycleFeatureTest extends 
             ->from(route('cashier.notes.index'))
             ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-1']), [
                 'selected_row_ids' => ['wi-1'],
+                'stock_returns' => ['wi-1' => true],
                 'refunded_at' => date('Y-m-d'),
                 'reason' => 'Refund penuh part stok toko',
             ])
@@ -34,16 +35,16 @@ final class ClosedNoteFullRefundStoreStockInventoryLifecycleFeatureTest extends 
 
         $this->assertDatabaseHas('notes', [
             'id' => 'note-1',
-            'note_state' => 'closed',
+            'note_state' => 'refunded',
         ]);
 
         $this->assertDatabaseHas('customer_refunds', [
             'customer_payment_id' => 'payment-1',
             'note_id' => 'note-1',
-            'amount_rupiah' => 30000,
+            'amount_rupiah' => 50000,
         ]);
 
-        $this->assertDatabaseMissing('refund_component_allocations', [
+        $this->assertDatabaseHas('refund_component_allocations', [
             'component_type' => 'service_fee',
             'component_ref_id' => 'wi-1',
         ]);
@@ -70,7 +71,7 @@ final class ClosedNoteFullRefundStoreStockInventoryLifecycleFeatureTest extends 
         ]);
     }
 
-    public function test_selected_row_refund_for_closed_store_stock_note_skips_default_blocked_service_fee(): void
+    public function test_selected_row_refund_for_closed_store_stock_note_includes_service_fee(): void
     {
         $user = $this->seedKasir();
         $this->seedClosedPaidStoreStockNote();
@@ -79,6 +80,7 @@ final class ClosedNoteFullRefundStoreStockInventoryLifecycleFeatureTest extends 
             ->from(route('cashier.notes.index'))
             ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-1']), [
                 'selected_row_ids' => ['wi-1'],
+                'stock_returns' => ['wi-1' => true],
                 'refunded_at' => date('Y-m-d'),
                 'reason' => 'Refund full selected stock row',
             ])
@@ -87,7 +89,7 @@ final class ClosedNoteFullRefundStoreStockInventoryLifecycleFeatureTest extends 
 
         $refundId = (string) DB::table('customer_refunds')->value('id');
 
-        $this->assertDatabaseMissing('refund_component_allocations', [
+        $this->assertDatabaseHas('refund_component_allocations', [
             'customer_refund_id' => $refundId,
             'component_type' => 'service_fee',
             'component_ref_id' => 'wi-1',
@@ -102,7 +104,7 @@ final class ClosedNoteFullRefundStoreStockInventoryLifecycleFeatureTest extends 
 
         $this->assertDatabaseHas('notes', [
             'id' => 'note-1',
-            'note_state' => 'closed',
+            'note_state' => 'refunded',
         ]);
     }
 

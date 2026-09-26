@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
-use App\Core\Note\WorkItem\WorkItem;
 use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
+use App\Core\Note\WorkItem\WorkItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
@@ -25,6 +25,7 @@ final class ClosedNoteFullRefundProductOnlyInventoryLifecycleFeatureTest extends
             ->from(route('cashier.notes.index'))
             ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-1']), [
                 'selected_row_ids' => ['wi-1'],
+                'stock_returns' => ['wi-1' => true],
                 'customer_payment_id' => 'payment-1',
                 'amount_rupiah' => 50000,
                 'refunded_at' => date('Y-m-d'),

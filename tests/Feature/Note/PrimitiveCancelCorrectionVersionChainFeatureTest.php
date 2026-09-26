@@ -85,7 +85,7 @@ final class PrimitiveCancelCorrectionVersionChainFeatureTest extends TestCase
         self::assertSame(2, DB::table('note_mutation_events')->where('mutation_type', 'note_closed')->count());
         $this->advancePrimitiveTime();
         $refundRoute = route('cashier.notes.refunds.store', ['noteId' => $noteId]);
-        $refund = ['selected_row_ids' => [$newP], 'refunded_at' => '2026-09-15', 'reason' => 'Chain C refund current paid product', 'idempotency_key' => 'chain-c-refund'];
+        $refund = ['selected_row_ids' => [$newP], 'stock_returns' => [$newP => true], 'refunded_at' => '2026-09-15', 'reason' => 'Chain C refund current paid product', 'idempotency_key' => 'chain-c-refund'];
         $this->post($refundRoute, $refund)->assertSessionHasNoErrors();
         $this->projection($noteId, 63719, 63719, 0, 'closed');
         self::assertSame(47513, (int) DB::table('customer_refunds')->sum('amount_rupiah'));

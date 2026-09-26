@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
-use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
@@ -41,6 +41,7 @@ final class CashierRefundRejectsOpenLineFeatureTest extends TestCase
             ->actingAs($user)
             ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-1']), [
                 'selected_row_ids' => ['wi-1'],
+                'stock_returns' => ['wi-1' => true],
                 'refunded_at' => date('Y-m-d'),
                 'reason' => 'Refund line open operasional',
             ]);

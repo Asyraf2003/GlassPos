@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Payment;
 
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Core\Note\Note\Note;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
-use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
@@ -18,7 +18,7 @@ final class RecordSelectedRowsClosedNoteRefundHttpFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
-    public function test_it_rejects_refund_for_selected_close_row_when_note_still_has_open_line(): void
+    public function test_it_refunds_selected_close_row_when_note_still_has_open_line(): void
     {
         $user = $this->seedKasir();
         $today = date('Y-m-d');
@@ -30,14 +30,14 @@ final class RecordSelectedRowsClosedNoteRefundHttpFeatureTest extends TestCase
             'reason' => 'Refund line terpilih',
         ]);
 
-        $response->assertSessionHasErrors(['refund']);
+        $response->assertSessionHasNoErrors();
 
-        $this->assertDatabaseCount('customer_refunds', 0);
-        $this->assertDatabaseCount('refund_component_allocations', 0);
+        $this->assertDatabaseCount('customer_refunds', 1);
+        $this->assertDatabaseCount('refund_component_allocations', 1);
 
         $this->assertDatabaseHas('work_items', [
             'id' => 'wi-1',
-            'status' => WorkItem::STATUS_OPEN,
+            'status' => WorkItem::STATUS_CANCELED,
         ]);
 
         $this->assertDatabaseHas('work_items', [
@@ -48,10 +48,10 @@ final class RecordSelectedRowsClosedNoteRefundHttpFeatureTest extends TestCase
         $this->assertDatabaseHas('notes', [
             'id' => 'note-1',
             'note_state' => Note::STATE_OPEN,
-            'total_rupiah' => 100000,
+            'total_rupiah' => 50000,
         ]);
 
-        $this->assertDatabaseMissing('note_mutation_events', [
+        $this->assertDatabaseHas('note_mutation_events', [
             'note_id' => 'note-1',
             'mutation_type' => 'note_rows_canceled_via_refund',
         ]);
@@ -140,7 +140,7 @@ final class RecordSelectedRowsClosedNoteRefundHttpFeatureTest extends TestCase
         ]);
     }
 
-    public function test_close_selected_row_refund_is_rejected_when_parent_note_is_open(): void
+    public function test_close_selected_row_refund_preserves_unpaid_parent_balance(): void
     {
         $user = $this->seedKasir();
         $today = date('Y-m-d');
@@ -152,21 +152,21 @@ final class RecordSelectedRowsClosedNoteRefundHttpFeatureTest extends TestCase
             'reason' => 'Forged refund close row on open parent note',
         ]);
 
-        $this->assertDatabaseCount('customer_refunds', 0);
-        $this->assertDatabaseCount('refund_component_allocations', 0);
+        $this->assertDatabaseCount('customer_refunds', 1);
+        $this->assertDatabaseCount('refund_component_allocations', 1);
 
         $this->assertDatabaseHas('work_items', [
             'id' => 'wi-1',
-            'status' => WorkItem::STATUS_OPEN,
+            'status' => WorkItem::STATUS_CANCELED,
         ]);
 
         $this->assertDatabaseHas('notes', [
             'id' => 'note-1',
             'note_state' => Note::STATE_OPEN,
-            'total_rupiah' => 100000,
+            'total_rupiah' => 50000,
         ]);
 
-        $this->assertDatabaseMissing('note_mutation_events', [
+        $this->assertDatabaseHas('note_mutation_events', [
             'note_id' => 'note-1',
             'mutation_type' => 'note_rows_canceled_via_refund',
         ]);
