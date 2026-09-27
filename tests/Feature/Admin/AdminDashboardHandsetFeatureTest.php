@@ -21,8 +21,13 @@ final class AdminDashboardHandsetFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('data-mobile-supplier-hub', false);
+        $response->assertSee('mobile-supplier-hub-actions', false);
         $response->assertSee('Bayar Supplier');
         $response->assertSee('Cek Pembayaran Supplier');
+        $response->assertDontSee('Pilih nota yang masih punya hutang');
+        $response->assertDontSee('Bukti terbaru tampil paling atas');
+        $response->assertDontSee('bi-cash-stack', false);
+        $response->assertDontSee('bi-receipt', false);
         $response->assertDontSee('Total Nilai Nota Bulan Ini');
         $response->assertDontSee('admin-chart-operational-performance', false);
     }
