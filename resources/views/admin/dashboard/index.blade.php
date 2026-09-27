@@ -1,4 +1,6 @@
 @extends('layouts.app')
+@include('layouts.partials.date-picker-assets')
+
 @section('title', 'Ringkasan Toko')
 @section('heading', 'Ringkasan Toko')
 @section('heading_title_class', 'dashboard-heading-title')
