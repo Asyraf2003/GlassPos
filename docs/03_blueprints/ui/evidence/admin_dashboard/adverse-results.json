@@ -1,0 +1,12 @@
+[
+  {
+    "theme": "light",
+    "refund": "negative event cash flow preserved",
+    "tooltip": "07-01-2030\nLaba Operasional (dataset harian): Rp 50.000\nBiaya Operasional: Rp 0\nRefund: Rp 0\nPotensi Kembalian: Rp 37.000"
+  },
+  {
+    "theme": "dark",
+    "refund": "negative event cash flow preserved",
+    "tooltip": "07-01-2030\nLaba Operasional (dataset harian): Rp 50.000\nBiaya Operasional: Rp 0\nRefund: Rp 0\nPotensi Kembalian: Rp 37.000"
+  }
+]
