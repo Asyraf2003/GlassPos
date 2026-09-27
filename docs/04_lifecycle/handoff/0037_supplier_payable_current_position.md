@@ -2,6 +2,8 @@
 
 Date: 2026-09-27
 Issue: https://github.com/Asyraf2003/GlassPos/issues/30
+PR: https://github.com/Asyraf2003/GlassPos/pull/31 (draft; merge blocked)
+Implementation commit: c7f925cf8ac50910d3cba5fcd7f4320d53bf79f4
 Branch: fix/supplier-payable-current-position
 Baseline: 9099e9d7ba85035794006f96eb6333544a30ca44 (clean main, verified against remote)
 Status: implementation verified; PR/merge gate remains open because global Blade audit fails on unchanged customer code.
@@ -78,7 +80,7 @@ Both light and dark passed:
 5. No page JavaScript errors; operational page has no document overflow. Screenshots reviewed.
 
 Persistent result: docs/03_blueprints/reporting/evidence/supplier_payable/browser-results.json.
-Local artifacts/scripts/screenshots: /tmp/glasspos-payable-proof/.
+Local artifacts/scripts/screenshots: /tmp/glasspos-payable-proof/. The loopback proof server was stopped after verification.
 
 ## Cron readiness, not setup
 
