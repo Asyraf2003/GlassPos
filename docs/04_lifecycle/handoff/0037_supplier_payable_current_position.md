@@ -2,11 +2,11 @@
 
 Date: 2026-09-27
 Issue: https://github.com/Asyraf2003/GlassPos/issues/30
-PR: https://github.com/Asyraf2003/GlassPos/pull/31 (draft; merge blocked)
+PR: https://github.com/Asyraf2003/GlassPos/pull/31 (final proof after prerequisite merge)
 Implementation commit: c7f925cf8ac50910d3cba5fcd7f4320d53bf79f4
 Branch: fix/supplier-payable-current-position
 Baseline: 9099e9d7ba85035794006f96eb6333544a30ca44 (clean main, verified against remote)
-Status: implementation verified; PR/merge gate remains open because global Blade audit fails on unchanged customer code.
+Status: baseline audit blocker resolved by PR #33; final supplier verification and merge follow the owner-authorized chain.
 
 ## Scope and locked contract
 
@@ -53,7 +53,7 @@ Result: pass. Changed Blade files (4) and changed application/port imports were 
 
     make audit-contract
 
-Result: FAIL on resources/views/shared/notes/partials/status-badge.blade.php lines 1 and 16 (@php/@endphp). Exact same failure reproduced by exporting origin/main's views/audit script into /tmp/glasspos-payable-baseline-audit and running its script, exit 1. This file is unchanged by this branch. No audit bypass or customer fix was introduced. Under the owner's all-green merge gate, do not merge until the baseline audit is resolved or the owner explicitly changes that gate.
+Initial result before prerequisite: FAIL on resources/views/shared/notes/partials/status-badge.blade.php lines 1 and 16 (@php/@endphp). Exact same failure reproduced by exporting origin/main's views/audit script into /tmp/glasspos-payable-baseline-audit and running its script, exit 1. This file is unchanged by this branch. No audit bypass or customer fix was introduced. Resolved separately by PR #33, merge SHA 5adae8808532557d04abbec2bb1eae2da4fe0476. After updating this branch from origin/main without conflicts, make audit-contract passes.
 
 ## Semantic proof
 
@@ -104,4 +104,4 @@ Operational limits intentionally unchanged:
 
 ## Next
 
-Review PR and the baseline Blade audit blocker. Keep customer work out of this branch. Merge only after the owner's gate is satisfied; no merge SHA exists yet.
+Complete final verification on the refreshed branch and capture PR #31 merge SHA. Keep customer receivable and production cron outside scope.

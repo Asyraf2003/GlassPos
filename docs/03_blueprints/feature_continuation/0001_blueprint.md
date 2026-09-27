@@ -60,7 +60,7 @@ P2 must not interfere with P0/P1.
 | ID | Priority | Case | Status | Last Proof | Handoff |
 |---|---:|---|---|---|---|
 | FC-000 | P0 | System ambiguity inventory after abandoned feature work | CLOSED | Repo snapshot mapped cash change, dashboard, supplier payable notification, PDF, and UI stash ambiguity | `docs/99_archive/handoff/v2/feature_continuation/01-system-ambiguity-inventory.md` |
-| FC-001 | P0 | Supplier payable push notification H-5 until paid off | IMPLEMENTED / MERGE GATE OPEN | Dedicated reader, handler, payload and command exist; current-position/report/deep-link verification recorded 2026-09-27 | `docs/04_lifecycle/handoff/0037_supplier_payable_current_position.md` |
+| FC-001 | P0 | Supplier payable push notification H-5 until paid off | IMPLEMENTED / FINAL VERIFICATION | Dedicated reader, handler, payload and command exist; current-position/report/deep-link verification recorded 2026-09-27 | `docs/04_lifecycle/handoff/0037_supplier_payable_current_position.md` |
 | FC-002 | P1 | Change-money potential on the monthly operational performance dashboard | OPEN | Snapshot found `change_rupiah`, but no related dashboard field/metric yet | Pending |
 | FC-003 | P1 | Change-money denomination calculator | OPEN/PARTIAL | Cash change is persisted, but no denomination-calculator proof yet | Pending |
 | FC-004 | P2 | PDF/printed notes/reports | OPEN | Snapshot only found supplier PDF attachment proof, not PDF generation for notes/reports | Pending |
@@ -91,7 +91,7 @@ The system needs to send reminders or notifications if a supplier payable is app
 - Repeat invocation on the same date can resend. The daily notification tag does not provide server-side deduplication. Owner deferred scheduling/deduplication policy to production cron planning.
 - Default limits remain 100 invoices and 500 subscriptions. Excess rows are omitted without a truncation warning; there is no automatic batch pagination.
 - No production cron configuration was performed. Production PHP path, deployment path, environment and push delivery remain deployment-specific verification.
-- Global Blade audit fails on the unchanged customer note status badge, also reproduced on origin/main. Customer work is outside this target; merge remains gated.
+- Inherited Blade audit failure was resolved separately by prerequisite PR #33 (5adae8808532557d04abbec2bb1eae2da4fe0476). The refreshed supplier branch passes audit-contract; final proof and merge are tracked in the handoff.
 
 ### References
 
