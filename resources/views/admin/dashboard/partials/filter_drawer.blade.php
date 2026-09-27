@@ -47,6 +47,9 @@
                         name="month"
                         class="form-control"
                         value="{{ $dashboardFilterDrawer['active_month'] }}"
+                        data-ui-date="month"
+                        data-ui-date-placeholder="Pilih bulan dashboard"
+                        autocomplete="off"
                     >
                 </div>
 
