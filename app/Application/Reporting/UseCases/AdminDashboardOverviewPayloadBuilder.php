@@ -14,7 +14,6 @@ final class AdminDashboardOverviewPayloadBuilder
         private readonly AdminDashboardSharedReportFragments $sharedFragments,
         private readonly DashboardInventoryOverviewReaderPort $inventory,
         private readonly GetOperationalProfitSummaryHandler $operationalProfit,
-        private readonly GetSupplierPayableReportDatasetHandler $supplierPayable,
         private readonly GetEmployeeDebtReportDatasetHandler $employeeDebt,
         private readonly GetOperationalExpenseReportDatasetHandler $operationalExpense,
     ) {
@@ -33,10 +32,6 @@ final class AdminDashboardOverviewPayloadBuilder
 
         $operationalProfitRow = ReportingResultDataExtractor::row(
             $this->operationalProfit->handle($period['from'], $period['to'])
-        );
-
-        $supplierPayableSummary = ReportingResultDataExtractor::summary(
-            $this->supplierPayable->handle($period['from'], $period['to'], $period['today'])
         );
 
         $employeeDebtSummary = ReportingResultDataExtractor::summary(
@@ -61,7 +56,7 @@ final class AdminDashboardOverviewPayloadBuilder
             $transactionSummary,
             $inventorySummary,
             $operationalProfitRow,
-            $supplierPayableSummary,
+            [], // Current supplier balance is filled outside the period cache by the overview handler.
             $employeeDebtSummary,
             $operationalExpenseSummary,
             $todayCash,

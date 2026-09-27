@@ -81,10 +81,10 @@ final class SupplierPayableReportPageFeatureTest extends TestCase
         $response->assertSee('Lunas');
         $response->assertSee('Rp 30.000');
         $response->assertDontSee('Detail Hutang Pemasok');
-        $response->assertDontSee('invoice-1');
-        $response->assertDontSee('invoice-4');
-        $response->assertDontSee('PT Sumber Makmur');
-        $response->assertDontSee('PT Sentosa Jaya');
+        $response->assertSee('invoice-1');
+        $response->assertSee('invoice-4');
+        $response->assertSee('PT Sumber Makmur');
+        $response->assertSee('PT Sentosa Jaya');
         $response->assertSee(route('admin.reports.transaction_cash_ledger.index'), false);
         $response->assertSee(route('admin.reports.employee_debt.index'), false);
         $response->assertSee(route('admin.reports.operational_profit.index'), false);
@@ -144,8 +144,8 @@ final class SupplierPayableReportPageFeatureTest extends TestCase
         $response->assertSee('Rp 150.000');
         $response->assertSee('Rp 40.000');
         $response->assertSee('Rp 110.000');
-        $response->assertDontSee('invoice-in-1');
-        $response->assertDontSee('invoice-in-2');
+        $response->assertSee('invoice-in-1');
+        $response->assertSee('invoice-in-2');
         $response->assertDontSee('invoice-out');
     }
 

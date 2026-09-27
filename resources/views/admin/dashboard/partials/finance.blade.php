@@ -21,10 +21,10 @@
         </dl>
     </section>
     <section class="dashboard-panel" aria-labelledby="dashboard-position-title">
-        <header class="dashboard-panel-head"><div><h2 id="dashboard-position-title">Kewajiban &amp; Biaya</h2><p>Saldo dari kelompok data periode terpilih</p></div></header>
+        <header class="dashboard-panel-head"><div><h2 id="dashboard-position-title">Kewajiban &amp; Biaya</h2><p>Saldo kewajiban dan biaya operasional</p></div></header>
         <dl class="dashboard-facts">
             <div class="dashboard-fact">
-                <dt><a href="{{ route('admin.reports.supplier_payable.index', $dashboardExportQuery) }}">Sisa Hutang Supplier</a><span class="dashboard-caption">Faktur bertanggal pengiriman dalam periode</span></dt>
+                <dt><a href="{{ route('admin.reports.supplier_payable.index') }}">Sisa Hutang Supplier</a><span class="dashboard-caption">Saldo seluruh faktur aktif saat ini</span></dt>
                 <dd>Rp {{ number_format($dashboard['position']['supplier_outstanding_rupiah'] ?? 0, 0, ',', '.') }}</dd>
             </div>
             <div class="dashboard-fact">

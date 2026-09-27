@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Adapters\Out\Reporting\DatabaseDashboardInventoryOverviewReaderAdapter;
+use App\Adapters\Out\Reporting\DatabaseCurrentSupplierOutstandingReaderAdapter;
 use App\Adapters\Out\Reporting\DatabaseDashboardOperationalPerformanceReaderAdapter;
 use App\Adapters\Out\Reporting\DatabaseDashboardTopSellingProductReaderAdapter;
 use App\Adapters\Out\Reporting\DatabaseEmployeeDebtReportingSourceReaderAdapter;
@@ -17,6 +18,7 @@ use App\Adapters\Out\Reporting\DatabaseSupplierPayableReportingSourceReaderAdapt
 use App\Adapters\Out\Reporting\DatabaseTransactionReportingSourceReaderAdapter;
 use App\Adapters\Out\Reporting\LaravelDashboardReportCacheAdapter;
 use App\Ports\Out\Reporting\DashboardInventoryOverviewReaderPort;
+use App\Ports\Out\Reporting\CurrentSupplierOutstandingReaderPort;
 use App\Ports\Out\Reporting\DashboardOperationalPerformanceReaderPort;
 use App\Ports\Out\Reporting\DashboardReportCachePort;
 use App\Ports\Out\Reporting\DashboardTopSellingProductReaderPort;
@@ -34,6 +36,7 @@ class ReportingServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->singleton(CurrentSupplierOutstandingReaderPort::class, DatabaseCurrentSupplierOutstandingReaderAdapter::class);
         $this->app->singleton(DashboardReportCachePort::class, LaravelDashboardReportCacheAdapter::class);
         $this->app->singleton(DashboardInventoryOverviewReaderPort::class, DatabaseDashboardInventoryOverviewReaderAdapter::class);
         $this->app->singleton(DashboardOperationalPerformanceReaderPort::class, DatabaseDashboardOperationalPerformanceReaderAdapter::class);

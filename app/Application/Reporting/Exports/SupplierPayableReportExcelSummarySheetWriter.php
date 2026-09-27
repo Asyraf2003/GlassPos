@@ -18,7 +18,7 @@ final class SupplierPayableReportExcelSummarySheetWriter
         $sheet->setTitle('Ringkasan');
         $sheet->setCellValue('A1', 'Hutang Pemasok');
         $sheet->setCellValue('A2', 'Periode');
-        $sheet->setCellValue('B2', ViewDateFormatter::range($filters['date_from'] ?? null, $filters['date_to'] ?? null));
+        $sheet->setCellValue('B2', ($filters['period_mode'] ?? '') === 'all' ? 'Seluruh Periode' : ViewDateFormatter::range($filters['date_from'] ?? null, $filters['date_to'] ?? null));
         $sheet->setCellValue('A3', 'Dasar Tanggal');
         $sheet->setCellValue('B3', 'Tanggal pengiriman invoice');
         $sheet->setCellValue('A4', 'Tanggal Referensi');

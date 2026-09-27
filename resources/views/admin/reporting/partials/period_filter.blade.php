@@ -8,7 +8,9 @@
                             <div>
                                 <div class="text-muted small">Mode Aktif</div>
                                 <div class="fw-semibold">
-                                    @if (($filters['period_mode'] ?? 'monthly') === 'custom')
+                                    @if (($filters['period_mode'] ?? 'monthly') === 'all')
+                                        Seluruh Periode
+                                    @elseif (($filters['period_mode'] ?? 'monthly') === 'custom')
                                         Custom
                                     @elseif (($filters['period_mode'] ?? 'monthly') === 'weekly')
                                         Mingguan
@@ -34,7 +36,9 @@
                                     @endif
                                 </div>
                                 <div class="fw-semibold">
-                                    @if ($useReportPeriodContext ?? false)
+                                    @if (($filters['period_mode'] ?? '') === 'all')
+                                        Semua Faktur
+                                    @elseif ($useReportPeriodContext ?? false)
                                         {{ \App\Support\ReportPeriodDateLabelFormatter::value($filters['date_from'] ?? null, $filters['date_to'] ?? null) }}
                                     @else
                                         {{ \App\Support\ViewDateFormatter::range($filters['date_from'] ?? null, $filters['date_to'] ?? null) }}
@@ -149,6 +153,9 @@
                     class="form-select"
                     data-report-period-mode-select
                 >
+                    @if ($supportsAllPeriods ?? false)
+                        <option value="all" {{ ($filters['period_mode'] ?? '') === 'all' ? 'selected' : '' }}>Seluruh Periode</option>
+                    @endif
                     <option value="daily" {{ ($filters['period_mode'] ?? 'monthly') === 'daily' ? 'selected' : '' }}>Harian</option>
                     <option value="weekly" {{ ($filters['period_mode'] ?? 'monthly') === 'weekly' ? 'selected' : '' }}>Mingguan</option>
                     <option value="monthly" {{ ($filters['period_mode'] ?? 'monthly') === 'monthly' ? 'selected' : '' }}>Bulanan</option>

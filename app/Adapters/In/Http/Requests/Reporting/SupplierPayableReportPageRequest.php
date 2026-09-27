@@ -27,7 +27,7 @@ final class SupplierPayableReportPageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'period_mode' => ['nullable', 'in:daily,weekly,monthly,custom'],
+            'period_mode' => ['nullable', 'in:all,daily,weekly,monthly,custom'],
             'reference_date' => ['nullable', 'date_format:Y-m-d'],
             'date_from' => ['nullable', 'date_format:Y-m-d'],
             'date_to' => ['nullable', 'date_format:Y-m-d'],
@@ -41,7 +41,7 @@ final class SupplierPayableReportPageRequest extends FormRequest
 
     private function validateFilters(Validator $validator): void
     {
-        $mode = $this->input('period_mode', 'monthly');
+        $mode = $this->input('period_mode', 'all');
         $from = $this->input('date_from');
         $to = $this->input('date_to');
 

@@ -6,9 +6,14 @@ namespace App\Application\PushNotification\Services;
 
 use App\Application\Procurement\DTO\SupplierPayableReminderRow;
 use App\Application\PushNotification\DTO\PushNotificationPayload;
+use App\Ports\Out\RouteUrlGeneratorPort;
 
 final class SupplierPayableReminderPushPayloadFactory
 {
+    public function __construct(private readonly RouteUrlGeneratorPort $urls)
+    {
+    }
+
     /**
      * @param list<SupplierPayableReminderRow> $reminders
      */
@@ -36,7 +41,11 @@ final class SupplierPayableReminderPushPayloadFactory
             body: $body,
             icon: '/assets/compiled/svg/favicon.svg',
             badge: '/assets/compiled/svg/favicon.svg',
-            url: '/admin/reports/supplier-payables',
+            url: $this->urls->route('admin.procurement.supplier-invoices.index', [
+                'payment_status' => 'outstanding',
+                'sort_by' => 'due_date',
+                'sort_dir' => 'asc',
+            ], false),
             tag: 'supplier-payable-reminder-'.$today,
         );
     }

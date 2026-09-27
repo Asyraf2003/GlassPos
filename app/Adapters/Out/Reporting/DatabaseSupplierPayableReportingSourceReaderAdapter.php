@@ -14,20 +14,15 @@ final class DatabaseSupplierPayableReportingSourceReaderAdapter implements Suppl
     ) {
     }
 
-    public function getSupplierPayableSummaryRows(string $fromShipmentDate, string $toShipmentDate): array
+    public function getSupplierPayableSummaryRows(?string $fromShipmentDate, ?string $toShipmentDate): array
     {
-        return DB::table('supplier_invoices')
-            ->leftJoinSub($this->queries->paymentTotalsSubquery(), 'payment_totals', function ($join): void {
-                $join->on('payment_totals.supplier_invoice_id', '=', 'supplier_invoices.id');
-            })
+        return $this->queries->invoiceBalances($fromShipmentDate, $toShipmentDate)
             ->leftJoinSub($this->queries->receiptCountSubquery(), 'receipt_counts', function ($join): void {
                 $join->on('receipt_counts.supplier_invoice_id', '=', 'supplier_invoices.id');
             })
             ->leftJoinSub($this->queries->receivedQtySubquery(), 'received_qty_totals', function ($join): void {
                 $join->on('received_qty_totals.supplier_invoice_id', '=', 'supplier_invoices.id');
             })
-            ->whereNull('supplier_invoices.voided_at')
-            ->whereBetween('supplier_invoices.tanggal_pengiriman', [$fromShipmentDate, $toShipmentDate])
             ->orderBy('supplier_invoices.tanggal_pengiriman')
             ->orderBy('supplier_invoices.id')
             ->get([
@@ -57,7 +52,7 @@ final class DatabaseSupplierPayableReportingSourceReaderAdapter implements Suppl
             ->all();
     }
 
-    public function getSupplierPayableSummaryReconciliation(string $fromShipmentDate, string $toShipmentDate): array
+    public function getSupplierPayableSummaryReconciliation(?string $fromShipmentDate, ?string $toShipmentDate): array
     {
         $filteredInvoicesSubquery = $this->queries->filteredInvoicesSubquery($fromShipmentDate, $toShipmentDate);
 

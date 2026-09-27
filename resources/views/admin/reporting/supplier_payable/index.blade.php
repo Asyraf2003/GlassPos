@@ -12,6 +12,7 @@
     'rangeLabelText' => 'Rentang pengiriman aktif',
     'basisDateLabel' => 'Tanggal pengiriman invoice',
     'supportsCustomRange' => true,
+    'supportsAllPeriods' => true,
     'exportActions' => [
         [
             'label' => 'Unduh Excel',
@@ -155,4 +156,5 @@
         </div></div>
     </div>
 </div>
+@include('admin.reporting.supplier_payable.partials.invoice_rows')
 @endsection
