@@ -9,6 +9,26 @@ use Illuminate\Support\Facades\DB;
 
 final class SupplierPayableReportingQueryFactory
 {
+    public function invoiceBalances(?string $fromShipmentDate = null, ?string $toShipmentDate = null): Builder
+    {
+        $this->assertPeriod($fromShipmentDate, $toShipmentDate);
+
+        return DB::table('supplier_invoices')
+            ->leftJoinSub($this->paymentTotalsSubquery(), 'payment_totals', function ($join): void {
+                $join->on('payment_totals.supplier_invoice_id', '=', 'supplier_invoices.id');
+            })
+            ->whereNull('supplier_invoices.voided_at')
+            ->when($fromShipmentDate !== null, fn (Builder $query): Builder => $query
+                ->whereBetween('supplier_invoices.tanggal_pengiriman', [$fromShipmentDate, $toShipmentDate]));
+    }
+
+    private function assertPeriod(?string $from, ?string $to): void
+    {
+        if (($from === null) !== ($to === null)) {
+            throw new \InvalidArgumentException('Supplier payable period requires both bounds or neither.');
+        }
+    }
+
     public function paymentTotalsSubquery(): Builder
     {
         return DB::table('supplier_payments')
@@ -38,11 +58,14 @@ final class SupplierPayableReportingQueryFactory
             ->groupBy('supplier_receipts.supplier_invoice_id');
     }
 
-    public function filteredInvoicesSubquery(string $fromShipmentDate, string $toShipmentDate): Builder
+    public function filteredInvoicesSubquery(?string $fromShipmentDate, ?string $toShipmentDate): Builder
     {
+        $this->assertPeriod($fromShipmentDate, $toShipmentDate);
+
         return DB::table('supplier_invoices')
             ->select('id', 'grand_total_rupiah')
             ->whereNull('voided_at')
-            ->whereBetween('tanggal_pengiriman', [$fromShipmentDate, $toShipmentDate]);
+            ->when($fromShipmentDate !== null, fn (Builder $query): Builder => $query
+                ->whereBetween('tanggal_pengiriman', [$fromShipmentDate, $toShipmentDate]));
     }
 }

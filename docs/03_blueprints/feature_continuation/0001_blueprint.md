@@ -60,7 +60,7 @@ P2 must not interfere with P0/P1.
 | ID | Priority | Case | Status | Last Proof | Handoff |
 |---|---:|---|---|---|---|
 | FC-000 | P0 | System ambiguity inventory after abandoned feature work | CLOSED | Repo snapshot mapped cash change, dashboard, supplier payable notification, PDF, and UI stash ambiguity | `docs/99_archive/handoff/v2/feature_continuation/01-system-ambiguity-inventory.md` |
-| FC-001 | P0 | Supplier payable push notification H-5 until paid off | OPEN | Snapshot found the supplier payable report and push infra, but no supplier payable push handler/command yet | Pending |
+| FC-001 | P0 | Supplier payable push notification H-5 until paid off | IMPLEMENTED / MERGE GATE OPEN | Dedicated reader, handler, payload and command exist; current-position/report/deep-link verification recorded 2026-09-27 | `docs/04_lifecycle/handoff/0037_supplier_payable_current_position.md` |
 | FC-002 | P1 | Change-money potential on the monthly operational performance dashboard | OPEN | Snapshot found `change_rupiah`, but no related dashboard field/metric yet | Pending |
 | FC-003 | P1 | Change-money denomination calculator | OPEN/PARTIAL | Cash change is persisted, but no denomination-calculator proof yet | Pending |
 | FC-004 | P2 | PDF/printed notes/reports | OPEN | Snapshot only found supplier PDF attachment proof, not PDF generation for notes/reports | Pending |
@@ -76,60 +76,28 @@ P0
 
 The system needs to send reminders or notifications if a supplier payable is approaching due date H-5, is already due, or remains unpaid until it is paid off.
 
-### Known Facts
+### Verified implementation (2026-09-27)
 
-- `supplier_invoices` has `jatuh_tempo`.
-- Supplier payable reporting already reads due date and outstanding balance.
-- Push notification infrastructure already exists.
-- The existing `push-notifications:send-due-note-reminders` command is for customer notes, not supplier payable.
-- The existing due-note payload speaks about due notes, not supplier debt.
+- DatabaseSupplierPayableReminderReaderAdapter selects non-void invoices with positive outstanding and due date <= today + 5 days, without a shipment-month filter.
+- Active payments exclude supplier_payment_reversals.
+- GetSupplierPayableRemindersHandler, SendSupplierPayableReminderPushHandler and SupplierPayableReminderPushPayloadFactory exist.
+- routes/console.php registers push-notifications:send-supplier-payable-reminders with --today, --invoice-limit and --subscription-limit.
+- Payload deep link targets the named procurement supplier invoice index with outstanding / due_date / asc, without shipment-date bounds.
+- Default supplier report is all periods; the dashboard uses current supplier balance independent of its selected month.
+- Focused, regression and isolated-browser evidence is in the current handoff. The old claims that these components were absent are superseded by source inspection and executed tests.
 
-### Gaps
+### Operational gaps and merge gate
 
-- There is no dedicated supplier payable reminder reader yet.
-- There is no `SendSupplierPayableReminderPushHandler` use case yet.
-- There is no supplier payable payload factory yet.
-- There is no supplier payable reminder console command yet.
-- There are no focused tests for H-5 through paid-off behavior.
-- It is not decided whether notifications are sent daily or only when status changes.
+- Repeat invocation on the same date can resend. The daily notification tag does not provide server-side deduplication. Owner deferred scheduling/deduplication policy to production cron planning.
+- Default limits remain 100 invoices and 500 subscriptions. Excess rows are omitted without a truncation warning; there is no automatic batch pagination.
+- No production cron configuration was performed. Production PHP path, deployment path, environment and push delivery remain deployment-specific verification.
+- Global Blade audit fails on the unchanged customer note status badge, also reproduced on origin/main. Customer work is outside this target; merge remains gated.
 
-### Required Contract
+### References
 
-The reminder must target active supplier invoices with:
-- `voided_at IS NULL`
-- `jatuh_tempo <= today + 5 days`
-- outstanding > 0
-- still visible until outstanding becomes 0
-- paid invoices do not appear
-- voided invoices do not appear
-
-### Suggested Implementation Plan
-
-1. Inspect the supplier payable report query and the due-status resolver.
-2. Add an application reader/use case or reuse the source reader if it is safe.
-3. Add a supplier payable payload factory.
-4. Add a supplier payable push handler.
-5. Add a console command:
-   - `push-notifications:send-supplier-payable-reminders`
-6. Add tests:
-   - H-6 is not sent.
-   - H-5 is sent.
-   - due today is sent.
-   - overdue is sent.
-   - fully paid is not sent.
-   - voided is not sent.
-   - expired push subscriptions are marked expired like the existing due-note flow.
-7. Run focused push/procurement/reporting tests.
-8. Run `make verify`.
-9. Commit.
-10. Create a handoff.
-
-### Closure Proof Required
-
-- Focused tests pass.
-- `make verify` passes.
-- Commit hash.
-- Handoff file path.
+- Blueprint: docs/03_blueprints/reporting/0005_supplier_payable_current_position.md
+- Handoff: docs/04_lifecycle/handoff/0037_supplier_payable_current_position.md
+- Issue: https://github.com/Asyraf2003/GlassPos/issues/30
 
 ## FC-002 - Change-Money Potential Dashboard Metric
 

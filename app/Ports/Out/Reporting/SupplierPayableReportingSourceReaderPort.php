@@ -7,6 +7,9 @@ namespace App\Ports\Out\Reporting;
 interface SupplierPayableReportingSourceReaderPort
 {
     /**
+     * Null bounds mean all shipment dates; otherwise both bounds are required.
+     * Active payments are current, regardless of their payment date.
+     *
      * @return list<array{
      *   supplier_invoice_id:string,
      *   supplier_id:string,
@@ -19,8 +22,8 @@ interface SupplierPayableReportingSourceReaderPort
      * }>
      */
     public function getSupplierPayableSummaryRows(
-        string $fromShipmentDate,
-        string $toShipmentDate,
+        ?string $fromShipmentDate,
+        ?string $toShipmentDate,
     ): array;
 
     /**
@@ -32,7 +35,7 @@ interface SupplierPayableReportingSourceReaderPort
      * }
      */
     public function getSupplierPayableSummaryReconciliation(
-        string $fromShipmentDate,
-        string $toShipmentDate,
+        ?string $fromShipmentDate,
+        ?string $toShipmentDate,
     ): array;
 }

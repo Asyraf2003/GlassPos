@@ -197,7 +197,7 @@ final class AdminDashboardPageFeatureTest extends TestCase
             $response->assertSeeInOrder(['Total Nilai Nota', 'Prioritas Restok', 'Status Stok Saat Ini', 'Kewajiban &amp; Biaya', 'Kinerja Operasional Harian', 'Riwayat Uang dan Stok'], false);
             $response->assertSee('Posisi sekarang · tidak mengikuti filter bulan');
             $response->assertSee('Berdasarkan tanggal pembayaran dan refund');
-            $response->assertSee('Faktur bertanggal pengiriman dalam periode');
+            $response->assertSee('Saldo seluruh faktur aktif saat ini');
             $response->assertSee('Kasbon yang dibuat dalam periode');
             $response->assertSee('Customer refund untuk nota terpilih, termasuk refund lintas bulan');
             $response->assertSee('09 Februari 2030');

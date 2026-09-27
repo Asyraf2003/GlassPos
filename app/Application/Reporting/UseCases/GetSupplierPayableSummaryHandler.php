@@ -19,8 +19,8 @@ final class GetSupplierPayableSummaryHandler
     }
 
     public function handle(
-        string $fromShipmentDate,
-        string $toShipmentDate,
+        ?string $fromShipmentDate,
+        ?string $toShipmentDate,
         string $referenceDate,
     ): Result {
         $rawRows = $this->sourceReader->getSupplierPayableSummaryRows(

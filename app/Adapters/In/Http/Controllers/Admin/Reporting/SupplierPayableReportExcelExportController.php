@@ -53,8 +53,12 @@ final class SupplierPayableReportExcelExportController extends Controller
         );
     }
 
-    private function rejectWhenExcelRangeIsTooLong(string $from, string $to): ?Response
+    private function rejectWhenExcelRangeIsTooLong(?string $from, ?string $to): ?Response
     {
+        if ($from === null && $to === null) {
+            return null;
+        }
+
         $fromDate = CarbonImmutable::parse($from);
         $toDate = CarbonImmutable::parse($to);
 
@@ -67,6 +71,10 @@ final class SupplierPayableReportExcelExportController extends Controller
 
     private function filename(SupplierPayableReportPageQuery $query): string
     {
+        if ($query->fromShipmentDate() === null) {
+            return 'laporan-hutang-pemasok-seluruh-periode.xlsx';
+        }
+
         return sprintf(
             'laporan-hutang-pemasok-%s-sampai-%s.xlsx',
             $query->fromShipmentDate(),

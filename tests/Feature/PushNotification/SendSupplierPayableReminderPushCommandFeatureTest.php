@@ -40,7 +40,7 @@ final class SendSupplierPayableReminderPushCommandFeatureTest extends TestCase
         self::assertSame('Reminder Jatuh Tempo Hutang Pemasok', $sender->payloads[0]->title);
         self::assertStringContainsString('Ada 1 faktur pemasok jatuh tempo/perlu dicek.', $sender->payloads[0]->body);
         self::assertStringContainsString('Rp 150.000', $sender->payloads[0]->body);
-        self::assertSame('/admin/reports/supplier-payables', $sender->payloads[0]->url);
+        self::assertSame(route('admin.procurement.supplier-invoices.index', ['payment_status' => 'outstanding', 'sort_by' => 'due_date', 'sort_dir' => 'asc'], false), $sender->payloads[0]->url);
         self::assertSame('supplier-payable-reminder-2026-04-25', $sender->payloads[0]->tag);
 
         $expiredEndpoint = 'https://push.example.test/send/browser-expired';

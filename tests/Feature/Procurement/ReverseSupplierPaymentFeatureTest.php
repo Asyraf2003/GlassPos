@@ -39,6 +39,12 @@ final class ReverseSupplierPaymentFeatureTest extends TestCase
         $this->assertCount(1, $rows);
         $this->assertSame(50000, $rows[0]['outstanding_rupiah']);
         $this->assertSame(0, $rows[0]['total_paid_rupiah']);
+        $this->assertSame(50000, app(\App\Ports\Out\Reporting\CurrentSupplierOutstandingReaderPort::class)->totalOutstandingRupiah());
+        $reminders = app(\App\Ports\Out\Procurement\SupplierPayableReminderReaderPort::class)->findDueReminders('2026-09-27');
+        $this->assertSame('invoice-1', $reminders[0]->supplierInvoiceId);
+        $this->getJson(route('admin.procurement.supplier-invoices.table', [
+            'payment_status' => 'outstanding', 'sort_by' => 'due_date', 'sort_dir' => 'asc',
+        ]))->assertOk()->assertSee('INV-SUP-001');
     }
 
     public function test_admin_cannot_reverse_same_supplier_payment_twice(): void

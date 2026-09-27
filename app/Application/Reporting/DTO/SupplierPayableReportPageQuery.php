@@ -20,15 +20,19 @@ final class SupplierPayableReportPageQuery
     public static function fromValidated(array $validated): self
     {
         return new self(
-            is_string($validated['period_mode'] ?? null) ? $validated['period_mode'] : 'monthly',
+            is_string($validated['period_mode'] ?? null) ? $validated['period_mode'] : 'all',
             is_string($validated['reference_date'] ?? null) ? $validated['reference_date'] : null,
             is_string($validated['date_from'] ?? null) ? $validated['date_from'] : null,
             is_string($validated['date_to'] ?? null) ? $validated['date_to'] : null,
         );
     }
 
-    public function fromShipmentDate(): string
+    public function fromShipmentDate(): ?string
     {
+        if ($this->periodMode === 'all') {
+            return null;
+        }
+
         $reference = $this->resolvedReferenceDate();
 
         return match ($this->periodMode) {
@@ -39,8 +43,12 @@ final class SupplierPayableReportPageQuery
         };
     }
 
-    public function toShipmentDate(): string
+    public function toShipmentDate(): ?string
     {
+        if ($this->periodMode === 'all') {
+            return null;
+        }
+
         $reference = $this->resolvedReferenceDate();
 
         return match ($this->periodMode) {
@@ -63,7 +71,7 @@ final class SupplierPayableReportPageQuery
             'reference_date' => $this->referenceDate(),
             'date_from' => $this->fromShipmentDate(),
             'date_to' => $this->toShipmentDate(),
-            'range_label' => $this->fromShipmentDate() . ' s/d ' . $this->toShipmentDate(),
+            'range_label' => $this->periodMode === 'all' ? 'Seluruh Periode' : $this->fromShipmentDate() . ' s/d ' . $this->toShipmentDate(),
         ];
     }
 

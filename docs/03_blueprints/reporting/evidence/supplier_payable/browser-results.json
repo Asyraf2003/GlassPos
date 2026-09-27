@@ -1,0 +1,42 @@
+[
+  {
+    "theme": "light",
+    "reportDefault": "all",
+    "augustOutstanding": 8000000,
+    "monthlySeptemberExcludesAugust": true,
+    "dashboardBalances": [
+      "Rp 9.000.000",
+      "Rp 9.000.000",
+      "Rp 9.000.000"
+    ],
+    "pushUrl": "/admin/procurement/supplier-invoices?payment_status=outstanding&sort_by=due_date&sort_dir=asc",
+    "tableRequests": [
+      "http://127.0.0.1:8098/admin/procurement/supplier-invoices/table?page=1&per_page=10&sort_dir=asc&payment_status=outstanding&sort_by=due_date"
+    ],
+    "activeFilter": "Masih Punya Tagihan",
+    "shipmentFilters": false,
+    "oldAndFutureOutstandingVisible": true,
+    "settledExcluded": true,
+    "errors": []
+  },
+  {
+    "theme": "dark",
+    "reportDefault": "all",
+    "augustOutstanding": 8000000,
+    "monthlySeptemberExcludesAugust": true,
+    "dashboardBalances": [
+      "Rp 9.000.000",
+      "Rp 9.000.000",
+      "Rp 9.000.000"
+    ],
+    "pushUrl": "/admin/procurement/supplier-invoices?payment_status=outstanding&sort_by=due_date&sort_dir=asc",
+    "tableRequests": [
+      "http://127.0.0.1:8098/admin/procurement/supplier-invoices/table?page=1&per_page=10&sort_dir=asc&payment_status=outstanding&sort_by=due_date"
+    ],
+    "activeFilter": "Masih Punya Tagihan",
+    "shipmentFilters": false,
+    "oldAndFutureOutstandingVisible": true,
+    "settledExcluded": true,
+    "errors": []
+  }
+]

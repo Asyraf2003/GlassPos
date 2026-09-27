@@ -60,8 +60,12 @@ final class SupplierPayableReportPdfExportController extends Controller
         ]);
     }
 
-    private function rejectWhenPdfRangeIsTooLong(string $from, string $to): ?Response
+    private function rejectWhenPdfRangeIsTooLong(?string $from, ?string $to): ?Response
     {
+        if ($from === null && $to === null) {
+            return null;
+        }
+
         $fromDate = CarbonImmutable::parse($from);
         $toDate = CarbonImmutable::parse($to);
 
@@ -74,6 +78,10 @@ final class SupplierPayableReportPdfExportController extends Controller
 
     private function filename(SupplierPayableReportPageQuery $query): string
     {
+        if ($query->fromShipmentDate() === null) {
+            return 'laporan-hutang-pemasok-seluruh-periode.pdf';
+        }
+
         return sprintf(
             'laporan-hutang-pemasok-%s-sampai-%s.pdf',
             $query->fromShipmentDate(),

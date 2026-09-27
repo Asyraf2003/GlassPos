@@ -20,8 +20,8 @@ final class GetSupplierPayableReportDatasetHandler
     }
 
     public function handle(
-        string $fromShipmentDate,
-        string $toShipmentDate,
+        ?string $fromShipmentDate,
+        ?string $toShipmentDate,
         string $referenceDate,
     ): Result {
         $result = $this->summaryHandler->handle(

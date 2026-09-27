@@ -25,7 +25,7 @@ final class SupplierPayableReportPdfViewDataBuilder
 
         return [
             'title' => 'Hutang Pemasok',
-            'periodLabel' => $this->formatRange(
+            'periodLabel' => ($filters['period_mode'] ?? '') === 'all' ? 'Seluruh Periode' : $this->formatRange(
                 $this->stringValue($filters['date_from'] ?? ''),
                 $this->stringValue($filters['date_to'] ?? ''),
             ),
