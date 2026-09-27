@@ -1,6 +1,7 @@
 # Supplier Payable Current Position
 
 Date: 2026-09-27
+Status: CLOSED; PR #31 merged as 52a6c8033bbad0675fdaa46356c373b475d3d4e0.
 Issue: https://github.com/Asyraf2003/GlassPos/issues/30
 Owner contract: approved phase-0 inspection and implementation gate.
 
@@ -40,4 +41,4 @@ Issue and branch from clean main; implement read-side contracts; focused tests; 
 
 Test coverage includes cross-month debt, overdue, active settlement, void, payment reversal and projection refresh, optional period boundaries, pagination, HTML/PDF/XLSX consistency, dashboard cache/month switching, payload-to-list endpoint, no-session command execution, exit codes, no finance writes, repeated invocation and limits.
 
-Evidence and remaining merge gate: docs/04_lifecycle/handoff/0037_supplier_payable_current_position.md.
+Final evidence and accepted operational gaps: docs/04_lifecycle/handoff/0037_supplier_payable_current_position.md.
