@@ -1,18 +1,17 @@
 <div
     id="{{ $dashboardFilterDrawer['backdrop_id'] }}"
-    class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-25 d-none"
-    style="z-index: 1040;"
+    class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-25 d-none dashboard-backdrop"
 ></div>
 
 <div
     id="{{ $dashboardFilterDrawer['drawer_id'] }}"
-    class="position-fixed top-0 end-0 h-100 bg-body border-start shadow d-none"
-    style="width: 420px; max-width: 100%; z-index: 1050; overflow-y: auto;"
+    class="position-fixed top-0 end-0 h-100 border-start d-none dashboard-drawer"
+    role="dialog" aria-modal="true" aria-labelledby="dashboard-filter-title"
 >
     <div class="p-4">
         <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
             <div>
-                <h5 class="mb-1 fw-bold">Filter Bulan Dashboard</h5>
+                <h5 id="dashboard-filter-title" class="mb-1 fw-bold">Filter Bulan Dashboard</h5>
             </div>
 
             <button
@@ -72,7 +71,7 @@
                         <div class="report-export-shortcut-card">
                             <div class="inventory-title mb-2">{{ $shortcut['label'] }}</div>
                             <p class="inventory-meta mb-3">
-                                Bulan dashboard: {{ $dashboardFilterDrawer['active_month'] }}
+                                Periode diterapkan: {{ $dashboardFilterDrawer['active_month'] }}
                             </p>
 
                             <div class="report-export-shortcut-actions">

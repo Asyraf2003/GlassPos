@@ -1,793 +1,127 @@
 (() => {
-    const payloadElement = document.getElementById('admin-dashboard-analytics-payload');
+    const source = document.getElementById('admin-dashboard-analytics-payload');
+    if (!source) return;
 
-    if (!payloadElement) {
-        return;
-    }
-
-    let payload = {};
-
-    const parseInlinePayload = () => {
-        try {
-            payload = JSON.parse(payloadElement.textContent || '{}');
-            return true;
-        } catch (error) {
-            console.error('Payload analytics dashboard tidak valid.', error);
-            payload = {};
-            return false;
-        }
+    const chart = document.getElementById('admin-chart-operational-performance');
+    const summary = document.querySelector('[data-dashboard-analytics-target="operational-summary"]');
+    const denominations = document.querySelector('[data-dashboard-analytics-target="cash-change-rows"]');
+    const range = document.querySelector('[data-dashboard-analytics-target="operational-range"]');
+    const number = value => new Intl.NumberFormat('id-ID').format(Number(value || 0));
+    const rupiah = value => `Rp ${number(value)}`;
+    const compact = value => new Intl.NumberFormat('id-ID', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
+    const date = value => /^\d{4}-\d{2}-\d{2}$/.test(value || '') ? value.split('-').reverse().join('-') : '—';
+    const fields = [
+        ['total_operational_profit_rupiah', 'Laba Operasional (dataset harian)'],
+        ['total_operational_expense_rupiah', 'Biaya Operasional'],
+        ['total_refund_rupiah', 'Refund'],
+        ['total_potential_change_rupiah', 'Potensi Kembalian'],
+    ];
+    const labels = {
+        operational_profit: 'Laba Operasional (dataset harian)',
+        operational_expense: 'Biaya Operasional',
+        refund: 'Refund',
+        potential_change: 'Potensi Kembalian',
     };
-
-    const loadRemotePayload = async () => {
-        const url = payloadElement.dataset.url || '';
-
-        if (!url) {
-            parseInlinePayload();
-            renderAll();
-            return;
-        }
-
-        try {
-            const response = await fetch(url, {
-                headers: {
-                    Accept: 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                credentials: 'same-origin',
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            payload = await response.json();
-            renderAll();
-        } catch (error) {
-            console.error('Gagal memuat analytics dashboard.', error);
-
-            if (parseInlinePayload()) {
-                renderAll();
-            }
-        }
+    let payload = null;
+    let instance = null;
+    let failed = false;
+    const colors = () => {
+        const styles = getComputedStyle(document.documentElement);
+        const token = name => styles.getPropertyValue(`--dashboard-${name}`).trim();
+        return { text: token('text'), muted: token('muted'), border: token('border'), series: [token('accent'), token('warning'), token('danger'), token('neutral')] };
     };
-
-    const containers = {
-        stock: document.getElementById('admin-chart-stock-status-donut'),
-        topSelling: document.getElementById('admin-chart-top-selling-bar'),
-        operationalPerformance: document.getElementById('admin-chart-operational-performance'),
+    const empty = message => {
+        chart.replaceChildren();
+        const p = document.createElement('p');
+        p.className = 'dashboard-empty';
+        p.setAttribute('role', 'status');
+        p.textContent = message;
+        chart.append(p);
     };
-
-    const targets = {
-        topSellingRange: document.querySelector('[data-dashboard-analytics-target="top-selling-range"]'),
-        topSellingBadge: document.querySelector('[data-dashboard-analytics-target="top-selling-badge"]'),
-        stockRange: document.querySelector('[data-dashboard-analytics-target="stock-range"]'),
-        stockBadge: document.querySelector('[data-dashboard-analytics-target="stock-badge"]'),
-        stockSegments: document.querySelector('[data-dashboard-analytics-target="stock-segments"]'),
-        operationalRange: document.querySelector('[data-dashboard-analytics-target="operational-range"]'),
-        operationalBadge: document.querySelector('[data-dashboard-analytics-target="operational-badge"]'),
-        cashChangeRange: document.querySelector('[data-dashboard-analytics-target="cash-change-range"]'),
-        cashChangeBadge: document.querySelector('[data-dashboard-analytics-target="cash-change-badge"]'),
-        cashChangeRows: document.querySelector('[data-dashboard-analytics-target="cash-change-rows"]'),
-        operationalSummary: document.querySelector('[data-dashboard-analytics-target="operational-summary"]'),
-    };
-
-    const currentCharts = () => (payload && typeof payload === 'object' ? payload.charts || {} : {});
-    const instances = {};
-
-    const canRenderCharts = () => typeof ApexCharts !== 'undefined';
-
-    const formatNumber = (value) => new Intl.NumberFormat('id-ID').format(Number(value || 0));
-    const formatRupiah = (value) => `Rp ${formatNumber(value)}`;
-
-    const compactNumber = (value) => {
-        const number = Number(value || 0);
-        const abs = Math.abs(number);
-
-        if (abs >= 1000000000) {
-            return `${(number / 1000000000).toFixed(abs >= 10000000000 ? 0 : 1).replace('.0', '')} M`;
-        }
-
-        if (abs >= 1000000) {
-            return `${(number / 1000000).toFixed(abs >= 10000000 ? 0 : 1).replace('.0', '')} Jt`;
-        }
-
-        if (abs >= 1000) {
-            return `${(number / 1000).toFixed(abs >= 10000 ? 0 : 1).replace('.0', '')} Rb`;
-        }
-
-        return formatNumber(number);
-    };
-
-    const getCssValue = (name, fallback) => {
-        const root = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-        const body = getComputedStyle(document.body).getPropertyValue(name).trim();
-
-        return root || body || fallback;
-    };
-
-    const isDark = () => {
-        const html = document.documentElement;
-        const body = document.body;
-
-        return (
-            html.classList.contains('dark') ||
-            body.classList.contains('dark') ||
-            html.getAttribute('data-bs-theme') === 'dark' ||
-            body.getAttribute('data-bs-theme') === 'dark'
-        );
-    };
-
-    const palette = () => ({
-        primary: getCssValue('--bs-primary', '#435ebe'),
-        success: getCssValue('--bs-success', '#28c76f'),
-        warning: getCssValue('--bs-warning', '#fdac41'),
-        danger: getCssValue('--bs-danger', '#ea5455'),
-        info: getCssValue('--bs-info', '#00cfe8'),
-        text: getCssValue('--bs-body-color', '#25396f'),
-        muted: getCssValue('--bs-secondary-color', '#7c8db5'),
-        border: getCssValue('--bs-border-color', '#ebeef5'),
-    });
-
-    const truncateLabel = (value, max = 14) => {
-        const text = String(value || '');
-        return text.length > max ? `${text.slice(0, max - 1)}…` : text;
-    };
-
-    const shortDate = (value) => {
-        const text = String(value || '');
-        return text.length >= 10 ? text.slice(-2) : text;
-    };
-
-    const displayDate = (value) => {
-        const text = String(value || '');
-
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
-            return '-';
-        }
-
-        const [year, month, day] = text.split('-');
-
-        return `${day}-${month}-${year}`;
-    };
-
-    const displayRange = (range) => {
-        const from = displayDate(range?.date_from);
-        const to = displayDate(range?.date_to);
-
-        return `Range: ${from} s.d. ${to}`;
-    };
-
-    const setText = (target, value) => {
-        if (target) {
-            target.textContent = value;
-        }
-    };
-
-    const stockSegmentSeverity = (segment) => {
-        const key = String(segment?.key || '').toLowerCase();
-        const colorToken = String(segment?.color_token || '').toLowerCase();
-        const label = String(segment?.label || '').toLowerCase();
-
-        if (key === 'safe' || colorToken === 'success' || label.includes('aman')) {
-            return {
-                row: 'is-safe',
-                badge: 'bg-soft-success',
-            };
-        }
-
-        if (key === 'critical' || colorToken === 'danger' || label.includes('kritis')) {
-            return {
-                row: 'is-critical',
-                badge: 'bg-soft-danger',
-            };
-        }
-
-        if (key === 'low' || colorToken === 'warning' || label.includes('restok')) {
-            return {
-                row: 'is-warning',
-                badge: 'bg-soft-warning',
-            };
-        }
-
-        return {
-            row: 'is-unconfigured',
-            badge: 'bg-soft-info',
-        };
-    };
-
-    const renderStockSegmentsSummary = (data) => {
-        const target = targets.stockSegments;
-
-        if (!target) {
-            return;
-        }
-
-        const segments = Array.isArray(data?.segments) ? data.segments : [];
-
-        target.innerHTML = '';
-
-        if (!segments.length) {
-            const empty = document.createElement('div');
-            empty.className = 'text-center text-muted border rounded px-3 py-3 fw-semibold';
-            empty.textContent = 'Belum ada data status stok saat ini.';
-            target.appendChild(empty);
-            return;
-        }
-
-        segments.forEach((segment) => {
-            const severity = stockSegmentSeverity(segment);
+    const renderSummary = () => {
+        const totals = payload.charts.operational_performance_bar.summary || {};
+        summary.replaceChildren();
+        fields.forEach(([key, label]) => {
             const row = document.createElement('div');
-            row.className = `stock-status-row ${severity.row} d-flex justify-content-between align-items-center border rounded px-3 py-2`;
-
-            const label = document.createElement('span');
-            label.className = 'stock-status-label fw-semibold';
-
-            const dot = document.createElement('span');
-            dot.className = 'stock-status-dot';
-            dot.setAttribute('aria-hidden', 'true');
-
-            label.append(dot, document.createTextNode(segment?.label || '-'));
-
-            const value = document.createElement('span');
-            value.className = `stock-status-value badge-soft ${severity.badge}`;
-            value.textContent = formatNumber(segment?.value || 0);
-
-            row.append(label, value);
-            target.appendChild(row);
+            row.className = 'dashboard-fact';
+            const term = document.createElement('dt');
+            term.textContent = label;
+            const value = document.createElement('dd');
+            value.textContent = rupiah(totals[key]);
+            row.append(term, value);
+            summary.append(row);
         });
-    };
-
-    const renderCashChangeRowsSummary = (rows) => {
-        const target = targets.cashChangeRows;
-
-        if (!target) {
-            return;
-        }
-
-        const normalizedRows = Array.isArray(rows) ? rows : [];
-
-        target.innerHTML = '';
-
-        if (!normalizedRows.length) {
+        denominations.replaceChildren();
+        const rows = payload.cash_change_denominations || [];
+        rows.forEach(item => {
+            const row = document.createElement('tr');
+            [rupiah(item.denomination), `${number(item.count)} Lembar/Koin`, rupiah(item.total_rupiah)].forEach((text, index) => {
+                const cell = document.createElement('td');
+                cell.textContent = text;
+                if (index === 2) cell.className = 'text-end';
+                row.append(cell);
+            });
+            denominations.append(row);
+        });
+        if (!rows.length) {
             const row = document.createElement('tr');
             const cell = document.createElement('td');
             cell.colSpan = 3;
-            cell.className = 'text-center text-muted py-4';
+            cell.className = 'dashboard-empty';
             cell.textContent = 'Belum ada data kembalian cash pada periode ini.';
-            row.appendChild(cell);
-            target.appendChild(row);
+            row.append(cell);
+            denominations.append(row);
+        }
+    };
+    const renderChart = () => {
+        if (instance) { instance.destroy(); instance = null; }
+        if (!payload || failed) return;
+        const data = payload.charts.operational_performance_bar;
+        const series = data.series || [];
+        const days = data.labels || [];
+        if (!days.length || !series.some(row => row.values?.some(value => Number(value) !== 0))) {
+            empty('Belum ada aktivitas operasional pada periode ini.');
             return;
         }
-
-        normalizedRows.forEach((item) => {
-            const row = document.createElement('tr');
-
-            const denomination = document.createElement('td');
-            denomination.textContent = formatRupiah(item?.denomination || 0);
-
-            const count = document.createElement('td');
-            count.textContent = `${formatNumber(item?.count || 0)} Lembar/Koin`;
-
-            const total = document.createElement('td');
-            total.textContent = formatRupiah(item?.total_rupiah || 0);
-
-            row.append(denomination, count, total);
-            target.appendChild(row);
+        if (typeof ApexCharts === 'undefined') {
+            empty('Grafik tidak tersedia. Total analitik dapat dibaca di detail rekonsiliasi.');
+            return;
+        }
+        const palette = colors();
+        const dark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        chart.replaceChildren();
+        instance = new ApexCharts(chart, {
+            chart: { type: 'line', height: 280, fontFamily: 'inherit', foreColor: palette.muted, background: 'transparent', toolbar: { show: false }, zoom: { enabled: false }, animations: { enabled: false }, parentHeightOffset: 0 },
+            series: series.map(row => ({ name: labels[row.key] || row.label, data: row.values.map(Number) })),
+            colors: palette.series,
+            stroke: { curve: 'straight', width: [2, 1.5, 1.5, 1.5], dashArray: [0, 0, 4, 4] },
+            markers: { size: days.length === 1 ? 4 : 0, hover: { size: 4 } },
+            dataLabels: { enabled: false },
+            grid: { borderColor: palette.border, strokeDashArray: 3, padding: { left: 8, right: 16 } },
+            xaxis: { categories: days, tickAmount: Math.min(7, days.length), labels: { formatter: value => String(value).slice(-2), style: { colors: palette.muted, fontSize: '12px' } }, axisBorder: { color: palette.border }, axisTicks: { color: palette.border } },
+            yaxis: { labels: { formatter: compact, style: { colors: palette.muted, fontSize: '12px' } } },
+            legend: { position: 'bottom', fontSize: '12px', fontWeight: 400, labels: { colors: palette.text }, itemMargin: { horizontal: 8, vertical: 4 } },
+            tooltip: { theme: dark ? 'dark' : 'light', shared: true, intersect: false, x: { formatter: (_, opts) => date(days[opts.dataPointIndex]) }, y: { formatter: rupiah } },
         });
+        instance.render();
     };
-
-    const renderOperationalSummary = (summary) => {
-        const target = targets.operationalSummary;
-
-        if (!target) {
-            return;
-        }
-
-        const rows = [
-            {
-                label: 'Laba Operasional',
-                value: summary?.total_operational_profit_rupiah || 0,
-                note: 'Tren laba dari payload dashboard',
-                noteClass: Number(summary?.total_operational_profit_rupiah || 0) < 0 ? 'meta-down' : 'meta-up',
-                icon: Number(summary?.total_operational_profit_rupiah || 0) < 0 ? 'bi-graph-down-arrow' : 'bi-graph-up-arrow',
-            },
-            {
-                label: 'Biaya Operasional',
-                value: summary?.total_operational_expense_rupiah || 0,
-                note: 'Beban periode aktif',
-                noteClass: 'meta-flat',
-                icon: 'bi-cash-stack',
-            },
-            {
-                label: 'Refund',
-                value: summary?.total_refund_rupiah || 0,
-                note: 'Kas keluar refund',
-                noteClass: Number(summary?.total_refund_rupiah || 0) > 0 ? 'meta-down' : 'meta-flat',
-                icon: 'bi-arrow-counterclockwise',
-            },
-            {
-                label: 'Potensi Kembalian',
-                value: summary?.total_potential_change_rupiah || 0,
-                note: 'Estimasi pecahan cash',
-                noteClass: 'meta-flat',
-                icon: 'bi-coin',
-            },
-        ];
-
-        target.innerHTML = '';
-
-        rows.forEach((item) => {
-            const box = document.createElement('div');
-            box.className = 'finance-box';
-
-            const label = document.createElement('div');
-            label.className = 'finance-label';
-            label.textContent = item.label;
-
-            const value = document.createElement('div');
-            value.className = 'finance-value';
-            value.textContent = formatRupiah(item.value);
-
-            const note = document.createElement('p');
-            note.className = `finance-note ${item.noteClass}`;
-
-            const icon = document.createElement('i');
-            icon.className = `bi ${item.icon}`;
-
-            note.append(icon, document.createTextNode(` ${item.note}`));
-            box.append(label, value, note);
-            target.appendChild(box);
-        });
+    const failure = () => {
+        failed = true;
+        empty('Analitik gagal dimuat. Muat ulang halaman untuk mencoba lagi.');
+        summary.querySelectorAll('dd').forEach(value => { value.textContent = 'Tidak tersedia'; });
+        denominations.querySelector('td').textContent = 'Data pecahan kembalian tidak tersedia.';
     };
-
-
-    const renderAnalyticsSummaries = () => {
-        const charts = currentCharts();
-        const topSelling = charts.top_selling_bar || {};
-        const stock = charts.stock_status_donut || {};
-        const operational = charts.operational_performance_bar || {};
-        const topSellingCategories = Array.isArray(topSelling.categories) ? topSelling.categories : [];
-        const operationalLabels = Array.isArray(operational.labels) ? operational.labels : [];
-        const cashChangeRows = Array.isArray(payload?.cash_change_denominations)
-            ? payload.cash_change_denominations
-            : [];
-        const fallbackPeriodRange = {
-            date_from: payload?.period?.date_from,
-            date_to: payload?.period?.date_to,
-        };
-        const cashChangeRange = operational.range || fallbackPeriodRange;
-
-        setText(targets.topSellingRange, displayRange(topSelling.range || fallbackPeriodRange));
-        setText(targets.topSellingBadge, `${formatNumber(topSellingCategories.length)} Produk`);
-
-        setText(targets.stockRange, `Snapshot stok pada ${displayDate(stock.snapshot_date || payload?.period?.anchor_date)}`);
-        setText(targets.stockBadge, `${formatNumber(stock.total_value || 0)} Produk`);
-        renderStockSegmentsSummary(stock);
-
-        setText(targets.operationalRange, displayRange(operational.range || fallbackPeriodRange));
-        setText(targets.operationalBadge, `${formatNumber(operationalLabels.length)} Titik`);
-        renderOperationalSummary(operational.summary || {});
-
-        setText(targets.cashChangeRange, displayRange(cashChangeRange));
-        setText(targets.cashChangeBadge, `${formatNumber(cashChangeRows.length)} Pecahan`);
-        renderCashChangeRowsSummary(cashChangeRows);
+    const load = async () => {
+        try {
+            const response = await fetch(source.dataset.url, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' });
+            if (!response.ok) throw new Error('analytics unavailable');
+            payload = await response.json();
+            if (!Array.isArray(payload?.charts?.operational_performance_bar?.series)) throw new Error('invalid analytics');
+            range.textContent = `${date(payload.period.date_from)} – ${date(payload.period.date_to)} · Rupiah`;
+            renderSummary();
+            renderChart();
+        } catch (_) { failure(); }
     };
-
-    const destroy = (key) => {
-        if (instances[key]) {
-            instances[key].destroy();
-            instances[key] = null;
-        }
-    };
-
-    const emptyState = (container, message, colors) => {
-        if (!container) {
-            return;
-        }
-
-        container.innerHTML = `
-            <div style="
-                min-height: 340px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                text-align: center;
-                color: ${colors.muted};
-                font-size: .9rem;
-                font-weight: 700;
-                line-height: 1.6;
-                padding: 1rem;
-            ">
-                ${message}
-            </div>
-        `;
-    };
-
-    const baseOptions = (colors) => ({
-        chart: {
-            fontFamily: 'Nunito, Inter, Segoe UI, sans-serif',
-            foreColor: colors.muted,
-            background: 'transparent',
-            toolbar: {
-                show: false,
-            },
-            zoom: {
-                enabled: false,
-            },
-            animations: {
-                enabled: true,
-                easing: 'easeinout',
-                speed: 500,
-            },
-            parentHeightOffset: 0,
-        },
-        legend: {
-            position: 'bottom',
-            horizontalAlign: 'center',
-            fontSize: '12px',
-            fontWeight: 700,
-            labels: {
-                colors: colors.muted,
-            },
-            markers: {
-                width: 10,
-                height: 10,
-                radius: 99,
-            },
-            itemMargin: {
-                horizontal: 10,
-                vertical: 6,
-            },
-        },
-        dataLabels: {
-            enabled: false,
-        },
-        grid: {
-            borderColor: colors.border,
-            strokeDashArray: 3,
-            padding: {
-                left: 8,
-                right: 12,
-                top: 8,
-                bottom: 2,
-            },
-        },
-        tooltip: {
-            theme: isDark() ? 'dark' : 'light',
-        },
-        noData: {
-            text: 'Belum ada data.',
-            align: 'center',
-            verticalAlign: 'middle',
-            style: {
-                color: colors.muted,
-                fontSize: '13px',
-                fontFamily: 'Nunito, Inter, Segoe UI, sans-serif',
-            },
-        },
-    });
-
-    const renderStock = () => {
-        const charts = currentCharts();
-        const key = 'stock';
-        const container = containers.stock;
-        const data = charts.stock_status_donut || {};
-        const colors = palette();
-        const segments = Array.isArray(data.segments) ? data.segments : [];
-        const values = segments.map((segment) => Number(segment?.value || 0));
-
-        destroy(key);
-
-        if (!container || !segments.length || values.every((value) => value === 0)) {
-            emptyState(container, 'Belum ada data status stok untuk divisualisasikan.', colors);
-            return;
-        }
-
-        if (!canRenderCharts()) {
-            emptyState(container, 'Library grafik belum tersedia. Ringkasan status stok tetap ditampilkan.', colors);
-            return;
-        }
-
-        container.innerHTML = '';
-
-        instances[key] = new ApexCharts(container, {
-            ...baseOptions(colors),
-            chart: {
-                ...baseOptions(colors).chart,
-                type: 'donut',
-                height: 340,
-            },
-            series: values,
-            labels: segments.map((segment) => `${segment?.label || '-'} (${formatNumber(segment?.value || 0)})`),
-            colors: [colors.success, colors.warning, colors.danger, colors.info],
-            stroke: {
-                width: 0,
-            },
-            plotOptions: {
-                pie: {
-                    expandOnClick: false,
-                    donut: {
-                        size: '72%',
-                        labels: {
-                            show: true,
-                            name: {
-                                show: true,
-                                offsetY: 16,
-                                color: colors.muted,
-                                fontSize: '14px',
-                                fontWeight: 700,
-                            },
-                            value: {
-                                show: true,
-                                offsetY: -14,
-                                color: colors.text,
-                                fontSize: '32px',
-                                fontWeight: 800,
-                                formatter: () => formatNumber(data.total_value || 0),
-                            },
-                            total: {
-                                show: true,
-                                showAlways: true,
-                                label: 'Produk',
-                                color: colors.muted,
-                                fontSize: '13px',
-                                fontWeight: 700,
-                                formatter: () => formatNumber(data.total_value || 0),
-                            },
-                        },
-                    },
-                },
-            },
-            tooltip: {
-                theme: isDark() ? 'dark' : 'light',
-                y: {
-                    formatter: (value) => `${formatNumber(value)} Produk`,
-                },
-            },
-        });
-
-        instances[key].render();
-    };
-
-    const renderTopSelling = () => {
-        const charts = currentCharts();
-        const key = 'topSelling';
-        const container = containers.topSelling;
-        const data = charts.top_selling_bar || {};
-        const colors = palette();
-        const categories = Array.isArray(data.categories) ? data.categories : [];
-        const details = Array.isArray(data.detail) ? data.detail : [];
-        const seriesRow = Array.isArray(data.series) && data.series[0] ? data.series[0] : null;
-        const values = Array.isArray(seriesRow?.values) ? seriesRow.values.map((value) => Number(value || 0)) : [];
-
-        destroy(key);
-
-        if (!container || !categories.length || !values.length) {
-            emptyState(container, 'Belum ada data produk terjual pada bulan aktif.', colors);
-            return;
-        }
-
-        if (!canRenderCharts()) {
-            emptyState(container, 'Library grafik belum tersedia. Ringkasan top produk tetap ditampilkan.', colors);
-            return;
-        }
-
-        container.innerHTML = '';
-
-        instances[key] = new ApexCharts(container, {
-            ...baseOptions(colors),
-            chart: {
-                ...baseOptions(colors).chart,
-                type: 'bar',
-                height: 340,
-            },
-            series: [
-                {
-                    name: seriesRow?.label || 'Qty Terjual',
-                    data: values,
-                },
-            ],
-            colors: [colors.primary, colors.info, colors.success, colors.warning, colors.danger],
-            plotOptions: {
-                bar: {
-                    horizontal: false,
-                    borderRadius: 10,
-                    columnWidth: '72%',
-                    distributed: true,
-                },
-            },
-            stroke: {
-                show: true,
-                width: 2,
-                colors: ['transparent'],
-            },
-            xaxis: {
-                categories: categories.map((row) => truncateLabel(row?.label || '-', 12)),
-                labels: {
-                    style: {
-                        colors: categories.map(() => colors.text),
-                        fontSize: '12px',
-                        fontWeight: 800,
-                    },
-                    rotate: 0,
-                },
-                axisBorder: {
-                    color: colors.border,
-                },
-                axisTicks: {
-                    color: colors.border,
-                },
-            },
-            yaxis: {
-                labels: {
-                    style: {
-                        colors: [colors.muted],
-                        fontSize: '12px',
-                        fontWeight: 800,
-                    },
-                    formatter: (value) => compactNumber(value),
-                },
-            },
-            dataLabels: {
-                enabled: true,
-                offsetY: -20,
-                style: {
-                    fontSize: '12px',
-                    fontWeight: 800,
-                    colors: [colors.text],
-                },
-                formatter: (value) => compactNumber(value),
-            },
-            legend: {
-                show: false,
-            },
-            tooltip: {
-                theme: isDark() ? 'dark' : 'light',
-                y: {
-                    formatter: (value, opts) => {
-                        const detail = details[opts.dataPointIndex] || {};
-                        return `${formatNumber(value)} Unit | ${formatRupiah(detail.gross_revenue_rupiah || 0)}`;
-                    },
-                },
-            },
-        });
-
-        instances[key].render();
-    };
-
-    const renderOperationalArea = () => {
-        const charts = currentCharts();
-        const key = 'operationalPerformance';
-        const container = containers.operationalPerformance;
-        const data = charts.operational_performance_bar || {};
-        const colors = palette();
-        const labels = Array.isArray(data.labels) ? data.labels : [];
-        const series = Array.isArray(data.series) ? data.series : [];
-
-        destroy(key);
-
-        if (!container || !labels.length || !series.length) {
-            emptyState(container, 'Belum ada data laba operasional pada bulan aktif.', colors);
-            return;
-        }
-
-        if (!canRenderCharts()) {
-            emptyState(container, 'Library grafik belum tersedia. Ringkasan laba operasional tetap ditampilkan.', colors);
-            return;
-        }
-
-        container.innerHTML = '';
-
-        const colorMap = {
-            operational_profit: colors.primary,
-            operational_expense: colors.warning,
-            refund: colors.danger,
-        };
-
-        instances[key] = new ApexCharts(container, {
-            ...baseOptions(colors),
-            chart: {
-                ...baseOptions(colors).chart,
-                type: 'area',
-                height: 340,
-            },
-            series: series.map((row) => ({
-                name: row?.label || '-',
-                data: Array.isArray(row?.values) ? row.values.map((value) => Number(value || 0)) : [],
-            })),
-            colors: series.map((row) => colorMap[row?.key] || colors.info),
-            stroke: {
-                curve: 'smooth',
-                width: 3,
-            },
-            fill: {
-                type: 'gradient',
-                gradient: {
-                    shadeIntensity: 1,
-                    opacityFrom: 0.26,
-                    opacityTo: 0.06,
-                    stops: [0, 90, 100],
-                },
-            },
-            markers: {
-                size: 3.5,
-                strokeWidth: 0,
-                hover: {
-                    size: 5.5,
-                },
-            },
-            xaxis: {
-                categories: labels.map((label) => shortDate(label)),
-                labels: {
-                    style: {
-                        colors: labels.map(() => colors.muted),
-                        fontSize: '11px',
-                        fontWeight: 800,
-                    },
-                },
-                axisBorder: {
-                    color: colors.border,
-                },
-                axisTicks: {
-                    color: colors.border,
-                },
-            },
-            yaxis: {
-                labels: {
-                    style: {
-                        colors: [colors.muted],
-                        fontSize: '11px',
-                        fontWeight: 800,
-                    },
-                    formatter: (value) => compactNumber(value),
-                },
-            },
-            tooltip: {
-                shared: true,
-                intersect: false,
-                theme: isDark() ? 'dark' : 'light',
-                y: {
-                    formatter: (value) => formatRupiah(value),
-                },
-            },
-        });
-
-        instances[key].render();
-    };
-
-    const renderAll = () => {
-        renderAnalyticsSummaries();
-        renderStock();
-        renderTopSelling();
-        renderOperationalArea();
-    };
-
-    loadRemotePayload();
-
-    let frame = null;
-    const rerender = () => {
-        if (frame !== null) {
-            cancelAnimationFrame(frame);
-        }
-
-        frame = requestAnimationFrame(() => {
-            frame = null;
-            renderAll();
-        });
-    };
-
-    const observer = new MutationObserver(rerender);
-    observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['class', 'data-bs-theme'],
-    });
-
-    if (document.body) {
-        observer.observe(document.body, {
-            attributes: true,
-            attributeFilter: ['class', 'data-bs-theme'],
-        });
-    }
-
-    window.addEventListener('resize', rerender, { passive: true });
+    new MutationObserver(renderChart).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    load();
 })();

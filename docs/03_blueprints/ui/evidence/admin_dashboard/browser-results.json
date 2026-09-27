@@ -1,0 +1,132 @@
+[
+  {
+    "name": "1366-light",
+    "overflow": false,
+    "tableOverflow": [
+      false,
+      false
+    ],
+    "kpiOverflow": false
+  },
+  {
+    "name": "1366-dark",
+    "overflow": false,
+    "tableOverflow": [
+      false,
+      false
+    ],
+    "kpiOverflow": false
+  },
+  {
+    "name": "1920-light",
+    "overflow": false,
+    "tableOverflow": [
+      false,
+      false
+    ],
+    "kpiOverflow": false
+  },
+  {
+    "name": "1920-dark",
+    "overflow": false,
+    "tableOverflow": [
+      false,
+      false
+    ],
+    "kpiOverflow": false
+  },
+  {
+    "name": "1024-light",
+    "overflow": false,
+    "tableOverflow": [
+      false,
+      false
+    ],
+    "kpiOverflow": false
+  },
+  {
+    "name": "1024-dark",
+    "overflow": false,
+    "tableOverflow": [
+      false,
+      false
+    ],
+    "kpiOverflow": false
+  },
+  {
+    "name": "768-light",
+    "overflow": false,
+    "tableOverflow": [
+      false,
+      false
+    ],
+    "kpiOverflow": false
+  },
+  {
+    "name": "768-dark",
+    "overflow": false,
+    "tableOverflow": [
+      false,
+      false
+    ],
+    "kpiOverflow": false
+  },
+  {
+    "name": "audit-dark",
+    "overflow": false,
+    "tableOverflow": [
+      false,
+      false
+    ],
+    "kpiOverflow": false
+  },
+  {
+    "name": "audit-light",
+    "overflow": false,
+    "tableOverflow": [
+      false,
+      false
+    ],
+    "kpiOverflow": false
+  },
+  {
+    "name": "zero-period-light",
+    "overflow": false,
+    "tableOverflow": [
+      false,
+      false
+    ],
+    "kpiOverflow": false
+  },
+  {
+    "name": "analytics-failure-light",
+    "overflow": false,
+    "tableOverflow": [
+      false,
+      false
+    ],
+    "kpiOverflow": false
+  },
+  {
+    "name": "long-values-light",
+    "overflow": false,
+    "tableOverflow": [
+      false,
+      false
+    ],
+    "kpiOverflow": false
+  },
+  {
+    "name": "long-values-dark",
+    "overflow": false,
+    "tableOverflow": [
+      false,
+      false
+    ],
+    "kpiOverflow": false
+  },
+  {
+    "interactions": "24 report/export links HTTP 200; product links HTTP 200; month submit/reset; Escape/focus; theme switch; failure state; handset hub",
+    "errors": []
+  }
+]

@@ -46,11 +46,11 @@ final class AdminDashboardPageFeatureTest extends TestCase
             $response->assertSee('aria-label="Ganti tema gelap atau terang"', false);
             $response->assertSee('aria-label="Tutup menu utama"', false);
             $response->assertSee('Ringkasan Toko');
-            $response->assertSee('Total Nilai Nota Bulan Ini');
+            $response->assertSee('Total Nilai Nota');
             $response->assertSee('Rp 150.000');
-            $response->assertSee('Uang Bersih Diterima Bulan Ini');
+            $response->assertSee('Uang Bersih Diterima');
             $response->assertSee('Rp 111.000');
-            $response->assertSee('Sisa Tagihan Bulan Ini');
+            $response->assertSee('Sisa Tagihan');
             $response->assertSee('Rp 9.001');
             $response->assertSee('Total Stok Tersedia');
             $response->assertSee('21 Unit');
@@ -94,17 +94,17 @@ final class AdminDashboardPageFeatureTest extends TestCase
             ]);
             $response->assertSee('Uang Diterima Hari Ini');
             $response->assertSee('Rp 50.000');
-            $response->assertSee('Sisa Kas Operasional Bulan Ini');
+            $response->assertSee('Sisa Kas Operasional');
             $response->assertDontSee('Net Cash Bulan Ini');
             $response->assertDontSee('Outstanding Bulan Ini');
             $response->assertDontSee('Total Qty On Hand');
             $response->assertDontSee('Aktivitas Ledger Periode Ini');
             $response->assertSee('Rp -74.000');
-            $response->assertSee('Uang Dikembalikan Bulan Ini');
+            $response->assertSee('Uang Dikembalikan');
             $response->assertSee('Rp 5.000');
-            $response->assertSee('Riwayat Uang dan Stok Bulan Ini');
+            $response->assertSee('Riwayat Uang dan Stok');
             $response->assertSee('Uang Masuk Sebelum Refund');
-            $response->assertSee('Uang Refund Keluar Bulan Ini');
+            $response->assertSee('Refund atas Nota Periode Ini');
             $response->assertSee('Barang Keluar Sebelum Barang Balik');
             $response->assertSee('Barang Keluar Bersih');
             $response->assertSee('Sisa Hutang Supplier');
@@ -179,6 +179,66 @@ final class AdminDashboardPageFeatureTest extends TestCase
             $payload->assertJsonPath('period.date_from', '2030-01-01');
             $payload->assertJsonPath('period.date_to', '2030-01-31');
             $payload->assertJsonPath('charts.stock_status_donut.segments.0.value', 1);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_dashboard_separates_period_cohorts_from_current_stock_and_event_cash(): void
+    {
+        Carbon::setTestNow('2030-02-09 08:00:00');
+
+        try {
+            $this->seedDashboardFixtures();
+            $response = $this->actingAs($this->user('admin'))
+                ->get(route('admin.dashboard', ['month' => '2030-01']));
+
+            $response->assertOk();
+            $response->assertSeeInOrder(['Total Nilai Nota', 'Prioritas Restok', 'Status Stok Saat Ini', 'Kewajiban &amp; Biaya', 'Kinerja Operasional Harian', 'Riwayat Uang dan Stok'], false);
+            $response->assertSee('Posisi sekarang · tidak mengikuti filter bulan');
+            $response->assertSee('Berdasarkan tanggal pembayaran dan refund');
+            $response->assertSee('Faktur bertanggal pengiriman dalam periode');
+            $response->assertSee('Kasbon yang dibuat dalam periode');
+            $response->assertSee('Customer refund untuk nota terpilih, termasuk refund lintas bulan');
+            $response->assertSee('09 Februari 2030');
+            $response->assertSee('Barang Balik / Reversal');
+            $response->assertSee('kuantitas dan nilai setelah reversal');
+            $response->assertDontSee('admin-chart-top-selling-bar', false);
+            $response->assertDontSee('admin-chart-stock-status-donut', false);
+            $this->assertSame(1, substr_count($response->getContent(), '>Sisa Kas Operasional<'));
+            $this->assertSame(1, substr_count($response->getContent(), '>Nilai Modal Stok<'));
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_empty_dashboard_does_not_present_pending_analytics_as_zero(): void
+    {
+        $response = $this->actingAs($this->user('admin'))->get(route('admin.dashboard'));
+
+        $response->assertOk();
+        $response->assertSee('Tidak ada prioritas restok');
+        $response->assertSee('Belum ada produk terjual bersih');
+        $response->assertSee('Memuat analitik…');
+        $response->assertSee('Memuat pecahan kembalian…');
+        $response->assertSee('role="dialog"', false);
+        $response->assertSee('aria-controls="admin-dashboard-filter-drawer"', false);
+        $response->assertSee('assets/static/css/admin-dashboard.css', false);
+    }
+
+    public function test_refund_flag_describes_period_cash_not_all_note_statuses(): void
+    {
+        Carbon::setTestNow('2030-01-09 08:00:00');
+
+        try {
+            $this->seedDashboardFixtures();
+            $this->seedCustomerRefund('refund-period-exceeds-in', 'payment-1', 'note-1', 200000, '2030-01-09', 'Period proof');
+            $response = $this->actingAs($this->user('admin'))->get(route('admin.dashboard'));
+
+            $response->assertOk();
+            $response->assertSee('Refund keluar pada periode ini sama dengan atau melebihi uang masuk.');
+            $response->assertSee('Arus kas bersih dapat nol atau negatif');
+            $response->assertDontSee('current sales');
         } finally {
             Carbon::setTestNow();
         }
