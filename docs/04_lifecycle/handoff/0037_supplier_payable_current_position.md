@@ -2,11 +2,14 @@
 
 Date: 2026-09-27
 Issue: https://github.com/Asyraf2003/GlassPos/issues/30
-PR: https://github.com/Asyraf2003/GlassPos/pull/31 (final proof after prerequisite merge)
+PR: https://github.com/Asyraf2003/GlassPos/pull/31 (MERGED)
+Supplier merge SHA: 52a6c8033bbad0675fdaa46356c373b475d3d4e0
+Baseline prerequisite: https://github.com/Asyraf2003/GlassPos/pull/33
+Baseline merge SHA: 5adae8808532557d04abbec2bb1eae2da4fe0476
 Implementation commit: c7f925cf8ac50910d3cba5fcd7f4320d53bf79f4
 Branch: fix/supplier-payable-current-position
 Baseline: 9099e9d7ba85035794006f96eb6333544a30ca44 (clean main, verified against remote)
-Status: baseline audit blocker resolved by PR #33; final supplier verification and merge follow the owner-authorized chain.
+Status: CLOSED. Owner-authorized chain A-F completed; Issue #30 is CLOSED.
 
 ## Scope and locked contract
 
@@ -40,7 +43,7 @@ Adjacent command:
 
     php artisan test --compact tests/Feature/Procurement tests/Feature/Reporting tests/Feature/ReportingExports tests/Feature/PushNotification tests/Feature/Admin
 
-Final result: 546 passed, 4462 assertions (35.04 seconds).
+Final post-prerequisite result: 546 passed, 4462 assertions (39.69 seconds), exit 0. Tested on refreshed supplier branch before merge.
 
     ./vendor/bin/phpstan analyze --memory-limit=-1 --no-progress
 
@@ -71,7 +74,7 @@ Command:
 
     LD_LIBRARY_PATH=/tmp/glasspos-dashboard-proof/lib node /tmp/glasspos-payable-proof/browser.mjs
 
-Both light and dark passed:
+Both light and dark passed, including a repeat after merging the baseline prerequisite into the supplier branch:
 
 1. Open report without query: all selected, August overdue row shows 8000000, settled row visible.
 2. Use filter drawer to select monthly September: August row disappears, September row remains.
@@ -102,6 +105,34 @@ Operational limits intentionally unchanged:
 - No schema/idempotency subsystem added. No cPanel or server scheduler configured. Production PHP path, working directory, timezone, credentials and actual delivery must be verified during deployment/cron setup.
 - All-period exports materialize all rows; production volume/load behavior is not proven by these fixture tests.
 
-## Next
+## Prerequisite and final closeout proof
 
-Complete final verification on the refreshed branch and capture PR #31 merge SHA. Keep customer receivable and production cron outside scope.
+PR #33 changed only the badge partial, a presentation formatter and a render test. Existing label normalization, fallback, tone precedence, explicit overrides, escaping and styling were preserved. No audit relaxation or lifecycle changes.
+
+Baseline prerequisite commands:
+
+    make audit-contract
+    php artisan test --compact tests/Feature/Note/NoteDetailPageFeatureTest.php tests/Feature/Note/CashierNotePresentationDensityContractTest.php tests/Feature/Note/NoteStatusBadgePresentationFeatureTest.php
+    ./vendor/bin/phpstan analyze --memory-limit=-1 --no-progress
+    git diff --check
+
+All prerequisite gate commands passed: 6 tests, 132 assertions; PHPStan no errors. Local Chromium admin note detail returned HTTP 200 in light/dark, original close/Lunas success and Aktif info tones with white foreground, no page errors.
+
+Additional characterization outside the focused gate: AdminNoteDetailPageFeatureTest has two pre-existing failures asserting missing text "Riwayat Perubahan Nota". Both reproduced with the exact origin/main badge; no unrelated assertion/UI change was made. This is not a claim that the entire repository test suite is green.
+
+After prerequisite merge, origin/main was merged into fix/supplier-payable-current-position without conflicts. Final gate commands all actually ran and passed:
+
+    make audit-contract
+    php artisan test --compact tests/Feature/Procurement tests/Feature/Reporting tests/Feature/ReportingExports tests/Feature/PushNotification tests/Feature/Admin
+    ./vendor/bin/phpstan analyze --memory-limit=-1 --no-progress
+    php scripts/audit-line-count.php
+    git diff --check
+    LD_LIBRARY_PATH=/tmp/glasspos-dashboard-proof/lib node /tmp/glasspos-payable-proof/browser.mjs
+
+Final adjacent result: 546 passed, 4462 assertions. Audit contract and line audit passed, PHPStan no errors, diff check clean. Browser repeated all/monthly, dashboard cross-month and generated push URL through operational table with no shipment-date filters in light/dark.
+
+Self-review of final PR #31 against origin/main: no customer receivable, finance lifecycle, cron, schema or dependency changes. PR marked ready and merged after proof; Issue #30 automatically closed. Merge SHAs are recorded above.
+
+## Stop boundary
+
+Supplier payable current position + all-period report + dashboard + operational deep link + reminder command readiness is CLOSED. Production cron remains UNCONFIGURED. Same-day resend and 100/500 truncation remain the owner-accepted operational gaps. No idempotency persistence or limit changes. Stop after this closeout; no unrelated cleanup.
