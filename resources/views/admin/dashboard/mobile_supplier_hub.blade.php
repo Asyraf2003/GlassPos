@@ -10,15 +10,25 @@
             margin: 0 auto;
         }
 
-        .mobile-supplier-hub-action {
-            min-height: 118px;
-            border-radius: 1.35rem;
-            text-align: left;
-            box-shadow: 0 .8rem 1.8rem rgba(15, 23, 42, .08);
+        .mobile-supplier-hub-actions {
+            display: grid;
+            gap: .9rem;
+            margin-bottom: 1.5rem;
         }
 
-        .mobile-supplier-hub-action i {
-            font-size: 1.75rem;
+        .mobile-supplier-hub-action {
+            min-height: 82px;
+            border-radius: 1.15rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 1.25rem;
+            text-align: center;
+            box-shadow: 0 .65rem 1.5rem rgba(15, 23, 42, .07);
+        }
+
+        .mobile-supplier-hub-action strong {
+            line-height: 1.25;
         }
 
         .mobile-supplier-row {
@@ -42,32 +52,24 @@
         data-mobile-supplier-hub
         data-initial-tab="{{ $mobileTab }}"
     >
-        <div class="row g-3 mb-4">
-            <div class="col-12 col-sm-6">
-                <button
-                    type="button"
-                    class="btn btn-primary w-100 mobile-supplier-hub-action p-4"
-                    data-mobile-hub-action="pay"
-                    aria-pressed="false"
-                >
-                    <i class="bi bi-cash-stack d-block mb-2" aria-hidden="true"></i>
-                    <strong class="d-block fs-5">Bayar Supplier</strong>
-                    <span class="small opacity-75">Pilih nota yang masih punya hutang</span>
-                </button>
-            </div>
+        <div class="mobile-supplier-hub-actions">
+            <button
+                type="button"
+                class="btn btn-primary w-100 mobile-supplier-hub-action"
+                data-mobile-hub-action="pay"
+                aria-pressed="false"
+            >
+                <strong class="fs-5">Bayar Supplier</strong>
+            </button>
 
-            <div class="col-12 col-sm-6">
-                <button
-                    type="button"
-                    class="btn btn-outline-primary w-100 mobile-supplier-hub-action p-4"
-                    data-mobile-hub-action="history"
-                    aria-pressed="false"
-                >
-                    <i class="bi bi-receipt d-block mb-2" aria-hidden="true"></i>
-                    <strong class="d-block fs-5">Cek Pembayaran Supplier</strong>
-                    <span class="small">Bukti terbaru tampil paling atas</span>
-                </button>
-            </div>
+            <button
+                type="button"
+                class="btn btn-outline-primary w-100 mobile-supplier-hub-action"
+                data-mobile-hub-action="history"
+                aria-pressed="false"
+            >
+                <strong class="fs-5">Cek Pembayaran Supplier</strong>
+            </button>
         </div>
 
         <div class="d-none" data-mobile-hub-section="pay">
