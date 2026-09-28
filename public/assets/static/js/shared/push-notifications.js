@@ -21,6 +21,7 @@
       serviceWorkerScope: node.dataset.serviceWorkerScope || '/',
       subscribeUrl: node.dataset.subscribeUrl || '',
       unsubscribeUrl: node.dataset.unsubscribeUrl || '',
+      statusUrl: node.dataset.statusUrl || '',
       vapidPublicKey: node.dataset.vapidPublicKey || '',
       defaultIcon: node.dataset.defaultIcon || '',
       defaultUrl: node.dataset.defaultUrl || '',
@@ -146,66 +147,72 @@
     return registration.pushManager.getSubscription();
   };
 
+  const getState = async () => {
+    const config = readConfig();
+    if (!ensureSupported()) return { enabled: false, reason: 'unsupported' };
+    if (Notification.permission === 'denied') return { enabled: false, reason: 'permission_denied' };
+    if (!config) return { enabled: false, reason: 'missing_config' };
+    const registration = await navigator.serviceWorker.getRegistration(config.serviceWorkerScope || '/');
+    const subscription = registration ? await currentSubscription(registration) : null;
+    if (Notification.permission === 'granted' && subscription) {
+      const status = config.statusUrl
+        ? await postJson(config.statusUrl, 'POST', { endpoint: subscription.endpoint })
+        : { data: { active: true } };
+      if (status.data.active) return { enabled: true };
+    }
+    if (!config.vapidPublicKey) return { enabled: false, reason: 'missing_vapid_public_key' };
+    return { enabled: false, reason: 'inactive' };
+  };
+
   const enable = async () => {
     const config = readConfig();
+    if (!ensureSupported()) return { enabled: false, reason: 'unsupported' };
+    if (!config || !config.vapidPublicKey) return { enabled: false, reason: 'missing_vapid_public_key' };
+    if (Notification.permission === 'denied') return { enabled: false, reason: 'permission_denied' };
 
-    if (!config || !ensureSupported()) {
-      return { enabled: false, reason: 'unsupported' };
-    }
-
-    if (!config.vapidPublicKey) {
-      return { enabled: false, reason: 'missing_vapid_public_key' };
-    }
-
-    const permission = await Notification.requestPermission();
-
+    // Called only from the user's gesture; do not await registration before permission.
+    const permission = Notification.permission === 'granted'
+      ? 'granted' : await Notification.requestPermission();
     if (permission !== 'granted') {
-      return { enabled: false, reason: 'permission_denied' };
+      return { enabled: false, reason: permission === 'denied' ? 'permission_denied' : 'inactive' };
     }
 
-    const registration = await registerServiceWorker(config);
+    await registerServiceWorker(config);
+    const registration = await navigator.serviceWorker.ready;
     const existing = await currentSubscription(registration);
-
     const subscription = existing || await registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: base64UrlToUint8Array(config.vapidPublicKey),
     });
-
-    await postJson(config.subscribeUrl, 'POST', {
-      endpoint: subscription.endpoint,
-      keys: subscription.toJSON().keys,
-      contentEncoding: 'aes128gcm',
-    });
-
+    try {
+      await postJson(config.subscribeUrl, 'POST', {
+        endpoint: subscription.endpoint,
+        keys: subscription.toJSON().keys,
+        contentEncoding: 'aes128gcm',
+      });
+    } catch (error) {
+      if (!existing) await subscription.unsubscribe();
+      throw error;
+    }
     return { enabled: true };
   };
 
   const disable = async () => {
     const config = readConfig();
-
-    if (!config || !ensureSupported()) {
-      return { deleted: false, reason: 'unsupported' };
-    }
-
-    const registration = await registerServiceWorker(config);
-    const subscription = await currentSubscription(registration);
-
-    if (!subscription) {
-      return { deleted: true };
-    }
-
-    await postJson(config.unsubscribeUrl, 'DELETE', {
-      endpoint: subscription.endpoint,
-    });
-
+    if (!config || !ensureSupported()) return { deleted: false, reason: 'unsupported' };
+    const registration = await navigator.serviceWorker.getRegistration(config.serviceWorkerScope || '/');
+    const subscription = registration ? await currentSubscription(registration) : null;
+    if (!subscription) return { deleted: true };
+    await postJson(config.unsubscribeUrl, 'DELETE', { endpoint: subscription.endpoint });
     await subscription.unsubscribe();
-
+    if (await currentSubscription(registration)) throw new Error('Browser unsubscribe failed');
     return { deleted: true };
   };
 
   window.AppPushNotifications = {
     enable,
     disable,
+    getState,
     isSupported: ensureSupported,
   };
 

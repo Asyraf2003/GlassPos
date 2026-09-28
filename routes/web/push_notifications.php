@@ -13,6 +13,9 @@ Route::middleware(['auth'])
         Route::post('/subscriptions', StorePushSubscriptionController::class)
             ->name('subscriptions.store');
 
+        Route::post('/subscriptions/status', \App\Adapters\In\Http\Controllers\PushNotification\PushSubscriptionStatusController::class)
+            ->name('subscriptions.status');
+
         Route::delete('/subscriptions', DeletePushSubscriptionController::class)
             ->name('subscriptions.destroy');
     });

@@ -24,7 +24,8 @@ final class SendDueNoteReminderPushCommandFeatureTest extends TestCase
 
         $this->seedDueReminderNote();
         $this->seedPushSubscription((int) $user->getAuthIdentifier(), 'browser-1');
-        $this->seedPushSubscription((int) $user->getAuthIdentifier(), 'browser-2');
+        $cashier = $this->loginAsKasir();
+        $this->seedPushSubscription((int) $cashier->getAuthIdentifier(), 'browser-2');
 
         $this->artisan('push-notifications:send-due-note-reminders', [
             '--today' => '2026-04-25',
@@ -37,6 +38,10 @@ final class SendDueNoteReminderPushCommandFeatureTest extends TestCase
             ->assertExitCode(0);
 
         $this->assertCount(2, $sender->payloads);
+        $this->assertEqualsCanonicalizing(
+            [(int) $user->getAuthIdentifier(), (int) $cashier->getAuthIdentifier()],
+            array_column($sender->subscriptions, 'userId'),
+        );
         $this->assertSame('Reminder Jatuh Tempo Nota', $sender->payloads[0]->title);
         $this->assertStringContainsString('Ada 1 nota jatuh tempo/perlu dicek.', $sender->payloads[0]->body);
         $this->assertStringContainsString('Rp 150.000', $sender->payloads[0]->body);

@@ -34,6 +34,8 @@ final class CashierDashboardPwaInstallFeatureTest extends TestCase
 
         $response->assertOk()
             ->assertSee('data-cashier-dashboard-device="handset"', false)
+            ->assertDontSee('data-admin-push-toggle', false)
+            ->assertDontSee('admin-manifest.webmanifest')
             ->assertSee('Download App PWA')
             ->assertSee('data-pwa-install-button', false)
             ->assertSee('assets/static/js/pages/cashier-dashboard/pwa-install.js', false);

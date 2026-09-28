@@ -23,6 +23,10 @@ final class AdminDashboardHandsetFeatureTest extends TestCase
         $response->assertSee('data-mobile-supplier-hub', false);
         $response->assertSee('mobile-supplier-hub-actions', false);
         $response->assertSee('Bayar Supplier');
+        $response->assertSee('data-admin-mobile-app', false);
+        $response->assertSee('Reminder Hutang Pemasok');
+        $response->assertSee('admin-manifest.webmanifest');
+        $response->assertSee('data-admin-push-toggle', false);
         $response->assertSee('Cek Pembayaran Supplier');
         $response->assertDontSee('Pilih nota yang masih punya hutang');
         $response->assertDontSee('Bukti terbaru tampil paling atas');
@@ -40,7 +44,17 @@ final class AdminDashboardHandsetFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Ringkasan Toko');
+        $response->assertDontSee('data-admin-mobile-app', false);
         $response->assertDontSee('data-mobile-supplier-hub', false);
+    }
+
+    public function test_admin_manifest_starts_in_admin_without_changing_cashier_manifest(): void
+    {
+        $manifest = json_decode((string) file_get_contents(public_path('admin-manifest.webmanifest')), true);
+        self::assertSame('GlassPos Admin', $manifest['name']);
+        self::assertSame('/admin/dashboard', $manifest['id']);
+        self::assertSame('/admin/dashboard', $manifest['start_url']);
+        self::assertSame('standalone', $manifest['display']);
     }
 
     private function admin(): User
