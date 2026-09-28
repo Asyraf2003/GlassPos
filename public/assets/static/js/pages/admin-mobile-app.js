@@ -66,6 +66,14 @@
     toggle.disabled = busy || ['unsupported', 'permission_denied', 'missing_config', 'missing_vapid_public_key'].includes(result.reason);
     state.textContent = result.enabled ? 'Aktif' : (messages[result.reason] || 'Nonaktif');
   };
+  const renderStatusFailure = () => {
+    toggle.checked = false;
+    const retryable = window.AppPushNotifications?.isSupported?.() === true;
+    toggle.disabled = busy || !retryable;
+    state.textContent = retryable
+      ? 'Status belum dapat diperiksa. Anda tetap bisa mencoba mengaktifkan notifikasi.'
+      : 'Notifikasi belum dapat digunakan di browser ini.';
+  };
   const refresh = async () => {
     if (busy) return;
     const current = ++revision;
@@ -74,9 +82,7 @@
       if (current === revision && !busy) render(result);
     } catch (_) {
       if (current !== revision || busy) return;
-      toggle.checked = false;
-      toggle.disabled = true;
-      state.textContent = 'Status belum dapat diperiksa. Muat ulang untuk mencoba lagi.';
+      renderStatusFailure();
     }
   };
   toggle.addEventListener('change', async () => {
