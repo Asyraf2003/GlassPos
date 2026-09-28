@@ -8,9 +8,11 @@ PUBLIC_DIR_NAME ?= public_html
 DEPLOY_DIR ?= deploy-package
 SITE_URL ?= https://arbiconbengkel.my.id
 ENV_FILE ?= .env.production
+DEPLOY_SYNC_R2 ?= 1
+R2_ASSET_BASE ?=
 
-.PHONY: deploy smoke-r2-supplier-payment-proof
-deploy:
+.PHONY: deploy deploy-sync-assets smoke-r2-supplier-payment-proof
+deploy: deploy-sync-assets
 	@APP_NAME="$(APP_NAME)" \
 	APP_DIR_NAME="$(APP_DIR_NAME)" \
 	PUBLIC_DIR_NAME="$(PUBLIC_DIR_NAME)" \
@@ -18,6 +20,13 @@ deploy:
 	SITE_URL="$(SITE_URL)" \
 	ENV_FILE="$(ENV_FILE)" \
 	bash scripts/build-cpanel-package.sh
+
+deploy-sync-assets:
+	@DEPLOY_DIR="$(DEPLOY_DIR)" \
+	ENV_FILE="$(ENV_FILE)" \
+	DEPLOY_SYNC_R2="$(DEPLOY_SYNC_R2)" \
+	R2_ASSET_BASE="$(R2_ASSET_BASE)" \
+	bash scripts/sync-deploy-public-assets.sh
 
 smoke-r2-supplier-payment-proof:
 	@test "$$RUN_REAL_R2_SUPPLIER_PROOF_SMOKE" = "1" || \
@@ -37,7 +46,9 @@ help:
 	@echo "HyperPOS available commands:"
 	@echo ""
 	@echo "  Deployment:"
-	@echo "    make deploy                         Build transferable cPanel package using local .env.production"
+	@echo "    make deploy                         Sync changed public assets to R2, then build cPanel package"
+	@echo "    make deploy DEPLOY_SYNC_R2=0        Build package without public R2 sync"
+	@echo "    make deploy R2_ASSET_BASE=<sha>     Override R2 delta baseline for this run"
 	@echo ""
 	@echo "  Core verification:"
 	@echo "    make verify                         Run lint, contract audits, and full test suite"
