@@ -1,0 +1,15 @@
+✔ enable requests permission only on action, canonical worker, saves; reopen reads actual subscription; OFF deletes then unsubscribes (7.444152ms)
+✔ existing subscription renders ON without creating a subscription or permission prompt (6.17089ms)
+✔ denied, dismissed, unsupported and missing configuration never fake active (6.657555ms)
+✔ stale/other-account server registration stays OFF and does not auto reactivate (1.942706ms)
+✔ failed store rolls back newly created subscription; failed delete preserves browser subscription (4.621851ms)
+✔ browser unsubscribe failure is reported instead of claiming success (1.306209ms)
+✔ canonical service worker uses system notification without silent override and navigates to payload URL (1.204175ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 110.138608

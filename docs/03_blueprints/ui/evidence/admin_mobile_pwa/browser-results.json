@@ -1,0 +1,28 @@
+[
+  {
+    "theme": "light",
+    "adminInstallStates": true,
+    "enableReloadDisable": true,
+    "deniedOff": true,
+    "cashierPreserved": true,
+    "backend": "real local endpoints",
+    "nativeAPIs": "simulated permission/PushManager/install events",
+    "errors": []
+  },
+  {
+    "theme": "dark",
+    "adminInstallStates": true,
+    "enableReloadDisable": true,
+    "deniedOff": true,
+    "cashierPreserved": true,
+    "backend": "real local endpoints",
+    "nativeAPIs": "simulated permission/PushManager/install events",
+    "errors": []
+  },
+  {
+    "realCanonicalWorker": "http://127.0.0.1:8098/service-worker.js",
+    "adminLaunch": "http://127.0.0.1:8098/admin/dashboard",
+    "standalone": "emulated display mode",
+    "unsupportedDisabled": true
+  }
+]

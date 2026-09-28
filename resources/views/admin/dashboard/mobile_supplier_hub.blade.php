@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('pwa-manifest', url('/admin-manifest.webmanifest'))
+
 @section('title', 'Pembayaran Supplier')
 @section('heading', 'Pembayaran Supplier')
 
@@ -52,6 +54,7 @@
         data-mobile-supplier-hub
         data-initial-tab="{{ $mobileTab }}"
     >
+        @include('admin.dashboard.partials.mobile_app')
         <div class="mobile-supplier-hub-actions">
             <button
                 type="button"
@@ -210,6 +213,7 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('assets/static/js/pages/admin-mobile-app.js') }}?v={{ config('app.asset_version') }}"></script>
     <script src="{{ asset('assets/static/js/pages/admin-mobile-supplier-hub.js') }}?v={{ config('app.asset_version') }}"></script>
     @include('admin.procurement.partials.supplier_payment_proof_direct_upload_script')
 @endpush

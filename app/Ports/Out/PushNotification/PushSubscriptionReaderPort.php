@@ -11,5 +11,6 @@ interface PushSubscriptionReaderPort
     /**
      * @return list<StoredPushSubscription>
      */
-    public function findActive(int $limit = 500): array;
+    public function findActive(int $limit = 500, ?string $role = null): array;
+    public function isActiveForUserEndpoint(int $userId, string $endpoint): bool;
 }

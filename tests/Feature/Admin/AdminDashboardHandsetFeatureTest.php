@@ -23,11 +23,18 @@ final class AdminDashboardHandsetFeatureTest extends TestCase
         $response->assertSee('data-mobile-supplier-hub', false);
         $response->assertSee('mobile-supplier-hub-actions', false);
         $response->assertSee('Bayar Supplier');
+        $response->assertSee('data-admin-mobile-app', false);
+        $response->assertSee('Reminder Hutang Pemasok');
+        $response->assertSee('admin-manifest.webmanifest');
+        $response->assertSee('data-admin-push-toggle', false);
         $response->assertSee('Cek Pembayaran Supplier');
         $response->assertDontSee('Pilih nota yang masih punya hutang');
         $response->assertDontSee('Bukti terbaru tampil paling atas');
-        $response->assertDontSee('bi-cash-stack', false);
-        $response->assertDontSee('bi-receipt', false);
+        $document = new \DOMDocument();
+        @$document->loadHTML((string) $response->getContent());
+        $xpath = new \DOMXPath($document);
+        self::assertSame(2, $xpath->query('//button[@data-mobile-hub-action]')->length);
+        self::assertSame(0, $xpath->query('//button[@data-mobile-hub-action]//i')->length);
         $response->assertDontSee('Total Nilai Nota Bulan Ini');
         $response->assertDontSee('admin-chart-operational-performance', false);
     }
@@ -40,7 +47,17 @@ final class AdminDashboardHandsetFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Ringkasan Toko');
+        $response->assertDontSee('data-admin-mobile-app', false);
         $response->assertDontSee('data-mobile-supplier-hub', false);
+    }
+
+    public function test_admin_manifest_starts_in_admin_without_changing_cashier_manifest(): void
+    {
+        $manifest = json_decode((string) file_get_contents(public_path('admin-manifest.webmanifest')), true);
+        self::assertSame('GlassPos Admin', $manifest['name']);
+        self::assertSame('/admin/dashboard', $manifest['id']);
+        self::assertSame('/admin/dashboard', $manifest['start_url']);
+        self::assertSame('standalone', $manifest['display']);
     }
 
     private function admin(): User

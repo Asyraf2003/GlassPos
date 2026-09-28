@@ -33,7 +33,7 @@ final class SendSupplierPayableReminderPushHandler
             return new SupplierPayableReminderPushSendSummary(0, 0, 0, 0, 0);
         }
 
-        $subscriptions = $this->subscriptions->findActive($subscriptionLimit);
+        $subscriptions = $this->subscriptions->findActive($subscriptionLimit, 'admin');
         $payload = $this->payloads->make($today, $reminders);
         $sent = 0;
         $failed = 0;
