@@ -28,6 +28,18 @@ env_value() {
     sed -n "s/^${key}=//p" "$ENV_FILE" | tail -n 1
 }
 
+set_staged_env_value() {
+    local file="$1"
+    local key="$2"
+    local value="$3"
+
+    if grep -q "^${key}=" "$file"; then
+        sed -i "s|^${key}=.*$|${key}=${value}|" "$file"
+    else
+        printf '\n%s=%s\n' "$key" "$value" >> "$file"
+    fi
+}
+
 validate_name "APP_NAME" "$APP_NAME"
 validate_name "APP_DIR_NAME" "$APP_DIR_NAME"
 validate_name "PUBLIC_DIR_NAME" "$PUBLIC_DIR_NAME"
@@ -51,6 +63,8 @@ if [[ -n "$worktree_status" ]]; then
     printf '%s\n' "$worktree_status" >&2
     exit 1
 fi
+
+release_sha="$(git rev-parse HEAD)"
 
 for required_file in \
     artisan \
@@ -148,7 +162,10 @@ rsync -a ./ "$app_stage/" \
     --exclude "/LICENSE.md"
 
 cp "$ENV_FILE" "$app_stage/.env"
+set_staged_env_value "$app_stage/.env" APP_VERSION "$release_sha"
+set_staged_env_value "$app_stage/.env" ASSET_VERSION "$release_sha"
 chmod 0600 "$app_stage/.env"
+echo "==> Stamp packaged APP_VERSION / ASSET_VERSION: $release_sha"
 
 mkdir -p \
     "$app_stage/bootstrap/cache" \
@@ -219,8 +236,9 @@ bash scripts/verify-cpanel-package.sh \
 {
     echo "GlassPos cPanel deployment"
     echo "ZIP: $(basename "$zip_file")"
+    echo "Release SHA: $release_sha"
     echo "Extract the ZIP directly into the cPanel home directory."
-    echo "Packaged environment: $APP_DIR_NAME/.env (copied from local $ENV_FILE)."
+    echo "Packaged environment: $APP_DIR_NAME/.env (copied from local $ENV_FILE; APP_VERSION/ASSET_VERSION stamped to Release SHA)."
     echo "After extraction, open this one-time maintenance URL:"
     echo "URL: $SITE_URL/$clear_file_name?token=$clear_token"
     echo "$clear_file_name clears pre-bootstrap caches, refreshes web OPcache when enabled, verifies private-R2 presigning,"
