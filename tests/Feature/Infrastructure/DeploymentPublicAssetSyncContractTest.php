@@ -32,5 +32,10 @@ final class DeploymentPublicAssetSyncContractTest extends TestCase
         self::assertStringContainsString('set_staged_env_value "$app_stage/.env" ASSET_VERSION "$release_sha"', $packageScript);
         self::assertStringContainsString('cp "$ENV_FILE" "$app_stage/.env"', $packageScript);
         self::assertStringNotContainsString('set_staged_env_value "$ENV_FILE"', $packageScript);
+
+        self::assertStringContainsString('env_value WEBPUSH_VAPID_SUBJECT', $packageScript);
+        self::assertStringContainsString('env_value WEBPUSH_VAPID_PUBLIC_KEY', $packageScript);
+        self::assertStringContainsString('env_value WEBPUSH_VAPID_PRIVATE_KEY', $packageScript);
+        self::assertStringContainsString('VAPID production harus berasal dari $ENV_FILE', $packageScript);
     }
 }
