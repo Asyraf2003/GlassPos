@@ -12,6 +12,14 @@
             margin: 0 auto;
         }
 
+        .mobile-supplier-hub [data-admin-mobile-app] {
+            overflow: hidden;
+            border: 1px solid rgba(var(--bs-primary-rgb), .12);
+            border-radius: 1.25rem;
+            background: linear-gradient(145deg, rgba(var(--bs-primary-rgb), .055), var(--bs-body-bg) 58%);
+            box-shadow: 0 .7rem 1.8rem rgba(15, 23, 42, .06);
+        }
+
         .mobile-supplier-hub-actions {
             display: grid;
             gap: .9rem;
@@ -33,17 +41,86 @@
             line-height: 1.25;
         }
 
+        .mobile-supplier-section-heading {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: .75rem 1rem;
+        }
+
         .mobile-supplier-row {
+            container-type: inline-size;
             width: 100%;
+            min-width: 0;
+            overflow: hidden;
             border: 1px solid rgba(var(--bs-primary-rgb), .12);
             border-radius: 1rem;
-            background: var(--bs-body-bg);
+            background: linear-gradient(145deg, var(--bs-body-bg), rgba(var(--bs-primary-rgb), .035));
             box-shadow: 0 .45rem 1.2rem rgba(15, 23, 42, .045);
+        }
+
+        .mobile-supplier-row-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) max-content;
+            align-items: start;
+            gap: .75rem 1rem;
+            min-width: 0;
+        }
+
+        .mobile-supplier-row-copy,
+        .mobile-supplier-row-value {
+            min-width: 0;
+        }
+
+        .mobile-supplier-row-title,
+        .mobile-supplier-row-meta {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        .mobile-supplier-row-title {
+            display: block;
+            line-height: 1.28;
+        }
+
+        .mobile-supplier-row-value {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            max-width: 100%;
+            text-align: right;
+        }
+
+        .mobile-supplier-row-amount {
+            display: block;
+            max-width: 100%;
+            font-size: clamp(1rem, 4.5cqw, 1.35rem);
+            line-height: 1.2;
+            white-space: nowrap;
         }
 
         .mobile-supplier-download {
             color: inherit;
             text-decoration: none;
+        }
+
+        @container (max-width: 360px) {
+            .mobile-supplier-row-layout {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .mobile-supplier-row-value {
+                align-items: flex-start;
+                width: 100%;
+                padding-top: .7rem;
+                border-top: 1px solid rgba(var(--bs-primary-rgb), .09);
+                text-align: left;
+            }
+
+            .mobile-supplier-row-amount {
+                white-space: normal;
+                overflow-wrap: anywhere;
+            }
         }
     </style>
 @endpush
@@ -76,8 +153,8 @@
         </div>
 
         <div class="d-none" data-mobile-hub-section="pay">
-            <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
-                <div>
+            <div class="mobile-supplier-section-heading mb-3">
+                <div class="min-w-0">
                     <h5 class="mb-1">Nota Belum Lunas</h5>
                     <div class="small text-muted">Tap nota untuk kirim bukti dan melunasi sisa tagihan.</div>
                 </div>
@@ -99,17 +176,17 @@
                             data-outstanding-label="Rp {{ number_format($invoice['outstanding_rupiah'], 0, ',', '.') }}"
                             data-due-date="{{ $invoice['due_date'] }}"
                         >
-                            <div class="d-flex align-items-start justify-content-between gap-3">
-                                <div class="min-w-0">
-                                    <strong class="d-block text-truncate">{{ $invoice['supplier_name'] }}</strong>
-                                    <span class="small text-muted d-block">{{ $invoice['invoice_no'] }}</span>
-                                    <span class="small text-muted d-block mt-1">
+                            <div class="mobile-supplier-row-layout">
+                                <div class="mobile-supplier-row-copy">
+                                    <strong class="mobile-supplier-row-title">{{ $invoice['supplier_name'] }}</strong>
+                                    <span class="small text-muted d-block mobile-supplier-row-meta">{{ $invoice['invoice_no'] }}</span>
+                                    <span class="small text-muted d-block mt-1 mobile-supplier-row-meta">
                                         Jatuh tempo: {{ \App\Support\ViewDateFormatter::display($invoice['due_date']) }}
                                     </span>
                                 </div>
-                                <div class="text-end flex-shrink-0">
+                                <div class="mobile-supplier-row-value">
                                     <small class="text-muted d-block">Sisa</small>
-                                    <strong>Rp {{ number_format($invoice['outstanding_rupiah'], 0, ',', '.') }}</strong>
+                                    <strong class="mobile-supplier-row-amount">Rp {{ number_format($invoice['outstanding_rupiah'], 0, ',', '.') }}</strong>
                                 </div>
                             </div>
                         </button>
@@ -119,8 +196,8 @@
         </div>
 
         <div class="d-none" data-mobile-hub-section="history">
-            <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
-                <div>
+            <div class="mobile-supplier-section-heading mb-3">
+                <div class="min-w-0">
                     <h5 class="mb-1">Pembayaran Terbaru</h5>
                     <div class="small text-muted">Tap baris untuk langsung mengunduh bukti pembayaran.</div>
                 </div>
@@ -136,15 +213,15 @@
                             href="{{ route('admin.procurement.supplier-payment-proof-attachments.show', ['attachmentId' => $proof['attachment_id'], 'download' => 1]) }}"
                             class="mobile-supplier-row mobile-supplier-download p-3"
                         >
-                            <div class="d-flex align-items-start justify-content-between gap-3">
-                                <div class="min-w-0">
-                                    <strong class="d-block text-truncate">{{ $proof['supplier_name'] }}</strong>
-                                    <span class="small text-muted d-block">{{ $proof['invoice_no'] }}</span>
-                                    <span class="small text-muted d-block mt-1 text-truncate">{{ $proof['original_filename'] }}</span>
+                            <div class="mobile-supplier-row-layout">
+                                <div class="mobile-supplier-row-copy">
+                                    <strong class="mobile-supplier-row-title">{{ $proof['supplier_name'] }}</strong>
+                                    <span class="small text-muted d-block mobile-supplier-row-meta">{{ $proof['invoice_no'] }}</span>
+                                    <span class="small text-muted d-block mt-1 mobile-supplier-row-meta">{{ $proof['original_filename'] }}</span>
                                 </div>
-                                <div class="text-end flex-shrink-0">
-                                    <strong class="d-block">Rp {{ number_format($proof['amount_rupiah'], 0, ',', '.') }}</strong>
-                                    <small class="text-muted">{{ \App\Support\ViewDateFormatter::display($proof['paid_at']) }}</small>
+                                <div class="mobile-supplier-row-value">
+                                    <strong class="mobile-supplier-row-amount">Rp {{ number_format($proof['amount_rupiah'], 0, ',', '.') }}</strong>
+                                    <small class="text-muted mobile-supplier-row-meta">{{ \App\Support\ViewDateFormatter::display($proof['paid_at']) }}</small>
                                     <i class="bi bi-download d-block mt-2" aria-hidden="true"></i>
                                 </div>
                             </div>
