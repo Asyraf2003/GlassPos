@@ -34,7 +34,7 @@ final class AdminNoteDetailPageFeatureTest extends TestCase
         $response->assertSee('Info Nota');
         $response->assertSee('Rincian Nota');
         $response->assertSee('Riwayat Nota')
-            ->assertSee('Riwayat Perubahan Nota');
+            ->assertSee('class="note-detail-version-list"', false);
         $response->assertDontSee('Status Operasional Admin');
         $response->assertDontSee('Buka Ulang Nota');
     }
@@ -59,7 +59,7 @@ final class AdminNoteDetailPageFeatureTest extends TestCase
         $response->assertSee('Info Nota');
         $response->assertSee('Rincian Nota');
         $response->assertSee('Riwayat Nota')
-            ->assertSee('Riwayat Perubahan Nota');
+            ->assertSee('class="note-detail-version-list"', false);
         $response->assertDontSee('Status Operasional Admin');
         $response->assertDontSee('Buka Ulang Nota');
     }

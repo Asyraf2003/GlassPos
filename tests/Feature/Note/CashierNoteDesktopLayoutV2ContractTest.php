@@ -80,7 +80,12 @@ final class CashierNoteDesktopLayoutV2ContractTest extends TestCase
 
         self::assertStringContainsString("@include('shared.notes.partials.history-operational')", $view);
         self::assertStringContainsString("@include('shared.notes.partials.history-financial')", $view);
-        self::assertSame(1, substr_count($view, "@include('shared.notes.partials.history-panel')"));
+        [$desktop, $handset] = explode('  @else', $view, 2);
+        foreach ([$desktop, $handset] as $layout) {
+            self::assertSame(1, substr_count($layout, "@include('shared.notes.partials.history-operational')"));
+            self::assertSame(1, substr_count($layout, "@include('shared.notes.partials.history-financial')"));
+            self::assertStringNotContainsString("@include('shared.notes.partials.history-panel')", $layout);
+        }
     }
 
     public function test_handset_keeps_its_compact_stack_instead_of_inheriting_desktop_columns(): void

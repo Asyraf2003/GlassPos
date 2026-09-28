@@ -73,9 +73,9 @@ final class CashierNoteCorrectionHistoryReasonViewFeatureTest extends TestCase
         $this->actingAs($user)
             ->get(route('cashier.notes.show', ['noteId' => 'note-1']))
             ->assertOk()
-            ->assertSee('Riwayat Perubahan Nota')
-            ->assertSee('Perubahan Aktif')
-            ->assertSee('Riwayat Mutasi Nota')
+            ->assertSee('class="note-detail-version-list"', false)
+            ->assertSee('note-detail-version-row--current', false)
+            ->assertSee('Mutasi Nota')
             ->assertSee('Koreksi Nominal Servis')
             ->assertSee('Alasan:')
             ->assertSee('Koreksi nominal servis &lt;script&gt;alert(&quot;nota&quot;)&lt;/script&gt;.', false)
@@ -96,9 +96,9 @@ final class CashierNoteCorrectionHistoryReasonViewFeatureTest extends TestCase
         $this->actingAs($user)
             ->get(route('cashier.notes.show', ['noteId' => 'note-1']))
             ->assertOk()
-            ->assertSee('Riwayat Perubahan Nota')
-            ->assertSee('Perubahan Aktif')
-            ->assertDontSee('Riwayat Mutasi Nota')
+            ->assertSee('class="note-detail-version-list"', false)
+            ->assertSee('note-detail-version-row--current', false)
+            ->assertDontSee('Mutasi Nota')
             ->assertDontSee('Total Sebelum:');
     }
 

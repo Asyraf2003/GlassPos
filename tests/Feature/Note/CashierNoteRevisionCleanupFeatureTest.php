@@ -26,7 +26,7 @@ final class CashierNoteRevisionCleanupFeatureTest extends TestCase
 
         $response->assertOk()
             ->assertSee('Detail Nota')
-            ->assertSee('Riwayat Perubahan Nota')
+            ->assertSee('class="note-detail-version-list"', false)
             ->assertDontSee('pseudo-versioning')
             ->assertDontSee('Pseudo Versioning');
     }
