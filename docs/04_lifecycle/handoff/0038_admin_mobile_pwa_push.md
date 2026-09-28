@@ -3,7 +3,7 @@
 Date: 2026-09-28
 Issue: https://github.com/Asyraf2003/GlassPos/issues/35
 Branch: feat/admin-mobile-pwa-push
-Status: implementation and local proof GREEN; merge metadata recorded below after merge.
+Status: CLOSED — implementation merged, local proof GREEN; deployment/device validation remains separate.
 
 ## Delivered contract
 
@@ -54,4 +54,7 @@ No new schema, migration or project dependency. No package build or deployment p
 
 ## Merge record
 
-Pending PR creation and merge after self-review.
+Implementation PR: https://github.com/Asyraf2003/GlassPos/pull/42 (MERGED, ready/non-draft).
+Merge SHA: b0a92364d0b3e212b6bf090545d62a9abf10d5b0.
+Issue #35: CLOSED automatically.
+Self-review confirmed no supplier balance/report/cron/schema changes, cashier launch preserved, and generic push behavior preserved. GitGuardian check succeeded. Owner-authorized implementation target is CLOSED. Production deployment has not been performed.
