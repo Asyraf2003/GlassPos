@@ -1,0 +1,4 @@
+Note: Using configuration file /home/asus/projects/GlassPos/phpstan.neon.
+
+ [OK] No errors                                                                 
+

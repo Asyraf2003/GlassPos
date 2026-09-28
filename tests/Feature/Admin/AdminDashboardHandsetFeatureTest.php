@@ -30,8 +30,11 @@ final class AdminDashboardHandsetFeatureTest extends TestCase
         $response->assertSee('Cek Pembayaran Supplier');
         $response->assertDontSee('Pilih nota yang masih punya hutang');
         $response->assertDontSee('Bukti terbaru tampil paling atas');
-        $response->assertDontSee('bi-cash-stack', false);
-        $response->assertDontSee('bi-receipt', false);
+        $document = new \DOMDocument();
+        @$document->loadHTML((string) $response->getContent());
+        $xpath = new \DOMXPath($document);
+        self::assertSame(2, $xpath->query('//button[@data-mobile-hub-action]')->length);
+        self::assertSame(0, $xpath->query('//button[@data-mobile-hub-action]//i')->length);
         $response->assertDontSee('Total Nilai Nota Bulan Ini');
         $response->assertDontSee('admin-chart-operational-performance', false);
     }

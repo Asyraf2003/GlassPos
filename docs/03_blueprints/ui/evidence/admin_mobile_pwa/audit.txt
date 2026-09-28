@@ -1,0 +1,3 @@
+SUCCESS: Semua file memenuhi standar limit baris (atau memiliki label bypass).
+SUCCESS: Tidak ditemukan PHP/directive PHP di Blade resources/views.
+Contract audit passed.
