@@ -25,8 +25,8 @@ final class NoteDetailPageShowsExternalPurchaseCorrectionHistoryFeatureTest exte
         $response = $this->actingAs($user)->get('/cashier/notes/note-1');
 
         $response->assertOk();
-        $response->assertSee('Riwayat Perubahan Nota');
-        $response->assertSee('Perubahan Aktif');
+        $response->assertSee('class="note-detail-version-list"', false);
+        $response->assertSee('note-detail-version-row--current', false);
         $response->assertDontSee('Correction Fee Service + Part External');
     }
 

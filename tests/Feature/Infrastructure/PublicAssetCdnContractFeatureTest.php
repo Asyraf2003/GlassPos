@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Infrastructure;
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
@@ -44,7 +45,7 @@ final class PublicAssetCdnContractFeatureTest extends TestCase
         $layout = (string) file_get_contents(resource_path('views/layouts/app.blade.php'));
 
         self::assertStringContainsString(
-            "href=\"{{ url('/manifest.webmanifest') }}\"",
+            "href=\"@yield('pwa-manifest', url('/manifest.webmanifest'))\"",
             $layout,
         );
         self::assertStringContainsString(
@@ -53,6 +54,28 @@ final class PublicAssetCdnContractFeatureTest extends TestCase
         );
         self::assertStringNotContainsString("asset('manifest.webmanifest')", $layout);
         self::assertStringNotContainsString("asset('service-worker.js')", $layout);
+    }
+
+    public function test_rendered_pwa_urls_stay_on_application_origin_when_assets_use_a_cdn(): void
+    {
+        URL::useAssetOrigin('https://cdn.example.test');
+
+        try {
+            foreach ([
+                "@extends('layouts.app')" => '/manifest.webmanifest',
+                "@extends('layouts.app') @section('pwa-manifest', url('/admin-manifest.webmanifest'))" => '/admin-manifest.webmanifest',
+            ] as $template => $manifestPath) {
+                $html = Blade::render($template);
+
+                self::assertStringContainsString('href="'.url($manifestPath).'"', $html);
+                self::assertStringContainsString('data-service-worker-url="'.url('/service-worker.js').'"', $html);
+                self::assertStringContainsString('https://cdn.example.test/assets/compiled/css/app.css', $html);
+                self::assertStringNotContainsString('https://cdn.example.test'.$manifestPath, $html);
+                self::assertStringNotContainsString('https://cdn.example.test/service-worker.js', $html);
+            }
+        } finally {
+            URL::useAssetOrigin(null);
+        }
     }
 
     public function test_static_assets_continue_to_use_asset_helper(): void

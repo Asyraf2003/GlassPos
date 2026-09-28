@@ -53,7 +53,7 @@ final class CashierNoteDetailUsesCurrentRevisionLinesFeatureTest extends TestCas
         $response->assertOk()
             ->assertSee('Budi Revisi Detail')
             ->assertSee('Servis Baru Detail')
-            ->assertSee('Perubahan Aktif');
+            ->assertSee('note-detail-version-row--current', false);
     }
 
     private function seedKasir(): User

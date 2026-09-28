@@ -25,8 +25,8 @@ final class CashierNoteRevisionSmokeTest extends TestCase
         $response = $this->actingAs($user)->get(route('cashier.notes.show', ['noteId' => 'note-1']));
 
         $response->assertOk()
-            ->assertSee('Riwayat Perubahan Nota')
-            ->assertSee('Perubahan Aktif');
+            ->assertSee('class="note-detail-version-list"', false)
+            ->assertSee('note-detail-version-row--current', false);
 
         $this->assertDatabaseHas('note_revisions', [
             'note_root_id' => 'note-1',
@@ -63,8 +63,8 @@ final class CashierNoteRevisionSmokeTest extends TestCase
         $response = $this->actingAs($user)->get(route('cashier.notes.show', ['noteId' => 'note-1']));
 
         $response->assertOk()
-            ->assertSee('Riwayat Perubahan Nota')
-            ->assertSee('Perubahan Aktif');
+            ->assertSee('class="note-detail-version-list"', false)
+            ->assertSee('note-detail-version-row--current', false);
 
         $this->assertDatabaseHas('notes', [
             'id' => 'note-1',

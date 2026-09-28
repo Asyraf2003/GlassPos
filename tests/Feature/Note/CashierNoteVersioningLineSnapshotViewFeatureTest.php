@@ -26,8 +26,8 @@ final class CashierNoteVersioningLineSnapshotViewFeatureTest extends TestCase
             ->get(route('cashier.notes.show', ['noteId' => 'note-1']));
 
         $response->assertOk();
-        $response->assertSee('Riwayat Perubahan Nota');
-        $response->assertSee('Isi Perubahan Aktif');
+        $response->assertSee('class="note-detail-version-list"', false);
+        $response->assertSee('class="note-detail-version-lines"', false);
         $response->assertSee('Rincian 1');
         $response->assertSee('Servis Lama');
         $response->assertSee('50.000');

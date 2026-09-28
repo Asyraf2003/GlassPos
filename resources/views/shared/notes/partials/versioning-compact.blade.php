@@ -27,11 +27,14 @@
       </div>
     @endif
 
-    @if (!empty($currentRevision['change_summary_lines']))
+    @if (!empty($currentRevision['change_summary_lines']) || !empty($currentRevision['reason']))
       <div class="note-detail-version-summary">
         @foreach (($currentRevision['change_summary_lines'] ?? []) as $summary)
           <div>• {{ $summary }}</div>
         @endforeach
+        @if (!empty($currentRevision['reason']))
+          <div><strong>Alasan:</strong> {{ $currentRevision['reason'] }}</div>
+        @endif
       </div>
     @endif
   </section>
