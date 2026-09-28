@@ -97,6 +97,13 @@ if [[ -z "$(env_value DB_DATABASE)" || -z "$(env_value DB_USERNAME)" ]]; then
     echo "ERROR: DB_DATABASE dan DB_USERNAME pada $ENV_FILE wajib terisi." >&2
     exit 1
 fi
+if [[ -z "$(env_value WEBPUSH_VAPID_SUBJECT)" \
+    || -z "$(env_value WEBPUSH_VAPID_PUBLIC_KEY)" \
+    || -z "$(env_value WEBPUSH_VAPID_PRIVATE_KEY)" ]]; then
+    echo "ERROR: WEBPUSH_VAPID_SUBJECT, WEBPUSH_VAPID_PUBLIC_KEY, dan WEBPUSH_VAPID_PRIVATE_KEY pada $ENV_FILE wajib terisi." >&2
+    echo "VAPID production harus berasal dari $ENV_FILE agar paket deploy tidak kembali ke konfigurasi push kosong." >&2
+    exit 1
+fi
 
 mkdir -p "$DEPLOY_DIR"
 
