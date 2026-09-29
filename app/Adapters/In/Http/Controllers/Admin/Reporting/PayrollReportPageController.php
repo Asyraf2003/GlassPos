@@ -26,7 +26,11 @@ final class PayrollReportPageController extends Controller
         $payload = is_array($result->data()) ? $result->data() : [];
 
         return view('admin.reporting.payroll.index', [
-            'detailTables' => $presentation->build($payload, $query->toViewData())['detailTables'],
+            'detailTables' => $paginator->paginateTables(
+                $presentation->build($payload, $query->toViewData())['detailTables'],
+                $request,
+                'detail_table',
+            ),
             'temporalContext' => ReportTemporalContext::description('PayrollReport', $query->toViewData()),
             'filters' => $query->toViewData(),
             'summary' => is_array($payload['summary'] ?? null) ? $payload['summary'] : [],

@@ -26,7 +26,11 @@ final class EmployeeDebtReportPageController extends Controller
         $payload = is_array($result->data()) ? $result->data() : [];
 
         return view('admin.reporting.employee_debt.index', [
-            'detailTables' => $presentation->build($payload, $query->toViewData())['detailTables'],
+            'detailTables' => $paginator->paginateTables(
+                $presentation->build($payload, $query->toViewData())['detailTables'],
+                $request,
+                'detail_table',
+            ),
             'temporalContext' => ReportTemporalContext::description('EmployeeDebtReport', $query->toViewData()),
             'filters' => $query->toViewData(),
             'temporalSummaryRows' => $payload['temporal_summary_rows'] ?? [],
