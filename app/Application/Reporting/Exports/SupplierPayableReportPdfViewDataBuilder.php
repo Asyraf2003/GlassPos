@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Reporting\Exports;
 
 use App\Application\Reporting\Exports\Concerns\FormatsPdfReportValues;
+use App\Application\Reporting\Services\ReportTemporalContext;
 use App\Ports\Out\ClockPort;
 
 final class SupplierPayableReportPdfViewDataBuilder
@@ -13,8 +14,7 @@ final class SupplierPayableReportPdfViewDataBuilder
 
     public function __construct(
         private readonly ClockPort $clock,
-    ) {
-    }
+    ) {}
 
     public function build(array $dataset, array $filters): array
     {
@@ -24,14 +24,17 @@ final class SupplierPayableReportPdfViewDataBuilder
         $supplierRows = is_array($dataset['supplier_rows'] ?? null) ? $dataset['supplier_rows'] : [];
 
         return [
-            'title' => 'Hutang Pemasok',
+            'temporalContext' => ReportTemporalContext::description('SupplierPayableReport', $filters),
+            'title' => 'Hutang Pemasok '.(($dataset['as_of_date'] ?? null) === null ? 'Saat Ini' : 'per '.$dataset['as_of_date']),
             'periodLabel' => ($filters['period_mode'] ?? '') === 'all' ? 'Seluruh Periode' : $this->formatRange(
                 $this->stringValue($filters['date_from'] ?? ''),
                 $this->stringValue($filters['date_to'] ?? ''),
             ),
             'referenceDateLabel' => $this->formatDate($this->stringValue($filters['reference_date'] ?? '')),
             'generatedAt' => $this->clock->now()->format('d/m/Y H:i'),
-            'summaryItems' => $this->summaryItems($summary),
+            'detailTables' => [['title' => 'Rincian', 'columns' => ['invoice_no' => 'Faktur', 'supplier' => 'Supplier', 'shipment_date' => 'Pengiriman', 'due_date' => 'Jatuh Tempo', 'grand_total' => 'Tagihan pada posisi terpilih', 'total_paid' => 'Pembayaran sampai posisi terpilih', 'outstanding' => 'Sisa pada posisi terpilih', 'status' => 'Status'],
+                'rows' => array_map(fn (array $row): array => $this->rowData($row), $rows)]],
+            'summaryItems' => array_merge(array_map(fn (array $row): array => ['label' => $row['label'], 'value' => $this->rupiah($row['value'])], $dataset['temporal_summary_rows'] ?? []), $this->summaryItems($summary)),
             'periodRows' => array_map(fn (array $row): array => $this->periodRowData($row), $periodRows),
             'supplierRows' => array_map(fn (array $row): array => $this->supplierRowData($row), $supplierRows),
             'rows' => array_map(fn (array $row): array => $this->rowData($row), $rows),

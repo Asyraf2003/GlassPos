@@ -16,6 +16,11 @@ final class DatabaseTransactionReportingSourceReaderAdapter implements Transacti
     ) {
     }
 
+    public function getCurrentTransactionSummaryPerNoteRows(string $fromTransactionDate, string $toTransactionDate): array
+    {
+        return $this->summaryQuery->rows($fromTransactionDate, $toTransactionDate, 'current');
+    }
+
     public function getTransactionSummaryPerNoteRows(string $fromTransactionDate, string $toTransactionDate): array
     {
         return $this->summaryQuery->rows($fromTransactionDate, $toTransactionDate);

@@ -71,7 +71,7 @@ final class PackageAutoSplitRevisionReportImpactFeatureTest extends TestCase
         self::assertTrue($result->isSuccess(), $result->message());
 
         $report = app(GetTransactionReportDatasetHandler::class)
-            ->handle('2030-01-01', '2030-01-31');
+            ->handleCurrent('2030-01-01', '2030-01-31');
 
         self::assertTrue($report->isSuccess());
 

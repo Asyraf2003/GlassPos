@@ -53,6 +53,7 @@
         Dicetak: {{ $generatedAt }}
     </div>
 
+    <p>{{ $temporalContext ?? '' }}</p>
     <h2>Ringkasan Utama</h2>
     @foreach ($summaryItems as $item)
         <div class="metric">
@@ -61,5 +62,6 @@
         </div>
     @endforeach
 
+    @include('admin.reporting.partials.pdf_detail_tables', ['detailTables' => $detailTables ?? []])
 </body>
 </html>

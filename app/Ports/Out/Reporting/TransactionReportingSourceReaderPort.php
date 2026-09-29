@@ -6,6 +6,8 @@ namespace App\Ports\Out\Reporting;
 
 interface TransactionReportingSourceReaderPort
 {
+    public function getCurrentTransactionSummaryPerNoteRows(string $fromTransactionDate, string $toTransactionDate): array;
+
     /**
      * @return list<array{
      *   note_id:string,

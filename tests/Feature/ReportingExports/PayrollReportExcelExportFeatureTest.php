@@ -39,7 +39,7 @@ final class PayrollReportExcelExportFeatureTest extends TestCase
 
         $spreadsheet = IOFactory::load($path);
 
-        $this->assertSame(['Ringkasan', 'Detail Gaji', 'Rekap Per Tanggal', 'Rekap Per Mode'], $spreadsheet->getSheetNames());
+        $this->assertSame(['Ringkasan', 'Detail Gaji', 'Rekap Per Tanggal', 'Rekap Per Mode', 'Metadata'], $spreadsheet->getSheetNames());
 
         $summary = $spreadsheet->getSheetByName('Ringkasan');
         $detail = $spreadsheet->getSheetByName('Detail Gaji');
@@ -106,7 +106,7 @@ final class PayrollReportExcelExportFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-payroll-report-export@example.test',
+            'email' => $role.'-payroll-report-export@example.test',
             'password' => 'password123',
         ]);
 

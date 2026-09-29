@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Reporting\Exports;
 
-use App\Support\ReportPeriodDateLabelFormatter;
-
+use App\Application\Reporting\Services\ReportTemporalContext;
 use App\Ports\Out\ClockPort;
+use App\Support\ReportPeriodDateLabelFormatter;
 use Carbon\CarbonImmutable;
 use Throwable;
 
@@ -14,8 +14,7 @@ final class TransactionReportPdfViewDataBuilder
 {
     public function __construct(
         private readonly ClockPort $clock,
-    ) {
-    }
+    ) {}
 
     public function build(array $dataset, array $filters): array
     {
@@ -25,10 +24,13 @@ final class TransactionReportPdfViewDataBuilder
         $periodContext = ReportPeriodDateLabelFormatter::context($filters['date_from'] ?? null, $filters['date_to'] ?? null);
 
         return [
+            'temporalContext' => ReportTemporalContext::description('TransactionReport', $filters),
             'title' => 'Laporan Transaksi',
             'periodLabelCaption' => $periodContext['label'],
             'periodLabel' => $periodContext['value'],
             'generatedAt' => $this->clock->now()->format('d/m/Y H:i'),
+            'detailTables' => [['title' => 'Rincian', 'columns' => ['date' => 'Tanggal Nota', 'note_id' => 'ID Nota', 'customer_name' => 'Pelanggan', 'total' => 'Nilai Nota', 'paid' => 'Pembayaran Nota', 'refund' => 'Refund', 'refund_due' => 'Wajib Refund', 'surplus_refund_paid' => 'Refund Kelebihan', 'remaining_refund_due' => 'Sisa Refund', 'net_paid' => 'Bersih', 'outstanding' => 'Sisa Tagihan', 'status' => 'Status'],
+                'rows' => array_map(fn (array $row): array => $this->rowData($row), $rows)]],
             'summaryItems' => $this->summaryItems($summary),
             'rows' => array_map(fn (array $row): array => $this->rowData($row), $rows),
         ];
@@ -66,7 +68,6 @@ final class TransactionReportPdfViewDataBuilder
             'status' => $this->stringValue($row['payment_status_label'] ?? ''),
         ];
     }
-
 
     private function formatDate(string $value): string
     {

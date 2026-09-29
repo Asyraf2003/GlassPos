@@ -9,6 +9,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 final class TransactionReportExcelWorkbookBuilder
 {
     public function __construct(
+        private readonly ReportWorkbookMetadataWriter $metadata,
         private readonly TransactionReportExcelSummarySheetWriter $summaryWriter,
         private readonly TransactionReportExcelDetailSheetWriter $detailWriter,
         private readonly TransactionReportExcelPeriodSheetWriter $periodWriter,
@@ -39,6 +40,8 @@ final class TransactionReportExcelWorkbookBuilder
             $spreadsheet->createSheet(),
             is_array($dataset['customer_rows'] ?? null) ? $dataset['customer_rows'] : [],
         );
+
+        $this->metadata->append($spreadsheet, 'TransactionReport', 'GetTransactionReportDatasetHandler', $filters);
 
         $spreadsheet->setActiveSheetIndex(0);
 

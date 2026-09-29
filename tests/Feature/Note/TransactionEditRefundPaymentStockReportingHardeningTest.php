@@ -166,7 +166,7 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         self::assertSame(350000, (int) DB::table('customer_payments')->sum('amount_rupiah'));
 
         $transaction = app(GetTransactionReportDatasetHandler::class)
-            ->handle('2026-05-01', '2026-05-31');
+            ->handleCurrent('2026-05-01', '2026-05-31');
         $cashLedger = app(TransactionCashLedgerReportingQuery::class)
             ->reconciliation('2026-05-01', '2026-05-31');
         $inventoryMovement = app(GetInventoryMovementSummaryHandler::class)
@@ -399,7 +399,7 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         ]);
 
         $transaction = app(GetTransactionReportDatasetHandler::class)
-            ->handle('2026-05-01', '2026-05-31');
+            ->handleCurrent('2026-05-01', '2026-05-31');
         $cashLedger = app(TransactionCashLedgerReportingQuery::class)
             ->reconciliation('2026-05-01', '2026-05-31');
         $inventoryMovement = app(GetInventoryMovementSummaryHandler::class)
@@ -558,7 +558,7 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         ]);
 
         $transaction = app(GetTransactionReportDatasetHandler::class)
-            ->handle('2026-05-01', '2026-05-31');
+            ->handleCurrent('2026-05-01', '2026-05-31');
         $cashLedger = app(TransactionCashLedgerReportingQuery::class)
             ->reconciliation('2026-05-01', '2026-05-31');
         $inventoryMovement = app(GetInventoryMovementSummaryHandler::class)
@@ -753,7 +753,7 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         ]);
 
         $transaction = app(GetTransactionReportDatasetHandler::class)
-            ->handle('2026-05-01', '2026-05-31');
+            ->handleCurrent('2026-05-01', '2026-05-31');
         $cashLedger = app(TransactionCashLedgerReportingQuery::class)
             ->reconciliation('2026-05-01', '2026-05-31');
         $inventoryMovement = app(GetInventoryMovementSummaryHandler::class)
@@ -1124,7 +1124,7 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         ]);
 
         $transaction = app(GetTransactionReportDatasetHandler::class)
-            ->handle('2026-05-01', '2026-05-31');
+            ->handleCurrent('2026-05-01', '2026-05-31');
         $cashLedger = app(TransactionCashLedgerReportingQuery::class)
             ->reconciliation('2026-05-01', '2026-05-31');
         $profit = app(GetOperationalProfitSummaryHandler::class)
@@ -1161,7 +1161,18 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
     {
         $this->seedStoreStockProduct();
 
-        $create = app(CreateTransactionWorkspaceHandler::class)->handle($this->createPaidStoreStockPayload());
+        \Illuminate\Support\Carbon::setTestNow('2026-05-20 09:00:00');
+        $this->app->instance(
+            \App\Ports\Out\ClockPort::class,
+            new \Tests\Support\FixedHistoricalWorkspaceClock('2026-05-20 09:00:00'),
+        );
+
+        try {
+            $create = app(CreateTransactionWorkspaceHandler::class)->handle($this->createPaidStoreStockPayload());
+        } finally {
+            \Illuminate\Support\Carbon::setTestNow();
+            $this->app->forgetInstance(\App\Ports\Out\ClockPort::class);
+        }
 
         self::assertTrue($create->isSuccess(), $create->message());
 

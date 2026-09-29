@@ -13,6 +13,12 @@ final class AdminDashboardReportExportShortcuts
     {
         return [
             [
+                'label' => 'Laba Paket Service',
+                'index' => 'admin.reports.service_package_profit_breakdown.index',
+                'pdf' => 'admin.reports.service_package_profit_breakdown.export_pdf',
+                'excel' => 'admin.reports.service_package_profit_breakdown.export_excel',
+            ],
+            [
                 'label' => 'Laporan Transaksi',
                 'index' => 'admin.reports.transaction_summary.index',
                 'pdf' => 'admin.reports.transaction_summary.export_pdf',

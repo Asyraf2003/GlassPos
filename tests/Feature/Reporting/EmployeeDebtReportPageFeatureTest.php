@@ -60,8 +60,8 @@ final class EmployeeDebtReportPageFeatureTest extends TestCase
         $response->assertSee('Rincian Ringkas');
         $response->assertSee('Jumlah Data');
         $response->assertSee('Sisa Hutang');
-        $response->assertDontSee('debt-1');
-        $response->assertDontSee('debt-4');
+        $response->assertSee('debt-1');
+        $response->assertSee('debt-4');
         $response->assertSee('Status Lunas');
         $response->assertSee('Status Belum Lunas');
         $response->assertDontSee('paid');
@@ -107,8 +107,8 @@ final class EmployeeDebtReportPageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('07 Januari 2030 s/d 09 Januari 2030');
         $response->assertSee('Rp 150.000');
-        $response->assertDontSee('debt-in-1');
-        $response->assertDontSee('debt-in-2');
+        $response->assertSee('debt-in-1');
+        $response->assertSee('debt-in-2');
         $response->assertDontSee('debt-out');
     }
 
@@ -140,7 +140,7 @@ final class EmployeeDebtReportPageFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-employee-debt-report@example.test',
+            'email' => $role.'-employee-debt-report@example.test',
             'password' => 'password123',
         ]);
 

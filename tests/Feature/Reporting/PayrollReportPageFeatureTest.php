@@ -49,8 +49,8 @@ final class PayrollReportPageFeatureTest extends TestCase
         $response->assertSee('Jumlah Pencairan');
         $response->assertSee('Total Nominal');
         $response->assertSee('Mode Terbesar');
-        $response->assertDontSee('Montir A');
-        $response->assertDontSee('Montir B');
+        $response->assertSee('Montir A');
+        $response->assertSee('Montir B');
         $response->assertSee('Harian');
         $response->assertSee('Rp 100.000');
         $response->assertSee('07 Januari 2030');
@@ -87,7 +87,7 @@ final class PayrollReportPageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('07 Januari 2030 s/d 07 Januari 2030');
         $response->assertSee('Mingguan');
-        $response->assertDontSee('Montir Custom B');
+        $response->assertSee('Montir Custom B');
         $response->assertDontSee('Montir Custom A');
         $response->assertSee('Rp 40.000');
         $response->assertDontSee('Rp 50.000');
@@ -123,7 +123,7 @@ final class PayrollReportPageFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-payroll-report@example.test',
+            'email' => $role.'-payroll-report@example.test',
             'password' => 'password123',
         ]);
 

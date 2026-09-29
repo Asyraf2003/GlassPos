@@ -11,11 +11,15 @@ final class DatabaseSupplierPayableReportingSourceReaderAdapter implements Suppl
 {
     public function __construct(
         private readonly SupplierPayableReportingQueryFactory $queries,
-    ) {
-    }
+        private readonly SupplierPayableTemporalReader $temporal,
+    ) {}
 
     public function getSupplierPayableSummaryRows(?string $fromShipmentDate, ?string $toShipmentDate): array
     {
+        if ($fromShipmentDate !== null && $toShipmentDate !== null) {
+            return $this->temporal->rows($fromShipmentDate, $toShipmentDate);
+        }
+
         return $this->queries->invoiceBalances($fromShipmentDate, $toShipmentDate)
             ->leftJoinSub($this->queries->receiptCountSubquery(), 'receipt_counts', function ($join): void {
                 $join->on('receipt_counts.supplier_invoice_id', '=', 'supplier_invoices.id');
@@ -54,6 +58,14 @@ final class DatabaseSupplierPayableReportingSourceReaderAdapter implements Suppl
 
     public function getSupplierPayableSummaryReconciliation(?string $fromShipmentDate, ?string $toShipmentDate): array
     {
+        if ($fromShipmentDate !== null && $toShipmentDate !== null) {
+            $rows = $this->temporal->rows($fromShipmentDate, $toShipmentDate);
+            $total = array_sum(array_column($rows, 'grand_total_rupiah'));
+            $paid = array_sum(array_column($rows, 'total_paid_rupiah'));
+
+            return ['total_rows' => count($rows), 'grand_total_rupiah' => $total, 'total_paid_rupiah' => $paid, 'outstanding_rupiah' => $total - $paid];
+        }
+
         $filteredInvoicesSubquery = $this->queries->filteredInvoicesSubquery($fromShipmentDate, $toShipmentDate);
 
         $invoiceTotals = DB::query()

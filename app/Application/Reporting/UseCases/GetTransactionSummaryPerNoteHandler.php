@@ -25,6 +25,16 @@ final class GetTransactionSummaryPerNoteHandler
             $toTransactionDate,
         );
 
+        return $this->build($rawRows);
+    }
+
+    public function handleCurrent(string $fromTransactionDate, string $toTransactionDate): Result
+    {
+        return $this->build($this->sourceReader->getCurrentTransactionSummaryPerNoteRows($fromTransactionDate, $toTransactionDate));
+    }
+
+    private function build(array $rawRows): Result
+    {
         $rows = $this->builder->build($rawRows);
 
         $this->reconciliation->assertTransactionSummaryMatches(

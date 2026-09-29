@@ -222,7 +222,7 @@ final class VoidSupplierInvoiceIntegrityFeatureTest extends TestCase
             'grand_total_rupiah' => 200000,
             'voided_at' => null,
             'void_reason' => null,
-            'last_revision_no' => 1,
+            'last_revision_no' => 0,
         ]);
 
         DB::table('supplier_invoice_lines')->insert([
@@ -268,7 +268,7 @@ final class VoidSupplierInvoiceIntegrityFeatureTest extends TestCase
         $tableResponse->assertJsonPath('data.rows.0.outstanding_rupiah', 200000);
 
         $rows = app(GetSupplierPayableSummaryHandler::class)
-            ->handle('2026-03-15', '2026-03-15', '2026-03-20')
+            ->handle(null, null, '2026-03-20')
             ->data()['rows'];
 
         self::assertCount(1, $rows);
@@ -306,7 +306,7 @@ final class VoidSupplierInvoiceIntegrityFeatureTest extends TestCase
             'grand_total_rupiah' => 100000,
             'voided_at' => null,
             'void_reason' => null,
-            'last_revision_no' => 1,
+            'last_revision_no' => 0,
         ]);
 
         DB::table('supplier_invoice_lines')->insert([

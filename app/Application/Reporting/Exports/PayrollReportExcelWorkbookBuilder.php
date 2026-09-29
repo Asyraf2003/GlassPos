@@ -9,6 +9,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 final class PayrollReportExcelWorkbookBuilder
 {
     public function __construct(
+        private readonly ReportWorkbookMetadataWriter $metadata,
         private readonly PayrollReportExcelSummarySheetWriter $summaryWriter,
         private readonly PayrollReportExcelDetailSheetWriter $detailWriter,
         private readonly PayrollReportExcelPeriodSheetWriter $periodWriter,
@@ -39,6 +40,8 @@ final class PayrollReportExcelWorkbookBuilder
             $spreadsheet->createSheet(),
             is_array($dataset['mode_rows'] ?? null) ? $dataset['mode_rows'] : [],
         );
+
+        $this->metadata->append($spreadsheet, 'PayrollReport', 'GetPayrollReportDatasetHandler', $filters);
 
         $spreadsheet->setActiveSheetIndex(0);
 

@@ -198,7 +198,7 @@ final class AdminDashboardPageFeatureTest extends TestCase
             $response->assertSee('Posisi sekarang · tidak mengikuti filter bulan');
             $response->assertSee('Berdasarkan tanggal pembayaran dan refund');
             $response->assertSee('Saldo seluruh faktur aktif saat ini');
-            $response->assertSee('Kasbon yang dibuat dalam periode');
+            $response->assertSee('Sisa seluruh kasbon saat ini');
             $response->assertSee('Customer refund untuk nota terpilih, termasuk refund lintas bulan');
             $response->assertSee('09 Februari 2030');
             $response->assertSee('Barang Balik / Reversal');
@@ -454,7 +454,7 @@ final class AdminDashboardPageFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-admin-dashboard@example.test',
+            'email' => $role.'-admin-dashboard@example.test',
             'password' => 'password123',
         ]);
 

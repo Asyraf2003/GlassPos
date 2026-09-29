@@ -50,8 +50,8 @@ final class EmployeeDebtSummaryHardeningFeatureTest extends TestCase
         $this->assertSame([
             'total_rows' => 2,
             'total_debt' => 150000,
-            'total_paid_amount' => 40000,
-            'total_remaining_balance' => 110000,
+            'total_paid_amount' => 0,
+            'total_remaining_balance' => 150000,
         ], $daily);
 
         $this->assertSame([

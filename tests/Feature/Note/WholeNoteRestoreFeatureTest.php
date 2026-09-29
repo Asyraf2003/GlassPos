@@ -127,7 +127,7 @@ final class WholeNoteRestoreFeatureTest extends TestCase
         $outstanding = app(NoteOutstandingPaymentAmountResolver::class)->resolveFull($noteId);
         self::assertTrue($outstanding->isSuccess());
         self::assertSame(142539, $outstanding->data()['outstanding_rupiah']);
-        $reportRows = app(TransactionSummaryReportingQuery::class)->rows('2026-09-15', '2026-09-15');
+        $reportRows = app(TransactionSummaryReportingQuery::class)->rows('2026-09-15', '2026-09-15', 'current');
         self::assertCount(1, $reportRows);
         self::assertSame(142539, $reportRows[0]['gross_transaction_rupiah']);
     }

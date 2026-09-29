@@ -5,6 +5,7 @@
 @section('heading', 'Ringkasan Kas Operasional')
 
 @section('content')
+<p class="text-muted small">{{ $temporalContext ?? '' }}</p>
 @include('admin.reporting.partials.period_filter', [
     'formId' => 'operational-profit-report-filter-form',
     'action' => route('admin.reports.operational_profit.index'),

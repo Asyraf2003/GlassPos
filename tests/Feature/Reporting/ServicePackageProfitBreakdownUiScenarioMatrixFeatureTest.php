@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Reporting;
 
+use App\Application\Reporting\Exports\ServicePackageProfitPdfViewDataBuilder;
+use App\Application\Reporting\UseCases\GetServicePackageProfitBreakdownHandler;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
 use App\Core\Payment\PaymentComponentAllocation\PaymentComponentType;
@@ -31,7 +33,7 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
 
         $response->assertOk();
         $response->assertSee('Laba Paket Service');
-        $response->assertDontSee('Hutang lalu lunas');
+        $response->assertSee('Hutang lalu lunas');
         $response->assertSee('Refund Komponen Produk');
         $response->assertSee('Refund Komponen Service');
 
@@ -42,13 +44,18 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         $response->assertSee('Rp 40.000');
         $response->assertSee('Rp 160.000');
         $response->assertSee('Rp 200.000');
-        $response->assertSee('Rp 15.000');
-        $response->assertSee('Rp 5.000');
+        $response->assertDontSee('Rp 15.000');
+        $response->assertDontSee('Rp 5.000');
         $response->assertSee('Rp 305.000');
 
-        $response->assertDontSee('matrix-main-note');
-        $response->assertDontSee('matrix-main-wi');
+        $response->assertSee('matrix-main-note');
+        $response->assertSee('matrix-main-wi');
         $response->assertDontSee('Rp 999.999');
+        $dataset = app(GetServicePackageProfitBreakdownHandler::class)->handle('2030-02-01', '2030-02-28')->data();
+        $pdf = app(ServicePackageProfitPdfViewDataBuilder::class)->build($dataset, ['date_from' => '2030-02-01', 'date_to' => '2030-02-28']);
+        self::assertSame($pdf['detailTables'], $response->viewData('detailTables'));
+        self::assertSame('Rp 305.000', $pdf['detailTables'][0]['rows'][0]['total_package_gross_profit_rupiah']);
+        self::assertStringContainsString('matrix-main-wi', view('admin.reporting.service_package_profit_breakdown.export_pdf', $pdf)->render());
     }
 
     public function test_page_custom_range_excludes_outside_date_and_canceled_package_rows(): void
@@ -67,7 +74,7 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
 
         $response->assertOk();
         $response->assertSee('Rp 450.000');
-        $response->assertDontSee('Inside Customer');
+        $response->assertSee('Inside Customer');
         $response->assertDontSee('Outside Customer');
         $response->assertDontSee('Canceled Customer');
     }
@@ -103,8 +110,8 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         $this->assertSame(40000, $summary->getCell('B9')->getValue());
         $this->assertSame(160000, $summary->getCell('B10')->getValue());
         $this->assertSame(200000, $summary->getCell('B11')->getValue());
-        $this->assertSame(15000, $summary->getCell('B12')->getValue());
-        $this->assertSame(5000, $summary->getCell('B13')->getValue());
+        $this->assertSame(0, $summary->getCell('B12')->getValue());
+        $this->assertSame(0, $summary->getCell('B13')->getValue());
         $this->assertSame(305000, $summary->getCell('B14')->getValue());
 
         $this->assertSame('matrix-export-note', $detail->getCell('B2')->getValue());
@@ -118,8 +125,8 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         $this->assertSame(0, $detail->getCell('L2')->getValue());
         $this->assertSame(160000, $detail->getCell('M2')->getValue());
         $this->assertSame(200000, $detail->getCell('N2')->getValue());
-        $this->assertSame(15000, $detail->getCell('O2')->getValue());
-        $this->assertSame(5000, $detail->getCell('P2')->getValue());
+        $this->assertSame(0, $detail->getCell('O2')->getValue());
+        $this->assertSame(0, $detail->getCell('P2')->getValue());
         $this->assertSame(305000, $detail->getCell('Q2')->getValue());
 
         unlink($path);
@@ -132,14 +139,14 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         string $transactionDate,
         string $workItemStatus = WorkItem::STATUS_OPEN
     ): void {
-        $noteId = $prefix . '-note';
-        $workItemId = $prefix . '-wi';
-        $productA = $prefix . '-product-a';
-        $productB = $prefix . '-product-b';
-        $productC = $prefix . '-product-c';
-        $lineA = $prefix . '-ssl-a';
-        $lineB = $prefix . '-ssl-b';
-        $lineC = $prefix . '-ssl-c';
+        $noteId = $prefix.'-note';
+        $workItemId = $prefix.'-wi';
+        $productA = $prefix.'-product-a';
+        $productB = $prefix.'-product-b';
+        $productC = $prefix.'-product-c';
+        $lineA = $prefix.'-ssl-a';
+        $lineB = $prefix.'-ssl-b';
+        $lineC = $prefix.'-ssl-c';
 
         $this->seedProductWithInventory($productA, 60000, 10, 30000);
         $this->seedProductWithInventory($productB, 80000, 10, 40000);
@@ -157,7 +164,7 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
 
         $this->seedServiceDetailBase(
             $workItemId,
-            'Paket Ekstrem ' . $prefix,
+            'Paket Ekstrem '.$prefix,
             40000,
             ServiceDetail::PART_SOURCE_NONE
         );
@@ -174,31 +181,31 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         $this->seedStoreStockLineBase($lineB, $workItemId, $productB, 1, 80000);
         $this->seedStoreStockLineBase($lineC, $workItemId, $productC, 5, 50000);
 
-        $this->seedInventoryMovement($prefix . '-move-a-out', $productA, 'stock_out', 'work_item_store_stock_line', $lineA, $transactionDate, -2, 30000, -60000);
-        $this->seedInventoryMovement($prefix . '-move-b-out', $productB, 'stock_out', 'work_item_store_stock_line', $lineB, $transactionDate, -1, 40000, -40000);
-        $this->seedInventoryMovement($prefix . '-move-c-out', $productC, 'stock_out', 'work_item_store_stock_line', $lineC, $transactionDate, -5, 7000, -35000);
-        $this->seedInventoryMovement($prefix . '-move-a-return', $productA, 'stock_in', 'work_item_store_stock_line_reversal', $lineA, $transactionDate, 1, 30000, 30000);
+        $this->seedInventoryMovement($prefix.'-move-a-out', $productA, 'stock_out', 'work_item_store_stock_line', $lineA, $transactionDate, -2, 30000, -60000);
+        $this->seedInventoryMovement($prefix.'-move-b-out', $productB, 'stock_out', 'work_item_store_stock_line', $lineB, $transactionDate, -1, 40000, -40000);
+        $this->seedInventoryMovement($prefix.'-move-c-out', $productC, 'stock_out', 'work_item_store_stock_line', $lineC, $transactionDate, -5, 7000, -35000);
+        $this->seedInventoryMovement($prefix.'-move-a-return', $productA, 'stock_in', 'work_item_store_stock_line_reversal', $lineA, $transactionDate, 1, 30000, 30000);
 
         // Movement tidak terkait line paket. Harus diabaikan agar tidak double count HPP.
-        $this->seedInventoryMovement($prefix . '-move-unrelated', $productA, 'stock_out', 'manual_adjustment', $prefix . '-unrelated-source', $transactionDate, -9, 999999, -8999991);
+        $this->seedInventoryMovement($prefix.'-move-unrelated', $productA, 'stock_out', 'manual_adjustment', $prefix.'-unrelated-source', $transactionDate, -9, 999999, -8999991);
 
-        $this->seedCustomerPaymentBase($prefix . '-payment-dp', 200000, '2030-02-15 10:00:00');
-        $this->seedPaymentAllocationBase($prefix . '-allocation-dp', $prefix . '-payment-dp', $noteId, 200000);
+        $this->seedCustomerPaymentBase($prefix.'-payment-dp', 200000, '2030-02-15 10:00:00');
+        $this->seedPaymentAllocationBase($prefix.'-allocation-dp', $prefix.'-payment-dp', $noteId, 200000);
 
-        $this->seedCustomerPaymentBase($prefix . '-payment-lunas', 250000, '2030-03-01 10:00:00');
-        $this->seedPaymentAllocationBase($prefix . '-allocation-lunas', $prefix . '-payment-lunas', $noteId, 250000);
+        $this->seedCustomerPaymentBase($prefix.'-payment-lunas', 250000, '2030-03-01 10:00:00');
+        $this->seedPaymentAllocationBase($prefix.'-allocation-lunas', $prefix.'-payment-lunas', $noteId, 250000);
 
         DB::table('customer_refunds')->insert([
-            'id' => $prefix . '-refund',
-            'customer_payment_id' => $prefix . '-payment-lunas',
+            'id' => $prefix.'-refund',
+            'customer_payment_id' => $prefix.'-payment-lunas',
             'note_id' => $noteId,
             'amount_rupiah' => 20000,
             'refunded_at' => '2030-03-02 10:00:00',
             'reason' => 'UI matrix component refund fixture',
         ]);
 
-        $this->seedRefundComponent($prefix . '-refund-product', $prefix . '-refund', $prefix . '-payment-lunas', $noteId, $workItemId, PaymentComponentType::SERVICE_STORE_STOCK_PART, $lineA, 15000, 1);
-        $this->seedRefundComponent($prefix . '-refund-service', $prefix . '-refund', $prefix . '-payment-lunas', $noteId, $workItemId, PaymentComponentType::SERVICE_FEE, $workItemId, 5000, 2);
+        $this->seedRefundComponent($prefix.'-refund-product', $prefix.'-refund', $prefix.'-payment-lunas', $noteId, $workItemId, PaymentComponentType::SERVICE_STORE_STOCK_PART, $lineA, 15000, 1);
+        $this->seedRefundComponent($prefix.'-refund-service', $prefix.'-refund', $prefix.'-payment-lunas', $noteId, $workItemId, PaymentComponentType::SERVICE_FEE, $workItemId, 5000, 2);
 
         // Harga jual dan costing saat ini berubah setelah transaksi. Report wajib tetap pakai snapshot line + inventory movement historis.
         DB::table('products')
@@ -222,7 +229,7 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         $this->seedNotePaymentProduct(
             $productId,
             strtoupper(str_replace('-', '_', $productId)),
-            'Produk ' . $productId,
+            'Produk '.$productId,
             'Matrix',
             100,
             $priceRupiah

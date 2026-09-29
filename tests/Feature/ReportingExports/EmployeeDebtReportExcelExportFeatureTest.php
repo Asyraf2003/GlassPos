@@ -46,7 +46,7 @@ final class EmployeeDebtReportExcelExportFeatureTest extends TestCase
 
         $spreadsheet = IOFactory::load($path);
 
-        $this->assertSame(['Ringkasan', 'Detail Hutang', 'Rekap Per Tanggal', 'Rekap Per Status'], $spreadsheet->getSheetNames());
+        $this->assertSame(['Ringkasan', 'Detail Hutang', 'Rekap Per Tanggal', 'Rekap Per Status', 'Metadata'], $spreadsheet->getSheetNames());
 
         $summary = $spreadsheet->getSheetByName('Ringkasan');
         $detail = $spreadsheet->getSheetByName('Detail Hutang');
@@ -60,10 +60,11 @@ final class EmployeeDebtReportExcelExportFeatureTest extends TestCase
 
         $this->assertSame('Laporan Hutang Karyawan', $summary->getCell('A1')->getValue());
         $this->assertSame('01 Januari 2030 s/d 31 Januari 2030', $summary->getCell('B2')->getValue());
-        $this->assertSame(310000, $summary->getCell('B6')->getValue());
-        $this->assertSame(110000, $summary->getCell('B7')->getValue());
-        $this->assertSame(200000, $summary->getCell('B8')->getValue());
-        $this->assertSame(4, $summary->getCell('B9')->getValue());
+        $this->assertSame(0, $summary->getCell('B6')->getValue());
+        $this->assertSame(310000, $summary->getCell('B7')->getValue());
+        $this->assertSame(110000, $summary->getCell('B9')->getValue());
+        $this->assertSame(200000, $summary->getCell('B11')->getValue());
+        $this->assertSame('Sisa per 31-01-2030', $summary->getCell('A11')->getValue());
 
         $this->assertSame('Tanggal Catat', $detail->getCell('B1')->getValue());
         $this->assertSame('07 Januari 2030', $detail->getCell('B2')->getValue());
@@ -119,7 +120,7 @@ final class EmployeeDebtReportExcelExportFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-employee-debt-report-export@example.test',
+            'email' => $role.'-employee-debt-report-export@example.test',
             'password' => 'password123',
         ]);
 

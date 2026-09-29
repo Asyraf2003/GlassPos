@@ -10,8 +10,7 @@ final class SupplierPayableSummaryBuilder
 {
     public function __construct(
         private readonly SupplierPayableDueStatusResolver $statusResolver,
-    ) {
-    }
+    ) {}
 
     public function build(array $rows, string $referenceDate): array
     {
@@ -22,6 +21,10 @@ final class SupplierPayableSummaryBuilder
                 $outstanding,
                 $referenceDate,
             );
+
+            if ($row['voided_as_of'] ?? false) {
+                $status = ['due_status' => 'voided', 'due_status_label' => 'Void'];
+            }
 
             return new SupplierPayableSummaryRow(
                 $row['supplier_invoice_id'],

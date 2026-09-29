@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Reporting\Exports;
 
+use App\Application\Reporting\Services\SupplierPayableTemporalSummaryRows;
 use App\Support\ViewDateFormatter;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
@@ -20,9 +21,9 @@ final class SupplierPayableReportExcelSummarySheetWriter
         $sheet->setCellValue('A2', 'Periode');
         $sheet->setCellValue('B2', ($filters['period_mode'] ?? '') === 'all' ? 'Seluruh Periode' : ViewDateFormatter::range($filters['date_from'] ?? null, $filters['date_to'] ?? null));
         $sheet->setCellValue('A3', 'Dasar Tanggal');
-        $sheet->setCellValue('B3', 'Tanggal pengiriman invoice');
+        $sheet->setCellValue('B3', 'Aktivitas periode dan posisi akhir');
         $sheet->setCellValue('A4', 'Tanggal Referensi');
-        $sheet->setCellValue('B4', ViewDateFormatter::display($filters['reference_date'] ?? null));
+        $sheet->setCellValue('B4', ViewDateFormatter::display($filters['date_to'] ?? $filters['reference_date'] ?? null));
 
         $this->tables->writeTable($sheet, 6, ['Metrik', 'Nilai'], [
             ['Total Faktur', (int) ($summary['total_rows'] ?? 0)],
@@ -38,6 +39,9 @@ final class SupplierPayableReportExcelSummarySheetWriter
             ['Jumlah Receipt', (int) ($summary['receipt_count'] ?? 0)],
             ['Total Qty Diterima', (int) ($summary['total_received_qty'] ?? 0)],
         ]);
+
+        $temporal = SupplierPayableTemporalSummaryRows::build($summary, $filters['date_from'] ?? null, $filters['date_to'] ?? null);
+        $this->tables->writeTable($sheet, 21, ['Posisi dan aktivitas', 'Rupiah'], array_map(static fn (array $row): array => [$row['label'], $row['value']], $temporal));
 
         $this->tables->autosize($sheet, 2);
     }

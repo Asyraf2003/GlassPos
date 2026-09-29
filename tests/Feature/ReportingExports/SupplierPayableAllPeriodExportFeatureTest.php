@@ -16,8 +16,8 @@ use Tests\TestCase;
 
 final class SupplierPayableAllPeriodExportFeatureTest extends TestCase
 {
-    use RefreshDatabase;
     use CurrentSupplierPayableFixture;
+    use RefreshDatabase;
 
     public function test_html_pdf_and_excel_share_all_period_and_explicit_cohort_datasets(): void
     {
@@ -35,7 +35,7 @@ final class SupplierPayableAllPeriodExportFeatureTest extends TestCase
             $query = SupplierPayableReportPageQuery::fromValidated($params);
             $dataset = app(GetSupplierPayableReportDatasetHandler::class)
                 ->handle($query->fromShipmentDate(), $query->toShipmentDate(), $query->referenceDate())->data();
-            $expected = $params === [] || $params['reference_date'] === '2026-08-27' ? 8000000 : 0;
+            $expected = 8000000;
             self::assertSame($expected, $dataset['summary']['outstanding_rupiah']);
             $this->get(route('admin.reports.supplier_payable.index', $params))->assertOk()
                 ->assertViewHas('summary', $dataset['summary']);
@@ -52,7 +52,7 @@ final class SupplierPayableAllPeriodExportFeatureTest extends TestCase
             try {
                 $book = IOFactory::load($file);
                 self::assertSame($expected, $book->getSheetByName('Ringkasan')->getCell('B10')->getValue());
-                self::assertSame($expected > 0 ? 'NF-august' : null, $book->getSheetByName('Detail Hutang Pemasok')->getCell('B2')->getValue());
+                self::assertSame('NF-august', $book->getSheetByName('Detail Hutang Pemasok')->getCell('B2')->getValue());
                 if ($params === []) {
                     $pdf->assertDownload('laporan-hutang-pemasok-seluruh-periode.pdf');
                     $xlsx->assertDownload('laporan-hutang-pemasok-seluruh-periode.xlsx');

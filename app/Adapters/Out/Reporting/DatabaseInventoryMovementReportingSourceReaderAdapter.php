@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Adapters\Out\Reporting;
 
+use App\Application\Inventory\Services\InventoryCostingProjectionBuilder;
 use App\Ports\Out\Reporting\InventoryMovementReportingSourceReaderPort;
 
 final class DatabaseInventoryMovementReportingSourceReaderAdapter implements InventoryMovementReportingSourceReaderPort
@@ -25,6 +26,11 @@ final class DatabaseInventoryMovementReportingSourceReaderAdapter implements Inv
     public function getInventoryCurrentSnapshotRows(): array
     {
         return InventoryCurrentSnapshotDatabaseQuery::get();
+    }
+
+    public function getInventoryAsOfSnapshotRows(string $asOf): array
+    {
+        return (new InventoryAsOfSnapshotQuery(new InventoryCostingProjectionBuilder))->rows($asOf);
     }
 
     public function getInventoryStockValueSummary(

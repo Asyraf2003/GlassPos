@@ -5,6 +5,7 @@
 @section('heading', 'Laba Paket Service')
 
 @section('content')
+<p class="text-muted small">{{ $temporalContext ?? '' }}</p>
 @include('admin.reporting.partials.period_filter', [
     'formId' => 'service-package-profit-breakdown-filter-form',
     'action' => route('admin.reports.service_package_profit_breakdown.index'),
@@ -13,6 +14,11 @@
     'basisDateLabel' => 'Tanggal transaksi nota',
     'supportsCustomRange' => true,
     'exportActions' => [
+        [
+            'label' => 'Unduh PDF',
+            'url' => route('admin.reports.service_package_profit_breakdown.export_pdf', request()->query()),
+            'class' => 'btn btn-outline-danger text-nowrap',
+        ],
         [
             'label' => 'Unduh Excel',
             'url' => route('admin.reports.service_package_profit_breakdown.export_excel', request()->query()),
@@ -110,4 +116,5 @@
         </div></div>
     </div>
 </div>
+@include('admin.reporting.partials.screen_detail_tables')
 @endsection

@@ -23,6 +23,16 @@ final class GetTransactionReportDatasetHandler
     {
         $result = $this->summaryHandler->handle($fromTransactionDate, $toTransactionDate);
 
+        return $this->build($result);
+    }
+
+    public function handleCurrent(string $fromTransactionDate, string $toTransactionDate): Result
+    {
+        return $this->build($this->summaryHandler->handleCurrent($fromTransactionDate, $toTransactionDate));
+    }
+
+    private function build(Result $result): Result
+    {
         if ($result->isFailure()) {
             return $result;
         }

@@ -20,7 +20,7 @@ final class InventoryStockValueReportExcelSnapshotSheetWriter
             'Nama Barang',
             'Merek',
             'Ukuran',
-            'Qty Saat Ini',
+            'Qty per Akhir Periode',
             'Harga Pokok Rata-rata',
             'Inventory Value',
             'Reorder Point',

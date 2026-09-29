@@ -14,7 +14,7 @@ final class TransactionReportRevisionCashTruthFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_downward_revision_reports_historical_cash_less_actual_surplus_refund_once(): void
+    public function test_downward_revision_current_report_reads_historical_cash_less_actual_surplus_refund_once(): void
     {
         $admin = $this->loginAsAuthorizedAdmin();
         $payload = [
@@ -48,7 +48,7 @@ final class TransactionReportRevisionCashTruthFeatureTest extends TestCase
         self::assertSame(300000, (int) DB::table('customer_payments')->sum('amount_rupiah'));
         self::assertSame(200000, (int) DB::table('note_revision_surplus_refund_payments')->sum('amount_rupiah'));
         self::assertSame(0, DB::table('customer_refunds')->count());
-        $result = app(GetTransactionReportDatasetHandler::class)->handle('2026-09-13', '2026-09-13');
+        $result = app(GetTransactionReportDatasetHandler::class)->handleCurrent('2026-09-13', '2026-09-13');
         self::assertTrue($result->isSuccess());
         $summary = $result->data()['summary'];
         self::assertSame(100000, $summary['net_cash_collected_rupiah']);

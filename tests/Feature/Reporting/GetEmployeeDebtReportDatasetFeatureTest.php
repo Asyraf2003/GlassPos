@@ -61,6 +61,11 @@ final class GetEmployeeDebtReportDatasetFeatureTest extends TestCase
         $this->assertCount(4, $rows);
 
         $this->assertSame([
+            'opening_outstanding_rupiah' => 0,
+            'new_debt_rupiah' => 310000,
+            'adjustments_in_period_rupiah' => 0,
+            'payments_in_period_rupiah' => 130000,
+            'reversals_in_period_rupiah' => 20000,
             'total_rows' => 4,
             'total_debt' => 310000,
             'total_paid_amount' => 110000,

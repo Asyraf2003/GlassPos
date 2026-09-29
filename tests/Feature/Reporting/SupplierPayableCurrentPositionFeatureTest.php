@@ -15,8 +15,8 @@ use Tests\TestCase;
 
 final class SupplierPayableCurrentPositionFeatureTest extends TestCase
 {
-    use RefreshDatabase;
     use CurrentSupplierPayableFixture;
+    use RefreshDatabase;
 
     public function test_august_debt_remains_visible_in_september_and_current_dashboard_ignores_month(): void
     {
@@ -35,8 +35,8 @@ final class SupplierPayableCurrentPositionFeatureTest extends TestCase
 
         $this->get(route('admin.reports.supplier_payable.index', [
             'period_mode' => 'monthly', 'reference_date' => '2026-09-27',
-        ]))->assertOk()->assertDontSee('NF-august')
-            ->assertViewHas('summary', fn ($summary) => $summary['outstanding_rupiah'] === 0);
+        ]))->assertOk()->assertSee('NF-august')
+            ->assertViewHas('summary', fn ($summary) => $summary['outstanding_rupiah'] === 8000000);
 
         foreach (['2026-09', '2026-10', '2025-01'] as $month) {
             $payload = app(GetAdminDashboardOverviewHandler::class)->handle($month);

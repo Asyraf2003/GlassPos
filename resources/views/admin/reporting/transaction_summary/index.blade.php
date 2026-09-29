@@ -5,6 +5,7 @@
 @section('heading', 'Laporan Transaksi')
 
 @section('content')
+<p class="text-muted small">{{ $temporalContext ?? '' }}</p>
 @include('admin.reporting.partials.period_filter', [
     'formId' => 'transaction-report-filter-form',
     'action' => route('admin.reports.transaction_summary.index'),
@@ -144,4 +145,5 @@
         </div></div>
     </div>
 </div>
+@include('admin.reporting.partials.screen_detail_tables')
 @endsection

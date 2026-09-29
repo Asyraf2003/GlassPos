@@ -20,7 +20,7 @@ final class DatabasePayrollReportingSourceReaderAdapter implements PayrollReport
                 '=',
                 'payroll_disbursement_reversals.payroll_disbursement_id'
             )
-            ->whereNull('payroll_disbursement_reversals.id')
+            ->where(fn ($query) => $query->whereNull('payroll_disbursement_reversals.id')->orWhere('payroll_disbursement_reversals.created_at', '>', $toDate.' 23:59:59'))
             ->whereBetween(DB::raw('DATE(payroll_disbursements.disbursement_date)'), [$fromDate, $toDate])
             ->orderBy('payroll_disbursements.disbursement_date')
             ->orderBy('payroll_disbursements.id')
@@ -57,7 +57,7 @@ final class DatabasePayrollReportingSourceReaderAdapter implements PayrollReport
                 '=',
                 'payroll_disbursement_reversals.payroll_disbursement_id'
             )
-            ->whereNull('payroll_disbursement_reversals.id')
+            ->where(fn ($query) => $query->whereNull('payroll_disbursement_reversals.id')->orWhere('payroll_disbursement_reversals.created_at', '>', $toDate.' 23:59:59'))
             ->whereBetween(DB::raw('DATE(payroll_disbursements.disbursement_date)'), [$fromDate, $toDate])
             ->selectRaw('COUNT(*) as total_rows, COALESCE(SUM(payroll_disbursements.amount), 0) as total_amount_rupiah')
             ->first();

@@ -5,6 +5,7 @@
 @section('heading', 'Biaya Operasional')
 
 @section('content')
+<p class="text-muted small">{{ $temporalContext ?? '' }}</p>
 @include('admin.reporting.partials.period_filter', [
     'formId' => 'operational-expense-report-filter-form',
     'action' => route('admin.reports.operational_expense.index'),
@@ -110,4 +111,5 @@
         </div></div>
     </div>
 </div>
+@include('admin.reporting.partials.screen_detail_tables')
 @endsection

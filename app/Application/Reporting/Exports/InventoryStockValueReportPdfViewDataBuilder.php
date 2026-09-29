@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\Reporting\Exports;
 
-use App\Support\ReportPeriodDateLabelFormatter;
-
 use App\Application\Reporting\Exports\Concerns\FormatsPdfReportValues;
+use App\Application\Reporting\Services\ReportTemporalContext;
 use App\Ports\Out\ClockPort;
+use App\Support\ReportPeriodDateLabelFormatter;
 
 final class InventoryStockValueReportPdfViewDataBuilder
 {
@@ -15,8 +15,7 @@ final class InventoryStockValueReportPdfViewDataBuilder
 
     public function __construct(
         private readonly ClockPort $clock,
-    ) {
-    }
+    ) {}
 
     public function build(array $dataset, array $filters): array
     {
@@ -28,11 +27,13 @@ final class InventoryStockValueReportPdfViewDataBuilder
         );
 
         return [
-            'title' => 'Stok dan Nilai Persediaan',
+            'temporalContext' => ReportTemporalContext::description('InventoryStockValueReport', $filters),
+            'title' => 'Stok dan Nilai Persediaan per '.$this->formatDate($filters['date_to']),
             'periodLabelCaption' => $periodContext['label'],
             'periodLabel' => $periodContext['value'],
             'referenceDateLabel' => $this->formatDate($this->stringValue($filters['reference_date'] ?? '')),
             'generatedAt' => $this->clock->now()->format('d/m/Y H:i'),
+            'detailTables' => InventoryReportDetailTables::build($dataset, $filters['date_to']),
             'summaryItems' => $this->summaryItems($summary),
         ];
     }
@@ -47,8 +48,8 @@ final class InventoryStockValueReportPdfViewDataBuilder
             ['label' => 'Validasi Sistem', 'value' => 'Bagian ini mengecek apakah ringkasan stok saat ini cocok dengan riwayat keluar-masuk barang. Nilai sehat untuk selisih stok dan nilai adalah 0.'],
             ['label' => 'Nilai Pembanding Avg x Qty', 'value' => $this->rupiah($summary['total_inventory_value_by_average_rupiah'] ?? 0)],
             ['label' => 'Selisih Pembulatan Modal', 'value' => $this->rupiah($summary['total_rounding_residual_rupiah'] ?? 0)],
-            ['label' => 'Selisih Stok vs Riwayat', 'value' => $this->integerValue($summary['total_ledger_qty_diff'] ?? 0)],
-            ['label' => 'Selisih Nilai vs Riwayat', 'value' => $this->rupiah($summary['total_ledger_value_diff_rupiah'] ?? 0)],
+            ['label' => 'Selisih Stok vs Riwayat Saat Ini', 'value' => $this->integerValue($summary['total_ledger_qty_diff'] ?? 0)],
+            ['label' => 'Selisih Nilai vs Riwayat Saat Ini', 'value' => $this->rupiah($summary['total_ledger_value_diff_rupiah'] ?? 0)],
             ['label' => 'Barang Masuk dari Supplier', 'value' => $this->integerValue($summary['period_supply_in_qty'] ?? 0)],
             ['label' => 'Barang Keluar Terjual/Dipakai', 'value' => $this->integerValue($summary['period_sale_out_qty'] ?? 0)],
             ['label' => 'Barang Balik dari Refund', 'value' => $this->integerValue($summary['period_refund_reversal_qty'] ?? 0)],
@@ -63,5 +64,4 @@ final class InventoryStockValueReportPdfViewDataBuilder
             ['label' => 'Produk Belum Konfigurasi Threshold', 'value' => $this->integerValue($summary['stock_unconfigured_product_rows'] ?? 0)],
         ];
     }
-
 }

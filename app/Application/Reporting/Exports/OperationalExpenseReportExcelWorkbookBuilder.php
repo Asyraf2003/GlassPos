@@ -9,6 +9,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 final class OperationalExpenseReportExcelWorkbookBuilder
 {
     public function __construct(
+        private readonly ReportWorkbookMetadataWriter $metadata,
         private readonly OperationalExpenseReportExcelSummarySheetWriter $summaryWriter,
         private readonly OperationalExpenseReportExcelDetailSheetWriter $detailWriter,
         private readonly OperationalExpenseReportExcelPeriodSheetWriter $periodWriter,
@@ -39,6 +40,8 @@ final class OperationalExpenseReportExcelWorkbookBuilder
             $spreadsheet->createSheet(),
             is_array($dataset['category_rows'] ?? null) ? $dataset['category_rows'] : [],
         );
+
+        $this->metadata->append($spreadsheet, 'OperationalExpenseReport', 'GetOperationalExpenseReportDatasetHandler', $filters);
 
         $spreadsheet->setActiveSheetIndex(0);
 

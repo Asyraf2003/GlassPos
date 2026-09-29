@@ -49,10 +49,10 @@ final class SupplierPayableSummaryHardeningFeatureTest extends TestCase
         $this->assertSame([
             'total_rows' => 1,
             'grand_total_rupiah' => 100000,
-            'total_paid_rupiah' => 70000,
-            'outstanding_rupiah' => 30000,
-            'receipt_count' => 2,
-            'total_received_qty' => 3,
+            'total_paid_rupiah' => 60000,
+            'outstanding_rupiah' => 40000,
+            'receipt_count' => 1,
+            'total_received_qty' => 2,
         ], $daily);
 
         $this->assertSame([

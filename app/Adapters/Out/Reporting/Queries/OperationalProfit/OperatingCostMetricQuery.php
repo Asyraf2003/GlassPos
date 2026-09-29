@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Adapters\Out\Reporting\Queries\OperationalProfit;
 
+use App\Adapters\Out\Reporting\EmployeeDebtDisbursementQuery;
 use Illuminate\Support\Facades\DB;
 
 final class OperatingCostMetricQuery
@@ -11,7 +12,7 @@ final class OperatingCostMetricQuery
     public function operationalExpense(string $fromDate, string $toDate): int
     {
         return (int) (DB::table('operational_expenses')
-            ->whereNull('deleted_at')
+            ->where(fn ($query) => $query->whereNull('deleted_at')->orWhere('deleted_at', '>', $toDate.' 23:59:59'))
             ->whereBetween('expense_date', [$fromDate, $toDate])
             ->sum('amount_rupiah') ?? 0);
     }
@@ -25,7 +26,7 @@ final class OperatingCostMetricQuery
                 '=',
                 'payroll_disbursement_reversals.payroll_disbursement_id'
             )
-            ->whereNull('payroll_disbursement_reversals.id')
+            ->where(fn ($query) => $query->whereNull('payroll_disbursement_reversals.id')->orWhere('payroll_disbursement_reversals.created_at', '>', $toDate.' 23:59:59'))
             ->whereBetween('payroll_disbursements.disbursement_date', [
                 $this->startOfDay($fromDate),
                 $this->endOfDay($toDate),
@@ -35,21 +36,19 @@ final class OperatingCostMetricQuery
 
     public function employeeDebtCashOut(string $fromDate, string $toDate): int
     {
-        return (int) (DB::table('employee_debts')
-            ->whereBetween('employee_debts.created_at', [
-                $this->startOfDay($fromDate),
-                $this->endOfDay($toDate),
-            ])
-            ->sum('employee_debts.total_debt') ?? 0);
+        return array_sum(array_column(
+            (new EmployeeDebtDisbursementQuery)->daily($fromDate, $toDate),
+            'amount_rupiah',
+        ));
     }
 
     private function startOfDay(string $date): string
     {
-        return $date . ' 00:00:00';
+        return $date.' 00:00:00';
     }
 
     private function endOfDay(string $date): string
     {
-        return $date . ' 23:59:59';
+        return $date.' 23:59:59';
     }
 }

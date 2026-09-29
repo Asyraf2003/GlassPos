@@ -5,6 +5,7 @@
 @section('heading', 'Laporan Gaji')
 
 @section('content')
+<p class="text-muted small">{{ $temporalContext ?? '' }}</p>
 @include('admin.reporting.partials.period_filter', [
     'formId' => 'payroll-report-filter-form',
     'action' => route('admin.reports.payroll.index'),
@@ -100,4 +101,5 @@
         </div></div>
     </div>
 </div>
+@include('admin.reporting.partials.screen_detail_tables')
 @endsection

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 final class TransactionSummaryCashPaymentTotalsQuery
 {
-    public function historicalPaymentTotals(): Builder
+    public function historicalPaymentTotals(?string $asOfDate = null): Builder
     {
         // Union identities, not amounts: compatibility rows and multiple refunds
         // must still identify each historical payment only once per note.
@@ -19,33 +19,38 @@ final class TransactionSummaryCashPaymentTotalsQuery
 
         return DB::query()->fromSub($links, 'payment_note_links')
             ->join('customer_payments', 'customer_payments.id', '=', 'payment_note_links.customer_payment_id')
+            ->when($asOfDate !== null, fn (Builder $query) => $query->where('customer_payments.paid_at', '<=', $asOfDate))
             ->selectRaw('payment_note_links.note_id, SUM(customer_payments.amount_rupiah) as gross_payment_rupiah')
             ->groupBy('payment_note_links.note_id');
     }
 
-    public function query(): Builder
+    public function query(?string $asOfDate = null): Builder
     {
         return DB::query()
             ->fromSub(
-                $this->paymentAllocationRows()
-                    ->unionAll($this->componentAllocationRows())
-                    ->unionAll($this->refundedPaymentFallbackRows()),
+                $this->paymentAllocationRows($asOfDate)
+                    ->unionAll($this->componentAllocationRows($asOfDate))
+                    ->unionAll($this->refundedPaymentFallbackRows($asOfDate)),
                 'cash_payment_rows'
             )
             ->selectRaw('note_id, SUM(amount_rupiah) as allocated_payment_rupiah')
             ->groupBy('note_id');
     }
 
-    private function paymentAllocationRows(): Builder
+    private function paymentAllocationRows(?string $asOfDate = null): Builder
     {
         return DB::table('payment_allocations')
+            ->join('customer_payments', 'customer_payments.id', '=', 'payment_allocations.customer_payment_id')
+            ->when($asOfDate !== null, fn (Builder $query) => $query->where('customer_payments.paid_at', '<=', $asOfDate))
             ->selectRaw('payment_allocations.note_id, SUM(payment_allocations.amount_rupiah) as amount_rupiah')
             ->groupBy('payment_allocations.note_id');
     }
 
-    private function componentAllocationRows(): Builder
+    private function componentAllocationRows(?string $asOfDate = null): Builder
     {
         return DB::table('payment_component_allocations')
+            ->join('customer_payments', 'customer_payments.id', '=', 'payment_component_allocations.customer_payment_id')
+            ->when($asOfDate !== null, fn (Builder $query) => $query->where('customer_payments.paid_at', '<=', $asOfDate))
             ->whereNotExists(static function ($query): void {
                 $query->selectRaw('1')
                     ->from('payment_allocations')
@@ -56,10 +61,11 @@ final class TransactionSummaryCashPaymentTotalsQuery
             ->groupBy('payment_component_allocations.note_id');
     }
 
-    private function refundedPaymentFallbackRows(): Builder
+    private function refundedPaymentFallbackRows(?string $asOfDate = null): Builder
     {
         return DB::table('customer_refunds')
             ->join('customer_payments', 'customer_payments.id', '=', 'customer_refunds.customer_payment_id')
+            ->when($asOfDate !== null, fn (Builder $query) => $query->where('customer_payments.paid_at', '<=', $asOfDate))
             ->whereNotExists(static function ($query): void {
                 $query->selectRaw('1')
                     ->from('payment_allocations')

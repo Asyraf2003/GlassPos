@@ -15,8 +15,7 @@ final class GetSupplierPayableSummaryHandler
         private readonly SupplierPayableReportingSourceReaderPort $sourceReader,
         private readonly SupplierPayableSummaryBuilder $builder,
         private readonly SupplierPayableReportingReconciliationService $reconciliation,
-    ) {
-    }
+    ) {}
 
     public function handle(
         ?string $fromShipmentDate,
@@ -28,7 +27,7 @@ final class GetSupplierPayableSummaryHandler
             $toShipmentDate,
         );
 
-        $rows = $this->builder->build($rawRows, $referenceDate);
+        $rows = $this->builder->build($rawRows, $toShipmentDate ?? $referenceDate);
 
         $expected = $this->sourceReader->getSupplierPayableSummaryReconciliation(
             $fromShipmentDate,
@@ -39,8 +38,8 @@ final class GetSupplierPayableSummaryHandler
 
         return Result::success([
             'rows' => array_map(
-                static fn ($row): array => $row->toArray(),
-                $rows,
+                static fn ($row, array $raw): array => array_merge($row->toArray(), $raw),
+                $rows, $rawRows,
             ),
         ]);
     }

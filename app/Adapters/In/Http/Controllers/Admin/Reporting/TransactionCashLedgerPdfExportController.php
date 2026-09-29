@@ -52,12 +52,12 @@ final class TransactionCashLedgerPdfExportController extends Controller
 
         $dompdf = new Dompdf($this->options());
         $dompdf->loadHtml($html, 'UTF-8');
-        $dompdf->setPaper('A4');
+        $dompdf->setPaper('A4', 'landscape');
         $dompdf->render();
 
         return response($dompdf->output(), 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . $this->filename($query) . '"',
+            'Content-Disposition' => 'attachment; filename="'.$this->filename($query).'"',
         ]);
     }
 
@@ -84,7 +84,7 @@ final class TransactionCashLedgerPdfExportController extends Controller
 
     private function options(): Options
     {
-        $options = new Options();
+        $options = new Options;
         $options->set('defaultFont', 'DejaVu Sans');
         $options->set('isRemoteEnabled', false);
 

@@ -9,6 +9,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 final class EmployeeDebtReportExcelWorkbookBuilder
 {
     public function __construct(
+        private readonly ReportWorkbookMetadataWriter $metadata,
         private readonly EmployeeDebtReportExcelSummarySheetWriter $summaryWriter,
         private readonly EmployeeDebtReportExcelDetailSheetWriter $detailWriter,
         private readonly EmployeeDebtReportExcelPeriodSheetWriter $periodWriter,
@@ -23,6 +24,7 @@ final class EmployeeDebtReportExcelWorkbookBuilder
             $spreadsheet->getActiveSheet(),
             is_array($dataset['summary'] ?? null) ? $dataset['summary'] : [],
             $filters,
+            $dataset['temporal_summary_rows'] ?? [],
         );
 
         $this->detailWriter->write(
@@ -39,6 +41,8 @@ final class EmployeeDebtReportExcelWorkbookBuilder
             $spreadsheet->createSheet(),
             is_array($dataset['status_rows'] ?? null) ? $dataset['status_rows'] : [],
         );
+
+        $this->metadata->append($spreadsheet, 'EmployeeDebtReport', 'GetEmployeeDebtReportDatasetHandler', $filters);
 
         $spreadsheet->setActiveSheetIndex(0);
 
