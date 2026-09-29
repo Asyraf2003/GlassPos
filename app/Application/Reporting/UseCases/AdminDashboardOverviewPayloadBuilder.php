@@ -16,11 +16,11 @@ final class AdminDashboardOverviewPayloadBuilder
         private readonly GetOperationalProfitSummaryHandler $operationalProfit,
         private readonly GetEmployeeDebtReportDatasetHandler $employeeDebt,
         private readonly GetOperationalExpenseReportDatasetHandler $operationalExpense,
-    ) {
-    }
+        private readonly GetPayrollReportDatasetHandler $payroll,
+    ) {}
 
     /**
-     * @param array{today:string,from:string,to:string} $period
+     * @param  array{today:string,from:string,to:string}  $period
      */
     public function build(array $period): array
     {
@@ -38,9 +38,9 @@ final class AdminDashboardOverviewPayloadBuilder
             $this->employeeDebt->handle($period['from'], $period['to'])
         );
 
-        $operationalExpenseSummary = ReportingResultDataExtractor::summary(
-            $this->operationalExpense->handle($period['from'], $period['to'])
-        );
+        $expenseResult = $this->operationalExpense->handle($period['from'], $period['to']);
+        $operationalExpenseSummary = ReportingResultDataExtractor::summary($expenseResult);
+        $payrollResult = $this->payroll->handle($period['from'], $period['to']);
 
         $todayCash = DashboardCashLedgerTotals::fromReportResult(
             $this->transactionCashLedger->handle($period['today'], $period['today'])
@@ -63,6 +63,11 @@ final class AdminDashboardOverviewPayloadBuilder
             $monthCash,
             $topSellingRows,
             $this->inventory->getRestockPriorityRows(5),
+        );
+
+        $payload['finance_insights'] = AdminDashboardFinanceInsights::build(
+            $expenseResult->data(),
+            $payrollResult->data(),
         );
 
         $payload['period'] = [

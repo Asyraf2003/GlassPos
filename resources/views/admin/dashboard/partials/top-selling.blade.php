@@ -6,7 +6,7 @@
             <tbody>
             @forelse (($dashboard['top_selling_rows'] ?? []) as $row)
                 <tr>
-                    <td><a class="dashboard-product" href="{{ route('admin.products.show', ['productId' => $row['product_id']]) }}">{{ $row['nama_barang'] }}</a><span class="dashboard-caption">{{ $row['kode_barang'] ?? 'Tanpa kode barang' }}</span></td>
+                    <td><a class="dashboard-product" href="{{ route('admin.products.show', ['productId' => $row['product_id']]) }}">{{ $row['nama_barang'] }}</a></td>
                     <td class="text-end">{{ number_format($row['sold_qty'], 0, ',', '.') }} Unit</td>
                     <td class="text-end">Rp {{ number_format($row['gross_revenue_rupiah'], 0, ',', '.') }}</td>
                 </tr>

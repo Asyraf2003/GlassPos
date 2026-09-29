@@ -122,3 +122,10 @@ html body:has(#admin-dashboard) { background: var(--dashboard-page); }
 #admin-dashboard .dashboard-drawer .btn-light-secondary { background: var(--dashboard-subtle); color: var(--dashboard-text); border-color: var(--dashboard-border); }
 #admin-dashboard .apexcharts-tooltip, #admin-dashboard .apexcharts-xaxistooltip { background: var(--dashboard-surface); color: var(--dashboard-text); border-color: var(--dashboard-border); box-shadow: 0 2px 8px rgb(0 0 0 / 10%); }
 #admin-dashboard .apexcharts-tooltip-title { background: var(--dashboard-subtle); border-bottom-color: var(--dashboard-border); }
+
+#admin-dashboard .dashboard-finance-insights { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#admin-dashboard .dashboard-finance-insights .dashboard-fact dt { overflow-wrap: anywhere; min-width: 0; }
+#admin-dashboard .dashboard-finance-insights .dashboard-chart { min-height: 270px; }
+@media (max-width: 1199.98px) {
+    #admin-dashboard .dashboard-finance-insights { grid-template-columns: 1fr; }
+}
