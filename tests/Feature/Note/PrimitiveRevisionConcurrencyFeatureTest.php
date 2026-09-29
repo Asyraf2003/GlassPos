@@ -103,7 +103,7 @@ final class PrimitiveRevisionConcurrencyFeatureTest extends TestCase
                     JOIN information_schema.INNODB_TRX r ON r.trx_id = w.requesting_trx_id
                     JOIN information_schema.INNODB_TRX b ON b.trx_id = w.blocking_trx_id
                     WHERE r.trx_mysql_thread_id = ? AND b.trx_mysql_thread_id = ?', [$secondId, $firstId]);
-                if ($wait === null && $scenario !== 'exact') {
+                if ($wait === null) {
                     // MariaDB can expose this unique-insert wait only in PROCESSLIST.
                     // Keep A's original lock graph gate; the additional probes
                     // requires the server to be executing the claim while winner is held.
