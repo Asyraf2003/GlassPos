@@ -44,8 +44,8 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         $response->assertSee('Rp 40.000');
         $response->assertSee('Rp 160.000');
         $response->assertSee('Rp 200.000');
-        $response->assertSee('Rp 15.000');
-        $response->assertSee('Rp 5.000');
+        $response->assertDontSee('Rp 15.000');
+        $response->assertDontSee('Rp 5.000');
         $response->assertSee('Rp 305.000');
 
         $response->assertSee('matrix-main-note');
@@ -110,8 +110,8 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         $this->assertSame(40000, $summary->getCell('B9')->getValue());
         $this->assertSame(160000, $summary->getCell('B10')->getValue());
         $this->assertSame(200000, $summary->getCell('B11')->getValue());
-        $this->assertSame(15000, $summary->getCell('B12')->getValue());
-        $this->assertSame(5000, $summary->getCell('B13')->getValue());
+        $this->assertSame(0, $summary->getCell('B12')->getValue());
+        $this->assertSame(0, $summary->getCell('B13')->getValue());
         $this->assertSame(305000, $summary->getCell('B14')->getValue());
 
         $this->assertSame('matrix-export-note', $detail->getCell('B2')->getValue());
@@ -125,8 +125,8 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         $this->assertSame(0, $detail->getCell('L2')->getValue());
         $this->assertSame(160000, $detail->getCell('M2')->getValue());
         $this->assertSame(200000, $detail->getCell('N2')->getValue());
-        $this->assertSame(15000, $detail->getCell('O2')->getValue());
-        $this->assertSame(5000, $detail->getCell('P2')->getValue());
+        $this->assertSame(0, $detail->getCell('O2')->getValue());
+        $this->assertSame(0, $detail->getCell('P2')->getValue());
         $this->assertSame(305000, $detail->getCell('Q2')->getValue());
 
         unlink($path);

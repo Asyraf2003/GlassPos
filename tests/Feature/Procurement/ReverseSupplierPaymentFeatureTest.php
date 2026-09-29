@@ -33,7 +33,7 @@ final class ReverseSupplierPaymentFeatureTest extends TestCase
         ]);
 
         $rows = app(GetSupplierPayableSummaryHandler::class)
-            ->handle('2026-04-19', '2026-04-19', '2026-04-19')
+            ->handle(null, null, '2026-04-19')
             ->data()['rows'];
 
         $this->assertCount(1, $rows);
@@ -107,7 +107,7 @@ final class ReverseSupplierPaymentFeatureTest extends TestCase
             'grand_total_rupiah' => 50000,
             'voided_at' => null,
             'void_reason' => null,
-            'last_revision_no' => 1,
+            'last_revision_no' => 0,
         ]);
 
         DB::table('supplier_payments')->insert([

@@ -396,10 +396,10 @@ final class RefundReportingOwnerDecisionV2CharacterizationTest extends TestCase
         ]);
 
         $summaryRowsOnTransactionDate = app(TransactionSummaryReportingQuery::class)
-            ->rows('2026-05-10', '2026-05-10');
+            ->rows('2026-05-10', '2026-05-10', 'current');
 
         $summaryRowsOnPaymentAndRefundDates = app(TransactionSummaryReportingQuery::class)
-            ->rows('2026-05-20', '2026-05-21');
+            ->rows('2026-05-20', '2026-05-21', 'current');
 
         self::assertCount(1, $summaryRowsOnTransactionDate);
         self::assertSame('2026-05-10', $summaryRowsOnTransactionDate[0]['transaction_date']);

@@ -66,7 +66,7 @@ final class GetTransactionReportDatasetFeatureTest extends TestCase
         ]);
 
         $result = app(GetTransactionReportDatasetHandler::class)
-            ->handle('2030-01-01', '2030-01-31');
+            ->handleCurrent('2030-01-01', '2030-01-31');
 
         $this->assertTrue($result->isSuccess());
 

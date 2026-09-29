@@ -76,7 +76,7 @@ final class ManualFullRefundEditLifecycleMismatchFeatureTest extends TestCase
         self::assertSame(1, (int) $projection->line_close_count);
         self::assertSame(0, (int) $projection->line_refund_count);
 
-        $rawReportRows = app(TransactionSummaryReportingQuery::class)->rows('2026-06-01', '2026-06-30');
+        $rawReportRows = app(TransactionSummaryReportingQuery::class)->rows('2026-06-01', '2026-06-30', 'current');
         self::assertCount(1, $rawReportRows);
         self::assertSame(150000, $rawReportRows[0]['allocated_payment_rupiah']);
         self::assertSame(37500, $rawReportRows[0]['refunded_rupiah']);

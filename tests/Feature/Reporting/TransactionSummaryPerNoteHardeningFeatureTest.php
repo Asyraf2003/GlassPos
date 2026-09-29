@@ -100,7 +100,7 @@ final class TransactionSummaryPerNoteHardeningFeatureTest extends TestCase
         $this->assertSame($monthly, $custom);
 
         $result = app(GetTransactionSummaryPerNoteHandler::class)
-            ->handle('2030-01-01', '2030-01-31');
+            ->handleCurrent('2030-01-01', '2030-01-31');
 
         $this->assertTrue($result->isSuccess());
 
@@ -125,7 +125,7 @@ final class TransactionSummaryPerNoteHardeningFeatureTest extends TestCase
 
     private function summaryTotals(string $from, string $to): array
     {
-        $result = app(GetTransactionSummaryPerNoteHandler::class)->handle($from, $to);
+        $result = app(GetTransactionSummaryPerNoteHandler::class)->handleCurrent($from, $to);
 
         $this->assertTrue($result->isSuccess());
 

@@ -57,7 +57,7 @@ trait SeedsProductLifecyclePayableHistoryMatrixFixture
             'grand_total_rupiah' => $grand,
             'voided_at' => null,
             'void_reason' => null,
-            'last_revision_no' => 1,
+            'last_revision_no' => 0,
         ]);
     }
 
@@ -124,7 +124,7 @@ trait SeedsProductLifecyclePayableHistoryMatrixFixture
     private function summary(): array
     {
         return app(GetSupplierPayableSummaryHandler::class)
-            ->handle('2026-03-20', '2026-03-20', '2026-03-20')
+            ->handle(null, null, '2026-03-20')
             ->data()['rows'];
     }
 }
