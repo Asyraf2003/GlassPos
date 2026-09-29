@@ -11,7 +11,7 @@ final class ReportTemporalContext
         $cutoff = (string) ($filters['date_to'] ?? '');
 
         return match ($report) {
-            'TransactionReport' => 'Mode current: nota dipilih berdasarkan tanggal transaksi. Nilai dan status memakai revisi saat ini; pembayaran nota terpilih dibatasi sampai akhir periode, sedangkan refund dan settlement masih memakai state current. Ini bukan posisi historis per akhir periode. Arus uang periode tersedia di Buku Kas Transaksi.',
+            'TransactionReport' => 'Mode as-of per '.$cutoff.': nota memakai revisi transaksi yang berlaku pada cutoff. Pembayaran, refund, refund-due, pengembalian surplus, dan cancellation dibatasi sampai cutoff; kejadian setelah cutoff tidak menulis ulang posisi historis. Arus uang periode tersedia di Buku Kas Transaksi.',
             'ServicePackageProfit', 'ServicePackageProfitBreakdown', 'ServicePackageProfitBreakdownReport' => 'Mode current: paket dipilih berdasarkan tanggal transaksi. Nilai paket memakai detail revisi saat ini; COGS dan refund kumulatif mengikuti paket terpilih. Ini bukan snapshot historis per akhir periode. Harga katalog dan AVG saat ini tidak dipakai untuk menghitung nilai paket.',
             'EmployeeDebtReport' => 'Mode as-of: saldo membawa kasbon sebelum periode; pembayaran, penyesuaian dan reversal dibatasi sampai '.$cutoff.'. Aktivitas periode dipisahkan dari saldo awal dan akhir.',
             'SupplierPayableReport' => $cutoff === ''
