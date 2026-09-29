@@ -31,7 +31,11 @@ final class TransactionCashLedgerPageController extends Controller
         $rows = is_array($payload['rows'] ?? null) ? $payload['rows'] : [];
 
         return view('admin.reporting.transaction_cash_ledger.index', [
-            'detailTables' => $presentation->build($payload, $query->toViewData())['detailTables'],
+            'detailTables' => $paginator->paginateTables(
+                $presentation->build($payload, $query->toViewData())['detailTables'],
+                $request,
+                'detail_table',
+            ),
             'temporalContext' => ReportTemporalContext::description('TransactionCashLedger', $query->toViewData()),
             'filters' => $query->toViewData(),
             'summary' => $summary->build($rows),

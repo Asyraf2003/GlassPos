@@ -27,7 +27,11 @@ final class TransactionReportPageController extends Controller
         $filters = $query->toViewData();
 
         return view('admin.reporting.transaction_summary.index', [
-            'detailTables' => $presentation->build($payload, $query->toViewData())['detailTables'],
+            'detailTables' => $paginator->paginateTables(
+                $presentation->build($payload, $query->toViewData())['detailTables'],
+                $request,
+                'detail_table',
+            ),
             'temporalContext' => ReportTemporalContext::description('TransactionReport', $query->toViewData()),
             'filters' => $filters,
             'exportExcelUrl' => route('admin.reports.transaction_summary.export_excel', $filters),

@@ -26,6 +26,8 @@
                 </tbody>
             </table>
         </div>
-        {{ $rows->links() }}
+        <div class="d-flex justify-content-end mt-3">
+            @include('layouts.partials.pagination', ['paginator' => $rows])
+        </div>
     </div>
 </div>

@@ -21,5 +21,10 @@
                 </tbody>
             </table>
         </div>
+        @if ($table['rows'] instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator)
+            <div class="d-flex justify-content-end mt-3">
+                @include('layouts.partials.pagination', ['paginator' => $table['rows']])
+            </div>
+        @endif
     </section>
 @endforeach

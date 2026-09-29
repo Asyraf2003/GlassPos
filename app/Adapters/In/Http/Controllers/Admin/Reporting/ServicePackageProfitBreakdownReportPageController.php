@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Adapters\In\Http\Controllers\Admin\Reporting;
 
 use App\Adapters\In\Http\Requests\Reporting\TransactionReportPageRequest;
+use App\Adapters\In\Http\Support\ReportArrayPaginator;
 use App\Application\Reporting\DTO\TransactionReportPageQuery;
 use App\Application\Reporting\Exports\ServicePackageProfitPdfViewDataBuilder;
 use App\Application\Reporting\Services\ReportTemporalContext;
@@ -18,6 +19,7 @@ final class ServicePackageProfitBreakdownReportPageController extends Controller
         ServicePackageProfitPdfViewDataBuilder $presentation,
         TransactionReportPageRequest $request,
         GetServicePackageProfitBreakdownHandler $useCase,
+        ReportArrayPaginator $paginator,
     ): View {
         $query = TransactionReportPageQuery::fromValidated($request->validated());
         $result = $useCase->handle($query->fromTransactionDate(), $query->toTransactionDate());
@@ -25,7 +27,11 @@ final class ServicePackageProfitBreakdownReportPageController extends Controller
         $filters = $query->toViewData();
 
         return view('admin.reporting.service_package_profit_breakdown.index', [
-            'detailTables' => $presentation->build($payload, $query->toViewData())['detailTables'],
+            'detailTables' => $paginator->paginateTables(
+                $presentation->build($payload, $query->toViewData())['detailTables'],
+                $request,
+                'detail_table',
+            ),
             'temporalContext' => ReportTemporalContext::description('ServicePackageProfitBreakdownReport', $query->toViewData()),
             'filters' => $filters,
             'summary' => is_array($payload['summary'] ?? null) ? $payload['summary'] : [],
