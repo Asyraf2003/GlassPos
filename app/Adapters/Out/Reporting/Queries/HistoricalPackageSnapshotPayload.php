@@ -19,8 +19,17 @@ final class HistoricalPackageSnapshotPayload
     /** @param array<string, mixed> $payload @return list<array<string, mixed>> */
     public function storeStockLines(array $payload): array
     {
-        $lines = $payload['store_stock_lines'] ?? [];
-        return is_array($lines) ? array_values(array_filter($lines, 'is_array')) : [];
+        $source = $payload['store_stock_lines'] ?? [];
+        if (! is_array($source)) {
+            return [];
+        }
+        $lines = [];
+        foreach ($source as $line) {
+            if (is_array($line)) {
+                $lines[] = $line;
+            }
+        }
+        return $lines;
     }
 
     /** @param array<string, mixed> $payload @return list<string> */
@@ -46,5 +55,18 @@ final class HistoricalPackageSnapshotPayload
             static fn (array $line): int => (int) ($line['line_total_rupiah'] ?? 0),
             $this->storeStockLines($payload),
         ));
+    }
+
+    /** @param array<string, mixed> $payload */
+    public function servicePrice(array $payload, mixed $fallback): int
+    {
+        if (array_key_exists('service_price_rupiah', $payload)) {
+            return (int) $payload['service_price_rupiah'];
+        }
+        $service = $payload['service'] ?? null;
+        if (is_array($service) && array_key_exists('service_price_rupiah', $service)) {
+            return (int) $service['service_price_rupiah'];
+        }
+        return (int) ($fallback ?? 0);
     }
 }

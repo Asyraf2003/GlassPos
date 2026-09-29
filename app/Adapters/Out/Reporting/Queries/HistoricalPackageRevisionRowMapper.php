@@ -21,8 +21,7 @@ final class HistoricalPackageRevisionRowMapper
         $payload = $this->payloads->decode($row->payload ?? null);
         $parts = $this->payloads->partsTotal($payload);
         $packageTotal = (int) $row->package_sold_amount_rupiah;
-        $servicePrice = (int) ($payload['service_price_rupiah']
-            ?? $payload['service']['service_price_rupiah'] ?? $row->service_price_rupiah ?? 0);
+        $servicePrice = $this->payloads->servicePrice($payload, $row->service_price_rupiah ?? null);
         $totalService = (int) ($payload['total_service_component_rupiah'] ?? ($packageTotal - $parts));
         $packageProfit = (int) ($payload['package_profit_rupiah'] ?? ($totalService - $servicePrice));
         $cogs = array_sum(array_map(
