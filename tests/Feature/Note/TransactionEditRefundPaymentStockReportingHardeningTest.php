@@ -1352,19 +1352,6 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
         );
     }
 
-    private function revisionBaseForTest(string $noteId): string
-    {
-        return (string) DB::table('notes')->where('id', $noteId)->value('current_revision_id');
-    }
-
-    private function loginAsAuthorizedAdmin(): \App\Core\IdentityAccess\User\User
-    {
-        $user = \App\Core\IdentityAccess\User\User::factory()->create();
-        $this->actingAs($user);
-
-        return $user;
-    }
-
     private function seedStoreStockProduct(): void
     {
         DB::table('products')->insert([
