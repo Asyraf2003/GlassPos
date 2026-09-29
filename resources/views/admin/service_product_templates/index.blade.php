@@ -123,12 +123,6 @@
                                     </button>
                                 </form>
                             </div>
-
-                            <div class="col-12 col-md-6">
-                                <a href="#" id="package-service-action-service-link" class="btn btn-outline-primary w-100 text-start py-3 px-4 h-100">
-                                    <div class="fw-bold fs-5 mb-1">Edit Jasa</div>
-                                </a>
-                            </div>
                         </div>
                     </div>
                 </div>
