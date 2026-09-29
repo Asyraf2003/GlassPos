@@ -36,7 +36,7 @@ final class TransactionCashLedgerExcelExportFeatureTest extends TestCase
 
         $spreadsheet = IOFactory::load($path);
 
-        $this->assertSame(['Ringkasan', 'Detail Event Kas', 'Rekap Per Tanggal'], $spreadsheet->getSheetNames());
+        $this->assertSame(['Ringkasan', 'Detail Event Kas', 'Rekap Per Tanggal', 'Metadata'], $spreadsheet->getSheetNames());
 
         $summary = $spreadsheet->getSheetByName('Ringkasan');
         $detail = $spreadsheet->getSheetByName('Detail Event Kas');
@@ -130,7 +130,7 @@ final class TransactionCashLedgerExcelExportFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-transaction-cash-ledger-report-export@example.test',
+            'email' => $role.'-transaction-cash-ledger-report-export@example.test',
             'password' => 'password123',
         ]);
 
@@ -168,14 +168,14 @@ final class TransactionCashLedgerExcelExportFeatureTest extends TestCase
         ]);
 
         DB::table('payment_allocations')->insert([
-            'id' => 'payment-allocation-' . $paymentId,
+            'id' => 'payment-allocation-'.$paymentId,
             'customer_payment_id' => $paymentId,
             'note_id' => $noteId,
             'amount_rupiah' => $amountRupiah,
         ]);
 
         DB::table('payment_component_allocations')->insert([
-            'id' => 'alloc-' . $paymentId,
+            'id' => 'alloc-'.$paymentId,
             'customer_payment_id' => $paymentId,
             'note_id' => $noteId,
             'work_item_id' => $workItemId,
@@ -206,7 +206,7 @@ final class TransactionCashLedgerExcelExportFeatureTest extends TestCase
         ]);
 
         DB::table('refund_component_allocations')->insert([
-            'id' => 'refund-alloc-' . $refundId,
+            'id' => 'refund-alloc-'.$refundId,
             'customer_refund_id' => $refundId,
             'customer_payment_id' => $paymentId,
             'note_id' => $noteId,

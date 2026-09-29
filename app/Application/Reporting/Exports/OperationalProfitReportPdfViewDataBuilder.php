@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Application\Reporting\Exports;
 
-use App\Support\ReportPeriodDateLabelFormatter;
-
+use App\Application\Reporting\Services\ReportTemporalContext;
 use App\Ports\Out\ClockPort;
+use App\Support\ReportPeriodDateLabelFormatter;
 
 final class OperationalProfitReportPdfViewDataBuilder
 {
     public function __construct(
         private readonly ClockPort $clock,
-    ) {
-    }
+    ) {}
 
     public function build(array $dataset, array $filters): array
     {
@@ -25,6 +24,7 @@ final class OperationalProfitReportPdfViewDataBuilder
         );
 
         return [
+            'temporalContext' => ReportTemporalContext::description('OperationalProfitReport', $filters),
             'title' => 'Ringkasan Kas Operasional',
             'periodLabelCaption' => $periodContext['label'],
             'periodLabel' => $periodContext['value'],
@@ -48,8 +48,6 @@ final class OperationalProfitReportPdfViewDataBuilder
         ];
     }
 
-
-
     private function rupiah(mixed $value): string
     {
         return 'Rp '.number_format($this->integerValue($value), 0, ',', '.');
@@ -59,6 +57,4 @@ final class OperationalProfitReportPdfViewDataBuilder
     {
         return is_numeric($value) ? (int) $value : 0;
     }
-
-
 }

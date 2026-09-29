@@ -28,7 +28,7 @@
                 <dd>Rp {{ number_format($dashboard['position']['supplier_outstanding_rupiah'] ?? 0, 0, ',', '.') }}</dd>
             </div>
             <div class="dashboard-fact">
-                <dt><a href="{{ route('admin.reports.employee_debt.index', $dashboardExportQuery) }}">Kasbon/Hutang Karyawan</a><span class="dashboard-caption">Kasbon yang dibuat dalam periode</span></dt>
+                <dt><a href="{{ route('admin.reports.employee_debt.index') }}">Kasbon/Hutang Karyawan</a><span class="dashboard-caption">Sisa seluruh kasbon saat ini</span></dt>
                 <dd>Rp {{ number_format($dashboard['position']['employee_debt_remaining_rupiah'] ?? 0, 0, ',', '.') }}</dd>
             </div>
             <div class="dashboard-fact">

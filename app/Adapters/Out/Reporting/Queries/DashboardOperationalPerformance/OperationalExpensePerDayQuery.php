@@ -18,7 +18,7 @@ final class OperationalExpensePerDayQuery
     public function rows(string $fromDate, string $toDate): array
     {
         return DB::table('operational_expenses')
-            ->whereNull('deleted_at')
+            ->where(fn ($query) => $query->whereNull('deleted_at')->orWhere('deleted_at', '>', $toDate.' 23:59:59'))
             ->whereBetween('expense_date', [$fromDate, $toDate])
             ->selectRaw('expense_date as period_key, COALESCE(SUM(amount_rupiah), 0) as amount_rupiah')
             ->groupBy('expense_date')

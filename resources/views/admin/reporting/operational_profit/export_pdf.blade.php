@@ -55,6 +55,7 @@
         Dicetak: {{ $generatedAt }}
     </div>
 
+    <p>{{ $temporalContext ?? '' }}</p>
     <h2>Ringkasan Utama</h2>
     @foreach ($summaryItems as $item)
         <div class="metric">

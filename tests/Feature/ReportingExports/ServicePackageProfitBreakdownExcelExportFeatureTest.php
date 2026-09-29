@@ -29,7 +29,7 @@ final class ServicePackageProfitBreakdownExcelExportFeatureTest extends TestCase
 
         $spreadsheet = IOFactory::load($path);
 
-        $this->assertSame(['Ringkasan', 'Detail Paket'], $spreadsheet->getSheetNames());
+        $this->assertSame(['Ringkasan', 'Detail Paket', 'Metadata'], $spreadsheet->getSheetNames());
 
         $summary = $spreadsheet->getSheetByName('Ringkasan');
         $detail = $spreadsheet->getSheetByName('Detail Paket');

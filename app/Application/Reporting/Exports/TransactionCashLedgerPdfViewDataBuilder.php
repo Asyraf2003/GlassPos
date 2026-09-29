@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Reporting\Exports;
 
 use App\Application\Reporting\Exports\Concerns\FormatsPdfReportValues;
+use App\Application\Reporting\Services\ReportTemporalContext;
 use App\Ports\Out\ClockPort;
 
 final class TransactionCashLedgerPdfViewDataBuilder
@@ -17,7 +18,7 @@ final class TransactionCashLedgerPdfViewDataBuilder
         private readonly ClockPort $clock,
         ?TransactionCashLedgerExportLabelFormatter $labels = null,
     ) {
-        $this->labels = $labels ?? new TransactionCashLedgerExportLabelFormatter();
+        $this->labels = $labels ?? new TransactionCashLedgerExportLabelFormatter;
     }
 
     public function build(array $dataset, array $filters): array
@@ -26,12 +27,15 @@ final class TransactionCashLedgerPdfViewDataBuilder
         $rows = is_array($dataset['rows'] ?? null) ? $dataset['rows'] : [];
 
         return [
+            'temporalContext' => ReportTemporalContext::description('TransactionCashLedger', $filters),
             'title' => 'Laporan Buku Kas Transaksi',
             'periodLabel' => $this->formatRange(
                 $this->stringValue($filters['date_from'] ?? ''),
                 $this->stringValue($filters['date_to'] ?? ''),
             ),
             'generatedAt' => $this->clock->now()->format('d/m/Y H:i'),
+            'detailTables' => [['title' => 'Rincian', 'columns' => ['date' => 'Tanggal Event', 'note_label' => 'Nota', 'event_type' => 'Event', 'direction' => 'Arah', 'payment_method' => 'Metode', 'amount' => 'Nominal', 'cash_amount_paid' => 'Tunai Dibayar', 'cash_amount_received' => 'Tunai Diterima', 'cash_change' => 'Kembalian', 'source_id' => 'ID Event'],
+                'rows' => array_map(fn (array $row): array => $this->rowData($row), $rows)]],
             'summaryItems' => $this->summaryItems($summary),
             'rows' => array_map(fn (array $row): array => $this->rowData($row), $rows),
         ];

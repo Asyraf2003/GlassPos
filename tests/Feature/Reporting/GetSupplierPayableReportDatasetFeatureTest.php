@@ -63,6 +63,12 @@ final class GetSupplierPayableReportDatasetFeatureTest extends TestCase
         $this->assertCount(2, $rows);
 
         $this->assertSame([
+            'opening_outstanding_rupiah' => 0,
+            'new_invoices_rupiah' => 150000,
+            'adjustments_in_period_rupiah' => 0,
+            'payments_in_period_rupiah' => 120000,
+            'reversals_in_period_rupiah' => 0,
+            'void_rows' => 0,
             'total_rows' => 2,
             'grand_total_rupiah' => 150000,
             'total_paid_rupiah' => 120000,

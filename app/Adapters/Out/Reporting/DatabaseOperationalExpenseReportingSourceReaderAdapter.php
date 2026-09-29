@@ -15,7 +15,7 @@ final class DatabaseOperationalExpenseReportingSourceReaderAdapter implements Op
     ): array {
         return DB::table('operational_expenses')
             ->join('expense_categories', 'expense_categories.id', '=', 'operational_expenses.category_id')
-            ->whereNull('operational_expenses.deleted_at')
+            ->where(fn ($query) => $query->whereNull('operational_expenses.deleted_at')->orWhere('operational_expenses.deleted_at', '>', $toExpenseDate.' 23:59:59'))
             ->whereBetween('operational_expenses.expense_date', [$fromExpenseDate, $toExpenseDate])
             ->orderBy('operational_expenses.expense_date')
             ->orderBy('operational_expenses.id')
@@ -50,7 +50,7 @@ final class DatabaseOperationalExpenseReportingSourceReaderAdapter implements Op
         string $toExpenseDate,
     ): array {
         $totals = DB::table('operational_expenses')
-            ->whereNull('deleted_at')
+            ->where(fn ($query) => $query->whereNull('deleted_at')->orWhere('deleted_at', '>', $toExpenseDate.' 23:59:59'))
             ->whereBetween('expense_date', [$fromExpenseDate, $toExpenseDate])
             ->selectRaw('COUNT(*) as total_rows, COALESCE(SUM(amount_rupiah), 0) as total_amount_rupiah')
             ->first();

@@ -7,6 +7,7 @@ namespace Tests\Feature\ReportingExports;
 use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Tests\TestCase;
 
@@ -61,7 +62,7 @@ final class SupplierPayableReportExcelExportFeatureTest extends TestCase
         $spreadsheet = IOFactory::load($path);
 
         $this->assertSame(
-            ['Ringkasan', 'Detail Hutang Pemasok', 'Rekap Per Tanggal', 'Rekap Per Supplier'],
+            ['Ringkasan', 'Detail Hutang Pemasok', 'Rekap Per Tanggal', 'Rekap Per Supplier', 'Metadata'],
             $spreadsheet->getSheetNames()
         );
 
@@ -142,13 +143,13 @@ final class SupplierPayableReportExcelExportFeatureTest extends TestCase
         $this->assertNotNull($supplier);
 
         $this->assertSame('=2+2', $detail->getCell('B2')->getValue());
-        $this->assertSame(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING, $detail->getCell('B2')->getDataType());
+        $this->assertSame(DataType::TYPE_STRING, $detail->getCell('B2')->getDataType());
 
         $this->assertSame('=1+1', $detail->getCell('C2')->getValue());
-        $this->assertSame(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING, $detail->getCell('C2')->getDataType());
+        $this->assertSame(DataType::TYPE_STRING, $detail->getCell('C2')->getDataType());
 
         $this->assertSame('supplier-1', $supplier->getCell('A2')->getValue());
-        $this->assertSame(\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING, $supplier->getCell('A2')->getDataType());
+        $this->assertSame(DataType::TYPE_STRING, $supplier->getCell('A2')->getDataType());
 
         unlink($path);
         $spreadsheet->disconnectWorksheets();
@@ -182,7 +183,7 @@ final class SupplierPayableReportExcelExportFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-supplier-payable-report-export@example.test',
+            'email' => $role.'-supplier-payable-report-export@example.test',
             'password' => 'password123',
         ]);
 

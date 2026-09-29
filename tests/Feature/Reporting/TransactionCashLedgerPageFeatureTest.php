@@ -100,7 +100,6 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertSee('Rp 30.000');
     }
 
-
     public function test_admin_cash_ledger_page_keeps_payment_method_summary_without_detail_table(): void
     {
         $this->seedCashInEvent('note-page-detail-cash', 'wi-page-detail-cash', 'pay-page-detail-cash', '2026-04-02', 85000, 'Cash Detail', 'cash');
@@ -118,8 +117,8 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertSee('Transfer Masuk');
         $response->assertDontSee('Detail lengkap tersedia di Excel');
         $response->assertDontSee('Metode Pembayaran');
-        $response->assertDontSee('note-page-detail-cash');
-        $response->assertDontSee('note-page-detail-transfer');
+        $response->assertSee('note-page-detail-cash');
+        $response->assertSee('note-page-detail-transfer');
     }
 
     public function test_daily_mode_uses_reference_date_only(): void
@@ -139,7 +138,7 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertSee('02 April 2026');
         $response->assertSee('Rp 7.000');
         $response->assertDontSee('Rp 9.000');
-        $response->assertDontSee('note-daily-1');
+        $response->assertSee('note-daily-1');
         $response->assertDontSee('note-daily-2');
     }
 
@@ -159,8 +158,8 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('06 April 2026 s/d 12 April 2026');
         $response->assertSee('Rp 11.000');
-        $response->assertDontSee('note-week-1');
-        $response->assertDontSee('note-week-2');
+        $response->assertSee('note-week-1');
+        $response->assertSee('note-week-2');
         $response->assertDontSee('note-week-3');
     }
 
@@ -180,8 +179,8 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('01 April 2026 s/d 30 April 2026');
         $response->assertSee('Rp 7.000');
-        $response->assertDontSee('note-month-1');
-        $response->assertDontSee('note-month-2');
+        $response->assertSee('note-month-1');
+        $response->assertSee('note-month-2');
         $response->assertDontSee('note-month-3');
     }
 
@@ -204,8 +203,8 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertSee('02 April 2026');
         $response->assertSee('04 April 2026');
         $response->assertSee('Rp 16.000');
-        $response->assertDontSee('note-custom-1');
-        $response->assertDontSee('note-custom-2');
+        $response->assertSee('note-custom-1');
+        $response->assertSee('note-custom-2');
         $response->assertDontSee('note-custom-3');
     }
 
@@ -235,7 +234,6 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertSessionHasErrors(['date_from']);
     }
 
-
     public function test_unknown_period_mode_is_rejected(): void
     {
         $response = $this->actingAs($this->user('admin'))
@@ -249,12 +247,11 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertSessionHasErrors(['period_mode']);
     }
 
-
     private function user(string $role): User
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-reporting-page@example.test',
+            'email' => $role.'-reporting-page@example.test',
             'password' => 'password123',
         ]);
 
@@ -291,14 +288,14 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         DB::table('customer_payments')->insert($paymentRow);
 
         DB::table('payment_allocations')->insert([
-            'id' => 'payment-allocation-' . $paymentId,
+            'id' => 'payment-allocation-'.$paymentId,
             'customer_payment_id' => $paymentId,
             'note_id' => $noteId,
             'amount_rupiah' => $amountRupiah,
         ]);
 
         DB::table('payment_component_allocations')->insert([
-            'id' => 'alloc-' . $paymentId,
+            'id' => 'alloc-'.$paymentId,
             'customer_payment_id' => $paymentId,
             'note_id' => $noteId,
             'work_item_id' => $workItemId,
@@ -329,7 +326,7 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         ]);
 
         DB::table('refund_component_allocations')->insert([
-            'id' => 'refund-alloc-' . $refundId,
+            'id' => 'refund-alloc-'.$refundId,
             'customer_refund_id' => $refundId,
             'customer_payment_id' => $paymentId,
             'note_id' => $noteId,

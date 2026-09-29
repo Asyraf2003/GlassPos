@@ -82,7 +82,7 @@ final class TransactionReportPageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('Laporan Transaksi');
         $content = (string) preg_replace('/\s+/', ' ', $response->getContent());
-        $this->assertStringContainsString('href="' . route('admin.dashboard') . '"', $content);
+        $this->assertStringContainsString('href="'.route('admin.dashboard').'"', $content);
         $this->assertStringContainsString('data-layout-smart-back', $content);
         $response->assertSee('transaction-report-filter-form', false);
         $response->assertSee('Unduh Excel');
@@ -99,10 +99,10 @@ final class TransactionReportPageFeatureTest extends TestCase
         $response->assertSee('Rp 9.000');
         $response->assertSee('Rp 111.000');
         $response->assertSee('Rp 9.001');
-        $response->assertDontSee('note-1');
-        $response->assertDontSee('note-2');
-        $response->assertDontSee('Budi');
-        $response->assertDontSee('Siti');
+        $response->assertSee('note-1');
+        $response->assertSee('note-2');
+        $response->assertSee('Budi');
+        $response->assertSee('Siti');
         $response->assertDontSee('Detail Per Nota');
         $response->assertSee(route('admin.reports.transaction_cash_ledger.index'), false);
         $response->assertSee(route('admin.reports.employee_debt.index'), false);
@@ -126,8 +126,6 @@ final class TransactionReportPageFeatureTest extends TestCase
         $response->assertDontSee('Catatan Laporan');
         $response->assertDontSee('Detail lengkap tersedia di Excel');
     }
-
-
 
     public function test_admin_can_see_surplus_refund_paid_and_remaining_refund_due_on_transaction_report_page(): void
     {
@@ -201,8 +199,8 @@ final class TransactionReportPageFeatureTest extends TestCase
         $response->assertSee('Bulan Terkait');
         $response->assertSee('Januari 2030');
         $response->assertSee('Rp 25.000');
-        $response->assertDontSee('Inside Range');
-        $response->assertDontSee('note-inside');
+        $response->assertSee('Inside Range');
+        $response->assertSee('note-inside');
         $response->assertDontSee('note-outside-before');
         $response->assertDontSee('note-outside-after');
     }
@@ -223,7 +221,7 @@ final class TransactionReportPageFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-transaction-report@example.test',
+            'email' => $role.'-transaction-report@example.test',
             'password' => 'password123',
         ]);
 
@@ -293,6 +291,7 @@ final class TransactionReportPageFeatureTest extends TestCase
             'reason' => $reason,
         ]);
     }
+
     private function seedRefundDueDisposition(
         string $id,
         string $noteId,
@@ -332,7 +331,7 @@ final class TransactionReportPageFeatureTest extends TestCase
         ]);
 
         DB::table('audit_events')->insert([
-            'id' => 'audit-' . $id,
+            'id' => 'audit-'.$id,
             'bounded_context' => 'note',
             'aggregate_type' => 'note_revision_surplus_disposition',
             'aggregate_id' => $id,
@@ -360,7 +359,7 @@ final class TransactionReportPageFeatureTest extends TestCase
             'occurred_at' => '2030-01-10 09:30:00',
             'created_at' => '2030-01-10 09:30:00',
             'updated_at' => null,
-            'audit_event_id' => 'audit-' . $id,
+            'audit_event_id' => 'audit-'.$id,
         ]);
     }
 
@@ -374,7 +373,7 @@ final class TransactionReportPageFeatureTest extends TestCase
         string $effectiveDate,
     ): void {
         DB::table('audit_events')->insert([
-            'id' => 'audit-' . $id,
+            'id' => 'audit-'.$id,
             'bounded_context' => 'note',
             'aggregate_type' => 'note_revision_surplus_refund_payment',
             'aggregate_id' => $id,
@@ -385,7 +384,7 @@ final class TransactionReportPageFeatureTest extends TestCase
             'source_channel' => 'test',
             'request_id' => null,
             'correlation_id' => null,
-            'occurred_at' => $effectiveDate . ' 10:00:00',
+            'occurred_at' => $effectiveDate.' 10:00:00',
             'metadata_json' => null,
         ]);
 
@@ -397,14 +396,12 @@ final class TransactionReportPageFeatureTest extends TestCase
             'note_revision_id' => $revisionId,
             'amount_rupiah' => $amountRupiah,
             'effective_date' => $effectiveDate,
-            'occurred_at' => $effectiveDate . ' 10:00:00',
+            'occurred_at' => $effectiveDate.' 10:00:00',
             'status' => 'active',
-            'idempotency_key' => 'idem-' . $id,
-            'audit_event_id' => 'audit-' . $id,
-            'created_at' => $effectiveDate . ' 10:00:00',
+            'idempotency_key' => 'idem-'.$id,
+            'audit_event_id' => 'audit-'.$id,
+            'created_at' => $effectiveDate.' 10:00:00',
             'updated_at' => null,
         ]);
     }
-
-
 }

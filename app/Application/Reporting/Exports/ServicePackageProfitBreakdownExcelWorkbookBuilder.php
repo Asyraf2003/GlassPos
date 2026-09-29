@@ -9,10 +9,10 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 final class ServicePackageProfitBreakdownExcelWorkbookBuilder
 {
     public function __construct(
+        private readonly ReportWorkbookMetadataWriter $metadata,
         private readonly ServicePackageProfitBreakdownExcelSummarySheetWriter $summaryWriter,
         private readonly ServicePackageProfitBreakdownExcelDetailSheetWriter $detailWriter,
-    ) {
-    }
+    ) {}
 
     public function build(array $dataset, array $filters): Spreadsheet
     {
@@ -28,6 +28,8 @@ final class ServicePackageProfitBreakdownExcelWorkbookBuilder
             $spreadsheet->createSheet(),
             is_array($dataset['rows'] ?? null) ? $dataset['rows'] : [],
         );
+
+        $this->metadata->append($spreadsheet, 'ServicePackageProfitBreakdown', 'GetServicePackageProfitBreakdownHandler', $filters);
 
         $spreadsheet->setActiveSheetIndex(0);
 

@@ -90,9 +90,15 @@ final class PrimitiveLifecycleReportingChainFeatureTest extends TestCase
         self::assertSame(54575, $events->sum('cash_change_rupiah'));
         self::assertSame(423052, $ledger->reconciliation('2026-09-15', '2026-09-15')['total_in_rupiah']);
         self::assertSame(158964, $ledger->reconciliation('2026-09-16', '2026-09-16')['total_in_rupiah']);
-        $current = app(GetTransactionReportDatasetHandler::class)->handle('2026-09-15', '2026-09-15')->data();
+        $current = app(GetTransactionReportDatasetHandler::class)->handleCurrent('2026-09-15', '2026-09-15')->data();
         self::assertSame(0, $current['summary']['outstanding_rupiah']);
         self::assertSame(427741, $current['summary']['gross_transaction_rupiah']);
+        $historical = app(GetTransactionReportDatasetHandler::class)->handle('2026-09-15', '2026-09-15')->data();
+        self::assertSame(158964, $historical['summary']['outstanding_rupiah']);
+        self::assertSame(268777, $historical['summary']['net_cash_collected_rupiah']);
+        $settled = app(GetTransactionReportDatasetHandler::class)->handle('2026-09-15', '2026-09-16')->data();
+        self::assertSame(0, $settled['summary']['outstanding_rupiah']);
+        self::assertSame(427741, $settled['summary']['net_cash_collected_rupiah']);
         self::assertSame([], app(GetTransactionReportDatasetHandler::class)->handle('2026-09-16', '2026-09-16')->data()['rows']);
         self::assertSame($beforePeriodReads, $this->evidence());
     }
@@ -102,7 +108,7 @@ final class PrimitiveLifecycleReportingChainFeatureTest extends TestCase
         $before = $this->evidence();
         $first = null;
         for ($read = 0; $read < 2; $read++) {
-            $report = app(GetTransactionReportDatasetHandler::class)->handle('2026-09-15', '2026-09-15');
+            $report = app(GetTransactionReportDatasetHandler::class)->handleCurrent('2026-09-15', '2026-09-15');
             $profit = app(GetOperationalProfitSummaryHandler::class)->handle('2026-09-15', '2026-09-16');
             self::assertTrue($report->isSuccess(), (string) $report->message());
             self::assertTrue($profit->isSuccess(), (string) $profit->message());
@@ -121,7 +127,7 @@ final class PrimitiveLifecycleReportingChainFeatureTest extends TestCase
         }
         $this->assertPrimitiveRelatedReports($expected[5], $expected[6]);
         if (in_array($expected[0], [253394, 241658, 427741], true)) {
-            $this->assertPrimitiveReportSurfaces($first[0]);
+            $this->assertPrimitiveReportSurfaces(app(GetTransactionReportDatasetHandler::class)->handle('2026-09-15', '2026-09-15')->data());
         }
         self::assertSame($before, $this->evidence(), 'Reporting must be read-only across raw domain effects');
     }

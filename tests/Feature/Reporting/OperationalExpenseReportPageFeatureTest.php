@@ -58,12 +58,12 @@ final class OperationalExpenseReportPageFeatureTest extends TestCase
         $response->assertSee('Total Biaya');
         $response->assertSee('Kategori Terbesar');
         $response->assertSee('Listrik');
-        $response->assertDontSee('Makan');
+        $response->assertSee('Makan');
         $response->assertSee('Rp 215.000');
         $response->assertSee('Rp 175.000');
         $response->assertSee('Rp 6.935');
         $response->assertDontSee('Detail Biaya Operasional');
-        $response->assertDontSee('Bayar listrik');
+        $response->assertSee('Bayar listrik');
         $response->assertDontSee('Deleted row');
     }
 
@@ -103,8 +103,8 @@ final class OperationalExpenseReportPageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('Custom');
         $response->assertSee('10 Januari 2030 s/d 31 Januari 2030');
-        $response->assertDontSee('Inside custom range');
-        $response->assertDontSee('Inside custom end');
+        $response->assertSee('Inside custom range');
+        $response->assertSee('Inside custom end');
         $response->assertSee('Rp 125.000');
         $response->assertSee('Rp 5.681');
         $response->assertDontSee('Before custom range');
@@ -141,7 +141,7 @@ final class OperationalExpenseReportPageFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-operational-expense-report@example.test',
+            'email' => $role.'-operational-expense-report@example.test',
             'password' => 'password123',
         ]);
 

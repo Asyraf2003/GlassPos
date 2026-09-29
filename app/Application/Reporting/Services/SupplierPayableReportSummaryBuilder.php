@@ -9,6 +9,7 @@ final class SupplierPayableReportSummaryBuilder
     public function build(array $rows): array
     {
         $openRows = 0;
+        $voidRows = 0;
         $settledRows = 0;
         $notDueRows = 0;
         $dueTodayRows = 0;
@@ -19,6 +20,12 @@ final class SupplierPayableReportSummaryBuilder
             $outstanding = (int) ($row['outstanding_rupiah'] ?? 0);
             $dueStatus = (string) ($row['due_status'] ?? '');
 
+            if ($dueStatus === 'voided') {
+                $voidRows++;
+
+                continue;
+            }
+
             if ($outstanding > 0) {
                 $openRows++;
             } else {
@@ -27,11 +34,13 @@ final class SupplierPayableReportSummaryBuilder
 
             if ($dueStatus === 'not_due') {
                 $notDueRows++;
+
                 continue;
             }
 
             if ($dueStatus === 'due_today') {
                 $dueTodayRows++;
+
                 continue;
             }
 
@@ -41,7 +50,14 @@ final class SupplierPayableReportSummaryBuilder
             }
         }
 
+        $temporal = [];
+        foreach (['opening_outstanding_rupiah', 'new_invoices_rupiah', 'adjustments_in_period_rupiah', 'payments_in_period_rupiah', 'reversals_in_period_rupiah'] as $field) {
+            $temporal[$field] = array_sum(array_column($rows, $field));
+        }
+
         return [
+            ...$temporal,
+            'void_rows' => $voidRows,
             'total_rows' => count($rows),
             'grand_total_rupiah' => array_sum(array_column($rows, 'grand_total_rupiah')),
             'total_paid_rupiah' => array_sum(array_column($rows, 'total_paid_rupiah')),

@@ -41,7 +41,7 @@ final class OperationalExpenseReportExcelExportFeatureTest extends TestCase
 
         $spreadsheet = IOFactory::load($path);
 
-        $this->assertSame(['Ringkasan', 'Detail Biaya', 'Rekap Per Tanggal', 'Rekap Per Kategori'], $spreadsheet->getSheetNames());
+        $this->assertSame(['Ringkasan', 'Detail Biaya', 'Rekap Per Tanggal', 'Rekap Per Kategori', 'Metadata'], $spreadsheet->getSheetNames());
 
         $summary = $spreadsheet->getSheetByName('Ringkasan');
         $detail = $spreadsheet->getSheetByName('Detail Biaya');
@@ -108,7 +108,7 @@ final class OperationalExpenseReportExcelExportFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-operational-expense-report-export@example.test',
+            'email' => $role.'-operational-expense-report-export@example.test',
             'password' => 'password123',
         ]);
 

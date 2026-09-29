@@ -108,11 +108,11 @@ final class InventoryStockValueReportPageFeatureTest extends TestCase
         $response->assertDontSee('Notifikasi stok belum aktif.');
         $response->assertDontSee('Template UI reminder stok masih hardcoded');
         $response->assertSee('Perubahan Stok Bersih');
-        $response->assertSee('Rp 211.000');
-        $response->assertDontSee('Supra');
-        $response->assertDontSee('Vario');
-        $response->assertDontSee('Beat');
-        $response->assertDontSee('Scoopy');
+        $response->assertSee('Rp 96.000');
+        $response->assertSee('Supra');
+        $response->assertSee('Vario');
+        $response->assertSee('Beat');
+        $response->assertSee('Scoopy');
         $response->assertSee('Rp 96.000');
         $response->assertDontSee('Snapshot Stok Saat Ini');
         $response->assertDontSee('Ringkasan Mutasi Periode');
@@ -139,7 +139,6 @@ final class InventoryStockValueReportPageFeatureTest extends TestCase
         $response->assertDontSee('Catatan Laporan');
         $response->assertDontSee('Detail lengkap tersedia di Excel');
     }
-
 
     public function test_custom_mode_uses_explicit_date_range_for_period_movements(): void
     {
@@ -204,14 +203,13 @@ final class InventoryStockValueReportPageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bulan Terkait');
         $response->assertSee('Januari 2030');
-        $response->assertDontSee('Supra');
-        $response->assertDontSee('Vario');
+        $response->assertSee('Supra');
+        $response->assertSee('Vario');
         $response->assertSee('Rp 52.000');
         $response->assertDontSee('Outside');
         $response->assertDontSee('custom-sr1');
         $response->assertDontSee('custom-sto1');
     }
-
 
     public function test_inventory_stock_value_page_shows_rounding_residual_and_ledger_diff_diagnostics(): void
     {
@@ -295,7 +293,7 @@ final class InventoryStockValueReportPageFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-inventory-stock-value-report@example.test',
+            'email' => $role.'-inventory-stock-value-report@example.test',
             'password' => 'password123',
         ]);
 

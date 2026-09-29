@@ -9,6 +9,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 final class TransactionCashLedgerExcelWorkbookBuilder
 {
     public function __construct(
+        private readonly ReportWorkbookMetadataWriter $metadata,
         private readonly TransactionCashLedgerExcelSummarySheetWriter $summaryWriter,
         private readonly TransactionCashLedgerExcelDetailSheetWriter $detailWriter,
         private readonly TransactionCashLedgerExcelPeriodSheetWriter $periodWriter,
@@ -33,6 +34,8 @@ final class TransactionCashLedgerExcelWorkbookBuilder
             $spreadsheet->createSheet(),
             is_array($dataset['period_rows'] ?? null) ? $dataset['period_rows'] : [],
         );
+
+        $this->metadata->append($spreadsheet, 'TransactionCashLedger', 'GetTransactionCashLedgerPerNoteHandler', $filters);
 
         $spreadsheet->setActiveSheetIndex(0);
 

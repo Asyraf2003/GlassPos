@@ -13,23 +13,19 @@ final class EmployeeDebtReportExcelSummarySheetWriter
         private readonly TransactionReportExcelTableWriter $tables,
     ) {}
 
-    public function write(Worksheet $sheet, array $summary, array $filters): void
+    public function write(Worksheet $sheet, array $summary, array $filters, array $temporalRows = []): void
     {
         $sheet->setTitle('Ringkasan');
         $sheet->setCellValue('A1', 'Laporan Hutang Karyawan');
         $sheet->setCellValue('A2', 'Periode');
         $sheet->setCellValue('B2', ViewDateFormatter::range($filters['date_from'] ?? null, $filters['date_to'] ?? null));
         $sheet->setCellValue('A3', 'Dasar Tanggal');
-        $sheet->setCellValue('B3', 'Tanggal pencatatan hutang');
+        $sheet->setCellValue('B3', 'Aktivitas periode; posisi per akhir periode');
 
-        $this->tables->writeTable($sheet, 5, ['Metrik', 'Nilai'], [
-            ['Total Hutang', (int) ($summary['total_debt'] ?? 0)],
-            ['Sudah Dibayar', (int) ($summary['total_paid_amount'] ?? 0)],
-            ['Sisa Hutang', (int) ($summary['total_remaining_balance'] ?? 0)],
-            ['Jumlah Data', (int) ($summary['total_rows'] ?? 0)],
-            ['Status Lunas', (int) ($summary['paid_rows'] ?? 0)],
-            ['Status Belum Lunas', (int) ($summary['unpaid_rows'] ?? 0)],
-        ]);
+        $this->tables->writeTable($sheet, 5, ['Metrik', 'Nilai'], array_map(
+            static fn (array $row): array => [$row['label'], (int) $row['value']],
+            $temporalRows,
+        ));
 
         $this->tables->autosize($sheet, 2);
     }

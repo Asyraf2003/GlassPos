@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Application\Reporting\Exports;
 
 use App\Support\ReportPeriodDateLabelFormatter;
-
 use Carbon\CarbonImmutable;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
@@ -21,7 +20,7 @@ final class InventoryStockValueReportExcelSummarySheetWriter
             ['Stok dan Nilai Persediaan', null],
             [$periodContext['label'], $periodContext['value']],
             ['Mode periode', $this->periodModeLabel($filters['period_mode'] ?? 'monthly')],
-            ['Tanggal referensi', $this->formatDate($filters['reference_date'] ?? null)],
+            ['Posisi stok per', $this->formatDate($filters['date_to'] ?? null)],
             [null, null],
             ['Produk Tercatat di Stok', $this->int($summary['snapshot_product_rows'] ?? 0)],
             ['Produk Bergerak', $this->int($summary['movement_product_rows'] ?? 0)],
@@ -44,8 +43,8 @@ final class InventoryStockValueReportExcelSummarySheetWriter
             ['Catatan Validasi Sistem', 'Bagian ini mengecek apakah ringkasan stok saat ini cocok dengan riwayat keluar-masuk barang. Nilai sehat untuk selisih stok dan nilai adalah 0.'],
             ['Nilai Pembanding Avg x Qty', $this->int($summary['total_inventory_value_by_average_rupiah'] ?? 0)],
             ['Selisih Pembulatan Modal', $this->int($summary['total_rounding_residual_rupiah'] ?? 0)],
-            ['Selisih Stok vs Riwayat', $this->int($summary['total_ledger_qty_diff'] ?? 0)],
-            ['Selisih Nilai vs Riwayat', $this->int($summary['total_ledger_value_diff_rupiah'] ?? 0)],
+            ['Selisih Stok vs Riwayat Saat Ini', $this->int($summary['total_ledger_qty_diff'] ?? 0)],
+            ['Selisih Nilai vs Riwayat Saat Ini', $this->int($summary['total_ledger_value_diff_rupiah'] ?? 0)],
         ];
 
         foreach ($rows as $index => $row) {
@@ -64,7 +63,6 @@ final class InventoryStockValueReportExcelSummarySheetWriter
     {
         return is_numeric($value) ? (int) $value : 0;
     }
-
 
     private function formatDate(mixed $value): string
     {

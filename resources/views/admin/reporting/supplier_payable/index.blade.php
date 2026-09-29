@@ -5,12 +5,13 @@
 @section('heading', 'Hutang Pemasok')
 
 @section('content')
+<p class="text-muted small">{{ $temporalContext ?? '' }}</p>
 @include('admin.reporting.partials.period_filter', [
     'formId' => 'supplier-payable-report-filter-form',
     'action' => route('admin.reports.supplier_payable.index'),
     'resetUrl' => route('admin.reports.supplier_payable.index'),
-    'rangeLabelText' => 'Rentang pengiriman aktif',
-    'basisDateLabel' => 'Tanggal pengiriman invoice',
+    'rangeLabelText' => 'Aktivitas periode dan posisi akhir',
+    'basisDateLabel' => 'Posisi membawa saldo faktur sebelumnya',
     'supportsCustomRange' => true,
     'supportsAllPeriods' => true,
     'exportActions' => [
@@ -27,6 +28,14 @@
     ],
 ])
 
+<div class="row g-3 mb-4">
+    @foreach ($temporalSummaryRows as $metric)
+        <div class="col-12 col-md-4"><div class="card"><div class="card-body">
+            <div class="text-muted small">{{ $metric['label'] }}</div>
+            <div class="fs-5 fw-bold">Rp {{ number_format($metric['value'], 0, ',', '.') }}</div>
+        </div></div></div>
+    @endforeach
+</div>
 <div class="mb-3">
     <h5 class="mb-1">Ringkasan Utama</h5>
 </div>

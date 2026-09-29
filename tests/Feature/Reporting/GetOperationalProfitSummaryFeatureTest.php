@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Reporting;
 
+use App\Adapters\Out\Reporting\Queries\TransactionCashLedgerReportingQuery;
 use App\Application\Reporting\UseCases\GetOperationalProfitSummaryHandler;
 use App\Application\Shared\DTO\Result;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -101,7 +102,6 @@ final class GetOperationalProfitSummaryFeatureTest extends TestCase
             'cash_operational_profit_rupiah' => 35000,
         ], $data['row']);
     }
-
 
     public function test_get_operational_profit_summary_handler_nets_fully_refunded_note_product_costs_to_zero(): void
     {
@@ -309,7 +309,6 @@ final class GetOperationalProfitSummaryFeatureTest extends TestCase
         ], $data['row']);
     }
 
-
     public function test_get_operational_profit_summary_handler_offsets_store_stock_cogs_when_refunded_stock_returns_to_inventory(): void
     {
         $this->seedProduct('product-refund-1', 'KB-RFD-001', 'Ban Refund', 'Federal', 100, 100000);
@@ -402,7 +401,6 @@ final class GetOperationalProfitSummaryFeatureTest extends TestCase
         ], $data['row']);
     }
 
-
     public function test_get_operational_profit_summary_handler_allows_negative_store_stock_cogs_for_cross_period_refund(): void
     {
         $this->seedProduct('product-cross-refund-1', 'KB-XR-001', 'Ban Cross Refund', 'Federal', 100, 100000);
@@ -456,7 +454,7 @@ final class GetOperationalProfitSummaryFeatureTest extends TestCase
         ], $data['row']);
     }
 
-    public function test_get_operational_profit_summary_handler_excludes_reversed_payroll_from_profit_metrics(): void
+    public function test_get_operational_profit_summary_handler_excludes_payroll_reversed_by_cutoff_from_profit_metrics(): void
     {
         $this->seedEmployee('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Montir Reversal');
 
@@ -488,7 +486,7 @@ final class GetOperationalProfitSummaryFeatureTest extends TestCase
             'payroll_disbursement_id' => 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
             'reason' => 'Koreksi payout payroll',
             'performed_by_actor_id' => '1',
-            'created_at' => now(),
+            'created_at' => '2026-03-16 23:59:59',
             'updated_at' => now(),
         ]);
 
@@ -566,6 +564,7 @@ final class GetOperationalProfitSummaryFeatureTest extends TestCase
             'delete_reason' => null,
         ]);
     }
+
     public function test_operational_profit_summary_includes_surplus_refund_paid_cash_outflow(): void
     {
         DB::table('notes')->insert([
@@ -670,7 +669,7 @@ final class GetOperationalProfitSummaryFeatureTest extends TestCase
             'updated_at' => null,
         ]);
 
-        $cashLedger = app(\App\Adapters\Out\Reporting\Queries\TransactionCashLedgerReportingQuery::class)
+        $cashLedger = app(TransactionCashLedgerReportingQuery::class)
             ->reconciliation('2030-03-01', '2030-03-31');
 
         $this->assertSame(0, $cashLedger['total_in_rupiah']);
@@ -692,5 +691,4 @@ final class GetOperationalProfitSummaryFeatureTest extends TestCase
         $this->assertSame(3000, $row['refunded_rupiah']);
         $this->assertSame(-3000, $row['cash_operational_profit_rupiah']);
     }
-
 }

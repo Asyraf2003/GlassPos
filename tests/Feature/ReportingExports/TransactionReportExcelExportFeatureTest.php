@@ -45,7 +45,13 @@ final class TransactionReportExcelExportFeatureTest extends TestCase
 
         $spreadsheet = IOFactory::load($path);
 
-        $this->assertSame(['Ringkasan', 'Rincian Nota', 'Rekap Per Tanggal', 'Rekap Per Pelanggan'], $spreadsheet->getSheetNames());
+        $this->assertSame(['Ringkasan', 'Rincian Nota', 'Rekap Per Tanggal', 'Rekap Per Pelanggan', 'Metadata'], $spreadsheet->getSheetNames());
+
+        $metadata = $spreadsheet->getSheetByName('Metadata');
+        $this->assertNotNull($metadata);
+        $this->assertSame('GetTransactionReportDatasetHandler', $metadata->getCell('B2')->getValue());
+        $this->assertSame('2030-01-01', $metadata->getCell('B3')->getValue());
+        $this->assertSame('2030-01-31', $metadata->getCell('B4')->getValue());
 
         $summary = $spreadsheet->getSheetByName('Ringkasan');
         $detail = $spreadsheet->getSheetByName('Rincian Nota');
@@ -116,7 +122,7 @@ final class TransactionReportExcelExportFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-transaction-report-export@example.test',
+            'email' => $role.'-transaction-report-export@example.test',
             'password' => 'password123',
         ]);
 

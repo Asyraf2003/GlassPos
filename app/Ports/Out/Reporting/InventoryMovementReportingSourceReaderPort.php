@@ -57,6 +57,8 @@ interface InventoryMovementReportingSourceReaderPort
      */
     public function getInventoryCurrentSnapshotRows(): array;
 
+    public function getInventoryAsOfSnapshotRows(string $asOf): array;
+
     /**
      * @return array<string, int>
      */

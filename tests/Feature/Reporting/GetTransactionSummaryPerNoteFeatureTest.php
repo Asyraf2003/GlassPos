@@ -28,7 +28,7 @@ final class GetTransactionSummaryPerNoteFeatureTest extends TestCase
         $this->seedCustomerRefund('refund-1', 'payment-1', 'note-1', 10000, '2026-03-16', 'Koreksi');
 
         $result = app(GetTransactionSummaryPerNoteHandler::class)
-            ->handle('2026-03-14', '2026-03-15');
+            ->handleCurrent('2026-03-14', '2026-03-15');
 
         $this->assertInstanceOf(Result::class, $result);
         $this->assertTrue($result->isSuccess());
@@ -68,6 +68,22 @@ final class GetTransactionSummaryPerNoteFeatureTest extends TestCase
                 'remaining_refund_due_rupiah' => 0,
             ],
         ], $data['rows']);
+
+        $historical = app(GetTransactionSummaryPerNoteHandler::class)->handle('2026-03-14', '2026-03-15');
+        self::assertTrue($historical->isSuccess());
+        $historicalRows = $historical->data()['rows'];
+        // The March 16 refund and payment do not belong to March 15 settlement.
+        self::assertSame([60000, 0, 80000, 40000], array_map(
+            static fn (string $key): int => $historicalRows[0][$key],
+            ['allocated_payment_rupiah', 'refunded_rupiah', 'net_cash_collected_rupiah', 'outstanding_rupiah'],
+        ));
+        self::assertSame([0, 0, 0, 50000], array_map(
+            static fn (string $key): int => $historicalRows[1][$key],
+            ['allocated_payment_rupiah', 'refunded_rupiah', 'net_cash_collected_rupiah', 'outstanding_rupiah'],
+        ));
+        self::assertSame('Belum Dibayar', $historicalRows[1]['payment_status_label']);
+        self::assertSame($data['rows'], app(GetTransactionSummaryPerNoteHandler::class)
+            ->handle('2026-03-14', '2026-03-16')->data()['rows']);
     }
 
     private function seedNote(string $id, string $customerName, string $transactionDate, int $totalRupiah): void

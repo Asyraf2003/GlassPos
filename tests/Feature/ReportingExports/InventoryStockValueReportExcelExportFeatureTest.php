@@ -99,7 +99,7 @@ final class InventoryStockValueReportExcelExportFeatureTest extends TestCase
 
         $spreadsheet = IOFactory::load($path);
 
-        $this->assertSame(['Ringkasan', 'Snapshot Stok', 'Mutasi Periode'], $spreadsheet->getSheetNames());
+        $this->assertSame(['Ringkasan', 'Snapshot Stok', 'Mutasi Periode', 'Diagnostik Saat Ini', 'Metadata'], $spreadsheet->getSheetNames());
 
         $summary = $spreadsheet->getSheetByName('Ringkasan');
         $snapshot = $spreadsheet->getSheetByName('Snapshot Stok');
@@ -111,10 +111,10 @@ final class InventoryStockValueReportExcelExportFeatureTest extends TestCase
 
         $this->assertSame('Stok dan Nilai Persediaan', $summary->getCell('A1')->getValue());
         $this->assertSame('Januari 2030', $summary->getCell('B2')->getValue());
-        $this->assertSame(4, $summary->getCell('B6')->getValue());
+        $this->assertSame(2, $summary->getCell('B6')->getValue());
         $this->assertSame(2, $summary->getCell('B7')->getValue());
-        $this->assertSame(21, $summary->getCell('B8')->getValue());
-        $this->assertSame(211000, $summary->getCell('B9')->getValue());
+        $this->assertSame(9, $summary->getCell('B8')->getValue());
+        $this->assertSame(96000, $summary->getCell('B9')->getValue());
         $this->assertSame(13, $summary->getCell('B10')->getValue());
         $this->assertSame(4, $summary->getCell('B11')->getValue());
         $this->assertSame(96000, $summary->getCell('B17')->getValue());
@@ -124,7 +124,7 @@ final class InventoryStockValueReportExcelExportFeatureTest extends TestCase
         $this->assertSame(6, $snapshot->getCell('F2')->getValue());
         $this->assertSame(10000, $snapshot->getCell('G2')->getValue());
         $this->assertSame(60000, $snapshot->getCell('H2')->getValue());
-        $this->assertSame('Scoopy', $snapshot->getCell('C5')->getValue());
+        $this->assertNull($snapshot->getCell('C4')->getValue());
         $this->assertNull($snapshot->getCell('C6')->getValue());
 
         $this->assertSame('Nama Barang', $movement->getCell('C1')->getValue());
@@ -210,7 +210,6 @@ final class InventoryStockValueReportExcelExportFeatureTest extends TestCase
         $spreadsheet->disconnectWorksheets();
     }
 
-
     public function test_inventory_stock_value_excel_export_shows_rounding_residual_diagnostics(): void
     {
         $this->seedProduct('product-residual', 'KB-RES', 'Residual Part', 'Federal', 30, 15000);
@@ -276,7 +275,7 @@ final class InventoryStockValueReportExcelExportFeatureTest extends TestCase
         $this->assertContains(34470, $summaryCells);
         $this->assertContains('Selisih Pembulatan Modal', $summaryCells);
         $this->assertContains(23, $summaryCells);
-        $this->assertContains('Selisih Nilai vs Riwayat', $summaryCells);
+        $this->assertContains('Selisih Nilai vs Riwayat Saat Ini', $summaryCells);
         $this->assertContains(0, $summaryCells);
 
         $this->assertContains('Nilai Pembanding Avg x Qty', $snapshotCells);
@@ -386,7 +385,7 @@ final class InventoryStockValueReportExcelExportFeatureTest extends TestCase
 
         $snapshotProductIds = [];
         foreach (range(2, 20) as $rowNumber) {
-            $value = $snapshot->getCell('A' . $rowNumber)->getValue();
+            $value = $snapshot->getCell('A'.$rowNumber)->getValue();
 
             if ($value !== null) {
                 $snapshotProductIds[] = $value;
@@ -397,17 +396,17 @@ final class InventoryStockValueReportExcelExportFeatureTest extends TestCase
 
         $movementRowsByProductId = [];
         foreach (range(2, 20) as $rowNumber) {
-            $productId = $movement->getCell('A' . $rowNumber)->getValue();
+            $productId = $movement->getCell('A'.$rowNumber)->getValue();
 
             if ($productId === null) {
                 continue;
             }
 
             $movementRowsByProductId[$productId] = [
-                'kode_barang' => $movement->getCell('B' . $rowNumber)->getValue(),
-                'nama_barang' => $movement->getCell('C' . $rowNumber)->getValue(),
-                'supply_in_qty' => $movement->getCell('D' . $rowNumber)->getValue(),
-                'net_cost_delta_rupiah' => $movement->getCell('M' . $rowNumber)->getValue(),
+                'kode_barang' => $movement->getCell('B'.$rowNumber)->getValue(),
+                'nama_barang' => $movement->getCell('C'.$rowNumber)->getValue(),
+                'supply_in_qty' => $movement->getCell('D'.$rowNumber)->getValue(),
+                'net_cost_delta_rupiah' => $movement->getCell('M'.$rowNumber)->getValue(),
             ];
         }
 
@@ -431,7 +430,6 @@ final class InventoryStockValueReportExcelExportFeatureTest extends TestCase
         unlink($path);
         $spreadsheet->disconnectWorksheets();
     }
-
 
     public function test_kasir_cannot_export_inventory_stock_value_report(): void
     {
@@ -461,7 +459,7 @@ final class InventoryStockValueReportExcelExportFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-inventory-stock-value-report-export@example.test',
+            'email' => $role.'-inventory-stock-value-report-export@example.test',
             'password' => 'password123',
         ]);
 

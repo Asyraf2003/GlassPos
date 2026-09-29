@@ -6,19 +6,20 @@ use App\Adapters\In\Http\Controllers\Admin\Reporting\EmployeeDebtReportExcelExpo
 use App\Adapters\In\Http\Controllers\Admin\Reporting\EmployeeDebtReportPageController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\EmployeeDebtReportPdfExportController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\InventoryStockValueReportExcelExportController;
-use App\Adapters\In\Http\Controllers\Admin\Reporting\InventoryStockValueReportPdfExportController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\InventoryStockValueReportPageController;
+use App\Adapters\In\Http\Controllers\Admin\Reporting\InventoryStockValueReportPdfExportController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\OperationalExpenseReportExcelExportController;
-use App\Adapters\In\Http\Controllers\Admin\Reporting\OperationalExpenseReportPdfExportController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\OperationalExpenseReportPageController;
+use App\Adapters\In\Http\Controllers\Admin\Reporting\OperationalExpenseReportPdfExportController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\OperationalProfitReportExcelExportController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\OperationalProfitReportPageController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\OperationalProfitReportPdfExportController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\PayrollReportExcelExportController;
-use App\Adapters\In\Http\Controllers\Admin\Reporting\ServicePackageProfitBreakdownReportExcelExportController;
-use App\Adapters\In\Http\Controllers\Admin\Reporting\ServicePackageProfitBreakdownReportPageController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\PayrollReportPageController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\PayrollReportPdfExportController;
+use App\Adapters\In\Http\Controllers\Admin\Reporting\ServicePackageProfitBreakdownReportExcelExportController;
+use App\Adapters\In\Http\Controllers\Admin\Reporting\ServicePackageProfitBreakdownReportPageController;
+use App\Adapters\In\Http\Controllers\Admin\Reporting\ServicePackageProfitBreakdownReportPdfExportController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\SupplierPayableReportExcelExportController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\SupplierPayableReportPageController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\SupplierPayableReportPdfExportController;
@@ -26,8 +27,8 @@ use App\Adapters\In\Http\Controllers\Admin\Reporting\TransactionCashLedgerExcelE
 use App\Adapters\In\Http\Controllers\Admin\Reporting\TransactionCashLedgerPageController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\TransactionCashLedgerPdfExportController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\TransactionReportExcelExportController;
-use App\Adapters\In\Http\Controllers\Admin\Reporting\TransactionReportPdfExportController;
 use App\Adapters\In\Http\Controllers\Admin\Reporting\TransactionReportPageController;
+use App\Adapters\In\Http\Controllers\Admin\Reporting\TransactionReportPdfExportController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth', 'admin.page', 'app.shell'])->group(function (): void {
@@ -39,7 +40,6 @@ Route::middleware(['web', 'auth', 'admin.page', 'app.shell'])->group(function ()
 
     Route::get('/admin/reports/transaction-cash-ledger', TransactionCashLedgerPageController::class)
         ->name('admin.reports.transaction_cash_ledger.index');
-
 
     Route::get('/admin/reports/payrolls/export.xlsx', PayrollReportExcelExportController::class)
         ->name('admin.reports.payroll.export_excel');
@@ -68,12 +68,14 @@ Route::middleware(['web', 'auth', 'admin.page', 'app.shell'])->group(function ()
     Route::get('/admin/reports/operational-profit', OperationalProfitReportPageController::class)
         ->name('admin.reports.operational_profit.index');
 
+    Route::get('/admin/reports/service-package-profit-breakdown/export.pdf', ServicePackageProfitBreakdownReportPdfExportController::class)
+        ->name('admin.reports.service_package_profit_breakdown.export_pdf');
+
     Route::get('/admin/reports/service-package-profit-breakdown/export.xlsx', ServicePackageProfitBreakdownReportExcelExportController::class)
         ->name('admin.reports.service_package_profit_breakdown.export_excel');
 
     Route::get('/admin/reports/service-package-profit-breakdown', ServicePackageProfitBreakdownReportPageController::class)
         ->name('admin.reports.service_package_profit_breakdown.index');
-
 
     Route::get('/admin/reports/operational-expenses/export.xlsx', OperationalExpenseReportExcelExportController::class)
         ->name('admin.reports.operational_expense.export_excel');

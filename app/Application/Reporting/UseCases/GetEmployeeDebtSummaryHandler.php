@@ -15,8 +15,7 @@ final class GetEmployeeDebtSummaryHandler
         private readonly EmployeeDebtReportingSourceReaderPort $sourceReader,
         private readonly EmployeeDebtSummaryBuilder $builder,
         private readonly EmployeeDebtReportingReconciliationService $reconciliation,
-    ) {
-    }
+    ) {}
 
     public function handle(string $fromRecordedDate, string $toRecordedDate): Result
     {
@@ -36,8 +35,9 @@ final class GetEmployeeDebtSummaryHandler
 
         return Result::success([
             'rows' => array_map(
-                static fn ($row): array => $row->toArray(),
+                static fn ($row, array $raw): array => array_merge($raw, $row->toArray()),
                 $rows,
+                $rawRows,
             ),
         ]);
     }

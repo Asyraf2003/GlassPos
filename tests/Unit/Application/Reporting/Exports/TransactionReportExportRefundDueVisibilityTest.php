@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Application\Reporting\Exports;
 
+use App\Application\Reporting\Exports\ReportWorkbookMetadataWriter;
 use App\Application\Reporting\Exports\TransactionReportExcelCustomerSheetWriter;
 use App\Application\Reporting\Exports\TransactionReportExcelDetailSheetWriter;
 use App\Application\Reporting\Exports\TransactionReportExcelPeriodSheetWriter;
@@ -19,9 +20,10 @@ final class TransactionReportExportRefundDueVisibilityTest extends TestCase
 {
     public function test_excel_export_includes_refund_due_across_transaction_report_sheets(): void
     {
-        $tableWriter = new TransactionReportExcelTableWriter();
+        $tableWriter = new TransactionReportExcelTableWriter;
 
         $builder = new TransactionReportExcelWorkbookBuilder(
+            app(ReportWorkbookMetadataWriter::class),
             new TransactionReportExcelSummarySheetWriter($tableWriter),
             new TransactionReportExcelDetailSheetWriter($tableWriter),
             new TransactionReportExcelPeriodSheetWriter($tableWriter),
@@ -60,7 +62,8 @@ final class TransactionReportExportRefundDueVisibilityTest extends TestCase
 
     public function test_pdf_export_view_data_includes_refund_due_from_current_dataset_keys(): void
     {
-        $builder = new TransactionReportPdfViewDataBuilder(new class implements ClockPort {
+        $builder = new TransactionReportPdfViewDataBuilder(new class implements ClockPort
+        {
             public function now(): DateTimeImmutable
             {
                 return new DateTimeImmutable('2030-01-31 10:00:00');
@@ -85,12 +88,12 @@ final class TransactionReportExportRefundDueVisibilityTest extends TestCase
         $this->assertSame('Rp 9.001', $viewData['rows'][0]['outstanding']);
     }
 
-
     public function test_exports_include_surplus_refund_paid_and_remaining_refund_due_from_dataset(): void
     {
-        $tableWriter = new TransactionReportExcelTableWriter();
+        $tableWriter = new TransactionReportExcelTableWriter;
 
         $workbookBuilder = new TransactionReportExcelWorkbookBuilder(
+            app(ReportWorkbookMetadataWriter::class),
             new TransactionReportExcelSummarySheetWriter($tableWriter),
             new TransactionReportExcelDetailSheetWriter($tableWriter),
             new TransactionReportExcelPeriodSheetWriter($tableWriter),
@@ -134,7 +137,8 @@ final class TransactionReportExportRefundDueVisibilityTest extends TestCase
 
         $spreadsheet->disconnectWorksheets();
 
-        $pdfBuilder = new TransactionReportPdfViewDataBuilder(new class implements ClockPort {
+        $pdfBuilder = new TransactionReportPdfViewDataBuilder(new class implements ClockPort
+        {
             public function now(): DateTimeImmutable
             {
                 return new DateTimeImmutable('2030-01-31 10:00:00');
@@ -159,10 +163,10 @@ final class TransactionReportExportRefundDueVisibilityTest extends TestCase
         $this->assertSame('Rp 4.000', $viewData['rows'][0]['remaining_refund_due']);
     }
 
-
     public function test_pdf_export_blade_renders_surplus_refund_paid_and_remaining_refund_due(): void
     {
-        $builder = new TransactionReportPdfViewDataBuilder(new class implements ClockPort {
+        $builder = new TransactionReportPdfViewDataBuilder(new class implements ClockPort
+        {
             public function now(): DateTimeImmutable
             {
                 return new DateTimeImmutable('2030-01-31 10:00:00');
@@ -230,6 +234,7 @@ final class TransactionReportExportRefundDueVisibilityTest extends TestCase
             ]],
         ];
     }
+
     private function datasetWithSurplusRefundPaid(): array
     {
         return [
@@ -286,6 +291,4 @@ final class TransactionReportExportRefundDueVisibilityTest extends TestCase
             ]],
         ];
     }
-
-
 }

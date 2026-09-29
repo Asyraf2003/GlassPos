@@ -9,6 +9,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 final class SupplierPayableReportExcelWorkbookBuilder
 {
     public function __construct(
+        private readonly ReportWorkbookMetadataWriter $metadata,
         private readonly SupplierPayableReportExcelSummarySheetWriter $summaryWriter,
         private readonly SupplierPayableReportExcelDetailSheetWriter $detailWriter,
         private readonly SupplierPayableReportExcelPeriodSheetWriter $periodWriter,
@@ -39,6 +40,8 @@ final class SupplierPayableReportExcelWorkbookBuilder
             $spreadsheet->createSheet(),
             is_array($dataset['supplier_rows'] ?? null) ? $dataset['supplier_rows'] : [],
         );
+
+        $this->metadata->append($spreadsheet, 'SupplierPayableReport', 'GetSupplierPayableReportDatasetHandler', $filters);
 
         $spreadsheet->setActiveSheetIndex(0);
 

@@ -51,10 +51,10 @@ final class TaxLandedCostReportingFeatureTest extends TestCase
         );
 
         $response->assertOk();
-        $response->assertDontSee('Ban Pajak Report');
+        $response->assertSee('Ban Pajak Report');
         $response->assertSee('Rp 22.000');
         $response->assertSee('Rincian Ringkas');
-        $response->assertDontSee('Rp 11.000');
+        $response->assertSee('Rp 11.000');
         $response->assertDontSee('TAX-RPT-001');
     }
 
@@ -106,7 +106,7 @@ final class TaxLandedCostReportingFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Maret 2026');
-        $response->assertDontSee('Ban Pajak Report');
+        $response->assertSee('Ban Pajak Report');
         $response->assertSee('Rp 22.000');
         $response->assertDontSee('Luar Periode');
     }
@@ -249,7 +249,7 @@ final class TaxLandedCostReportingFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-tax-landed-cost-reporting@example.test',
+            'email' => $role.'-tax-landed-cost-reporting@example.test',
             'password' => 'password123',
         ]);
 

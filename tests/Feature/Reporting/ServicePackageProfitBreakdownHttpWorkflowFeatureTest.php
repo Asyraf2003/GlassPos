@@ -127,9 +127,9 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
 
         $payment = $this->post(route('cashier.notes.payments.store', ['noteId' => $noteId]), [
             'selected_row_ids' => [
-                $workItemId . '::service_store_stock_part::' . (string) $lineIds['http-flow-product-a'],
-                $workItemId . '::service_store_stock_part::' . (string) $lineIds['http-flow-product-b'],
-                $workItemId . '::service_fee::' . $workItemId,
+                $workItemId.'::service_store_stock_part::'.(string) $lineIds['http-flow-product-a'],
+                $workItemId.'::service_store_stock_part::'.(string) $lineIds['http-flow-product-b'],
+                $workItemId.'::service_fee::'.$workItemId,
             ],
             'payment_method' => 'cash',
             'paid_at' => $today,
@@ -176,7 +176,7 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
         ]));
 
         $page->assertOk();
-        $page->assertDontSee('HTTP Workflow Package Customer');
+        $page->assertSee('HTTP Workflow Package Customer');
         $page->assertSee('Rp 250.000');
         $page->assertSee('Rp 130.000');
         $page->assertSee('Rp 90.000');
@@ -229,7 +229,6 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
         unlink($path);
         $spreadsheet->disconnectWorksheets();
     }
-
 
     public function test_http_create_debt_admin_revision_after_product_price_change_then_late_payment_reports_latest_active_package_only(): void
     {
@@ -389,9 +388,9 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
 
         $payment = $this->post(route('cashier.notes.payments.store', ['noteId' => $noteId]), [
             'selected_row_ids' => [
-                $workItemId . '::service_store_stock_part::' . (string) $lineIds['http-revision-product-a'],
-                $workItemId . '::service_store_stock_part::' . (string) $lineIds['http-revision-product-b'],
-                $workItemId . '::service_fee::' . $workItemId,
+                $workItemId.'::service_store_stock_part::'.(string) $lineIds['http-revision-product-a'],
+                $workItemId.'::service_store_stock_part::'.(string) $lineIds['http-revision-product-b'],
+                $workItemId.'::service_fee::'.$workItemId,
             ],
             'payment_method' => 'cash',
             'paid_at' => $today,
@@ -417,7 +416,7 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
         ]));
 
         $page->assertOk();
-        $page->assertDontSee('HTTP Revision Package Customer Revised');
+        $page->assertSee('HTTP Revision Package Customer Revised');
         $page->assertSee('Rp 300.000');
         $page->assertSee('Rp 130.000');
         $page->assertSee('Rp 90.000');
@@ -472,7 +471,6 @@ final class ServicePackageProfitBreakdownHttpWorkflowFeatureTest extends TestCas
         unlink($xlsx);
         $spreadsheet->disconnectWorksheets();
     }
-
 
     private function seedProduct(
         string $id,

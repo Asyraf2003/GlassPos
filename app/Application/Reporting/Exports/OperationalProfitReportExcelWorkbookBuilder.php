@@ -9,6 +9,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 final class OperationalProfitReportExcelWorkbookBuilder
 {
     public function __construct(
+        private readonly ReportWorkbookMetadataWriter $metadata,
         private readonly OperationalProfitReportExcelSummarySheetWriter $summaryWriter,
     ) {}
 
@@ -21,6 +22,8 @@ final class OperationalProfitReportExcelWorkbookBuilder
             is_array($dataset['row'] ?? null) ? $dataset['row'] : [],
             $filters,
         );
+
+        $this->metadata->append($spreadsheet, 'OperationalProfitReport', 'GetOperationalProfitSummaryHandler', $filters);
 
         $spreadsheet->setActiveSheetIndex(0);
 

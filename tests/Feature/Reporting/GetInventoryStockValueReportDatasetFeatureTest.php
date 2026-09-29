@@ -134,42 +134,6 @@ final class GetInventoryStockValueReportDatasetFeatureTest extends TestCase
                 'ledger_qty_diff' => 0,
                 'ledger_value_diff_rupiah' => 0,
             ],
-            [
-                'product_id' => 'product-3',
-                'kode_barang' => 'KB-003',
-                'nama_barang' => 'Beat',
-                'merek' => 'Federal',
-                'ukuran' => 80,
-                'reorder_point_qty' => null,
-                'critical_threshold_qty' => null,
-                'current_qty_on_hand' => 5,
-                'current_avg_cost_rupiah' => 9000,
-                'current_inventory_value_rupiah' => 45000,
-                'current_inventory_value_by_average_rupiah' => 45000,
-                'current_rounding_residual_rupiah' => 0,
-                'ledger_qty_on_hand' => 5,
-                'ledger_inventory_value_rupiah' => 45000,
-                'ledger_qty_diff' => 0,
-                'ledger_value_diff_rupiah' => 0,
-            ],
-            [
-                'product_id' => 'product-4',
-                'kode_barang' => 'KB-004',
-                'nama_barang' => 'Scoopy',
-                'merek' => 'Federal',
-                'ukuran' => 85,
-                'reorder_point_qty' => null,
-                'critical_threshold_qty' => null,
-                'current_qty_on_hand' => 7,
-                'current_avg_cost_rupiah' => 10000,
-                'current_inventory_value_rupiah' => 70000,
-                'current_inventory_value_by_average_rupiah' => 70000,
-                'current_rounding_residual_rupiah' => 0,
-                'ledger_qty_on_hand' => 0,
-                'ledger_inventory_value_rupiah' => 0,
-                'ledger_qty_diff' => 7,
-                'ledger_value_diff_rupiah' => 70000,
-            ],
         ], $snapshotRows);
 
         $this->assertSame([
@@ -212,18 +176,18 @@ final class GetInventoryStockValueReportDatasetFeatureTest extends TestCase
         ], $movementRows);
 
         $this->assertSame([
-            'snapshot_product_rows' => 4,
+            'snapshot_product_rows' => 2,
             'movement_product_rows' => 2,
-            'total_qty_on_hand' => 21,
-            'total_inventory_value_rupiah' => 211000,
-            'total_inventory_value_by_average_rupiah' => 211000,
+            'total_qty_on_hand' => 9,
+            'total_inventory_value_rupiah' => 96000,
+            'total_inventory_value_by_average_rupiah' => 96000,
             'total_rounding_residual_rupiah' => 0,
             'total_ledger_qty_diff' => 7,
             'total_ledger_value_diff_rupiah' => 70000,
             'stock_safe_product_rows' => 0,
             'stock_low_product_rows' => 0,
             'stock_critical_product_rows' => 0,
-            'stock_unconfigured_product_rows' => 4,
+            'stock_unconfigured_product_rows' => 2,
             'period_supply_in_qty' => 13,
             'period_sale_out_qty' => 4,
             'period_refund_reversal_qty' => 0,
@@ -251,7 +215,6 @@ final class GetInventoryStockValueReportDatasetFeatureTest extends TestCase
             array_sum(array_column($movementRows, 'net_cost_delta_rupiah'))
         );
     }
-
 
     public function test_inventory_stock_value_report_dataset_exposes_rounding_residual_separately_from_ledger_mismatch(): void
     {

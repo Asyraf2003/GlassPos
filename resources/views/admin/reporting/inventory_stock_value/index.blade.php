@@ -5,6 +5,8 @@
 @section('heading', 'Stok dan Nilai Persediaan')
 
 @section('content')
+<p class="text-muted small">{{ $temporalContext ?? '' }}</p>
+<p>Posisi stok per {{ \App\Support\ViewDateFormatter::display($filters['date_to']) }}; mutasi mengikuti rentang periode.</p>
 @include('admin.reporting.partials.period_filter', [
     'formId' => 'inventory-stock-value-report-filter-form',
     'action' => route('admin.reports.inventory_stock_value.index'),
@@ -133,7 +135,7 @@
 
                 <div class="col-12 col-md-6 col-xl-3">
                     <div class="card {{ \App\Support\InventoryStockValueValidationStatusPresenter::cardClass($summary, 'total_ledger_qty_diff') }}"><div class="card-body">
-                        <div class="text-muted small">Selisih Stok vs Riwayat</div>
+                        <div class="text-muted small">Selisih Stok vs Riwayat Saat Ini</div>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
                             <div class="fs-5 fw-bold {{ \App\Support\InventoryStockValueValidationStatusPresenter::textClass($summary, 'total_ledger_qty_diff') }}">{{ number_format($summary['total_ledger_qty_diff'] ?? 0, 0, ',', '.') }}</div>
                             <span class="badge {{ \App\Support\InventoryStockValueValidationStatusPresenter::badgeClass($summary, 'total_ledger_qty_diff') }}">{{ \App\Support\InventoryStockValueValidationStatusPresenter::badgeText($summary, 'total_ledger_qty_diff') }}</span>
@@ -143,7 +145,7 @@
 
                 <div class="col-12 col-md-6 col-xl-3">
                     <div class="card {{ \App\Support\InventoryStockValueValidationStatusPresenter::cardClass($summary, 'total_ledger_value_diff_rupiah') }}"><div class="card-body">
-                        <div class="text-muted small">Selisih Nilai vs Riwayat</div>
+                        <div class="text-muted small">Selisih Nilai vs Riwayat Saat Ini</div>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
                             <div class="fs-5 fw-bold {{ \App\Support\InventoryStockValueValidationStatusPresenter::textClass($summary, 'total_ledger_value_diff_rupiah') }}">Rp {{ number_format($summary['total_ledger_value_diff_rupiah'] ?? 0, 0, ',', '.') }}</div>
                             <span class="badge {{ \App\Support\InventoryStockValueValidationStatusPresenter::badgeClass($summary, 'total_ledger_value_diff_rupiah') }}">{{ \App\Support\InventoryStockValueValidationStatusPresenter::badgeText($summary, 'total_ledger_value_diff_rupiah') }}</span>
@@ -190,4 +192,6 @@
     </div>
 </div>
 </div>
+<p class="text-muted small">Posisi historis berasal dari riwayat mutasi. Produk tanpa riwayat tidak ditaksir sebagai saldo historis. Status stok menggunakan batas stok yang dikonfigurasi saat ini; diagnostik membandingkan proyeksi saat ini dengan seluruh riwayat.</p>
+@include('admin.reporting.partials.screen_detail_tables')
 @endsection

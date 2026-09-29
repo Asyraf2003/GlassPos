@@ -7,6 +7,8 @@ namespace App\Adapters\In\Http\Controllers\Admin\Reporting;
 use App\Adapters\In\Http\Requests\Reporting\TransactionCashLedgerPageRequest;
 use App\Adapters\In\Http\Support\ReportArrayPaginator;
 use App\Application\Reporting\DTO\TransactionCashLedgerPageQuery;
+use App\Application\Reporting\Exports\TransactionCashLedgerPdfViewDataBuilder;
+use App\Application\Reporting\Services\ReportTemporalContext;
 use App\Application\Reporting\Services\TransactionCashLedgerPeriodTableBuilder;
 use App\Application\Reporting\Services\TransactionCashLedgerSummaryBuilder;
 use App\Application\Reporting\UseCases\GetTransactionCashLedgerPerNoteHandler;
@@ -16,6 +18,7 @@ use Illuminate\Routing\Controller;
 final class TransactionCashLedgerPageController extends Controller
 {
     public function __invoke(
+        TransactionCashLedgerPdfViewDataBuilder $presentation,
         TransactionCashLedgerPageRequest $request,
         GetTransactionCashLedgerPerNoteHandler $useCase,
         TransactionCashLedgerSummaryBuilder $summary,
@@ -28,6 +31,8 @@ final class TransactionCashLedgerPageController extends Controller
         $rows = is_array($payload['rows'] ?? null) ? $payload['rows'] : [];
 
         return view('admin.reporting.transaction_cash_ledger.index', [
+            'detailTables' => $presentation->build($payload, $query->toViewData())['detailTables'],
+            'temporalContext' => ReportTemporalContext::description('TransactionCashLedger', $query->toViewData()),
             'filters' => $query->toViewData(),
             'summary' => $summary->build($rows),
             'periodRows' => $periods->build($rows),

@@ -5,6 +5,7 @@
 @section('heading', 'Arus Kas Transaksi')
 
 @section('content')
+<p class="text-muted small">{{ $temporalContext ?? '' }}</p>
 @include('admin.reporting.partials.period_filter', [
     'formId' => 'transaction-cash-ledger-filter-form',
     'action' => route('admin.reports.transaction_cash_ledger.index'),
@@ -123,4 +124,5 @@
         </div></div>
     </div>
 </div>
+@include('admin.reporting.partials.screen_detail_tables')
 @endsection

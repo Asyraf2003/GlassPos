@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Reporting\Exports;
 
 use App\Application\Reporting\Exports\Concerns\FormatsPdfReportValues;
+use App\Application\Reporting\Services\ReportTemporalContext;
 use App\Ports\Out\ClockPort;
 
 final class PayrollReportPdfViewDataBuilder
@@ -13,8 +14,7 @@ final class PayrollReportPdfViewDataBuilder
 
     public function __construct(
         private readonly ClockPort $clock,
-    ) {
-    }
+    ) {}
 
     public function build(array $dataset, array $filters): array
     {
@@ -24,12 +24,15 @@ final class PayrollReportPdfViewDataBuilder
         $modeRows = is_array($dataset['mode_rows'] ?? null) ? $dataset['mode_rows'] : [];
 
         return [
+            'temporalContext' => ReportTemporalContext::description('PayrollReport', $filters),
             'title' => 'Laporan Gaji',
             'periodLabel' => $this->formatRange(
                 $this->stringValue($filters['date_from'] ?? ''),
                 $this->stringValue($filters['date_to'] ?? ''),
             ),
             'generatedAt' => $this->clock->now()->format('d/m/Y H:i'),
+            'detailTables' => [['title' => 'Rincian', 'columns' => ['date' => 'Tanggal', 'employee_name' => 'Karyawan', 'mode_label' => 'Mode', 'notes' => 'Catatan', 'amount' => 'Nominal periode'],
+                'rows' => array_map(fn (array $row): array => $this->rowData($row), $rows)]],
             'summaryItems' => $this->summaryItems($summary),
             'periodRows' => array_map(fn (array $row): array => $this->periodRowData($row), $periodRows),
             'modeRows' => array_map(fn (array $row): array => $this->modeRowData($row), $modeRows),

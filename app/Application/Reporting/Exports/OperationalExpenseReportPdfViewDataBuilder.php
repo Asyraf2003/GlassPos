@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Reporting\Exports;
 
 use App\Application\Reporting\Exports\Concerns\FormatsPdfReportValues;
+use App\Application\Reporting\Services\ReportTemporalContext;
 use App\Ports\Out\ClockPort;
 
 final class OperationalExpenseReportPdfViewDataBuilder
@@ -13,8 +14,7 @@ final class OperationalExpenseReportPdfViewDataBuilder
 
     public function __construct(
         private readonly ClockPort $clock,
-    ) {
-    }
+    ) {}
 
     public function build(array $dataset, array $filters): array
     {
@@ -22,12 +22,15 @@ final class OperationalExpenseReportPdfViewDataBuilder
         $rows = is_array($dataset['rows'] ?? null) ? $dataset['rows'] : [];
 
         return [
+            'temporalContext' => ReportTemporalContext::description('OperationalExpenseReport', $filters),
             'title' => 'Laporan Biaya Operasional',
             'periodLabel' => $this->formatRange(
                 $this->stringValue($filters['date_from'] ?? ''),
                 $this->stringValue($filters['date_to'] ?? ''),
             ),
             'generatedAt' => $this->clock->now()->format('d/m/Y H:i'),
+            'detailTables' => [['title' => 'Rincian', 'columns' => ['date' => 'Tanggal', 'category_name' => 'Kategori', 'description' => 'Keterangan', 'payment_method' => 'Metode', 'reference_no' => 'Referensi', 'amount' => 'Biaya periode'],
+                'rows' => array_map(fn (array $row): array => $this->rowData($row), $rows)]],
             'summaryItems' => $this->summaryItems($summary),
             'rows' => array_map(fn (array $row): array => $this->rowData($row), $rows),
         ];

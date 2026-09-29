@@ -74,7 +74,7 @@ final class OperationalProfitReportExcelExportFeatureTest extends TestCase
 
         $spreadsheet = IOFactory::load($path);
 
-        $this->assertSame(['Ringkasan'], $spreadsheet->getSheetNames());
+        $this->assertSame(['Ringkasan', 'Metadata'], $spreadsheet->getSheetNames());
 
         $summary = $spreadsheet->getSheetByName('Ringkasan');
 
@@ -110,7 +110,7 @@ final class OperationalProfitReportExcelExportFeatureTest extends TestCase
     {
         $user = User::query()->create([
             'name' => 'Test',
-            'email' => $role . '-operational-profit-report-export@example.test',
+            'email' => $role.'-operational-profit-report-export@example.test',
             'password' => 'password123',
         ]);
 
