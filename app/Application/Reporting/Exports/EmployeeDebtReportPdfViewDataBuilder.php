@@ -31,7 +31,7 @@ final class EmployeeDebtReportPdfViewDataBuilder
                 $this->stringValue($filters['date_to'] ?? ''),
             ),
             'generatedAt' => $this->clock->now()->format('d/m/Y H:i'),
-            'detailTables' => [['title' => 'Rincian', 'columns' => ['recorded_at' => 'Tanggal Kasbon', 'employee_id' => 'Karyawan', 'debt_id' => 'ID Kasbon', 'total_debt' => 'Pokok per '.$this->formatDate($filters['date_to']), 'total_paid_amount' => 'Dibayar sampai '.$this->formatDate($filters['date_to']), 'remaining_balance' => 'Sisa per '.$this->formatDate($filters['date_to']), 'status' => 'Status', 'notes' => 'Catatan'],
+            'detailTables' => [['title' => 'Rincian', 'columns' => ['recorded_at' => 'Tanggal Kasbon', 'employee_name' => 'Karyawan', 'total_debt' => 'Pokok per '.$this->formatDate($filters['date_to']), 'total_paid_amount' => 'Dibayar sampai '.$this->formatDate($filters['date_to']), 'remaining_balance' => 'Sisa per '.$this->formatDate($filters['date_to']), 'status' => 'Status', 'notes' => 'Catatan'],
                 'rows' => array_map(fn (array $row): array => $this->rowData($row), $rows)]],
             'summaryItems' => array_map(fn (array $row): array => [
                 'label' => $row['label'], 'value' => $this->rupiah($row['value']),
@@ -70,6 +70,7 @@ final class EmployeeDebtReportPdfViewDataBuilder
             'recorded_at' => $this->formatDate($this->stringValue($row['recorded_at'] ?? '')),
             'debt_id' => $this->stringValue($row['debt_id'] ?? ''),
             'employee_id' => $this->stringValue($row['employee_id'] ?? ''),
+            'employee_name' => $this->stringValue($row['employee_name'] ?? '-'),
             'status' => (($row['status'] ?? '') === 'paid' ? 'Lunas' : 'Belum Lunas'),
             'total_debt' => $this->rupiah($row['total_debt'] ?? 0),
             'total_paid_amount' => $this->rupiah($row['total_paid_amount'] ?? 0),

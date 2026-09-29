@@ -15,11 +15,12 @@ final class EmployeeDebtTemporalQuery
         $end = $to.' 23:59:59';
 
         return DB::table('employee_debts as d')
+            ->leftJoin('employees as e', 'e.id', '=', 'd.employee_id')
             ->leftJoinSub($this->adjustments($start, $end), 'a', 'a.employee_debt_id', '=', 'd.id')
             ->leftJoinSub($this->payments($start, $end), 'p', 'p.employee_debt_id', '=', 'd.id')
             ->where('d.created_at', '<=', $end)
             ->orderBy('d.created_at')->orderBy('d.id')
-            ->get(['d.*', 'a.all_adjustments', 'a.opening_adjustments', 'a.closing_adjustments',
+            ->get(['d.*', 'e.employee_name as employee_name', 'a.all_adjustments', 'a.opening_adjustments', 'a.closing_adjustments',
                 'p.opening_paid', 'p.closing_paid', 'p.period_payments', 'p.period_reversals'])
             ->map(static fn (object $row): array => EmployeeDebtTemporalRowMapper::map($row, $start))
             ->all();
