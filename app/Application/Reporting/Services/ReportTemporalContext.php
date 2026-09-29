@@ -12,7 +12,7 @@ final class ReportTemporalContext
 
         return match ($report) {
             'TransactionReport' => 'Mode as-of per '.$cutoff.': nota memakai revisi transaksi yang berlaku pada cutoff. Pembayaran, refund, refund-due, pengembalian surplus, dan cancellation dibatasi sampai cutoff; kejadian setelah cutoff tidak menulis ulang posisi historis. Arus uang periode tersedia di Buku Kas Transaksi.',
-            'ServicePackageProfit', 'ServicePackageProfitBreakdown', 'ServicePackageProfitBreakdownReport' => 'Mode current: paket dipilih berdasarkan tanggal transaksi. Nilai paket memakai detail revisi saat ini; COGS dan refund kumulatif mengikuti paket terpilih. Ini bukan snapshot historis per akhir periode. Harga katalog dan AVG saat ini tidak dipakai untuk menghitung nilai paket.',
+            'ServicePackageProfit', 'ServicePackageProfitBreakdown', 'ServicePackageProfitBreakdownReport' => 'Mode as-of per '.$cutoff.': paket memakai snapshot revisi yang berlaku pada cutoff. Nilai paket/dekomposisi berasal dari snapshot transaksi; COGS dan refund dibatasi sampai cutoff, sehingga edit/refund setelah cutoff tidak menulis ulang laporan lama.',
             'EmployeeDebtReport' => 'Mode as-of: saldo membawa kasbon sebelum periode; pembayaran, penyesuaian dan reversal dibatasi sampai '.$cutoff.'. Aktivitas periode dipisahkan dari saldo awal dan akhir.',
             'SupplierPayableReport' => $cutoff === ''
                 ? 'Mode current: seluruh faktur non-void dan pembayaran aktif saat ini, tanpa filter bulan pengiriman. Jatuh tempo hanya menentukan urgensi.'
