@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Adapters\Out\Reporting\Queries\ServicePackageProfitBreakdown;
 
+use App\Adapters\Out\Reporting\Queries\TransactionHistoricalNoteStateQuery;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ final class BreakdownSourceRowsQuery
         private readonly PartsTotalSubquery $parts,
         private readonly CogsSubqueries $cogs,
         private readonly RefundComponentSubqueries $refunds,
+        private readonly TransactionHistoricalNoteStateQuery $historicalNoteState,
     ) {}
 
     /**
@@ -73,7 +75,7 @@ final class BreakdownSourceRowsQuery
         ?string $asOfDate,
         bool $legacyOnly,
     ): Builder {
-        return DB::table('work_items')
+        $query = DB::table('work_items')
             ->join('notes', 'notes.id', '=', 'work_items.note_id')
             ->join('work_item_service_details', 'work_item_service_details.work_item_id', '=', 'work_items.id')
             ->leftJoinSub($this->parts->query(), 'parts_totals', static fn ($join) => $join->on('parts_totals.work_item_id', '=', 'work_items.id'))
@@ -91,5 +93,14 @@ final class BreakdownSourceRowsQuery
                         ->whereColumn('note_revisions.note_root_id', 'notes.id');
                 });
             });
+
+        if ($legacyOnly && $asOfDate !== null) {
+            $this->historicalNoteState->applyRootExistenceAtCutoff(
+                $query,
+                $asOfDate.' 23:59:59',
+            );
+        }
+
+        return $query;
     }
 }

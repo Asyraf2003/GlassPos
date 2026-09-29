@@ -59,6 +59,7 @@ final class TransactionSummaryBaseQueryFactory
             $join->on('historical_revision.note_root_id', '=', 'notes.id')
                 ->on('historical_revision.revision_number', '=', 'historical_revision_numbers.revision_number');
         });
+        $this->historicalNoteState->applyRootExistenceAtCutoff($query, $timestamp);
         $this->historicalNoteState->applyActiveAtCutoff($query, $timestamp);
 
         return [

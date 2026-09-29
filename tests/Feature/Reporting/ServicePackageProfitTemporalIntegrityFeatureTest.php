@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Reporting;
 
+use App\Adapters\Out\Reporting\Queries\ServicePackageProfitBreakdown\BreakdownSourceRowsQuery;
 use App\Application\Reporting\UseCases\GetServicePackageProfitBreakdownHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,7 @@ final class ServicePackageProfitTemporalIntegrityFeatureTest extends TestCase
         DB::table('notes')->insert([
             'id' => 'package-note', 'customer_name' => 'Current Customer', 'transaction_date' => '2026-09-15',
             'total_rupiah' => 130001, 'current_revision_id' => 'package-note-r002', 'latest_revision_number' => 2,
+            'created_at' => '2026-09-15 09:00:00', 'updated_at' => '2026-10-01 10:00:00',
         ]);
         DB::table('note_revisions')->insert([
             [
@@ -67,5 +69,40 @@ final class ServicePackageProfitTemporalIntegrityFeatureTest extends TestCase
         self::assertSame(30000, $data['rows'][0]['service_price_rupiah']);
         self::assertSame(10000, $data['rows'][0]['package_profit_rupiah']);
         self::assertSame(70001, $data['rows'][0]['total_package_gross_profit_rupiah']);
+    }
+
+    public function test_future_created_backdated_unversioned_package_is_excluded_from_historical_legacy_fallback(): void
+    {
+        DB::table('notes')->insert([
+            'id' => 'future-package-note',
+            'customer_name' => 'Future Package Customer',
+            'transaction_date' => '2026-09-15',
+            'total_rupiah' => 100001,
+            'created_at' => '2026-10-01 08:00:00',
+            'updated_at' => '2026-10-01 08:00:00',
+        ]);
+        DB::table('work_items')->insert([
+            'id' => 'future-package-work-item',
+            'note_id' => 'future-package-note',
+            'line_no' => 1,
+            'transaction_type' => 'service_with_store_stock_part',
+            'status' => 'open',
+            'subtotal_rupiah' => 100001,
+        ]);
+        DB::table('work_item_service_details')->insert([
+            'work_item_id' => 'future-package-work-item',
+            'service_name' => 'Future Package',
+            'service_price_rupiah' => 100001,
+            'part_source' => 'store_stock',
+        ]);
+
+        $historicalRows = app(BreakdownSourceRowsQuery::class)->rows(
+            '2026-09-01',
+            '2026-09-30',
+            '2026-09-30',
+            true,
+        );
+
+        self::assertCount(0, $historicalRows);
     }
 }

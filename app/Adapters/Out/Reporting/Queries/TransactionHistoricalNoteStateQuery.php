@@ -11,15 +11,36 @@ final class TransactionHistoricalNoteStateQuery
 {
     public function latestRevisionNumbers(string $cutoff): Builder
     {
-        return DB::table('note_revisions')
+        $query = DB::table('note_revisions')
+            ->join('notes as revision_root', 'revision_root.id', '=', 'note_revisions.note_root_id');
+
+        $this->applyRootExistenceAtCutoff($query, $cutoff, 'revision_root');
+
+        return $query
             ->where(function (Builder $query) use ($cutoff): void {
                 // Revision 1 is the pre-edit baseline even for legacy notes that were
                 // bootstrapped immediately before their first later revision.
-                $query->where('created_at', '<=', $cutoff)
-                    ->orWhere('revision_number', 1);
+                $query->where('note_revisions.created_at', '<=', $cutoff)
+                    ->orWhere('note_revisions.revision_number', 1);
             })
-            ->selectRaw('note_root_id, MAX(revision_number) as revision_number')
-            ->groupBy('note_root_id');
+            ->selectRaw(
+                'note_revisions.note_root_id, MAX(note_revisions.revision_number) as revision_number'
+            )
+            ->groupBy('note_revisions.note_root_id');
+    }
+
+    public function applyRootExistenceAtCutoff(
+        Builder $query,
+        string $cutoff,
+        string $notesAlias = 'notes',
+    ): Builder {
+        return $query->where(function (Builder $root) use ($cutoff, $notesAlias): void {
+            // Post-hardening roots have a real system creation timestamp. NULL stays
+            // compatible with legacy/fixture rows whose original creation time is unknown.
+            // transaction_date is intentionally not accepted as existence evidence.
+            $root->whereNull($notesAlias.'.created_at')
+                ->orWhere($notesAlias.'.created_at', '<=', $cutoff);
+        });
     }
 
     public function applyActiveAtCutoff(Builder $query, string $cutoff): Builder
