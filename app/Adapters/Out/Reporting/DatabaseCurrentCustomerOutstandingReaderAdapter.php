@@ -13,6 +13,6 @@ final class DatabaseCurrentCustomerOutstandingReaderAdapter implements CurrentCu
 
     public function outstandingRupiah(): int
     {
-        return array_sum(array_column($this->query->rows(null, null), 'outstanding_rupiah'));
+        return array_sum(array_column($this->query->rows(null, null, 'current'), 'outstanding_rupiah'));
     }
 }

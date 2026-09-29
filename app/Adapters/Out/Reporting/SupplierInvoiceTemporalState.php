@@ -23,7 +23,7 @@ final class SupplierInvoiceTemporalState
                 return null;
             }
         } else {
-            if ($versions[0]->event_name !== 'supplier_invoice_created' && $versions[0]->changed_at > $cutoff) {
+            if ($versions[0]->event_name !== 'supplier_invoice_created') {
                 throw new \RuntimeException('Supplier invoice initial history unavailable: '.$invoice->id);
             }
             $state = null;
