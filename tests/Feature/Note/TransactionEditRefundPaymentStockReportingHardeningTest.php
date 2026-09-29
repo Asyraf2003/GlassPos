@@ -1161,7 +1161,18 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
     {
         $this->seedStoreStockProduct();
 
-        $create = app(CreateTransactionWorkspaceHandler::class)->handle($this->createPaidStoreStockPayload());
+        \Illuminate\Support\Carbon::setTestNow('2026-05-20 09:00:00');
+        $this->app->instance(
+            \App\Ports\Out\ClockPort::class,
+            new \Tests\Support\FixedHistoricalWorkspaceClock('2026-05-20 09:00:00'),
+        );
+
+        try {
+            $create = app(CreateTransactionWorkspaceHandler::class)->handle($this->createPaidStoreStockPayload());
+        } finally {
+            \Illuminate\Support\Carbon::setTestNow();
+            $this->app->forgetInstance(\App\Ports\Out\ClockPort::class);
+        }
 
         self::assertTrue($create->isSuccess(), $create->message());
 
@@ -1339,6 +1350,19 @@ final class TransactionEditRefundPaymentStockReportingHardeningTest extends Test
             '/<input[^>]+type="hidden"[^>]+name="idempotency_key"[^>]+value="[^"]{8,}"/',
             (string) $response->getContent(),
         );
+    }
+
+    private function revisionBaseForTest(string $noteId): string
+    {
+        return (string) DB::table('notes')->where('id', $noteId)->value('current_revision_id');
+    }
+
+    private function loginAsAuthorizedAdmin(): \App\Core\IdentityAccess\User\User
+    {
+        $user = \App\Core\IdentityAccess\User\User::factory()->create();
+        $this->actingAs($user);
+
+        return $user;
     }
 
     private function seedStoreStockProduct(): void
