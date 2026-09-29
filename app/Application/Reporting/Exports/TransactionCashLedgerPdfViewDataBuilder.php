@@ -34,7 +34,7 @@ final class TransactionCashLedgerPdfViewDataBuilder
                 $this->stringValue($filters['date_to'] ?? ''),
             ),
             'generatedAt' => $this->clock->now()->format('d/m/Y H:i'),
-            'detailTables' => [['title' => 'Rincian', 'columns' => ['date' => 'Tanggal Event', 'note_label' => 'Nota', 'event_type' => 'Event', 'direction' => 'Arah', 'payment_method' => 'Metode', 'amount' => 'Nominal', 'cash_amount_paid' => 'Tunai Dibayar', 'cash_amount_received' => 'Tunai Diterima', 'cash_change' => 'Kembalian', 'source_id' => 'ID Event'],
+            'detailTables' => [['title' => 'Rincian', 'columns' => ['date' => 'Tanggal Event', 'note_label' => 'Nota', 'event_type' => 'Event', 'direction' => 'Arah', 'payment_method' => 'Metode', 'amount' => 'Nominal', 'cash_amount_paid' => 'Tunai Dibayar', 'cash_amount_received' => 'Tunai Diterima', 'cash_change' => 'Kembalian'],
                 'rows' => array_map(fn (array $row): array => $this->rowData($row), $rows)]],
             'summaryItems' => $this->summaryItems($summary),
             'rows' => array_map(fn (array $row): array => $this->rowData($row), $rows),

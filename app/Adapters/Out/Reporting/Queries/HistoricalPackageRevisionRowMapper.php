@@ -34,6 +34,7 @@ final class HistoricalPackageRevisionRowMapper
         return [
             'note_id' => (string) $row->note_id,
             'work_item_id' => $workItemId,
+            'package_line_no' => (int) ($row->package_line_no ?? 0),
             'transaction_date' => (string) $row->transaction_date,
             'customer_name' => (string) $row->customer_name,
             'package_sold_amount_rupiah' => $packageTotal,

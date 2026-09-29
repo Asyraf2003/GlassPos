@@ -29,6 +29,7 @@ final class BreakdownSourceRowsQuery
             ->get([
                 'notes.id as note_id',
                 'work_items.id as work_item_id',
+                'work_items.line_no as package_line_no',
                 'notes.transaction_date',
                 'notes.customer_name',
                 'work_items.subtotal_rupiah as package_sold_amount_rupiah',

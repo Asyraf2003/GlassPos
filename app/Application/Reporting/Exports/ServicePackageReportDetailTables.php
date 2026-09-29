@@ -9,7 +9,7 @@ final class ServicePackageReportDetailTables
     public static function build(array $dataset): array
     {
         return [ReportDetailTableFormatter::table('Rincian paket pada periode transaksi', [
-            'note_id' => 'Nota', 'work_item_id' => 'Paket', 'transaction_date' => 'Tanggal', 'customer_name' => 'Pelanggan',
+            'note_id' => 'Nota', 'package_line_no' => 'Baris Paket', 'transaction_date' => 'Tanggal', 'customer_name' => 'Pelanggan',
             'package_sold_amount_rupiah' => 'Nilai Paket', 'parts_total_rupiah' => 'Sparepart',
             'sparepart_cogs_rupiah' => 'HPP', 'sparepart_margin_rupiah' => 'Margin',
             'service_price_rupiah' => 'Jasa', 'package_base_service_price_rupiah' => 'Jasa Dasar',

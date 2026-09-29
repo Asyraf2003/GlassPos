@@ -38,6 +38,7 @@ final class HistoricalPackageRevisionRowsQuery
             ->get([
                 'notes.id as note_id', 'revision.transaction_date', 'revision.customer_name',
                 'revision_line.work_item_root_id as work_item_id',
+                'revision_line.line_no as package_line_no',
                 'revision_line.subtotal_rupiah as package_sold_amount_rupiah',
                 'revision_line.service_price_rupiah', 'revision_line.payload',
             ]);
