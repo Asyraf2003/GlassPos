@@ -10,11 +10,14 @@ use JsonException;
 
 final class DatabaseTransactionWorkspaceDraftReaderAdapter implements TransactionWorkspaceDraftReaderPort
 {
+    private const MAX_AGE_HOURS = 24;
+
     public function findByActorAndWorkspaceKey(string $actorId, string $workspaceKey): ?array
     {
         $row = DB::table('transaction_workspace_drafts')
             ->where('actor_id', trim($actorId))
             ->where('workspace_key', trim($workspaceKey))
+            ->where('updated_at', '>=', now()->subHours(self::MAX_AGE_HOURS))
             ->first();
 
         if ($row === null) {
