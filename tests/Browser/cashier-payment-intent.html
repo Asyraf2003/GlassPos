@@ -78,7 +78,10 @@ script.onload = async () => {
       form.requestSubmit();
     }
     await Promise.resolve();
-    const paid = Number(submitted.paid || (mode === 'full' ? outstanding : 0));
+    if (!workspace && method === 'transfer' && mode === 'full' && !submitted.paid) {
+      throw Error('detail full transfer did not submit payable amount');
+    }
+    const paid = Number(submitted.paid || (workspace && mode === 'full' ? outstanding : 0));
     if (paid !== intent) throw Error(`submitted paid expected ${intent}, actual ${paid}`);
     if (method === 'cash') {
       const expectedTender = surface === 'simple' ? intent : tender;
