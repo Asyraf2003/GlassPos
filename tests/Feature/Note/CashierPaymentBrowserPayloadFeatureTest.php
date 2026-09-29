@@ -89,6 +89,7 @@ final class CashierPaymentBrowserPayloadFeatureTest extends TestCase
             ['surface=detail&mode=full&total=340&tender=400', 340, 340, 400],
             ['surface=workspace&method=transfer', 780000, 280000, null],
             ['surface=detail&method=transfer', 780000, 280000, null],
+            ['surface=detail&mode=full&method=transfer&total=480000', 480000, 480000, null],
             ['surface=simple&tender=280000', 780000, 280000, 280000],
             ['surface=simple&stale=1&tender=280000', 780000, 280000, 280000],
             ['surface=simple&mode=full&total=480000&tender=480000', 480000, 480000, 480000],

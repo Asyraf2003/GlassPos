@@ -227,6 +227,12 @@
     refresh();
   };
 
+  const prepareTransferSubmission = () => {
+    setValue("detail_payment_method", "tf");
+    setValue("detail_payment_amount_received", "");
+    setValue("detail_payment_amount_paid", payableAmount());
+  };
+
   document.addEventListener("click", (event) => {
     const trigger = event.target.closest(".js-open-payment-intent");
     if (trigger) {
@@ -247,8 +253,7 @@
     }
 
     if (event.target.closest("#detail-payment-submit-transfer")) {
-      setValue("detail_payment_method", "tf");
-      refresh();
+      prepareTransferSubmission();
       return;
     }
 
@@ -313,7 +318,7 @@
       return;
     }
 
-    setValue("detail_payment_method", "tf");
+    prepareTransferSubmission();
     lockPaymentSubmit();
   });
 
