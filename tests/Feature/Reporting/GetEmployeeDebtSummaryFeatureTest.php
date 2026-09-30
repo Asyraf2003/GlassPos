@@ -70,6 +70,7 @@ final class GetEmployeeDebtSummaryFeatureTest extends TestCase
             [
                 'debt_id' => 'debt-1',
                 'employee_id' => 'employee-1',
+                'employee_name' => 'Montir A',
                 'recorded_at' => '2026-03-15 08:00:00',
                 'total_debt' => 100000,
                 'total_paid_amount' => 30000,
@@ -85,6 +86,7 @@ final class GetEmployeeDebtSummaryFeatureTest extends TestCase
             [
                 'debt_id' => 'debt-2',
                 'employee_id' => 'employee-2',
+                'employee_name' => 'Montir B',
                 'recorded_at' => '2026-03-16 09:30:00',
                 'total_debt' => 50000,
                 'total_paid_amount' => 50000,
