@@ -11,6 +11,7 @@ final class TransactionCashLedgerPerNoteBuilder
     /**
      * @param list<array{
      *   note_id:string,
+     *   note_label?:string,
      *   event_date:string,
      *   event_type:string,
      *   direction:string,
@@ -32,6 +33,7 @@ final class TransactionCashLedgerPerNoteBuilder
         return array_map(
             static fn (array $row): TransactionCashLedgerPerNoteRow => new TransactionCashLedgerPerNoteRow(
                 $row['note_id'],
+                (string) ($row['note_label'] ?? $row['note_id']),
                 $row['event_date'],
                 $row['event_type'],
                 $row['direction'],
