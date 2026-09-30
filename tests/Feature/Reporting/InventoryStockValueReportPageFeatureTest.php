@@ -116,7 +116,7 @@ final class InventoryStockValueReportPageFeatureTest extends TestCase
         $response->assertSee('Rp 96.000');
         $response->assertDontSee('Snapshot Stok Saat Ini');
         $response->assertDontSee('Ringkasan Mutasi Periode');
-        $response->assertDontSee('KB-001');
+        $response->assertSee('KB-001');
         $response->assertSee(route('admin.reports.transaction_cash_ledger.index'), false);
         $response->assertSee(route('admin.reports.employee_debt.index'), false);
         $response->assertSee(route('admin.reports.operational_profit.index'), false);
