@@ -41,6 +41,7 @@ interface TransactionReportingSourceReaderPort
     /**
      * @return list<array{
      *   note_id:string,
+     *   note_label:string,
      *   event_date:string,
      *   event_type:string,
      *   direction:string,
