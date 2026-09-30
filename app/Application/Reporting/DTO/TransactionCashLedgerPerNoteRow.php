@@ -8,6 +8,7 @@ final class TransactionCashLedgerPerNoteRow
 {
     public function __construct(
         private readonly string $noteId,
+        private readonly string $noteLabel,
         private readonly string $eventDate,
         private readonly string $eventType,
         private readonly string $direction,
@@ -25,6 +26,8 @@ final class TransactionCashLedgerPerNoteRow
     }
 
     public function noteId(): string { return $this->noteId; }
+
+    public function noteLabel(): string { return $this->noteLabel; }
 
     public function eventDate(): string { return $this->eventDate; }
 
@@ -55,6 +58,7 @@ final class TransactionCashLedgerPerNoteRow
     /**
      * @return array{
      *   note_id:string,
+     *   note_label:string,
      *   event_date:string,
      *   event_type:string,
      *   direction:string,
@@ -74,6 +78,7 @@ final class TransactionCashLedgerPerNoteRow
     {
         return [
             'note_id' => $this->noteId(),
+            'note_label' => $this->noteLabel(),
             'event_date' => $this->eventDate(),
             'event_type' => $this->eventType(),
             'direction' => $this->direction(),
