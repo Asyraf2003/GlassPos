@@ -26,7 +26,7 @@ final class TransactionCashLedgerEventTimeNoteLabelResolver
         }
 
         $noteIds = array_values(array_unique(array_column($events, 'note_id')));
-        $revisions = DB::table('note_revisions')
+        $revisionRows = DB::table('note_revisions')
             ->whereIn('note_root_id', $noteIds)
             ->orderBy('note_root_id')
             ->orderBy('created_at')
@@ -37,23 +37,25 @@ final class TransactionCashLedgerEventTimeNoteLabelResolver
                 'transaction_date',
                 'created_at',
                 'revision_number',
-            ])
-            ->groupBy('note_root_id');
+            ]);
+
+        $revisionsByNote = [];
+        foreach ($revisionRows as $revision) {
+            $revisionsByNote[(string) $revision->note_root_id][] = $revision;
+        }
 
         $labels = [];
 
         foreach ($events as $event) {
-            $noteRevisions = $revisions->get($event['note_id']);
-            $activeRevision = $noteRevisions?->first();
+            $noteRevisions = $revisionsByNote[$event['note_id']] ?? [];
+            $activeRevision = $noteRevisions[0] ?? null;
 
-            if ($noteRevisions !== null) {
-                foreach ($noteRevisions as $revision) {
-                    if ((string) $revision->created_at > $event['occurred_at']) {
-                        break;
-                    }
-
-                    $activeRevision = $revision;
+            foreach ($noteRevisions as $revision) {
+                if ((string) $revision->created_at > $event['occurred_at']) {
+                    break;
                 }
+
+                $activeRevision = $revision;
             }
 
             $customerName = $activeRevision !== null
