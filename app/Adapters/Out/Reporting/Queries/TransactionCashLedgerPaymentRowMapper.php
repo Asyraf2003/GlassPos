@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 
 final class TransactionCashLedgerPaymentRowMapper
 {
+    /** @param array<string, string> $labels */
     public function map(Collection $rows, array $labels): Collection
     {
         return $rows->map(static fn (object $row): array => [
