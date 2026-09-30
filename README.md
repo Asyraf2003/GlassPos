@@ -1,275 +1,212 @@
-# HyperPOS
+<div align="center">
 
-HyperPOS is a workshop POS and operations system built with Laravel and MySQL.
+# GlassPos
 
-It is designed for a real automotive workshop workflow where a "simple sale" can actually involve service jobs, spare parts, supplier invoices, stock movement, partial payments, refunds, corrections, audit history, and business reports.
+### Production workshop POS built around transaction integrity
 
-This project exists because many POS systems look clean on the screen while quietly making money, stock, and reports drift apart. HyperPOS is built to make those changes traceable.
+**Laravel 12 · PHP 8.2+ · MySQL · Pest · PHPStan · Hexagonal Architecture**
 
-## What Problem Does It Solve?
+GlassPos is a workshop point-of-sale and operations system designed for the part most POS demos politely avoid: what happens after money, stock, payments, revisions, refunds, procurement, and reports all begin affecting the same transaction.
 
-A workshop transaction is rarely just:
+[Product Tour](#product-tour) · [Transaction Integrity](#transaction-integrity) · [Architecture](#architecture) · [Engineering Evidence](#engineering-evidence) · [Setup](README_SETUP.md) · [Technical README](README_TECHNICAL.md)
 
-> sell item, print receipt, done.
+</div>
 
-In a real workshop:
+<p align="center">
+  <img src=".github/assets/readme/portfolio/06-engineering-proof.svg" alt="GlassPos verification snapshot: 1,849 tests passing, 14,308 assertions, zero PHPStan errors and full strict-types coverage" width="100%">
+</p>
 
-- one invoice can include service labor and spare parts;
-- parts may come from store stock or outside purchase;
-- a customer can pay partially, then pay the rest later;
-- a transaction may need correction after it was paid;
-- a refund can affect cash, stock, and reports;
-- supplier invoices can affect stock cost and payable balance;
-- reports must still make sense after all of those changes.
+> **The core problem is not CRUD. It is state coherence.** A transaction can change cash, stock, payment allocation, revision history, audit records, and reports at the same time. GlassPos is built so those effects remain explainable instead of drifting apart quietly.
 
-HyperPOS tries to handle that mess explicitly instead of hiding it behind a generic "Save" button.
+---
+
+## Why GlassPos Exists
+
+A real workshop transaction is rarely just _sell item → print receipt → done_. A single note can contain labor, spare parts, store stock, outside purchases, partial payment, later settlement, correction, cancellation, refund, and report impact.
+
+GlassPos treats those changes as one connected business lifecycle.
+
+| Area | What the system has to keep consistent |
+|---|---|
+| Transactions | service rows, product rows, packages, revisions, current state |
+| Payments | cash/transfer, partial/full settlement, allocation, repeated-submit protection |
+| Refunds | refundable capacity, selected rows, money returned, stock consequences |
+| Inventory | movements, reversals, costing, negative-stock protection, versioned products |
+| Procurement | supplier invoices, receipts, payments, tax, landed cost, payable balance |
+| Reporting | transaction, cash, profit, inventory, supplier, payroll, expense, PDF, Excel |
+| Auditability | reason, previous state, revision trail, transactional audit events |
+
+The useful part is not that each module exists. Plenty of software can create rows. The useful part is that a correction in one place is expected to remain coherent everywhere else.
+
+---
+
+## Product Tour
+
+### Cashier transaction flow
+
+<table>
+  <tr>
+    <td width="33%"><img src=".github/assets/readme/cashier-dashboard.png" alt="GlassPos cashier dashboard"></td>
+    <td width="33%"><img src=".github/assets/readme/cashier-create-note.png" alt="GlassPos transaction workspace"></td>
+    <td width="33%"><img src=".github/assets/readme/cashier-note-detail.png" alt="GlassPos transaction detail"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Cashier dashboard</sub></td>
+    <td align="center"><sub>Create transaction</sub></td>
+    <td align="center"><sub>Transaction detail</sub></td>
+  </tr>
+</table>
+
+### Admin and reporting
+
+<table>
+  <tr>
+    <td width="50%"><img src=".github/assets/readme/admin-dashboard.png" alt="GlassPos admin dashboard"></td>
+    <td width="50%"><img src=".github/assets/readme/dashboard-report.png" alt="GlassPos reporting dashboard"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Admin operations</sub></td>
+    <td align="center"><sub>Operational reporting</sub></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td width="50%"><img src=".github/assets/readme/admin-supplier-payment-proof.png" alt="GlassPos supplier payment proof"></td>
+    <td width="50%"><img src=".github/assets/readme/report-export-excel.png" alt="GlassPos Excel report export"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Supplier payment evidence</sub></td>
+    <td align="center"><sub>Excel export</sub></td>
+  </tr>
+</table>
+
+---
+
+## Transaction Integrity
+
+<p align="center">
+  <img src=".github/assets/readme/portfolio/09-integrity-flow.svg" alt="GlassPos transaction integrity boundary connecting UI, guards, database, allocations, stock, history, audit and reports" width="100%">
+</p>
+
+A business event is not considered safe merely because an INSERT succeeded. The system has to reconcile the same event through multiple boundaries:
+
+- UI actions must match backend capabilities;
+- backend guards must reject impossible allocation or stock states;
+- payment/refund allocation must stay within executable capacity;
+- stock movements must have an explainable source and reversal path;
+- revisions must preserve history rather than silently overwrite meaning;
+- reports and exports must reflect the same business interpretation as the current transaction state;
+- sensitive mutations must remain auditable.
+
+### Transaction lifecycle
+
+<p align="center">
+  <img src=".github/assets/readme/portfolio/08-transaction-lifecycle.svg" alt="GlassPos transaction lifecycle showing draft, payment, paid, revision, cancellation and refund as distinct operations" width="100%">
+</p>
+
+**Cancellation and refund are intentionally different concepts.** Cancellation reverses a transaction where business rules permit it. Refund handles value that has already entered the money/COGS lifecycle. Treating them as the same button is convenient right up until accounting, stock, and history disagree.
+
+---
 
 ## Core Capabilities
 
-### Cashier Transaction Workspace
-
-Cashiers can create multi-line workshop transactions that may include:
+### Transaction workspace
 
 - product-only sales;
-- service-only work;
-- service with store-stock spare parts;
-- service with external purchase / case-cost parts;
+- service-only jobs;
+- service + store-stock spare parts;
+- service + external/case-cost parts;
 - package/template-based service rows;
-- cash or transfer payment;
-- partial or full payment.
+- inline cash or transfer payment;
+- partial/full settlement;
+- revision and correction workflows.
 
-The workspace is built to keep transaction details structured, because once money and stock are involved, vague data becomes expensive. Humans keep inventing edge cases. Software gets blamed for not reading minds. Naturally.
+### Payment and refund lifecycle
 
-### Payment Lifecycle
+- component-aware payment allocation;
+- partial/full payment;
+- over-allocation protection;
+- retry/repeated-submit hardening;
+- refundable-capacity checks;
+- selected-row and full refund flows;
+- post-refund reporting and inventory effects.
 
-HyperPOS tracks payment as part of the transaction lifecycle, not as a loose number.
+### Inventory and product lifecycle
 
-It supports:
-
-- full payment;
-- partial payment;
-- cash payment;
-- transfer payment;
-- payment allocation;
-- paid-note closing;
-- payment visibility in transaction and cash reports.
-
-The goal is to prevent the common POS failure where the screen says "paid", the database says "maybe", and the report says "good luck".
-
-### Refund and Correction Flow
-
-Refunds and corrections are treated as business events.
-
-The system is built to preserve context when a transaction changes after creation or after payment. That includes:
-
-- selected-row refunds;
-- full refund lifecycle;
-- paid transaction correction;
-- revision history;
-- refund impact on reports;
-- refund impact on stock where applicable;
-- protection against non-refundable items being treated as refundable.
-
-### Product and Stock Management
-
-Stock is treated as operational ledger data, not just a number in a product table.
-
-HyperPOS covers:
-
-- product catalog;
-- stock adjustment;
-- stock adjustment reversal;
+- product catalog and versioning;
+- stock adjustment and reversal;
 - stock movement history;
-- stock projection rebuild;
-- inventory costing projection;
-- negative-stock guardrails;
-- product versioning;
-- soft delete and restore.
+- stock/cost projection rebuilds;
+- negative-stock protection;
+- soft delete and restore;
+- refund/correction stock effects.
 
-This matters because a workshop can survive a messy UI faster than it can survive invisible stock drift.
+### Procurement and supplier finance
 
-### Supplier and Procurement
-
-The system includes supplier invoice workflows, including:
-
-- supplier invoice creation;
-- supplier invoice edit and revision;
-- supplier invoice version timeline;
-- supplier receipt;
-- supplier payment;
-- supplier payment reversal;
-- supplier payment proof upload;
-- supplier payable reporting;
-- tax input handling;
-- landed-cost allocation;
+- supplier invoice lifecycle and revisions;
+- supplier receipts and reversals;
+- supplier payments and reversals;
+- proof uploads;
+- tax input and landed-cost allocation;
 - rounding residue handling;
-- received invoice cost revaluation.
-
-Supplier invoices affect inventory and payable balance, so they are not treated as isolated documents.
+- received-invoice cost revaluation;
+- supplier payable reporting.
 
 ### Reporting
-
-HyperPOS includes reporting surfaces for operational visibility:
 
 - transaction summary;
 - transaction cash ledger;
 - operational profit;
-- inventory stock value;
+- service-package profit;
+- inventory movement and stock value;
 - supplier payable;
-- service package profit breakdown;
-- employee debt;
-- payroll;
-- operational expense;
-- dashboard summaries;
-- PDF exports;
-- Excel exports.
+- employee debt and payroll;
+- operational expenses;
+- PDF and Excel exports.
 
-The reporting goal is not just "show a table". The goal is to keep the report explainable after payment, refund, revision, inventory movement, and supplier changes.
-
-### Audit and History
-
-The system keeps audit and history as first-class concerns.
-
-Important changes are expected to be explainable:
-
-- what changed;
-- when it changed;
-- why it changed, where relevant;
-- what the previous state was;
-- how the change affected money, stock, and reports.
-
-That is why the repository contains ADRs, lifecycle logs, handoffs, error logs, regression notes, and manual QA matrices. It is paperwork, yes. But the alternative is guessing. Guessing is just debugging with a blindfold and confidence issues.
-
-## Screenshots
-
-### Cashier Flow
-
-<table>
-  <tr>
-    <td width="33%">
-      <img src=".github/assets/readme/cashier-dashboard.png" alt="Cashier dashboard">
-    </td>
-    <td width="33%">
-      <img src=".github/assets/readme/cashier-create-note.png" alt="Cashier create note">
-    </td>
-    <td width="33%">
-      <img src=".github/assets/readme/cashier-note-detail.png" alt="Cashier note detail">
-    </td>
-  </tr>
-</table>
-
-### Admin and Reporting
-
-<img src=".github/assets/readme/admin-dashboard.png" alt="Admin dashboard">
-
-<img src=".github/assets/readme/dashboard-report.png" alt="Dashboard report">
-
-<img src=".github/assets/readme/admin-product-table.png" alt="Admin product table">
-
-### Payment and Export
-
-<table>
-  <tr>
-    <td width="50%">
-      <img src=".github/assets/readme/admin-supplier-payment-proof.png" alt="Supplier payment proof">
-    </td>
-    <td width="50%">
-      <img src=".github/assets/readme/report-export-excel.png" alt="Excel export">
-    </td>
-  </tr>
-</table>
-
-## Production Context
-
-HyperPOS has been operated as a live Laravel/MySQL application for a real workshop environment.
-
-Owner-reported operation metadata:
-
-| Signal | Value |
-|---|---:|
-| Runtime | Laravel + MySQL |
-| Deployment style | Shared hosting / constrained hosting |
-| MySQL update cycles while live | 12 |
-| File update cycles while live | 31 |
-| User-visible downtime during those update cycles | 0 reported |
-| Production data in this repository | None, metadata only |
-
-The repository does not contain production database dumps, private customer data, credentials, or operational secrets.
-
-Production repair policy is conservative: diagnose read-only first, then decide. No blind mutation of production data.
+---
 
 ## Architecture
 
-HyperPOS follows a Hexagonal / Ports and Adapters direction.
+<p align="center">
+  <img src=".github/assets/readme/portfolio/07-system-architecture.svg" alt="GlassPos Hexagonal Architecture from inbound HTTP adapters through application and core domain rules to persistence, projections, audit and exports" width="100%">
+</p>
 
-The project separates:
+GlassPos follows a **Hexagonal / Ports and Adapters** direction so business behavior is not buried inside Blade templates, controllers, or arbitrary query fragments.
 
-- domain rules;
-- use cases;
-- ports/contracts;
-- HTTP controllers;
-- database adapters;
-- reporting queries;
-- Blade presentation;
-- tests;
-- documentation.
+| Layer | Responsibility |
+|---|---|
+| `app/Core` | domain entities, invariants, value objects, validation rules |
+| `app/Application` | use cases and transactional orchestration |
+| `app/Ports` | contracts between business logic and infrastructure |
+| `app/Adapters/In` | HTTP/request/presenter boundaries |
+| `app/Adapters/Out` | persistence, projections, reporting queries, infrastructure |
+| `resources/views` | presentation rendering |
+| `tests` | unit, feature, characterization, regression, architecture tests |
+| `docs` | ADRs, blueprints, audits, lifecycle evidence, runbooks, handoffs |
 
-The point is to keep business rules from being buried inside controllers, views, and random SQL fragments. Revolutionary, apparently.
+<details>
+<summary><strong>Architecture composition</strong></summary>
+<br>
+<p align="center">
+  <img src=".github/assets/readme/portfolio/01-architecture-donut.svg" alt="Architecture composition across Application, Adapters Out, Adapters In, Ports and Core" width="100%">
+</p>
+</details>
 
-## Documentation
+---
 
-- [`README_SETUP.md`](README_SETUP.md) — local installation, seed data, demo login, and verification.
-- [`README_TECHNICAL.md`](README_TECHNICAL.md) — architecture, domain boundaries, tests, and production metadata.
-- [`docs/0001_docs_help.md`](docs/0001_docs_help.md) — entrypoint for standards, ADRs, blueprints, lifecycle logs, and archives.
+## Engineering Evidence
 
-## Engineering Highlights
+<p align="center">
+  <img src=".github/assets/readme/portfolio/10-repository-composition.svg" alt="Point-in-time GlassPos repository engineering snapshot" width="100%">
+</p>
 
-HyperPOS includes work around:
+The repository intentionally keeps engineering proof close to the code. The current public evidence includes tracked-file-aware repository audits, architecture checks, manual QA converted into regression tests, ADRs, and lifecycle records.
 
-- multi-item transaction lifecycle;
-- edit-after-payment handling;
-- refund and payment allocation;
-- inventory movement and reversal;
-- supplier invoice versioning;
-- supplier tax and landed cost handling;
-- service package auto-split;
-- owner-facing report labels;
-- PDF and Excel report consistency;
-- audit trail;
-- transactional audit outbox;
-- role and access boundary;
-- XSS and public-surface hardening;
-- idempotency and repeated-submit protection;
-- timestamp display for Asia/Makassar;
-- read-only production diagnostics.
+> Metrics shown in these visuals are a **point-in-time audited development snapshot captured on 2026-09-30**, not eternal claims about the current HEAD. Use `make audit-git` to regenerate repository statistics.
 
-## Failure Cases Considered
-
-The system is designed and tested around failure modes that happen in real usage:
-
-- double-click create;
-- double-click payment;
-- double-click refund;
-- browser refresh after submit;
-- browser back after submit;
-- repeated submit;
-- malformed numeric input;
-- zero or excessive payment input;
-- over-refund attempt;
-- stale modal data;
-- stale report projection;
-- negative stock risk;
-- UI action visible but backend allocation rejects it;
-- screen report disagreeing with PDF or Excel export;
-- production timestamp confusion.
-
-These are boring problems until they touch money. Then suddenly everyone becomes a philosopher.
-
-## Testing and Verification
-
-This repository uses a large test and documentation workflow because the domain is interconnected.
-
-Typical verification commands:
+### Verification commands
 
 ```bash
 make help
@@ -280,45 +217,113 @@ make audit-contract
 make verify
 ```
 
-Focused areas include:
+The latest full verification snapshot represented above records **1,849 passing tests, 14,308 assertions, zero PHPStan errors, passing line/Blade/contract audits, and 100% `strict_types` coverage across the audited application source snapshot**.
+
+<details>
+<summary><strong>Tracked LOC composition</strong></summary>
+<br>
+<p align="center">
+  <img src=".github/assets/readme/portfolio/02-loc-donut-3d.svg" alt="Tracked LOC composition across documentation, tests, application, database and Blade" width="100%">
+</p>
+</details>
+
+<details>
+<summary><strong>Feature test density</strong></summary>
+<br>
+<p align="center">
+  <img src=".github/assets/readme/portfolio/03-test-domain-bars.svg" alt="Feature test density by business domain" width="100%">
+</p>
+</details>
+
+<details>
+<summary><strong>Engineering activity by month</strong></summary>
+<br>
+<p align="center">
+  <img src=".github/assets/readme/portfolio/04-commit-trend.svg" alt="Git commits by month from March through September 2026" width="100%">
+</p>
+</details>
+
+<details>
+<summary><strong>Daily Git activity range</strong></summary>
+<br>
+<p align="center">
+  <img src=".github/assets/readme/portfolio/05-git-activity-candlestick.svg" alt="Candlestick-style visualization of daily Git commit intensity, explicitly not financial data" width="100%">
+</p>
+</details>
+
+Commit volume is shown as development history, **not** as a quality metric. The useful evidence is whether invariants, failure modes, and production behavior are actually verified.
+
+---
+
+## Failure Modes Treated as First-Class Cases
+
+The test suite and lifecycle documentation include protections around cases such as:
+
+| Failure class | Examples |
+|---|---|
+| Duplicate execution | double-click create/payment/refund, refresh, repeated submit |
+| Financial bounds | overpayment, over-refund, invalid component allocation |
+| Transaction revision | edit after payment/refund, stale current revision, carry-forward settlement |
+| Inventory | negative stock, duplicate movement, stale stock/cost projection |
+| Reporting | current-state vs historical-cash ambiguity, PDF/Excel/screen disagreement |
+| UI/backend drift | action shown in UI while backend cannot execute it |
+| Production operations | read-only diagnosis before repair, timezone/source interpretation |
+
+These are dull problems right until they touch money. Then every stakeholder suddenly develops an intense interest in edge cases.
+
+---
+
+## Production Context
+
+GlassPos has been operated as a live Laravel/MySQL application for a real workshop environment.
+
+Owner-reported operation metadata retained in this repository:
+
+| Signal | Value |
+|---|---:|
+| Runtime | Laravel + MySQL |
+| Deployment environment | shared / constrained hosting |
+| MySQL update cycles while live | 12 |
+| File update cycles while live | 31 |
+| User-visible downtime during those cycles | 0 reported |
+| Production data committed here | none |
+
+Production database dumps, customer records, credentials, and operational secrets are deliberately excluded. Production repair policy is conservative: **diagnose read-only first; mutate only after the evidence is understood**.
+
+---
+
+## Documentation and Setup
+
+| Document | Purpose |
+|---|---|
+| [`README_SETUP.md`](README_SETUP.md) | local installation, demo data, run and verification commands |
+| [`README_TECHNICAL.md`](README_TECHNICAL.md) | engineering snapshot, architecture, domain boundaries, verification evidence |
+| [`docs/0001_docs_help.md`](docs/0001_docs_help.md) | standards, ADRs, blueprints, lifecycle records and archives |
+
+Quick entrypoint:
 
 ```bash
-php artisan test tests/Feature/Note
-php artisan test tests/Feature/Payment
-php artisan test tests/Feature/Procurement
-php artisan test tests/Feature/Reporting
-php artisan test tests/Feature/ReportingExports
-php artisan test tests/Unit
-php artisan test tests/Arch
+make help
+make docs-help
 ```
 
-## Who This Repository Is For
+---
 
-This repository is useful for:
+## What This Repository Demonstrates
 
-- recruiters reviewing backend/domain complexity;
-- developers studying Laravel beyond CRUD;
-- engineers interested in transaction lifecycle design;
-- auditors looking at money/stock/report consistency;
-- business owners who want to understand why POS reliability matters.
+GlassPos is useful as a portfolio project because the interesting work is below the surface:
 
-## Current Status
+- modeling stateful transaction lifecycles instead of isolated CRUD screens;
+- separating cancellation, correction, revision, payment, and refund semantics;
+- protecting money and inventory through explicit invariants;
+- designing read models and exports that remain reconcilable after mutations;
+- maintaining traceable historical state;
+- turning manual QA failures into automated regression coverage;
+- evolving a large Laravel codebase under architectural and static-analysis guardrails;
+- operating against real deployment constraints rather than a permanently fictional localhost.
 
-HyperPOS is actively developed and hardened.
+<div align="center">
 
-Recent focus areas include:
+### CRUD is the alphabet. GlassPos is about what happens after the alphabet starts touching cash.
 
-- manual QA for transaction lifecycle and reports;
-- owner-facing language cleanup;
-- supplier invoice revision hardening;
-- timestamp display correctness;
-- production-safe read-only diagnostics;
-- technical and public README cleanup.
-
-## Final Note
-
-HyperPOS is dense because the business problem is dense.
-
-A POS that handles money, stock, debt, payable balance, refunds, corrections, and reports cannot stay reliable by pretending everything is a basic create-read-update-delete screen.
-
-CRUD is the alphabet. This project is about what happens after the alphabet starts touching cash.
+</div>
