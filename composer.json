@@ -1,13 +1,20 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "asyraf2003/glasspos",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Production workshop POS focused on transaction integrity, inventory, payments, refunds, procurement, auditability, and reporting.",
     "keywords": [
         "laravel",
-        "framework"
+        "php",
+        "mysql",
+        "point-of-sale",
+        "workshop",
+        "inventory",
+        "transaction-integrity",
+        "hexagonal-architecture"
     ],
-    "license": "MIT",
+    "homepage": "https://github.com/Asyraf2003/GlassPos",
+    "license": "proprietary",
     "require": {
         "php": "^8.2",
         "dompdf/dompdf": "^3.1",
