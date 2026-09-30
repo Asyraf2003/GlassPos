@@ -25,9 +25,15 @@
     <section class="dashboard-panel dashboard-panel-accent dashboard-panel-accent-expense" aria-labelledby="dashboard-expense-title">
         <header class="dashboard-panel-head"><div><h2 id="dashboard-expense-title">Biaya Operasional Terbesar</h2><p>Maksimal 5 kategori · posisi akhir periode</p></div><a href="{{ route('admin.reports.operational_expense.index', $dashboardExportQuery) }}">Semua biaya</a></header>
         <div class="dashboard-chart-shell">
-            <div class="dashboard-chart" data-finance-chart="bar" data-values="{{ json_encode($dashboard['finance_insights']['expense_categories']) }}" role="img" aria-label="Grafik batang biaya operasional terbesar">
-                <p class="dashboard-empty" role="status">Menyiapkan grafik biaya…</p>
-            </div>
+            @if ($dashboard['finance_insights']['expense_categories'])
+                <div class="dashboard-chart" data-finance-chart="bar" data-values="{{ json_encode($dashboard['finance_insights']['expense_categories']) }}" role="img" aria-label="Grafik batang biaya operasional terbesar">
+                    <p class="dashboard-empty" role="status">Menyiapkan grafik biaya…</p>
+                </div>
+            @else
+                <div class="dashboard-chart dashboard-chart-empty" role="img" aria-label="Belum ada data biaya operasional untuk digrafikkan">
+                    <p class="dashboard-empty" role="status">Belum ada biaya operasional pada periode ini.</p>
+                </div>
+            @endif
         </div>
         @if ($dashboard['finance_insights']['expense_categories'])
             <dl class="dashboard-facts">
@@ -41,9 +47,15 @@
     <section class="dashboard-panel dashboard-panel-accent dashboard-panel-accent-composition" aria-labelledby="dashboard-composition-title">
         <header class="dashboard-panel-head"><div><h2 id="dashboard-composition-title">Komposisi Biaya &amp; Gaji</h2><p>Periode terpilih · Rupiah</p></div></header>
         <div class="dashboard-chart-shell dashboard-chart-shell-donut">
-            <div class="dashboard-chart" data-finance-chart="donut" data-values="{{ json_encode($dashboard['finance_insights']['composition']) }}" role="img" aria-label="Diagram lingkaran komposisi biaya dan gaji">
-                <p class="dashboard-empty" role="status">Menyiapkan komposisi biaya…</p>
-            </div>
+            @if ($dashboard['finance_insights']['payroll_total_rupiah'] > 0 || $dashboard['position']['monthly_operational_expense_rupiah'] > 0)
+                <div class="dashboard-chart" data-finance-chart="donut" data-values="{{ json_encode($dashboard['finance_insights']['composition']) }}" role="img" aria-label="Diagram lingkaran komposisi biaya dan gaji">
+                    <p class="dashboard-empty" role="status">Menyiapkan komposisi biaya…</p>
+                </div>
+            @else
+                <div class="dashboard-chart dashboard-chart-empty" role="img" aria-label="Belum ada data biaya dan gaji untuk digrafikkan">
+                    <p class="dashboard-empty" role="status">Belum ada biaya atau pencairan gaji pada periode ini.</p>
+                </div>
+            @endif
         </div>
         @if ($dashboard['finance_insights']['payroll_total_rupiah'] > 0 || $dashboard['position']['monthly_operational_expense_rupiah'] > 0)
             <dl class="dashboard-facts">
