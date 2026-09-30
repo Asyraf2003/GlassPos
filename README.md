@@ -60,13 +60,13 @@ The useful part is not that each module exists. Plenty of software can create ro
 ### Admin and reporting
 
 <p align="center">
-  <img src=".github/assets/readme/admin-dashboard-overview.webp" alt="GlassPos admin dashboard overview with store summary, stock status, transaction cash book, obligations and costs" width="100%">
+  <img src=".github/assets/readme/admin-dashboard-overview.png" alt="GlassPos admin dashboard overview with store summary, stock status, transaction cash book, obligations and costs" width="100%">
 </p>
 
 <p align="center"><sub>Admin overview: store summary, stock position, transaction cash book, obligations and operating costs.</sub></p>
 
 <p align="center">
-  <img src=".github/assets/readme/admin-dashboard-analytics.webp" alt="GlassPos admin analytics dashboard with payroll, operational expense breakdown, cost composition, daily performance and best-selling items" width="100%">
+  <img src=".github/assets/readme/admin-dashboard-analytics.png" alt="GlassPos admin analytics dashboard with payroll, operational expense breakdown, cost composition, daily performance and best-selling items" width="100%">
 </p>
 
 <p align="center"><sub>Operational analytics: payroll, expense composition, daily performance and best-selling items.</sub></p>
