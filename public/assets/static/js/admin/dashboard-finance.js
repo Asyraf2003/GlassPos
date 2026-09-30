@@ -4,6 +4,7 @@
 
     const rupiah = value => `Rp ${new Intl.NumberFormat('id-ID').format(value)}`;
     const compact = value => new Intl.NumberFormat('id-ID', { notation: 'compact', maximumFractionDigits: 1 }).format(value);
+    const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[char]);
     const instances = new Map();
     const empty = (element, message) => {
         instances.get(element)?.destroy();
@@ -14,6 +15,11 @@
         text.setAttribute('role', 'status');
         text.textContent = message;
         element.append(text);
+    };
+    const donutTooltip = ({ series, seriesIndex, w }) => {
+        const label = escapeHtml(w.globals.labels[seriesIndex] ?? 'Nilai');
+        const accent = w.globals.colors[seriesIndex] ?? '#111827';
+        return `<div class="dashboard-donut-tooltip" style="--dashboard-donut-tooltip-accent:${accent}"><span class="dashboard-donut-tooltip-label">${label}</span><strong>${rupiah(Number(series[seriesIndex] || 0))}</strong></div>`;
     };
     const render = async () => {
         const styles = getComputedStyle(document.documentElement);
@@ -52,7 +58,7 @@
                 xaxis: { categories: rows.map(row => row.name), labels: { formatter: compact } },
                 grid: { borderColor: token('border'), strokeDashArray: 3, padding: { left: 8, right: 12 } },
                 legend: { show: donut, position: 'bottom', labels: { colors: token('text') } },
-                tooltip: { theme: dark ? 'dark' : 'light', y: { formatter: rupiah } },
+                tooltip: donut ? { custom: donutTooltip } : { theme: dark ? 'dark' : 'light', y: { formatter: rupiah } },
             });
             instances.set(element, chart);
             try { await chart.render(); } catch (_) { empty(element, 'Grafik gagal dirender. Nilai tetap tersedia pada rincian.'); }
