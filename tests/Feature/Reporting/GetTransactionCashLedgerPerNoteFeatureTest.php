@@ -44,6 +44,7 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
         $this->assertSame([
             [
                 'note_id' => 'note-1',
+                'note_label' => 'Budi · 2026-03-14',
                 'event_date' => '2026-03-15',
                 'event_type' => 'payment_allocation',
                 'direction' => 'in',
@@ -60,6 +61,7 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
             ],
             [
                 'note_id' => 'note-2',
+                'note_label' => 'Siti · 2026-03-15',
                 'event_date' => '2026-03-16',
                 'event_type' => 'payment_allocation',
                 'direction' => 'in',
@@ -76,6 +78,7 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
             ],
             [
                 'note_id' => 'note-1',
+                'note_label' => 'Budi · 2026-03-14',
                 'event_date' => '2026-03-16',
                 'event_type' => 'refund',
                 'direction' => 'out',
@@ -92,7 +95,6 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
             ],
         ], $data['rows']);
     }
-
 
     public function test_get_transaction_cash_ledger_per_note_handler_exposes_component_allocation_payment_method(): void
     {
@@ -136,6 +138,7 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
         $this->assertSame([
             [
                 'note_id' => 'note-cash',
+                'note_label' => 'Cash Customer · 2026-04-02',
                 'event_date' => '2026-04-02',
                 'event_type' => 'payment_allocation',
                 'direction' => 'in',
@@ -152,6 +155,7 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
             ],
             [
                 'note_id' => 'note-transfer',
+                'note_label' => 'Transfer Customer · 2026-04-02',
                 'event_date' => '2026-04-02',
                 'event_type' => 'payment_allocation',
                 'direction' => 'in',
