@@ -140,6 +140,10 @@ html body:has(#admin-dashboard) { background: var(--dashboard-page); }
 #admin-dashboard .dashboard-table-compact > :not(caption) > * > * { padding-top: .65rem; padding-bottom: .65rem; }
 #admin-dashboard .dashboard-finance-insights .apexcharts-datalabel-label { fill: var(--dashboard-muted) !important; }
 #admin-dashboard .dashboard-finance-insights .apexcharts-datalabel-value { fill: var(--dashboard-text) !important; font-weight: 700; }
+#admin-dashboard .dashboard-finance-insights .apexcharts-tooltip:has(.dashboard-donut-tooltip) { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+#admin-dashboard .dashboard-donut-tooltip { min-width: 10rem; padding: .65rem .75rem; border: 2px solid var(--dashboard-donut-tooltip-accent, #111827); border-radius: .55rem; background: #fff; color: #111827; box-shadow: 0 8px 24px rgb(15 23 42 / 16%); }
+#admin-dashboard .dashboard-donut-tooltip-label { display: block; margin-bottom: .15rem; color: #111827; font-size: .75rem; font-weight: 600; }
+#admin-dashboard .dashboard-donut-tooltip strong { display: block; color: #000; font-size: .875rem; font-weight: 750; font-variant-numeric: tabular-nums; }
 @media (max-width: 1199.98px) {
     #admin-dashboard .dashboard-finance-insights { grid-template-columns: 1fr; }
 }
