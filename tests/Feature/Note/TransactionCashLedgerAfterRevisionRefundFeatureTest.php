@@ -76,8 +76,9 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
         $pageResponse->assertSee('Pengembalian Dana');
         $pageResponse->assertSee('Masuk');
         $pageResponse->assertSee('Keluar');
-        $pageResponse->assertSee('payment-ledger-revision-refund-001');
-        $pageResponse->assertSee($refundId);
+        $pageResponse->assertSee('Budi Ledger Revision Revised');
+        $pageResponse->assertDontSee('payment-ledger-revision-refund-001');
+        $pageResponse->assertDontSee($refundId);
         $pageResponse->assertDontSee('payment_allocations');
         $pageResponse->assertDontSee('customer_refunds');
 
