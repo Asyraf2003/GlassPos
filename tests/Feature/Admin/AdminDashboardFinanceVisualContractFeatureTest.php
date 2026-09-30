@@ -13,7 +13,7 @@ final class AdminDashboardFinanceVisualContractFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_finance_visual_surfaces_are_present_even_without_period_data(): void
+    public function test_finance_visual_surfaces_remain_visible_without_fake_zero_charts(): void
     {
         $user = User::query()->create([
             'name' => 'Dashboard Visual Admin',
@@ -28,15 +28,12 @@ final class AdminDashboardFinanceVisualContractFeatureTest extends TestCase
         $response = $this->actingAs($user)->get(route('admin.dashboard'));
 
         $response->assertOk();
-        $response->assertSee('data-finance-chart="bar"', false);
-        $response->assertSee('data-finance-chart="donut"', false);
         $response->assertSee('dashboard-chart-shell', false);
+        $response->assertSee('dashboard-chart-empty', false);
+        $response->assertSee('Belum ada biaya operasional pada periode ini.');
+        $response->assertSee('Belum ada biaya atau pencairan gaji pada periode ini.');
+        $response->assertDontSee('data-finance-chart=', false);
         $response->assertSee('dashboard-finance.js', false);
         $response->assertSee('admin-chart-operational-performance', false);
-
-        self::assertDoesNotMatchRegularExpression(
-            '/data-finance-chart="(?:bar|donut)"[^>]*\shidden(?:\s|>)/',
-            $response->getContent(),
-        );
     }
 }
