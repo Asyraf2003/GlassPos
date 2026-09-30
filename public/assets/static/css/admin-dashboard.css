@@ -11,6 +11,8 @@
     --dashboard-warning: #946000;
     --dashboard-danger: #bd3343;
     --dashboard-neutral: #64748b;
+    --dashboard-info: #0b7285;
+    --dashboard-purple: #6f42c1;
     --dashboard-radius: .5rem;
 }
 html[data-bs-theme="dark"] {
@@ -25,6 +27,8 @@ html[data-bs-theme="dark"] {
     --dashboard-warning: #f3c66f;
     --dashboard-danger: #ff929d;
     --dashboard-neutral: #acb9cb;
+    --dashboard-info: #67d9e8;
+    --dashboard-purple: #c4b5fd;
 }
 html body:has(#admin-dashboard) { background: var(--dashboard-page); }
 #admin-dashboard, #main .dashboard-heading-title, #main .dashboard-heading-period, #main .dashboard-filter-button { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
@@ -126,6 +130,16 @@ html body:has(#admin-dashboard) { background: var(--dashboard-page); }
 #admin-dashboard .dashboard-finance-insights { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 #admin-dashboard .dashboard-finance-insights .dashboard-fact dt { overflow-wrap: anywhere; min-width: 0; }
 #admin-dashboard .dashboard-finance-insights .dashboard-chart { min-height: 270px; }
+#admin-dashboard .dashboard-panel-accent { position: relative; overflow: hidden; }
+#admin-dashboard .dashboard-panel-accent::before { content: ""; display: block; height: 3px; background: var(--dashboard-panel-accent, var(--dashboard-accent)); }
+#admin-dashboard .dashboard-panel-accent-payroll { --dashboard-panel-accent: var(--dashboard-success); }
+#admin-dashboard .dashboard-panel-accent-expense { --dashboard-panel-accent: var(--dashboard-info); }
+#admin-dashboard .dashboard-panel-accent-composition { --dashboard-panel-accent: var(--dashboard-purple); }
+#admin-dashboard .dashboard-chart-shell { margin: .9rem 1rem .25rem; border: 1px solid color-mix(in srgb, var(--dashboard-info) 22%, var(--dashboard-border)); border-radius: calc(var(--dashboard-radius) + .15rem); background: linear-gradient(180deg, color-mix(in srgb, var(--dashboard-info) 7%, var(--dashboard-surface)), var(--dashboard-surface)); }
+#admin-dashboard .dashboard-chart-shell-donut { border-color: color-mix(in srgb, var(--dashboard-purple) 22%, var(--dashboard-border)); background: linear-gradient(180deg, color-mix(in srgb, var(--dashboard-purple) 7%, var(--dashboard-surface)), var(--dashboard-surface)); }
+#admin-dashboard .dashboard-table-compact > :not(caption) > * > * { padding-top: .65rem; padding-bottom: .65rem; }
+#admin-dashboard .dashboard-finance-insights .apexcharts-datalabel-label { fill: var(--dashboard-muted) !important; }
+#admin-dashboard .dashboard-finance-insights .apexcharts-datalabel-value { fill: var(--dashboard-text) !important; font-weight: 700; }
 @media (max-width: 1199.98px) {
     #admin-dashboard .dashboard-finance-insights { grid-template-columns: 1fr; }
 }
