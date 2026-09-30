@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 640" width="1200" height="640" role="img" aria-labelledby="t d" font-family="Inter, 'Segoe UI', Arial, sans-serif">
+<title id="t">Architecture Composition</title>
+<desc id="d">Donut chart of 1,585 tracked PHP files: Application 663, Adapters Out 365, Adapters In 309, Ports 153, Core 95.</desc>
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0F172A"/><stop offset="1" stop-color="#111827"/></linearGradient>
+<radialGradient id="glowA" cx="0.1" cy="0" r="0.7"><stop offset="0" stop-color="#2563EB" stop-opacity="0.28"/><stop offset="1" stop-color="#2563EB" stop-opacity="0"/></radialGradient>
+<radialGradient id="glowB" cx="0.95" cy="1" r="0.6"><stop offset="0" stop-color="#8B5CF6" stop-opacity="0.22"/><stop offset="1" stop-color="#8B5CF6" stop-opacity="0"/></radialGradient>
+<linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#06B6D4"/><stop offset="1" stop-color="#2563EB"/></linearGradient>
+<linearGradient id="accentV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#06B6D4"/><stop offset="1" stop-color="#2563EB"/></linearGradient>
+<filter id="blur8" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="8"/></filter>
+<filter id="blur14" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="14"/></filter>
+<filter id="drop" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.45"/></filter>
+<linearGradient id="gApplication" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4C7FEF"/><stop offset="1" stop-color="#1F54C8"/></linearGradient>
+<linearGradient id="gAdaptersOut" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#33C3DC"/><stop offset="1" stop-color="#059BB4"/></linearGradient>
+<linearGradient id="gAdaptersIn" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3BC698"/><stop offset="1" stop-color="#0E9D6E"/></linearGradient>
+<linearGradient id="gPorts" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A079F8"/><stop offset="1" stop-color="#764ED1"/></linearGradient>
+<linearGradient id="gCore" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F7AF37"/><stop offset="1" stop-color="#D08609"/></linearGradient>
+
+</defs>
+<rect width="1200" height="640" rx="24" fill="url(#bg)"/>
+<rect width="1200" height="640" rx="24" fill="url(#glowA)"/>
+<rect width="1200" height="640" rx="24" fill="url(#glowB)"/>
+<rect x="0.5" y="0.5" width="1199" height="639" rx="24" fill="none" stroke="#334155" stroke-opacity="0.8"/>
+<rect x="56" y="36" width="5" height="52" rx="2.5" fill="url(#accentV)"/>
+<text x="76" y="66" font-size="32" font-weight="700" fill="#F8FAFC">Architecture Composition</text>
+<text x="76" y="92" font-size="16" fill="#94A3B8">Tracked PHP files across primary Hexagonal Architecture groups</text>
+<circle cx="330" cy="350" r="214" fill="none" stroke="#334155" stroke-opacity="0.5" stroke-dasharray="2 6"/>
+<path d="M332.44 150.01 A200 200 0 0 1 430.34 523.01 L394.22 460.72 A128 128 0 0 0 331.56 222.01 Z" fill="url(#gApplication)" stroke="#0F172A" stroke-width="2"/>
+<path d="M426.09 525.41 A200 200 0 0 1 170.72 470.95 L228.06 427.41 A128 128 0 0 0 391.49 462.26 Z" fill="url(#gAdaptersOut)" stroke="#0F172A" stroke-width="2"/>
+<path d="M167.81 467.02 A200 200 0 0 1 162.21 241.15 L222.62 280.34 A128 128 0 0 0 226.20 424.89 Z" fill="url(#gAdaptersIn)" stroke="#0F172A" stroke-width="2"/>
+<path d="M164.92 237.09 A200 200 0 0 1 254.18 164.93 L281.48 231.55 A128 128 0 0 0 224.35 277.74 Z" fill="url(#gPorts)" stroke="#0F172A" stroke-width="2"/>
+<path d="M258.73 163.13 A200 200 0 0 1 327.56 150.01 L328.44 222.01 A128 128 0 0 0 284.38 230.40 Z" fill="url(#gCore)" stroke="#0F172A" stroke-width="2"/>
+<circle cx="330" cy="350" r="114" fill="#111827" fill-opacity="0.75" stroke="#334155" stroke-opacity="0.6"/>
+<text x="330" y="356" font-size="52" font-weight="800" fill="#F8FAFC" text-anchor="middle" >1,585</text>
+<text x="330" y="386" font-size="16" font-weight="500" fill="#94A3B8" text-anchor="middle" >architecture files</text>
+<text x="690" y="158" font-size="12" font-weight="700" fill="#94A3B8" text-anchor="start" letter-spacing="1.5">GROUP</text>
+<text x="1020" y="158" font-size="12" font-weight="700" fill="#94A3B8" text-anchor="end" letter-spacing="1.5">FILES</text>
+<text x="1130" y="158" font-size="12" font-weight="700" fill="#94A3B8" text-anchor="end" letter-spacing="1.5">SHARE</text>
+<rect x="676" y="170" width="480" height="58" rx="12" fill="#334155" fill-opacity="0.22" stroke="#334155" stroke-opacity="0.6"/>
+<rect x="676" y="180" width="5" height="38" rx="2.5" fill="#2563EB"/>
+<text x="698" y="197" font-size="19" font-weight="600" fill="#F8FAFC" text-anchor="start" >Application</text>
+<rect x="698" y="208" width="240" height="6" rx="3" fill="#334155" fill-opacity="0.6"/>
+<rect x="698" y="208" width="240.0" height="6" rx="3" fill="#2563EB"/>
+<text x="1020" y="206" font-size="22" font-weight="700" fill="#F8FAFC" text-anchor="end" >663</text>
+<text x="1130" y="206" font-size="20" font-weight="700" fill="#60A5FA" text-anchor="end" >41.8%</text>
+<rect x="676" y="242" width="480" height="58" rx="12" fill="#334155" fill-opacity="0.22" stroke="#334155" stroke-opacity="0.6"/>
+<rect x="676" y="252" width="5" height="38" rx="2.5" fill="#06B6D4"/>
+<text x="698" y="269" font-size="19" font-weight="600" fill="#F8FAFC" text-anchor="start" >Adapters Out</text>
+<rect x="698" y="280" width="240" height="6" rx="3" fill="#334155" fill-opacity="0.6"/>
+<rect x="698" y="280" width="132.1" height="6" rx="3" fill="#06B6D4"/>
+<text x="1020" y="278" font-size="22" font-weight="700" fill="#F8FAFC" text-anchor="end" >365</text>
+<text x="1130" y="278" font-size="20" font-weight="700" fill="#06B6D4" text-anchor="end" >23.0%</text>
+<rect x="676" y="314" width="480" height="58" rx="12" fill="#334155" fill-opacity="0.22" stroke="#334155" stroke-opacity="0.6"/>
+<rect x="676" y="324" width="5" height="38" rx="2.5" fill="#10B981"/>
+<text x="698" y="341" font-size="19" font-weight="600" fill="#F8FAFC" text-anchor="start" >Adapters In</text>
+<rect x="698" y="352" width="240" height="6" rx="3" fill="#334155" fill-opacity="0.6"/>
+<rect x="698" y="352" width="111.9" height="6" rx="3" fill="#10B981"/>
+<text x="1020" y="350" font-size="22" font-weight="700" fill="#F8FAFC" text-anchor="end" >309</text>
+<text x="1130" y="350" font-size="20" font-weight="700" fill="#10B981" text-anchor="end" >19.5%</text>
+<rect x="676" y="386" width="480" height="58" rx="12" fill="#334155" fill-opacity="0.22" stroke="#334155" stroke-opacity="0.6"/>
+<rect x="676" y="396" width="5" height="38" rx="2.5" fill="#8B5CF6"/>
+<text x="698" y="413" font-size="19" font-weight="600" fill="#F8FAFC" text-anchor="start" >Ports</text>
+<rect x="698" y="424" width="240" height="6" rx="3" fill="#334155" fill-opacity="0.6"/>
+<rect x="698" y="424" width="55.4" height="6" rx="3" fill="#8B5CF6"/>
+<text x="1020" y="422" font-size="22" font-weight="700" fill="#F8FAFC" text-anchor="end" >153</text>
+<text x="1130" y="422" font-size="20" font-weight="700" fill="#8B5CF6" text-anchor="end" >9.7%</text>
+<rect x="676" y="458" width="480" height="58" rx="12" fill="#334155" fill-opacity="0.22" stroke="#334155" stroke-opacity="0.6"/>
+<rect x="676" y="468" width="5" height="38" rx="2.5" fill="#F59E0B"/>
+<text x="698" y="485" font-size="19" font-weight="600" fill="#F8FAFC" text-anchor="start" >Core</text>
+<rect x="698" y="496" width="240" height="6" rx="3" fill="#334155" fill-opacity="0.6"/>
+<rect x="698" y="496" width="34.4" height="6" rx="3" fill="#F59E0B"/>
+<text x="1020" y="494" font-size="22" font-weight="700" fill="#F8FAFC" text-anchor="end" >95</text>
+<text x="1130" y="494" font-size="20" font-weight="700" fill="#F59E0B" text-anchor="end" >6.0%</text>
+<text x="676" y="566" font-size="13" font-weight="400" fill="#94A3B8" text-anchor="start" >Shares are relative to the 1,585 files in these five groups only.</text>
+<text x="676" y="587" font-size="13" font-weight="400" fill="#94A3B8" text-anchor="start" >Not every tracked PHP source file belongs to one of these groups.</text>
+
+</svg>

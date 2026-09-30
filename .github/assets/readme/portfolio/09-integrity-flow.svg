@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 940" width="1200" height="940" role="img" aria-labelledby="t d" font-family="Inter, 'Segoe UI', Arial, sans-serif">
+<title id="t">Transaction Integrity Boundary</title>
+<desc id="d">One business event connects UI state, backend guards, database state, payment and refund allocation, stock movement, revision history, audit trail, report read model, PDF and Excel, and reconnects into an explainable consistent state.</desc>
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0F172A"/><stop offset="1" stop-color="#111827"/></linearGradient>
+<radialGradient id="glowA" cx="0.1" cy="0" r="0.7"><stop offset="0" stop-color="#2563EB" stop-opacity="0.28"/><stop offset="1" stop-color="#2563EB" stop-opacity="0"/></radialGradient>
+<radialGradient id="glowB" cx="0.95" cy="1" r="0.6"><stop offset="0" stop-color="#8B5CF6" stop-opacity="0.22"/><stop offset="1" stop-color="#8B5CF6" stop-opacity="0"/></radialGradient>
+<linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#06B6D4"/><stop offset="1" stop-color="#2563EB"/></linearGradient>
+<linearGradient id="accentV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#06B6D4"/><stop offset="1" stop-color="#2563EB"/></linearGradient>
+<filter id="blur8" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="8"/></filter>
+<filter id="blur14" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="14"/></filter>
+<filter id="drop" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.45"/></filter>
+<radialGradient id="hub" cx="0.5" cy="0.4" r="0.7"><stop offset="0" stop-color="#2563EB"/><stop offset="1" stop-color="#0F172A"/></radialGradient>
+<linearGradient id="loop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#06B6D4"/><stop offset="0.5" stop-color="#8B5CF6"/><stop offset="1" stop-color="#10B981"/></linearGradient>
+<marker id="arw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94A3B8"/></marker>
+
+</defs>
+<rect width="1200" height="940" rx="24" fill="url(#bg)"/>
+<rect width="1200" height="940" rx="24" fill="url(#glowA)"/>
+<rect width="1200" height="940" rx="24" fill="url(#glowB)"/>
+<rect x="0.5" y="0.5" width="1199" height="939" rx="24" fill="none" stroke="#334155" stroke-opacity="0.8"/>
+<rect x="56" y="36" width="5" height="52" rx="2.5" fill="url(#accentV)"/>
+<text x="76" y="66" font-size="32" font-weight="700" fill="#F8FAFC">Transaction Integrity Boundary</text>
+<text x="76" y="92" font-size="16" fill="#94A3B8">A transaction is not complete merely because a database row was inserted.</text>
+<ellipse cx="600" cy="445" rx="430" ry="262" fill="none" stroke="url(#loop)" stroke-width="10" opacity="0.28" filter="url(#blur8)"/>
+<ellipse cx="600" cy="445" rx="430" ry="262" fill="none" stroke="url(#loop)" stroke-width="3"/>
+<line x1="600" y1="445" x2="732.9" y2="195.8" stroke="#2563EB" stroke-opacity="0.55" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="600" y1="445" x2="947.9" y2="291.0" stroke="#06B6D4" stroke-opacity="0.55" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="600" y1="445" x2="1030.0" y2="445.0" stroke="#10B981" stroke-opacity="0.55" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="600" y1="445" x2="947.9" y2="599.0" stroke="#10B981" stroke-opacity="0.55" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="600" y1="445" x2="732.9" y2="694.2" stroke="#F59E0B" stroke-opacity="0.55" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="600" y1="445" x2="467.1" y2="694.2" stroke="#8B5CF6" stroke-opacity="0.55" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="600" y1="445" x2="252.1" y2="599.0" stroke="#EC4899" stroke-opacity="0.55" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="600" y1="445" x2="170.0" y2="445.0" stroke="#06B6D4" stroke-opacity="0.55" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="600" y1="445" x2="252.1" y2="291.0" stroke="#EF4444" stroke-opacity="0.55" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="600" y1="445" x2="467.1" y2="195.8" stroke="#10B981" stroke-opacity="0.55" stroke-width="2" stroke-dasharray="5 5"/>
+<rect x="626.9" y="167.8" width="212" height="56" rx="14" fill="#111827" fill-opacity="0.96" stroke="#2563EB" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="626.9" y="179.8" width="5" height="32" rx="2.5" fill="#2563EB"/>
+<text x="736.9" y="201.82319273066977" font-size="18" font-weight="700" fill="#F8FAFC" text-anchor="middle" >UI state</text>
+<rect x="841.9" y="263.0" width="212" height="56" rx="14" fill="#111827" fill-opacity="0.96" stroke="#06B6D4" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="841.9" y="275.0" width="5" height="32" rx="2.5" fill="#06B6D4"/>
+<text x="951.9" y="297.00026389937204" font-size="18" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Backend guards</text>
+<rect x="924.0" y="417.0" width="212" height="56" rx="14" fill="#111827" fill-opacity="0.96" stroke="#10B981" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="924.0" y="429.0" width="5" height="32" rx="2.5" fill="#10B981"/>
+<text x="1034.0" y="451.0" font-size="18" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Database state</text>
+<rect x="841.9" y="571.0" width="212" height="56" rx="14" fill="#111827" fill-opacity="0.96" stroke="#10B981" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="841.9" y="583.0" width="5" height="32" rx="2.5" fill="#10B981"/>
+<text x="951.9" y="596.999736100628" font-size="17" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Payment / refund</text>
+<text x="951.9" y="616.999736100628" font-size="14" font-weight="500" fill="#94A3B8" text-anchor="middle" >allocation</text>
+<rect x="626.9" y="666.2" width="212" height="56" rx="14" fill="#111827" fill-opacity="0.96" stroke="#F59E0B" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="626.9" y="678.2" width="5" height="32" rx="2.5" fill="#F59E0B"/>
+<text x="736.9" y="700.1768072693302" font-size="18" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Stock movement</text>
+<rect x="361.1" y="666.2" width="212" height="56" rx="14" fill="#111827" fill-opacity="0.96" stroke="#8B5CF6" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="361.1" y="678.2" width="5" height="32" rx="2.5" fill="#8B5CF6"/>
+<text x="471.1" y="700.1768072693303" font-size="18" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Revision history</text>
+<rect x="146.1" y="571.0" width="212" height="56" rx="14" fill="#111827" fill-opacity="0.96" stroke="#EC4899" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="146.1" y="583.0" width="5" height="32" rx="2.5" fill="#EC4899"/>
+<text x="256.1" y="604.999736100628" font-size="18" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Audit trail</text>
+<rect x="64.0" y="417.0" width="212" height="56" rx="14" fill="#111827" fill-opacity="0.96" stroke="#06B6D4" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="64.0" y="429.0" width="5" height="32" rx="2.5" fill="#06B6D4"/>
+<text x="174.0" y="451.00000000000006" font-size="18" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Report read model</text>
+<rect x="146.1" y="263.0" width="212" height="56" rx="14" fill="#111827" fill-opacity="0.96" stroke="#EF4444" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="146.1" y="275.0" width="5" height="32" rx="2.5" fill="#EF4444"/>
+<text x="256.1" y="297.0002638993721" font-size="18" font-weight="700" fill="#F8FAFC" text-anchor="middle" >PDF</text>
+<rect x="361.1" y="167.8" width="212" height="56" rx="14" fill="#111827" fill-opacity="0.96" stroke="#10B981" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="361.1" y="179.8" width="5" height="32" rx="2.5" fill="#10B981"/>
+<text x="471.1" y="201.82319273066977" font-size="18" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Excel</text>
+<circle cx="600" cy="445" r="112" fill="#2563EB" opacity="0.35" filter="url(#blur14)"/>
+<circle cx="600" cy="445" r="100" fill="url(#hub)" stroke="#06B6D4" stroke-width="2.5"/>
+<circle cx="600" cy="445" r="86" fill="none" stroke="#FFFFFF" stroke-opacity="0.18"/>
+<text x="600" y="439" font-size="20" font-weight="800" fill="#F8FAFC" text-anchor="middle" letter-spacing="3">ONE</text>
+<text x="600" y="465" font-size="20" font-weight="800" fill="#F8FAFC" text-anchor="middle" letter-spacing="3">BUSINESS</text>
+<text x="600" y="491" font-size="20" font-weight="800" fill="#F8FAFC" text-anchor="middle" letter-spacing="3">EVENT</text>
+<line x1="600" y1="707" x2="600" y2="775" stroke="#10B981" stroke-width="3" marker-end="url(#arw)"/>
+<text x="616" y="741" font-size="12" font-weight="600" fill="#94A3B8" text-anchor="start" >all boundaries reconnect</text>
+<rect x="300" y="781" width="600" height="74" rx="37" fill="#10B981" fill-opacity="0.16" stroke="#10B981" stroke-opacity="0.85" filter="url(#drop)"/>
+<circle cx="348" cy="818" r="20" fill="#10B981" fill-opacity="0.16" stroke="#10B981" stroke-width="2"/><path d="M339.6 818.4 L346.0 825.2 L357.2 811.2" fill="none" stroke="#10B981" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="624" y="827" font-size="25" font-weight="800" fill="#F8FAFC" text-anchor="middle" >Explainable Consistent State</text>
+
+</svg>

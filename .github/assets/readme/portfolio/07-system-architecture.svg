@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 960" width="1200" height="960" role="img" aria-labelledby="t d" font-family="Inter, 'Segoe UI', Arial, sans-serif">
+<title id="t">GlassPos Architecture</title>
+<desc id="d">Architecture diagram: Cashier or Admin uses inbound HTTP adapters, which call application use cases. Core domain rules and ports sit inside the hexagon. Outbound adapters implement ports for MySQL persistence, read models, audit and transactional outbox, and PDF and Excel export, feeding owner-facing UI and reports.</desc>
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0F172A"/><stop offset="1" stop-color="#111827"/></linearGradient>
+<radialGradient id="glowA" cx="0.1" cy="0" r="0.7"><stop offset="0" stop-color="#2563EB" stop-opacity="0.28"/><stop offset="1" stop-color="#2563EB" stop-opacity="0"/></radialGradient>
+<radialGradient id="glowB" cx="0.95" cy="1" r="0.6"><stop offset="0" stop-color="#8B5CF6" stop-opacity="0.22"/><stop offset="1" stop-color="#8B5CF6" stop-opacity="0"/></radialGradient>
+<linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#06B6D4"/><stop offset="1" stop-color="#2563EB"/></linearGradient>
+<linearGradient id="accentV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#06B6D4"/><stop offset="1" stop-color="#2563EB"/></linearGradient>
+<filter id="blur8" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="8"/></filter>
+<filter id="blur14" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="14"/></filter>
+<filter id="drop" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.45"/></filter>
+<marker id="ar0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94A3B8"/></marker>
+<marker id="ar1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2563EB"/></marker>
+<marker id="ar2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#06B6D4"/></marker>
+<marker id="ar3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#10B981"/></marker>
+<marker id="ar4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#8B5CF6"/></marker>
+<marker id="ar5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#F59E0B"/></marker>
+
+</defs>
+<rect width="1200" height="960" rx="24" fill="url(#bg)"/>
+<rect width="1200" height="960" rx="24" fill="url(#glowA)"/>
+<rect width="1200" height="960" rx="24" fill="url(#glowB)"/>
+<rect x="0.5" y="0.5" width="1199" height="959" rx="24" fill="none" stroke="#334155" stroke-opacity="0.8"/>
+<rect x="56" y="36" width="5" height="52" rx="2.5" fill="url(#accentV)"/>
+<text x="76" y="66" font-size="32" font-weight="700" fill="#F8FAFC">GlassPos Architecture</text>
+<text x="76" y="92" font-size="16" fill="#94A3B8">Hexagonal / Ports and Adapters — dependencies point inward</text>
+<rect x="430" y="118" width="340" height="56" rx="28" fill="#06B6D4" fill-opacity="0.14" stroke="#06B6D4" stroke-opacity="0.85" />
+<text x="600" y="153" font-size="21" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Cashier / Admin</text>
+<line x1="600" y1="176" x2="600" y2="204" stroke="#94A3B8" stroke-width="2.5" marker-end="url(#ar0)"/>
+<rect x="150" y="208" width="900" height="68" rx="16" fill="#10B981" fill-opacity="0.13" stroke="#10B981" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="150" y="222" width="5" height="40" rx="2.5" fill="#10B981"/>
+<text x="174" y="240.0" font-size="19" font-weight="700" fill="#F8FAFC" text-anchor="start" >Inbound HTTP Adapters</text>
+<text x="174" y="262.0" font-size="13" font-weight="500" fill="#94A3B8" text-anchor="start" >Driving side — requests enter here</text>
+<rect x="858.4" y="220" width="177.6" height="24" rx="12" fill="#10B981" fill-opacity="0.22" stroke="#10B981" stroke-opacity="0.85" />
+<text x="947.2" y="237" font-size="12" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Adapters In · 309 files</text>
+<line x1="600" y1="278" x2="600" y2="322" stroke="#10B981" stroke-width="2.5" marker-end="url(#ar3)"/>
+<polygon points="110,314 1090,314 1130,460 1090,606 110,606 70,460" fill="#2563EB" fill-opacity="0.07" stroke="#2563EB" stroke-width="2" stroke-dasharray="8 6"/>
+<text x="600" y="344" font-size="12" font-weight="800" fill="#60A5FA" text-anchor="middle" letter-spacing="3">APPLICATION HEXAGON</text>
+<rect x="300" y="362" width="600" height="70" rx="16" fill="#2563EB" fill-opacity="0.13" stroke="#2563EB" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="300" y="376" width="5" height="42" rx="2.5" fill="#2563EB"/>
+<text x="324" y="395.0" font-size="19" font-weight="700" fill="#F8FAFC" text-anchor="start" >Application Use Cases</text>
+<text x="324" y="417.0" font-size="13" font-weight="500" fill="#94A3B8" text-anchor="start" >Orchestrate business operations</text>
+<rect x="708.4" y="374" width="177.6" height="24" rx="12" fill="#2563EB" fill-opacity="0.22" stroke="#2563EB" stroke-opacity="0.85" />
+<text x="797.2" y="391" font-size="12" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Application · 663 files</text>
+<path d="M520 434 L420 482" fill="none" stroke="#2563EB" stroke-width="2.5" marker-end="url(#ar1)"/>
+<path d="M680 434 L780 482" fill="none" stroke="#2563EB" stroke-width="2.5" marker-end="url(#ar1)"/>
+<rect x="150" y="486" width="420" height="96" rx="16" fill="#F59E0B" fill-opacity="0.13" stroke="#F59E0B" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="150" y="500" width="5" height="68" rx="2.5" fill="#F59E0B"/>
+<text x="174" y="532.0" font-size="19" font-weight="700" fill="#F8FAFC" text-anchor="start" >Core Domain Rules</text>
+<text x="174" y="554.0" font-size="13" font-weight="500" fill="#94A3B8" text-anchor="start" >Business rules of the domain</text>
+<rect x="436.0" y="498" width="120.0" height="24" rx="12" fill="#F59E0B" fill-opacity="0.22" stroke="#F59E0B" stroke-opacity="0.85" />
+<text x="496.0" y="515" font-size="12" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Core · 95 files</text>
+<rect x="630" y="486" width="420" height="96" rx="16" fill="#8B5CF6" fill-opacity="0.13" stroke="#8B5CF6" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="630" y="500" width="5" height="68" rx="2.5" fill="#8B5CF6"/>
+<text x="654" y="532.0" font-size="19" font-weight="700" fill="#F8FAFC" text-anchor="start" >Ports / Contracts</text>
+<text x="654" y="554.0" font-size="13" font-weight="500" fill="#94A3B8" text-anchor="start" >Interfaces the application depends on</text>
+<rect x="901.6" y="498" width="134.4" height="24" rx="12" fill="#8B5CF6" fill-opacity="0.22" stroke="#8B5CF6" stroke-opacity="0.85" />
+<text x="968.8" y="515" font-size="12" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Ports · 153 files</text>
+<line x1="840" y1="584" x2="840" y2="646" stroke="#8B5CF6" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#ar4)"/>
+<text x="856" y="622" font-size="12" font-weight="600" fill="#A78BFA" text-anchor="start" >implemented by outbound adapters</text>
+<rect x="70" y="650" width="1060" height="178" rx="20" fill="#06B6D4" fill-opacity="0.06" stroke="#06B6D4" stroke-opacity="0.85" stroke-dasharray="8 6"/>
+<text x="96" y="680" font-size="12" font-weight="800" fill="#22D3EE" text-anchor="start" letter-spacing="2">OUTBOUND ADAPTERS — INFRASTRUCTURE</text>
+<text x="1104" y="680" font-size="12" font-weight="700" fill="#94A3B8" text-anchor="end" >Adapters Out · 365 files</text>
+<rect x="96" y="700" width="244" height="100" rx="14" fill="#2563EB" fill-opacity="0.14" stroke="#2563EB" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="96" y="700" width="244" height="5" rx="2.5" fill="#2563EB"/>
+<text x="218.0" y="745" font-size="17" font-weight="700" fill="#F8FAFC" text-anchor="middle" >MySQL /</text>
+<text x="218.0" y="768" font-size="17" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Persistence</text>
+<rect x="356" y="700" width="244" height="100" rx="14" fill="#06B6D4" fill-opacity="0.14" stroke="#06B6D4" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="356" y="700" width="244" height="5" rx="2.5" fill="#06B6D4"/>
+<text x="478.0" y="745" font-size="17" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Read Models /</text>
+<text x="478.0" y="768" font-size="17" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Projections</text>
+<rect x="616" y="700" width="244" height="100" rx="14" fill="#8B5CF6" fill-opacity="0.14" stroke="#8B5CF6" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="616" y="700" width="244" height="5" rx="2.5" fill="#8B5CF6"/>
+<text x="738.0" y="745" font-size="17" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Audit /</text>
+<text x="738.0" y="768" font-size="17" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Transactional Outbox</text>
+<rect x="876" y="700" width="244" height="100" rx="14" fill="#F59E0B" fill-opacity="0.14" stroke="#F59E0B" stroke-opacity="0.85" filter="url(#drop)"/>
+<rect x="876" y="700" width="244" height="5" rx="2.5" fill="#F59E0B"/>
+<text x="998.0" y="745" font-size="17" font-weight="700" fill="#F8FAFC" text-anchor="middle" >PDF /</text>
+<text x="998.0" y="768" font-size="17" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Excel Export</text>
+<line x1="600" y1="830" x2="600" y2="862" stroke="#F59E0B" stroke-width="2.5" marker-end="url(#ar5)"/>
+<rect x="330" y="866" width="540" height="62" rx="31" fill="#F59E0B" fill-opacity="0.14" stroke="#F59E0B" stroke-opacity="0.85" />
+<text x="600" y="904" font-size="21" font-weight="700" fill="#F8FAFC" text-anchor="middle" >Owner-facing UI / Reports</text>
+
+</svg>
