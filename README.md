@@ -59,16 +59,17 @@ The useful part is not that each module exists. Plenty of software can create ro
 
 ### Admin and reporting
 
-<table>
-  <tr>
-    <td width="50%"><img src=".github/assets/readme/admin-dashboard.png" alt="GlassPos admin dashboard"></td>
-    <td width="50%"><img src=".github/assets/readme/dashboard-report.png" alt="GlassPos reporting dashboard"></td>
-  </tr>
-  <tr>
-    <td align="center"><sub>Admin operations</sub></td>
-    <td align="center"><sub>Operational reporting</sub></td>
-  </tr>
-</table>
+<p align="center">
+  <img src=".github/assets/readme/admin-dashboard-overview.webp" alt="GlassPos admin dashboard overview with store summary, stock status, transaction cash book, obligations and costs" width="100%">
+</p>
+
+<p align="center"><sub>Admin overview: store summary, stock position, transaction cash book, obligations and operating costs.</sub></p>
+
+<p align="center">
+  <img src=".github/assets/readme/admin-dashboard-analytics.webp" alt="GlassPos admin analytics dashboard with payroll, operational expense breakdown, cost composition, daily performance and best-selling items" width="100%">
+</p>
+
+<p align="center"><sub>Operational analytics: payroll, expense composition, daily performance and best-selling items.</sub></p>
 
 <table>
   <tr>
