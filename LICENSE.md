@@ -1,4 +1,4 @@
-# App Kasir Hexagonal Non-Commercial Source-Available License v1.0
+# GlassPos Non-Commercial Source-Available License v1.0
 
 Copyright (c) 14 04 2026 AsyrafCloud
 
@@ -110,7 +110,7 @@ In no event shall the copyright holder be liable for any claim, damages, or othe
 
 If you want to use this software commercially, operationally, or as part of a business environment, you must obtain prior written permission from the copyright holder.
 
-Contact: `[YOUR CONTACT EMAIL OR CONTACT METHOD]`
+Contact: https://github.com/Asyraf2003
 
 ---
 
