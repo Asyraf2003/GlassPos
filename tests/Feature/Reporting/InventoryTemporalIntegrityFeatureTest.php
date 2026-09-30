@@ -46,7 +46,14 @@ final class InventoryTemporalIntegrityFeatureTest extends TestCase
         DB::table('actor_accesses')->insert(['actor_id' => (string) $admin->getAuthIdentifier(), 'role' => 'admin']);
         $screen = $this->actingAs($admin)->get(route('admin.reports.inventory_stock_value.index', $filters));
         $screen->assertOk()->assertSee('Rp 301');
-        self::assertSame($pdf['detailTables'], $screen->viewData('detailTables'));
+
+        $screenTables = $screen->viewData('detailTables');
+        foreach ($pdf['detailTables'] as $index => $table) {
+            self::assertSame($table['title'], $screenTables[$index]['title']);
+            self::assertSame($table['columns'], $screenTables[$index]['columns']);
+            self::assertSame($table['rows'], $screenTables[$index]['rows']->items());
+        }
+
         self::assertSame(201, $handler->handle('2026-10-01', '2026-10-31')->data()['summary']['total_inventory_value_rupiah']);
     }
 }
