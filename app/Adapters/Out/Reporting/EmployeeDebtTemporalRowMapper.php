@@ -18,7 +18,7 @@ final class EmployeeDebtTemporalRowMapper
         return [
             'debt_id' => (string) $row->id,
             'employee_id' => (string) $row->employee_id,
-            'employee_name' => isset($row->employee_name) && $row->employee_name !== null ? (string) $row->employee_name : '-',
+            'employee_name' => isset($row->employee_name) ? (string) $row->employee_name : '-',
             'recorded_at' => (string) $row->created_at,
             'total_debt' => $principal,
             'total_paid_amount' => $paid,

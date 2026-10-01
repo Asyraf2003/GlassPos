@@ -19,6 +19,24 @@ final class AbsurdTransactionGauntletFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalProcurementFixture;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // System creation/revision timestamps must exist before the September report cutoff.
+        $this->travelTo(\Illuminate\Support\Carbon::parse('2026-09-13 12:00:00'));
+        $this->app->instance(
+            \App\Ports\Out\ClockPort::class,
+            new \Tests\Support\FixedHistoricalWorkspaceClock('2026-09-13 12:00:00'),
+        );
+    }
+
+    protected function tearDown(): void
+    {
+        $this->travelBack();
+        $this->app->forgetInstance(\App\Ports\Out\ClockPort::class);
+        parent::tearDown();
+    }
+
     public function test_absurd_transaction_gauntlet_preserves_cross_domain_truth_end_to_end(): void
     {
         $admin = $this->loginAsAuthorizedAdmin();

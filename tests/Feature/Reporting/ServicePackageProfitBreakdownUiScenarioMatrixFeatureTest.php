@@ -49,13 +49,23 @@ final class ServicePackageProfitBreakdownUiScenarioMatrixFeatureTest extends Tes
         $response->assertSee('Rp 305.000');
 
         $response->assertSee('matrix-main-note');
-        $response->assertSee('matrix-main-wi');
+        $response->assertSee('Baris Paket');
+        $response->assertDontSee('matrix-main-wi');
         $response->assertDontSee('Rp 999.999');
         $dataset = app(GetServicePackageProfitBreakdownHandler::class)->handle('2030-02-01', '2030-02-28')->data();
         $pdf = app(ServicePackageProfitPdfViewDataBuilder::class)->build($dataset, ['date_from' => '2030-02-01', 'date_to' => '2030-02-28']);
-        self::assertSame($pdf['detailTables'], $response->viewData('detailTables'));
+        $screenTables = $response->viewData('detailTables');
+        foreach ($screenTables as $index => $table) {
+            self::assertSame(10, $table['rows']->perPage());
+            self::assertSame(count($pdf['detailTables'][$index]['rows']), $table['rows']->total());
+            $screenTables[$index]['rows'] = $table['rows']->items();
+        }
+        self::assertSame($pdf['detailTables'], $screenTables);
         self::assertSame('Rp 305.000', $pdf['detailTables'][0]['rows'][0]['total_package_gross_profit_rupiah']);
-        self::assertStringContainsString('matrix-main-wi', view('admin.reporting.service_package_profit_breakdown.export_pdf', $pdf)->render());
+        self::assertSame('1', $pdf['detailTables'][0]['rows'][0]['package_line_no']);
+        $renderedPdf = view('admin.reporting.service_package_profit_breakdown.export_pdf', $pdf)->render();
+        self::assertStringContainsString('matrix-main-note', $renderedPdf);
+        self::assertStringNotContainsString('matrix-main-wi', $renderedPdf);
     }
 
     public function test_page_custom_range_excludes_outside_date_and_canceled_package_rows(): void
