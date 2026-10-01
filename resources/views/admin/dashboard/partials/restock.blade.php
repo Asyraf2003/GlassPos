@@ -9,7 +9,7 @@
             <tbody>
             @forelse (($dashboard['restock_priority_rows'] ?? []) as $row)
                 <tr>
-                    <td><a class="dashboard-product" href="{{ route('admin.products.show', ['productId' => $row['product_id']]) }}" aria-label="Lihat Detail {{ $row['nama_barang'] }}">{{ $row['nama_barang'] }}</a><span class="dashboard-caption">{{ $row['kode_barang'] ?? 'Tanpa kode barang' }}</span></td>
+                    <td><a class="dashboard-product" href="{{ route('admin.products.show', ['productId' => $row['product_id']]) }}" aria-label="Lihat Detail {{ $row['nama_barang'] }}">{{ $row['nama_barang'] }}</a></td>
                     <td class="text-end">{{ number_format($row['current_qty_on_hand'], 0, ',', '.') }} Unit</td>
                     <td class="text-end">{{ number_format($row['reorder_point_qty'], 0, ',', '.') }}</td>
                     <td class="text-end">{{ number_format($row['critical_threshold_qty'], 0, ',', '.') }}</td>

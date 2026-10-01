@@ -55,7 +55,7 @@ final class TaxLandedCostReportingFeatureTest extends TestCase
         $response->assertSee('Rp 22.000');
         $response->assertSee('Rincian Ringkas');
         $response->assertSee('Rp 11.000');
-        $response->assertDontSee('TAX-RPT-001');
+        $response->assertSee('TAX-RPT-001');
     }
 
     public function test_inventory_stock_value_report_period_movements_include_taxed_supplier_receipt_cost(): void

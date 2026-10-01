@@ -35,6 +35,13 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
 
         self::assertTrue($revision->isSuccess(), $revision->message());
 
+        $currentRevisionId = (string) DB::table('notes')
+            ->where('id', 'note-ledger-revision-refund-001')
+            ->value('current_revision_id');
+        DB::table('note_revisions')
+            ->where('id', $currentRevisionId)
+            ->update(['created_at' => '2026-05-21 10:00:00']);
+
         $currentWorkItemId = (string) DB::table('work_items')
             ->where('note_id', 'note-ledger-revision-refund-001')
             ->where('id', '<>', 'wi-ledger-revision-refund-old-001')
@@ -58,6 +65,9 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
             ->value('id');
 
         self::assertNotSame('', $refundId);
+        DB::table('customer_refunds')
+            ->where('id', $refundId)
+            ->update(['created_at' => '2026-05-22 09:00:00']);
 
         $pageResponse = $this->actingAs($user)->get(
             route('admin.reports.transaction_cash_ledger.index', [
@@ -76,8 +86,10 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
         $pageResponse->assertSee('Pengembalian Dana');
         $pageResponse->assertSee('Masuk');
         $pageResponse->assertSee('Keluar');
-        $pageResponse->assertSee('payment-ledger-revision-refund-001');
-        $pageResponse->assertSee($refundId);
+        $pageResponse->assertSee('Budi Ledger Revision Original · 2026-05-20');
+        $pageResponse->assertSee('Budi Ledger Revision Revised · 2026-05-21');
+        $pageResponse->assertDontSee('payment-ledger-revision-refund-001');
+        $pageResponse->assertDontSee($refundId);
         $pageResponse->assertDontSee('payment_allocations');
         $pageResponse->assertDontSee('customer_refunds');
 
@@ -105,6 +117,7 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
         $this->assertExcelDetailContainsEvent(
             $detail,
             'note-ledger-revision-refund-001',
+            'Budi Ledger Revision Original · 2026-05-20',
             'Pembayaran Tercatat',
             'Masuk',
             100000,
@@ -115,6 +128,7 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
         $this->assertExcelDetailContainsEvent(
             $detail,
             'note-ledger-revision-refund-001',
+            'Budi Ledger Revision Revised · 2026-05-21',
             'Pengembalian Dana',
             'Keluar',
             100000,
@@ -145,6 +159,7 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
     private function assertExcelDetailContainsEvent(
         object $detail,
         string $noteId,
+        string $noteLabel,
         string $eventType,
         string $direction,
         int $amountRupiah,
@@ -154,6 +169,7 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
         for ($row = 2; $row <= $detail->getHighestDataRow(); $row++) {
             if (
                 $detail->getCell('C'.$row)->getValue() === $noteId
+                && $detail->getCell('D'.$row)->getValue() === $noteLabel
                 && $detail->getCell('E'.$row)->getValue() === $eventType
                 && $detail->getCell('F'.$row)->getValue() === $direction
                 && $detail->getCell('H'.$row)->getValue() === $amountRupiah
@@ -211,12 +227,21 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
             'Servis Ledger Revision Original',
             100000,
         );
+        DB::table('note_revisions')
+            ->where('id', 'note-ledger-revision-refund-001-r001')
+            ->update(['created_at' => '2026-05-20 08:00:00']);
 
         $this->seedCustomerPaymentBase(
             'payment-ledger-revision-refund-001',
             100000,
             '2026-05-20',
         );
+        DB::table('customer_payments')
+            ->where('id', 'payment-ledger-revision-refund-001')
+            ->update([
+                'recorded_at' => '2026-05-20 09:00:00',
+                'created_at' => '2026-05-20 09:00:00',
+            ]);
 
         $this->seedPaymentAllocationBase(
             'payment-allocation-ledger-revision-refund-001',

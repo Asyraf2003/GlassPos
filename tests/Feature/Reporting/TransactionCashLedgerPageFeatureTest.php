@@ -117,8 +117,10 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertSee('Transfer Masuk');
         $response->assertDontSee('Detail lengkap tersedia di Excel');
         $response->assertDontSee('Metode Pembayaran');
-        $response->assertSee('note-page-detail-cash');
-        $response->assertSee('note-page-detail-transfer');
+        $response->assertSee('Cash Detail · 2026-04-02');
+        $response->assertSee('Transfer Detail · 2026-04-02');
+        $response->assertDontSee('note-page-detail-cash');
+        $response->assertDontSee('note-page-detail-transfer');
     }
 
     public function test_daily_mode_uses_reference_date_only(): void
@@ -138,7 +140,9 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertSee('02 April 2026');
         $response->assertSee('Rp 7.000');
         $response->assertDontSee('Rp 9.000');
-        $response->assertSee('note-daily-1');
+        $response->assertSee('Daily A · 2026-04-02');
+        $response->assertDontSee('Daily B · 2026-04-03');
+        $response->assertDontSee('note-daily-1');
         $response->assertDontSee('note-daily-2');
     }
 
@@ -158,8 +162,11 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('06 April 2026 s/d 12 April 2026');
         $response->assertSee('Rp 11.000');
-        $response->assertSee('note-week-1');
-        $response->assertSee('note-week-2');
+        $response->assertSee('Week Mon · 2026-04-06');
+        $response->assertSee('Week Thu · 2026-04-09');
+        $response->assertDontSee('Next Week · 2026-04-13');
+        $response->assertDontSee('note-week-1');
+        $response->assertDontSee('note-week-2');
         $response->assertDontSee('note-week-3');
     }
 
@@ -179,8 +186,11 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertOk();
         $response->assertSee('01 April 2026 s/d 30 April 2026');
         $response->assertSee('Rp 7.000');
-        $response->assertSee('note-month-1');
-        $response->assertSee('note-month-2');
+        $response->assertSee('Month Start · 2026-04-01');
+        $response->assertSee('Month End · 2026-04-29');
+        $response->assertDontSee('Next Month · 2026-05-01');
+        $response->assertDontSee('note-month-1');
+        $response->assertDontSee('note-month-2');
         $response->assertDontSee('note-month-3');
     }
 
@@ -203,8 +213,11 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertSee('02 April 2026');
         $response->assertSee('04 April 2026');
         $response->assertSee('Rp 16.000');
-        $response->assertSee('note-custom-1');
-        $response->assertSee('note-custom-2');
+        $response->assertSee('Custom A · 2026-04-02');
+        $response->assertSee('Custom B · 2026-04-04');
+        $response->assertDontSee('Outside Custom · 2026-04-05');
+        $response->assertDontSee('note-custom-1');
+        $response->assertDontSee('note-custom-2');
         $response->assertDontSee('note-custom-3');
     }
 

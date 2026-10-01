@@ -66,9 +66,17 @@ final class EmployeeDebtTemporalIntegrityFeatureTest extends TestCase
         $pdf = app(EmployeeDebtReportPdfViewDataBuilder::class)->build($data, $filters);
         self::assertSame('Sisa per 30-09-2026', $pdf['summaryItems'][5]['label']);
         self::assertSame('Rp 500.000', $pdf['summaryItems'][5]['value']);
-        self::assertSame($pdf['detailTables'], $screen->viewData('detailTables'));
+
+        $screenTables = $screen->viewData('detailTables');
+        self::assertSame($pdf['detailTables'][0]['title'], $screenTables[0]['title']);
+        self::assertSame($pdf['detailTables'][0]['columns'], $screenTables[0]['columns']);
+        self::assertSame($pdf['detailTables'][0]['rows'], $screenTables[0]['rows']->items());
         self::assertSame('Rp 500.000', $pdf['detailTables'][0]['rows'][0]['remaining_balance']);
-        self::assertStringContainsString('temporal-debt', view('admin.reporting.employee_debt.export_pdf', $pdf)->render());
+
+        $renderedPdf = view('admin.reporting.employee_debt.export_pdf', $pdf)->render();
+        self::assertStringContainsString('Employee A', $renderedPdf);
+        self::assertStringNotContainsString('temporal-debt', $renderedPdf);
+
         $this->get(route('admin.reports.employee_debt.export_pdf', $filters))
             ->assertOk()->assertHeader('Content-Type', 'application/pdf');
         $response = $this->get(route('admin.reports.employee_debt.export_excel', $filters))->assertOk();

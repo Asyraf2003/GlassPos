@@ -44,6 +44,7 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
         $this->assertSame([
             [
                 'note_id' => 'note-1',
+                'note_label' => 'Budi · 2026-03-14',
                 'event_date' => '2026-03-15',
                 'event_type' => 'payment_allocation',
                 'direction' => 'in',
@@ -60,6 +61,7 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
             ],
             [
                 'note_id' => 'note-2',
+                'note_label' => 'Siti · 2026-03-15',
                 'event_date' => '2026-03-16',
                 'event_type' => 'payment_allocation',
                 'direction' => 'in',
@@ -76,6 +78,7 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
             ],
             [
                 'note_id' => 'note-1',
+                'note_label' => 'Budi · 2026-03-14',
                 'event_date' => '2026-03-16',
                 'event_type' => 'refund',
                 'direction' => 'out',
@@ -92,7 +95,6 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
             ],
         ], $data['rows']);
     }
-
 
     public function test_get_transaction_cash_ledger_per_note_handler_exposes_component_allocation_payment_method(): void
     {
@@ -136,6 +138,7 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
         $this->assertSame([
             [
                 'note_id' => 'note-cash',
+                'note_label' => 'Cash Customer · 2026-04-02',
                 'event_date' => '2026-04-02',
                 'event_type' => 'payment_allocation',
                 'direction' => 'in',
@@ -152,6 +155,7 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
             ],
             [
                 'note_id' => 'note-transfer',
+                'note_label' => 'Transfer Customer · 2026-04-02',
                 'event_date' => '2026-04-02',
                 'event_type' => 'payment_allocation',
                 'direction' => 'in',
@@ -169,6 +173,62 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
         ], $data['rows']);
     }
 
+    public function test_cash_ledger_note_label_uses_revision_active_at_each_event_occurrence(): void
+    {
+        $noteId = 'note-event-time-label';
+        $this->seedNote($noteId, 'Mutable Current Root', '2026-06-09', 100000);
+        $this->seedRevision($noteId, 'revision-r1', 1, 'Original Customer', '2026-06-01', '2026-06-01 08:00:00');
+        $this->seedRevision($noteId, 'revision-r2', 2, 'Revised Customer', '2026-06-02', '2026-06-02 12:00:00');
+
+        $this->seedCustomerPayment(
+            'payment-before-revision',
+            40000,
+            '2026-06-01',
+            'cash',
+            '2026-06-01 10:00:00',
+        );
+        $this->seedCustomerPayment(
+            'payment-after-revision',
+            60000,
+            '2026-06-02',
+            'transfer',
+            '2026-06-02 13:00:00',
+        );
+        $this->seedPaymentAllocation('allocation-before-revision', 'payment-before-revision', $noteId, 40000);
+        $this->seedPaymentAllocation('allocation-after-revision', 'payment-after-revision', $noteId, 60000);
+        $this->seedCustomerRefund(
+            'refund-after-revision',
+            'payment-after-revision',
+            $noteId,
+            10000,
+            '2026-06-03',
+            'Refund setelah revision R2.',
+            '2026-06-03 09:00:00',
+        );
+
+        $result = app(GetTransactionCashLedgerPerNoteHandler::class)
+            ->handle('2026-06-01', '2026-06-03');
+
+        self::assertTrue($result->isSuccess());
+        $data = $result->data();
+        self::assertIsArray($data);
+        self::assertSame(
+            [
+                'Original Customer · 2026-06-01',
+                'Revised Customer · 2026-06-02',
+                'Revised Customer · 2026-06-02',
+            ],
+            array_column($data['rows'], 'note_label'),
+        );
+        self::assertSame([40000, 60000, 10000], array_column($data['rows'], 'event_amount_rupiah'));
+        self::assertSame(['in', 'in', 'out'], array_column($data['rows'], 'direction'));
+        self::assertSame(
+            ['2026-06-01', '2026-06-02', '2026-06-03'],
+            array_column($data['rows'], 'event_date'),
+        );
+        self::assertNotContains('Mutable Current Root · 2026-06-09', array_column($data['rows'], 'note_label'));
+    }
+
     private function seedNote(string $id, string $customerName, string $transactionDate, int $totalRupiah): void
     {
         DB::table('notes')->insert([
@@ -179,11 +239,33 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
         ]);
     }
 
+    private function seedRevision(
+        string $noteId,
+        string $revisionId,
+        int $revisionNumber,
+        string $customerName,
+        string $transactionDate,
+        string $createdAt,
+    ): void {
+        DB::table('note_revisions')->insert([
+            'id' => $revisionId,
+            'note_root_id' => $noteId,
+            'revision_number' => $revisionNumber,
+            'parent_revision_id' => $revisionNumber === 1 ? null : 'revision-r'.($revisionNumber - 1),
+            'customer_name' => $customerName,
+            'transaction_date' => $transactionDate,
+            'grand_total_rupiah' => 100000,
+            'line_count' => 1,
+            'created_at' => $createdAt,
+        ]);
+    }
+
     private function seedCustomerPayment(
         string $id,
         int $amountRupiah,
         string $paidAt,
         ?string $paymentMethod = null,
+        ?string $recordedAt = null,
     ): void {
         $row = [
             'id' => $id,
@@ -193,6 +275,11 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
 
         if ($paymentMethod !== null) {
             $row['payment_method'] = $paymentMethod;
+        }
+
+        if ($recordedAt !== null) {
+            $row['recorded_at'] = $recordedAt;
+            $row['created_at'] = $recordedAt;
         }
 
         DB::table('customer_payments')->insert($row);
@@ -265,14 +352,21 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
         int $amountRupiah,
         string $refundedAt,
         string $reason,
+        ?string $createdAt = null,
     ): void {
-        DB::table('customer_refunds')->insert([
+        $row = [
             'id' => $id,
             'customer_payment_id' => $paymentId,
             'note_id' => $noteId,
             'amount_rupiah' => $amountRupiah,
             'refunded_at' => $refundedAt,
             'reason' => $reason,
-        ]);
+        ];
+
+        if ($createdAt !== null) {
+            $row['created_at'] = $createdAt;
+        }
+
+        DB::table('customer_refunds')->insert($row);
     }
 }

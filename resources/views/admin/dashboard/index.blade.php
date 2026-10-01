@@ -53,6 +53,7 @@
         @include('admin.dashboard.partials.stock')
     </div>
     @include('admin.dashboard.partials.finance')
+    @include('admin.dashboard.partials.finance-insights')
     <div class="dashboard-grid dashboard-analysis">
         @include('admin.dashboard.partials.analytics')
         @include('admin.dashboard.partials.top-selling')
@@ -65,5 +66,6 @@
 @push('scripts')
     <script src="{{ asset('assets/extensions/apexcharts/apexcharts.min.js') }}?v={{ config('app.asset_version') }}"></script>
     <script src="{{ asset('assets/static/js/admin/dashboard-analytics.js') }}?v={{ config('app.asset_version') }}"></script>
+    <script src="{{ asset('assets/static/js/admin/dashboard-finance.js') }}?v={{ config('app.asset_version') }}"></script>
     <script src="{{ asset('assets/static/js/admin/dashboard-drawer.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush

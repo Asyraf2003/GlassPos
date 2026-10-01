@@ -244,6 +244,61 @@ final class AdminDashboardPageFeatureTest extends TestCase
         }
     }
 
+    public function test_finance_insights_use_exact_report_totals_and_human_labels(): void
+    {
+        Carbon::setTestNow('2030-02-09 08:00:00');
+        try {
+            $this->seedDashboardFixtures();
+            $this->seedEmployee('employee-2', 'Montir A');
+            $payroll = (array) DB::table('payroll_disbursements')->where('id', 'payroll-1')->first();
+            DB::table('payroll_disbursements')->insert(array_replace($payroll, [
+                'id' => 'payroll-2', 'employee_id' => 'employee-2', 'amount' => 17001,
+            ]));
+            DB::table('payroll_disbursements')->insert(array_replace($payroll, [
+                'id' => 'payroll-reversed', 'amount' => 999999,
+            ]));
+            DB::table('payroll_disbursement_reversals')->insert([
+                'id' => 'reversal-1', 'payroll_disbursement_id' => 'payroll-reversed',
+                'reason' => 'Koreksi', 'performed_by_actor_id' => 'actor-admin',
+                'created_at' => '2030-01-20 12:00:00', 'updated_at' => now(),
+            ]);
+            $this->seedExpenseCategory('expense-category-2', 'SEWA', 'Sewa <toko>');
+            $expense = (array) DB::table('operational_expenses')->where('id', 'expense-1')->first();
+            DB::table('operational_expenses')->insert(array_replace($expense, [
+                'id' => 'expense-2', 'category_id' => 'expense-category-2', 'amount_rupiah' => 12345,
+            ]));
+            DB::table('operational_expenses')->insert(array_replace($expense, [
+                'id' => 'expense-deleted', 'amount_rupiah' => 999999, 'deleted_at' => '2030-01-20 12:00:00',
+            ]));
+            $response = $this->actingAs($this->user('admin'))->get(route('admin.dashboard', ['month' => '2030-01']));
+            $response->assertOk()->assertSee('Gaji Dibayarkan')->assertSee('Rp 27.001')
+                ->assertSee('Sewa &lt;toko&gt;', false)->assertDontSee('KB-001')
+                ->assertSee('data-finance-chart="bar"', false)->assertSee('data-finance-chart="donut"', false);
+            $data = $response->viewData('dashboard')['finance_insights'];
+            $this->assertSame(27001, $data['payroll_total_rupiah']);
+            $this->assertSame(2, $data['employee_count']);
+            $this->assertSame([17001, 10000], array_column($data['employee_rows'], 'amount_rupiah'));
+            $this->assertSame([12345, 5000], array_column($data['expense_categories'], 'amount_rupiah'));
+            $this->assertSame([17345, 27001], array_column($data['composition'], 'amount_rupiah'));
+            $this->assertSame(['name', 'amount_rupiah'], array_keys($data['employee_rows'][0]));
+
+            config(['performance.admin_dashboard_overview_cache_ttl_seconds' => 0]);
+            DB::table('payroll_disbursement_reversals')->update(['created_at' => '2030-02-02 12:00:00']);
+            DB::table('operational_expenses')->where('id', 'expense-deleted')->update(['deleted_at' => '2030-02-02 12:00:00']);
+            $historical = $this->get(route('admin.dashboard', ['month' => '2030-01']))->assertOk();
+            $this->assertSame([1017344, 1027000], array_column(
+                $historical->viewData('dashboard')['finance_insights']['composition'], 'amount_rupiah'
+            ));
+
+            $empty = $this->get(route('admin.dashboard', ['month' => '2029-12']));
+            $empty->assertOk()->assertSee('Belum ada pencairan gaji pada periode ini.')
+                ->assertSee('Belum ada biaya operasional pada periode ini.')
+                ->assertDontSee('data-finance-chart=', false)->assertSee('Rp 60.000');
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
     private function seedDashboardFixtures(): void
     {
         $this->seedExpenseCategory('expense-category-1', 'LISTRIK', 'Listrik');
