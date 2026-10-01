@@ -282,11 +282,13 @@
                                         class="form-control @error('nomor_faktur') is-invalid @enderror"
                                         placeholder="Contoh: INV-SUP-2026-0001"
                                         data-procurement-header-field
+                                        aria-describedby="invoice-number-feedback"
                                         required
                                     >
-                                    @error('nomor_faktur')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
+                                    <div id="invoice-number-feedback" class="text-danger small mt-1"
+                                        data-invoice-number-feedback aria-live="polite"
+                                        @if (!$errors->has('nomor_faktur')) hidden @endif
+                                    >{{ $errors->first('nomor_faktur') }}</div>
                                 </div>
 
                                 <div class="form-group position-relative">
@@ -404,7 +406,7 @@
                             </div>
 
                             <div class="ui-form-actions mt-4">
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" class="btn btn-primary" @disabled($errors->has('nomor_faktur'))>
                                     Simpan Nota
                                 </button>
 
@@ -433,6 +435,7 @@
             hasOldInput: @json(session()->hasOldInput()),
             lookupEndpoint: @json(route('admin.procurement.products.lookup')),
             supplierLookupEndpoint: @json(route('admin.procurement.suppliers.lookup')),
+            invoiceNumberCheckEndpoint: @json(route('admin.procurement.supplier-invoices.check-number')),
             clearDraftOnLoad: @json((bool) session('clear_procurement_create_draft')),
             createProductUrl: @json(
                 route('admin.products.create')
@@ -441,6 +444,7 @@
             )
         };
     </script>
+    <script src="{{ asset('assets/static/js/shared/supplier-invoice-number-validation.js') }}?v={{ config('app.asset_version') }}"></script>
     <script src="{{ asset('assets/static/js/pages/admin-procurement-create.js') }}?v={{ config('app.asset_version') }}"></script>
 @endpush
 

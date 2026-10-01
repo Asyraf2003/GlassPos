@@ -14,6 +14,16 @@ final class SupplierInvoiceQueryExceptionClassifier
         $sqlState = $this->sqlState($e);
         $message = mb_strtolower($e->getMessage());
 
+        if ($sqlState === '23000' && (
+            str_contains($message, 'si_active_invoice_number_unique')
+            || str_contains($message, 'supplier_invoices.active_nomor_faktur_normalized')
+        )) {
+            return Result::failure(
+                'Nomor faktur sudah dipakai oleh nota supplier aktif.',
+                ['supplier_invoice' => ['SUPPLIER_INVOICE_DUPLICATE_NUMBER']]
+            );
+        }
+
         if (
             $sqlState === '23000'
             && str_contains($message, 'sil_supplier_invoice_revision_product_unique')

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Adapters\In\Http\Controllers\Admin\Procurement\CheckSupplierInvoiceNumberController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\CreateSupplierInvoicePageController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\EditSupplierInvoicePageController;
 use App\Adapters\In\Http\Controllers\Admin\Procurement\FinalizeSupplierPaymentProofDirectUploadController;
@@ -25,6 +26,9 @@ use App\Adapters\In\Http\Controllers\Admin\Procurement\VoidSupplierInvoiceContro
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth', 'admin.page'])->group(function (): void {
+    Route::get('/admin/procurement/supplier-invoices/check-number', CheckSupplierInvoiceNumberController::class)
+        ->name('admin.procurement.supplier-invoices.check-number');
+
     Route::get('/admin/procurement/supplier-invoices/table', ProcurementInvoiceTableDataController::class)
         ->name('admin.procurement.supplier-invoices.table');
 

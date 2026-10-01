@@ -2,7 +2,9 @@
 <meta charset="utf-8">
 <style>.d-none { display: none; }</style>
 <form>
-<input id="nomor_faktur" value="TEST" data-procurement-header-field>
+<input id="nomor_faktur" name="nomor_faktur" value="TEST" data-procurement-header-field>
+<div data-invoice-number-feedback hidden></div>
+<button type="submit">Simpan Nota</button>
 <input id="nama_pt_pengirim" value="Supplier">
 <input id="tanggal_pengiriman"><input id="tanggal_terima">
 <input type="radio" name="auto_receive" value="1" checked>
@@ -30,6 +32,7 @@
 </form>
 <script src="../../public/assets/static/js/shared/product-display.js"></script>
 <script src="../../public/assets/static/js/shared/procurement-product-search.js"></script>
+<script src="../../public/assets/static/js/shared/supplier-invoice-number-validation.js"></script>
 <script>
 (async () => {
 try {
@@ -56,10 +59,11 @@ try {
   } else localStorage.setItem(key, JSON.stringify(draft));
   if (hydration === "server") localStorage.removeItem(key);
   window.requestAnimationFrame = (callback) => callback();
-  window.procurementCreateConfig = { lookupEndpoint: "https://example.test/lookup", hasOldInput: hydration === "old" };
+  window.procurementCreateConfig = { lookupEndpoint: "https://example.test/lookup", invoiceNumberCheckEndpoint: "https://example.test/check-number", hasOldInput: hydration === "old" };
   const product = (id) => ({ id, label: `${id} Product`, nama_barang: `${id} Product`, kode_barang: id.toUpperCase(), merek: "NPP", ukuran: 0, available_stock: 10, default_unit_price_rupiah: 170000 });
   window.fetch = async (url) => {
     const params = new URL(url).searchParams;
+    if (params.has("nomor_faktur")) return { ok: true, json: async () => ({ success: true, data: { duplicate: params.get("nomor_faktur") === "DUPLICATE" } }) };
     const rows = params.has("ids[]") ? params.getAll("ids[]").map(product) : [product(params.get("q"))];
     return { ok: true, json: async () => ({ success: true, data: { rows } }) };
   };
@@ -71,6 +75,19 @@ try {
   const rows = () => [...container.querySelectorAll("[data-line-item]")];
   const expectedId = hydration === "draft" ? "draft" : "server";
   await wait();
+  if (mode === "create") {
+    const number = document.getElementById("nomor_faktur");
+    const save = form.querySelector('[type="submit"]');
+    number.value = "DUPLICATE"; number.dispatchEvent(new Event("input", { bubbles: true }));
+    assert(save.disabled, "pending duplicate check blocks submit immediately");
+    await wait();
+    assert(save.disabled && save.classList.contains("disabled"), "duplicate disables submit visually");
+    assert(!form.querySelector('[data-invoice-number-feedback]').hidden && form.querySelector('[data-invoice-number-feedback]').classList.contains("text-danger"), "duplicate inline red feedback");
+    const shortcut = new Event("submit", { cancelable: true });
+    form.dispatchEvent(shortcut); assert(shortcut.defaultPrevented, "programmatic submit is guarded");
+    number.value = "TEST"; number.dispatchEvent(new Event("input", { bubbles: true })); await wait();
+    assert(!save.disabled && form.querySelector('[data-invoice-number-feedback]').hidden, "unique input clears feedback and enables save");
+  }
   const selected = rows().find((row) => row.querySelector("[data-product-id]").value === expectedId);
   assert(selected, "hydration identity / old-input precedence");
   const q = (selector) => selected.querySelector(selector);
