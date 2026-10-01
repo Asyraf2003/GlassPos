@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'AsyrafCloud')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="manifest" href="@yield('pwa-manifest', url('/manifest.webmanifest'))">
+    <link rel="manifest" href="@yield('pwa-manifest', request()->routeIs('admin.*') ? url('/admin-manifest.webmanifest') : url('/manifest.webmanifest'))">
     <meta name="theme-color" content="#435ebe">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="HyperPOS Kasir">
+    <meta name="apple-mobile-web-app-title" content="@yield('pwa-title', request()->routeIs('admin.*') ? 'GlassPos Admin' : 'HyperPOS Kasir')">
     <link rel="apple-touch-icon" href="{{ asset('assets/static/pwa/hyperpos-icon-192.png') }}">
 
     <link rel="shortcut icon" href="{{ asset('assets/compiled/svg/favicon.svg') }}" type="image/x-icon">

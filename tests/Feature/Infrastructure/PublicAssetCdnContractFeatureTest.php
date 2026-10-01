@@ -45,7 +45,7 @@ final class PublicAssetCdnContractFeatureTest extends TestCase
         $layout = (string) file_get_contents(resource_path('views/layouts/app.blade.php'));
 
         self::assertStringContainsString(
-            "href=\"@yield('pwa-manifest', url('/manifest.webmanifest'))\"",
+            "request()->routeIs('admin.*') ? url('/admin-manifest.webmanifest') : url('/manifest.webmanifest')",
             $layout,
         );
         self::assertStringContainsString(
@@ -53,6 +53,7 @@ final class PublicAssetCdnContractFeatureTest extends TestCase
             $layout,
         );
         self::assertStringNotContainsString("asset('manifest.webmanifest')", $layout);
+        self::assertStringNotContainsString("asset('admin-manifest.webmanifest')", $layout);
         self::assertStringNotContainsString("asset('service-worker.js')", $layout);
     }
 
