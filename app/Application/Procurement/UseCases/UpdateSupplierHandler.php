@@ -19,7 +19,8 @@ final class UpdateSupplierHandler
     ) {
     }
 
-    public function handle(string $supplierId, string $namaPtPengirim): Result
+    /** @param array{bank_name?: ?string, bank_account_number?: ?string} $bankDetails */
+    public function handle(string $supplierId, string $namaPtPengirim, array $bankDetails = []): Result
     {
         $supplier = $this->readers->getById(trim($supplierId));
 
@@ -42,6 +43,10 @@ final class UpdateSupplierHandler
 
         try {
             $supplier->rename($namaPtPengirim);
+            $supplier->updateBankDetails(
+                array_key_exists('bank_name', $bankDetails) ? $bankDetails['bank_name'] : $supplier->bankName(),
+                array_key_exists('bank_account_number', $bankDetails) ? $bankDetails['bank_account_number'] : $supplier->bankAccountNumber(),
+            );
         } catch (DomainException $e) {
             return Result::failure(
                 $e->getMessage(),

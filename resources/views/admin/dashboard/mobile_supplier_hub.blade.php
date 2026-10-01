@@ -61,7 +61,7 @@
 
         .mobile-supplier-row-layout {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) max-content;
+            grid-template-columns: minmax(0, 1fr);
             align-items: start;
             gap: .75rem 1rem;
             min-width: 0;
@@ -86,9 +86,12 @@
         .mobile-supplier-row-value {
             display: flex;
             flex-direction: column;
-            align-items: flex-end;
+            align-items: flex-start;
+            width: 100%;
+            padding-top: .7rem;
+            border-top: 1px solid rgba(var(--bs-primary-rgb), .09);
             max-width: 100%;
-            text-align: right;
+            text-align: left;
         }
 
         .mobile-supplier-row-amount {
@@ -171,7 +174,7 @@
                             class="mobile-supplier-row p-3 text-start"
                             data-mobile-pay-invoice
                             data-invoice-id="{{ $invoice['supplier_invoice_id'] }}"
-                            data-invoice-no="{{ $invoice['invoice_no'] }}"
+                            data-bank-label="{{ \App\Support\SupplierBankLabel::display($invoice['bank_name'], $invoice['bank_account_number']) }}"
                             data-supplier-name="{{ $invoice['supplier_name'] }}"
                             data-outstanding-label="Rp {{ number_format($invoice['outstanding_rupiah'], 0, ',', '.') }}"
                             data-due-date="{{ $invoice['due_date'] }}"
@@ -179,7 +182,7 @@
                             <div class="mobile-supplier-row-layout">
                                 <div class="mobile-supplier-row-copy">
                                     <strong class="mobile-supplier-row-title">{{ $invoice['supplier_name'] }}</strong>
-                                    <span class="small text-muted d-block mobile-supplier-row-meta">{{ $invoice['invoice_no'] }}</span>
+                                    <span class="small text-muted d-block mobile-supplier-row-meta">{{ \App\Support\SupplierBankLabel::display($invoice['bank_name'], $invoice['bank_account_number']) }}</span>
                                     <span class="small text-muted d-block mt-1 mobile-supplier-row-meta">
                                         Jatuh tempo: {{ \App\Support\ViewDateFormatter::display($invoice['due_date']) }}
                                     </span>
@@ -199,30 +202,38 @@
             <div class="mobile-supplier-section-heading mb-3">
                 <div class="min-w-0">
                     <h5 class="mb-1">Pembayaran Terbaru</h5>
-                    <div class="small text-muted">Tap baris untuk langsung mengunduh bukti pembayaran.</div>
+                    <div class="small text-muted">Tap baris untuk mengunduh bukti atau melengkapi bukti yang belum ada.</div>
                 </div>
                 <span class="badge bg-light-primary">{{ count($recentPaymentProofs) }}</span>
             </div>
 
             @if ($recentPaymentProofs === [])
-                <div class="alert alert-light border mb-0">Belum ada bukti pembayaran supplier.</div>
+                <div class="alert alert-light border mb-0">Belum ada pembayaran supplier.</div>
             @else
                 <div class="d-flex flex-column gap-3">
                     @foreach ($recentPaymentProofs as $proof)
                         <a
-                            href="{{ route('admin.procurement.supplier-payment-proof-attachments.show', ['attachmentId' => $proof['attachment_id'], 'download' => 1]) }}"
+                            @if ($proof['attachment_id'] !== null)
+                                href="{{ route('admin.procurement.supplier-payment-proof-attachments.show', ['attachmentId' => $proof['attachment_id'], 'download' => 1]) }}"
+                            @else
+                                href="#mobile-supplier-payment-modal"
+                                data-mobile-attach-payment
+                                data-payment-id="{{ $proof['supplier_payment_id'] }}"
+                                data-supplier-name="{{ $proof['supplier_name'] }}"
+                                data-outstanding-label="Rp {{ number_format($proof['amount_rupiah'], 0, ',', '.') }}"
+                            @endif
                             class="mobile-supplier-row mobile-supplier-download p-3"
                         >
                             <div class="mobile-supplier-row-layout">
                                 <div class="mobile-supplier-row-copy">
                                     <strong class="mobile-supplier-row-title">{{ $proof['supplier_name'] }}</strong>
                                     <span class="small text-muted d-block mobile-supplier-row-meta">{{ $proof['invoice_no'] }}</span>
-                                    <span class="small text-muted d-block mt-1 mobile-supplier-row-meta">{{ $proof['original_filename'] }}</span>
+                                    <span class="small text-muted d-block mt-1 mobile-supplier-row-meta">{{ $proof['original_filename'] ?? 'Data belum ada' }}</span>
                                 </div>
                                 <div class="mobile-supplier-row-value">
                                     <strong class="mobile-supplier-row-amount">Rp {{ number_format($proof['amount_rupiah'], 0, ',', '.') }}</strong>
                                     <small class="text-muted mobile-supplier-row-meta">{{ \App\Support\ViewDateFormatter::display($proof['paid_at']) }}</small>
-                                    <i class="bi bi-download d-block mt-2" aria-hidden="true"></i>
+                                    <i class="bi {{ $proof['attachment_id'] !== null ? 'bi-download' : 'bi-upload' }} d-block mt-2" aria-hidden="true"></i>
                                 </div>
                             </div>
                         </a>
@@ -244,9 +255,8 @@
 
                     <div class="modal-body">
                         <div class="border rounded p-3 mb-3">
-                            <div class="small text-muted">Nota</div>
-                            <strong data-mobile-payment-invoice></strong>
-                            <div class="small text-muted mt-2">Sisa yang akan dilunasi</div>
+                            <strong data-mobile-payment-bank></strong>
+                            <div class="small text-muted mt-2" data-mobile-payment-amount-label>Sisa yang akan dilunasi</div>
                             <strong class="text-primary" data-mobile-payment-outstanding></strong>
                         </div>
 

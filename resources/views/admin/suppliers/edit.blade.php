@@ -42,6 +42,8 @@
                                 @enderror
                             </div>
 
+                            @include('admin.suppliers.partials.bank_fields', ['prefix' => 'supplier-page', 'bankName' => $supplier->bankName(), 'bankAccountNumber' => $supplier->bankAccountNumber()])
+
                             <div class="d-flex justify-content-start gap-2">
                                 <button type="submit" class="btn btn-primary">
                                     Simpan Perubahan

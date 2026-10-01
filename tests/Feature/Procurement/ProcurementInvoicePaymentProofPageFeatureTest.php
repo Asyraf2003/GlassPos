@@ -162,7 +162,7 @@ final class ProcurementInvoicePaymentProofPageFeatureTest extends TestCase
         $response->assertSee('Status Pembayaran');
         $response->assertSee('Lunas');
         $response->assertSee('Belum Ada Bukti');
-        $response->assertSee('Belum ada lampiran bukti.');
+        $response->assertSee('Data belum ada');
         $response->assertSee('Upload Bukti Pembayaran');
         $response->assertSee('payment_proof_files_0', false);
         $response->assertSee('data-scope-type="supplier_payment"', false);

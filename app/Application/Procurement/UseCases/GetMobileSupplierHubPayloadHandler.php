@@ -14,8 +14,8 @@ final class GetMobileSupplierHubPayloadHandler
 
     /**
      * @return array{
-     *     outstanding_invoices: list<array<string, int|string>>,
-     *     recent_payment_proofs: list<array<string, int|string>>
+     *     outstanding_invoices: list<array<string, int|string|null>>,
+     *     recent_payment_proofs: list<array<string, int|string|null>>
      * }
      */
     public function handle(int $limit = 100): array

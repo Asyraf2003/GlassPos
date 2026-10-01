@@ -23,6 +23,7 @@ final class DatabaseMobileSupplierHubReaderAdapter implements MobileSupplierHubR
             ->groupBy('supplier_invoice_id');
 
         return DB::table('supplier_invoices')
+            ->leftJoin('suppliers', 'suppliers.id', '=', 'supplier_invoices.supplier_id')
             ->leftJoinSub($paymentTotals, 'payment_totals', function ($join): void {
                 $join->on('payment_totals.supplier_invoice_id', '=', 'supplier_invoices.id');
             })
@@ -34,7 +35,9 @@ final class DatabaseMobileSupplierHubReaderAdapter implements MobileSupplierHubR
             ->get([
                 'supplier_invoices.id as supplier_invoice_id',
                 'supplier_invoices.nomor_faktur',
-                'supplier_invoices.supplier_nama_pt_pengirim_snapshot as supplier_name',
+                DB::raw('COALESCE(suppliers.nama_pt_pengirim, supplier_invoices.supplier_nama_pt_pengirim_snapshot) as supplier_name'),
+                'suppliers.bank_name',
+                'suppliers.bank_account_number',
                 'supplier_invoices.jatuh_tempo as due_date',
                 DB::raw('(supplier_invoices.grand_total_rupiah - COALESCE(payment_totals.total_paid_rupiah, 0)) as outstanding_rupiah'),
             ])
@@ -42,6 +45,8 @@ final class DatabaseMobileSupplierHubReaderAdapter implements MobileSupplierHubR
                 'supplier_invoice_id' => (string) $row->supplier_invoice_id,
                 'invoice_no' => (string) ($row->nomor_faktur ?? $row->supplier_invoice_id),
                 'supplier_name' => (string) ($row->supplier_name ?? '-'),
+                'bank_name' => $row->bank_name,
+                'bank_account_number' => $row->bank_account_number,
                 'due_date' => (string) ($row->due_date ?? ''),
                 'outstanding_rupiah' => (int) $row->outstanding_rupiah,
             ])
@@ -50,8 +55,8 @@ final class DatabaseMobileSupplierHubReaderAdapter implements MobileSupplierHubR
 
     public function recentPaymentProofs(int $limit = 100): array
     {
-        return DB::table('supplier_payment_proof_attachments as proof')
-            ->join('supplier_payments as payment', 'payment.id', '=', 'proof.supplier_payment_id')
+        return DB::table('supplier_payments as payment')
+            ->leftJoin('supplier_payment_proof_attachments as proof', 'payment.id', '=', 'proof.supplier_payment_id')
             ->join('supplier_invoices as invoice', 'invoice.id', '=', 'payment.supplier_invoice_id')
             ->leftJoin('supplier_payment_reversals as reversal', 'reversal.supplier_payment_id', '=', 'payment.id')
             ->whereNull('reversal.id')
@@ -69,8 +74,8 @@ final class DatabaseMobileSupplierHubReaderAdapter implements MobileSupplierHubR
                 'invoice.supplier_nama_pt_pengirim_snapshot as supplier_name',
             ])
             ->map(static fn (object $row): array => [
-                'attachment_id' => (string) $row->attachment_id,
-                'original_filename' => (string) $row->original_filename,
+                'attachment_id' => $row->attachment_id === null ? null : (string) $row->attachment_id,
+                'original_filename' => $row->original_filename === null ? null : (string) $row->original_filename,
                 'supplier_payment_id' => (string) $row->supplier_payment_id,
                 'amount_rupiah' => (int) $row->amount_rupiah,
                 'paid_at' => (string) $row->paid_at,

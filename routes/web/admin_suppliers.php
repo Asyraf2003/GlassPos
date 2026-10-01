@@ -14,6 +14,9 @@ Route::middleware(['web', 'auth', 'admin.page'])->group(function (): void {
 });
 
 Route::middleware(['web', 'auth', 'admin.page', 'app.shell'])->group(function (): void {
+    Route::post('/admin/suppliers', \App\Adapters\In\Http\Controllers\Admin\Supplier\CreateSupplierController::class)
+        ->name('admin.suppliers.store');
+
     Route::get('/admin/suppliers', SupplierIndexPageController::class)
         ->name('admin.suppliers.index');
 

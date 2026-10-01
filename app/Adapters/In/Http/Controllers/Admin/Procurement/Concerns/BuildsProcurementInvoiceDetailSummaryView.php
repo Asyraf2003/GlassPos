@@ -24,6 +24,7 @@ trait BuildsProcurementInvoiceDetailSummaryView
         return [
             'supplier_invoice_id' => (string) ($summary['supplier_invoice_id'] ?? ''),
             'nomor_faktur' => $nomorFaktur,
+            'bank_label' => \App\Support\SupplierBankLabel::display($summary['bank_name'] ?? null, $summary['bank_account_number'] ?? null),
             'supplier_nama_pt_pengirim_current' => $supplierNamaCurrent,
             'supplier_nama_pt_pengirim_snapshot' => $supplierNamaSnapshot,
             'shipment_date' => (string) ($summary['shipment_date'] ?? ''),

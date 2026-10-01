@@ -307,6 +307,29 @@ final class FinalizeSupplierPaymentProofDirectUploadContractFeatureTest extends 
         return $result;
     }
 
+    public function test_legacy_settled_payment_proof_upload_preserves_financial_truth(): void
+    {
+        $this->seedPaymentFixture('legacy-paid', 'legacy-invoice');
+        DB::table('supplier_payments')->where('id', 'legacy-paid')->update(['amount_rupiah' => 100000]);
+        $before = DB::table('supplier_payments')->where('id', 'legacy-paid')->first();
+        $reader = app(\App\Adapters\Out\Procurement\DatabaseMobileSupplierHubReaderAdapter::class);
+        self::assertSame([], $reader->outstandingInvoices());
+        $content = $this->pdfBytes();
+        $this->seedPreparedIntent('legacy-intent', 'legacy-actor', 'supplier_payment', 'legacy-paid', null, 'prepared', strlen($content));
+        Storage::disk('r2_private')->put($this->stagingPath('legacy-intent'), $content);
+        $result = $this->finalize('legacy-intent', 'legacy-actor');
+        self::assertTrue($result->isSuccess());
+        $after = DB::table('supplier_payments')->where('id', 'legacy-paid')->first();
+        self::assertSame($before->amount_rupiah, $after->amount_rupiah);
+        self::assertSame($before->paid_at, $after->paid_at);
+        self::assertSame(1, DB::table('supplier_payments')->count());
+        self::assertSame([], $reader->outstandingInvoices());
+        self::assertSame(0, (int) DB::table('supplier_invoice_list_projection')->where('supplier_invoice_id', 'legacy-invoice')->value('outstanding_rupiah'));
+        self::assertSame(1, $this->attachmentCount('legacy-paid'));
+        self::assertTrue($this->finalize('legacy-intent', 'legacy-actor')->isSuccess());
+        self::assertSame(1, $this->attachmentCount('legacy-paid'));
+    }
+
     private function seedPreparedIntent(
         string $intentId,
         string $actorId,

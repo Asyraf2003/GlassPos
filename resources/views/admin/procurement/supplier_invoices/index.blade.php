@@ -217,6 +217,11 @@
                     </div>
 
                     <div class="modal-body px-4 pb-4 pt-3">
+                        <div class="border rounded p-3 mb-3">
+                            <div id="procurement-payment-bank"></div>
+                            <div class="small text-muted mt-2">Sisa tagihan</div>
+                            <strong id="procurement-payment-outstanding"></strong>
+                        </div>
                         @error('supplier_payment_proof')
                             <div class="alert alert-danger">{{ $message }}</div>
                         @enderror

@@ -22,7 +22,10 @@ final class DatabaseProcurementInvoiceTableReaderAdapter implements ProcurementI
     public function search(ProcurementInvoiceTableQuery $query): array
     {
         $builder = DB::table('supplier_invoice_list_projection')
+            ->leftJoin('suppliers as supplier_master', 'supplier_master.id', '=', 'supplier_invoice_list_projection.supplier_id')
             ->select([
+                'supplier_master.bank_name',
+                'supplier_master.bank_account_number',
                 'supplier_invoice_id',
                 'nomor_faktur',
                 'supplier_nama_pt_pengirim_snapshot',
@@ -36,7 +39,7 @@ final class DatabaseProcurementInvoiceTableReaderAdapter implements ProcurementI
                 'total_received_qty',
                 'proof_attachment_count',
                 'voided_at',
-                DB::raw("(SELECT suppliers.nama_pt_pengirim FROM suppliers WHERE suppliers.id = supplier_invoice_list_projection.supplier_id LIMIT 1) as supplier_nama_pt_pengirim_current"),
+                'supplier_master.nama_pt_pengirim as supplier_nama_pt_pengirim_current',
             ]);
 
         $builder = $this->filters->apply($builder, $query);

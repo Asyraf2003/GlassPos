@@ -16,7 +16,11 @@ final class UpdateSupplierController extends Controller
         UpdateSupplierHandler $useCase,
         string $supplierId,
     ): RedirectResponse {
-        $result = $useCase->handle($supplierId, (string) $request->validated('nama_pt_pengirim'));
+        $result = $useCase->handle(
+            $supplierId,
+            (string) $request->validated('nama_pt_pengirim'),
+            $request->safe()->only(['bank_name', 'bank_account_number']),
+        );
 
         if ($result->isFailure()) {
             if (($result->errors()['supplier'] ?? []) === ['SUPPLIER_NOT_FOUND']) {

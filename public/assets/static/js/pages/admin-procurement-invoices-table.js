@@ -300,7 +300,6 @@
     const supplierName = trimValue(row.supplier_nama_pt_pengirim_current)
       || trimValue(row.supplier_nama_pt_pengirim_snapshot)
       || "-";
-    const nomorFaktur = trimValue(row.nomor_faktur) || "-";
 
     paymentForm.dataset.scopeId = row.supplier_invoice_id;
     paymentForm.dataset.successUrl = paymentProofPageUrl(row);
@@ -310,7 +309,9 @@
     }
 
     if (paymentModalSubtitle) {
-      paymentModalSubtitle.textContent = `${nomorFaktur} • ${supplierName} • Sisa tagihan ${rupiah(row.outstanding_rupiah || 0)}`;
+      paymentModalSubtitle.textContent = supplierName;
+      $("procurement-payment-bank").textContent = [row.bank_name, row.bank_account_number].map(trimValue).filter(Boolean).join(" | ") || "Data bank belum diisi";
+      $("procurement-payment-outstanding").textContent = rupiah(row.outstanding_rupiah || 0);
     }
 
     if (!preserveOldInput) {

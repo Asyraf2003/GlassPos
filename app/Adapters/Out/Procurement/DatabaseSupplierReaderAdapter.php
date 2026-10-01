@@ -13,7 +13,7 @@ final class DatabaseSupplierReaderAdapter implements SupplierReaderPort
     public function getById(string $supplierId): ?Supplier
     {
         $row = DB::table('suppliers')
-            ->select(['id', 'nama_pt_pengirim', 'nama_pt_pengirim_normalized'])
+            ->select(['id', 'nama_pt_pengirim', 'nama_pt_pengirim_normalized', 'bank_name', 'bank_account_number'])
             ->where('id', $supplierId)
             ->first();
 
@@ -24,13 +24,15 @@ final class DatabaseSupplierReaderAdapter implements SupplierReaderPort
         return Supplier::rehydrate(
             (string) $row->id,
             (string) $row->nama_pt_pengirim,
+            $row->bank_name,
+            $row->bank_account_number,
         );
     }
 
     public function getByNormalizedNamaPtPengirim(string $namaPtPengirimNormalized): ?Supplier
     {
         $row = DB::table('suppliers')
-            ->select(['id', 'nama_pt_pengirim', 'nama_pt_pengirim_normalized'])
+            ->select(['id', 'nama_pt_pengirim', 'nama_pt_pengirim_normalized', 'bank_name', 'bank_account_number'])
             ->where('nama_pt_pengirim_normalized', $namaPtPengirimNormalized)
             ->first();
 
@@ -41,6 +43,8 @@ final class DatabaseSupplierReaderAdapter implements SupplierReaderPort
         return Supplier::rehydrate(
             (string) $row->id,
             (string) $row->nama_pt_pengirim,
+            $row->bank_name,
+            $row->bank_account_number,
         );
     }
 
@@ -53,7 +57,7 @@ final class DatabaseSupplierReaderAdapter implements SupplierReaderPort
         }
 
         $rows = DB::table('suppliers')
-            ->select(['id', 'nama_pt_pengirim', 'nama_pt_pengirim_normalized'])
+            ->select(['id', 'nama_pt_pengirim', 'nama_pt_pengirim_normalized', 'bank_name', 'bank_account_number'])
             ->where(function ($builder) use ($query, $normalizedQuery): void {
                 $builder
                     ->where('nama_pt_pengirim', 'like', '%' . trim($query) . '%')
@@ -68,6 +72,8 @@ final class DatabaseSupplierReaderAdapter implements SupplierReaderPort
                 static fn (object $row): Supplier => Supplier::rehydrate(
                     (string) $row->id,
                     (string) $row->nama_pt_pengirim,
+                    $row->bank_name,
+                    $row->bank_account_number,
                 )
             )
             ->all();
