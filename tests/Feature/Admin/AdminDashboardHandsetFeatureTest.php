@@ -47,6 +47,8 @@ final class AdminDashboardHandsetFeatureTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Ringkasan Toko');
+        $response->assertSee('admin-manifest.webmanifest');
+        $response->assertSee('content="GlassPos Admin"', false);
         $response->assertDontSee('data-admin-mobile-app', false);
         $response->assertDontSee('data-mobile-supplier-hub', false);
     }
