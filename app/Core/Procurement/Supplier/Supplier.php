@@ -12,12 +12,15 @@ final class Supplier
         private string $id,
         private string $namaPtPengirim,
         private string $namaPtPengirimNormalized,
-    ) {
-    }
+        private ?string $bankName = null,
+        private ?string $bankAccountNumber = null,
+    ) {}
 
     public static function create(
         string $id,
         string $namaPtPengirim,
+        ?string $bankName = null,
+        ?string $bankAccountNumber = null,
     ): self {
         self::assertValid($id, $namaPtPengirim);
 
@@ -25,20 +28,18 @@ final class Supplier
             trim($id),
             trim($namaPtPengirim),
             self::normalizeNamaPtPengirim($namaPtPengirim),
+            self::nullable($bankName),
+            self::nullable($bankAccountNumber),
         );
     }
 
     public static function rehydrate(
         string $id,
         string $namaPtPengirim,
+        ?string $bankName = null,
+        ?string $bankAccountNumber = null,
     ): self {
-        self::assertValid($id, $namaPtPengirim);
-
-        return new self(
-            trim($id),
-            trim($namaPtPengirim),
-            self::normalizeNamaPtPengirim($namaPtPengirim),
-        );
+        return self::create($id, $namaPtPengirim, $bankName, $bankAccountNumber);
     }
 
     public function rename(string $namaPtPengirim): void
@@ -47,6 +48,20 @@ final class Supplier
 
         $this->namaPtPengirim = trim($namaPtPengirim);
         $this->namaPtPengirimNormalized = self::normalizeNamaPtPengirim($namaPtPengirim);
+    }
+
+    public function updateBankDetails(?string $bankName, ?string $bankAccountNumber): void
+    {
+        $this->bankName = self::nullable($bankName);
+        $this->bankAccountNumber = self::nullable($bankAccountNumber);
+    }
+
+    public function bankName(): ?string { return $this->bankName; }
+    public function bankAccountNumber(): ?string { return $this->bankAccountNumber; }
+
+    private static function nullable(?string $value): ?string
+    {
+        return trim($value ?? '') === '' ? null : trim($value);
     }
 
     public function id(): string
@@ -64,10 +79,8 @@ final class Supplier
         return $this->namaPtPengirimNormalized;
     }
 
-    private static function assertValid(
-        string $id,
-        string $namaPtPengirim,
-    ): void {
+    private static function assertValid(string $id, string $namaPtPengirim): void
+    {
         if (trim($id) === '') {
             throw new DomainException('Supplier id wajib ada.');
         }

@@ -17,13 +17,13 @@ final class SupplierService
         private UuidPort $uuid
     ) {}
 
-    public function resolve(string $ptName): Supplier
+    public function resolve(string $ptName, ?string $bankName = null, ?string $bankAccountNumber = null): Supplier
     {
         $normalized = $this->normalize($ptName);
         $existing = $this->readers->getByNormalizedNamaPtPengirim($normalized);
         if ($existing) return $existing;
 
-        $supplier = Supplier::create($this->uuid->generate(), trim($ptName));
+        $supplier = Supplier::create($this->uuid->generate(), trim($ptName), $bankName, $bankAccountNumber);
         $this->writers->create($supplier);
         return $supplier;
     }

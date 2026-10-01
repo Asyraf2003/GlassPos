@@ -54,6 +54,8 @@ trait ProcurementInvoiceDetailSummaryQuery
                 'supplier_invoices.nomor_faktur',
                 'supplier_invoices.supplier_id',
                 'suppliers.nama_pt_pengirim as supplier_nama_pt_pengirim_current',
+                'suppliers.bank_name',
+                'suppliers.bank_account_number',
                 'supplier_invoices.supplier_nama_pt_pengirim_snapshot as supplier_nama_pt_pengirim_snapshot',
                 'supplier_invoices.tanggal_pengiriman as shipment_date',
                 'supplier_invoices.jatuh_tempo as due_date',

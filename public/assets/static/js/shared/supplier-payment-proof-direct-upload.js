@@ -500,7 +500,6 @@
   forms.forEach((form) => {
     const input = form.querySelector('input[type="file"]');
     const button = form.querySelector('[data-direct-upload-submit]');
-    const defaultLabel = button?.textContent?.trim() || 'Kirim Bukti';
 
     installCamera(form);
     input?.addEventListener('change', () => {
@@ -518,6 +517,7 @@
         return;
       }
 
+      const defaultLabel = button?.textContent?.trim() || 'Kirim Bukti';
       form.dataset.uploading = '1';
       if (button) {
         button.disabled = true;

@@ -138,6 +138,9 @@
 
     if (!preserveOldInput) {
       editNamaPtInput.value = supplierName;
+      const row = lastLoadedRows.find((item) => String(item.id) === supplierId);
+      editForm.elements.bank_name.value = row?.bank_name ?? "";
+      editForm.elements.bank_account_number.value = row?.bank_account_number ?? "";
       setFormError("");
     }
 
@@ -199,6 +202,8 @@
     <tr>
       <td>${(meta.page - 1) * meta.per_page + i + 1}</td>
       <td>${esc(r.nama_pt_pengirim)}</td>
+      <td>${esc(trimValue(r.bank_name) || "Belum diisi")}</td>
+      <td>${esc(trimValue(r.bank_account_number) || "Belum diisi")}</td>
       <td class="text-end">${angka(r.invoice_count)}</td>
       <td class="text-end">${rupiah(r.outstanding_rupiah)}</td>
       <td class="text-end">${angka(r.invoice_unpaid_count)}</td>
@@ -219,7 +224,7 @@
 
   const renderRows = (rows, meta) => {
     if (!rows.length) {
-      body.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">Tidak ada supplier yang cocok.</td></tr>`;
+      body.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">Tidak ada supplier yang cocok.</td></tr>`;
       return;
     }
 
@@ -294,7 +299,7 @@
     activeController = controller;
     const currentRequest = ++requestCounter;
 
-    body.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">Memuat data...</td></tr>`;
+    body.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">Memuat data...</td></tr>`;
 
     try {
       const res = await fetch(`${c.endpoint}?${paramsString()}`, {
@@ -315,7 +320,7 @@
       maybeRestoreFailedEditModal();
     } catch (error) {
       if (error?.name === "AbortError" || currentRequest !== requestCounter) return;
-      body.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Gagal memuat data.</td></tr>`;
+      body.innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4">Gagal memuat data.</td></tr>`;
       summary.textContent = "Menampilkan 0 sampai 0 dari 0 pemasok";
       pager.innerHTML = "";
     } finally {
@@ -447,6 +452,9 @@
     }
   });
 
+  if (c.restoreCreate && window.bootstrap?.Modal) {
+    window.bootstrap.Modal.getOrCreateInstance($("supplier-create-modal")).show();
+  }
   syncInputsFromState();
   load(true);
 })();

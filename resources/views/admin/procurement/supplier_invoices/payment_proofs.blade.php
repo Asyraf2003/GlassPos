@@ -24,6 +24,12 @@
                         </div>
 
                         <div class="card-body">
+                            <div class="border rounded p-3 mb-3">
+                                <strong>{{ $summaryView['supplier_nama_pt_pengirim_current'] }}</strong>
+                                <div>{{ $summaryView['bank_label'] }}</div>
+                                <div class="small text-muted mt-2">Sisa tagihan</div>
+                                <strong>{{ $summaryView['outstanding_label'] }}</strong>
+                            </div>
                             @error('supplier_payment_proof')
                                 <div class="alert alert-danger">{{ $message }}</div>
                             @enderror
@@ -117,7 +123,7 @@
                                             <small class="text-muted d-block mb-2">Riwayat Lampiran</small>
 
                                             @if ($payment['attachments'] === [])
-                                                <div class="text-muted mb-3">Belum ada lampiran bukti.</div>
+                                                <div class="text-muted mb-3">Data belum ada</div>
 
                                                 @if (! $policyView['is_voided'] && ($payment['can_attach_proof'] ?? false))
                                                     <form

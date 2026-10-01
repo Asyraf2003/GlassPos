@@ -24,6 +24,8 @@ trait BuildsProcurementInvoiceTableRowPayload
 
         return [
             'supplier_invoice_id' => $supplierInvoiceId,
+            'bank_name' => (string) ($row->bank_name ?? ''),
+            'bank_account_number' => (string) ($row->bank_account_number ?? ''),
             'nomor_faktur' => $row->nomor_faktur !== null ? (string) $row->nomor_faktur : '',
             'supplier_nama_pt_pengirim_current' => $row->supplier_nama_pt_pengirim_current !== null
                 ? (string) $row->supplier_nama_pt_pengirim_current

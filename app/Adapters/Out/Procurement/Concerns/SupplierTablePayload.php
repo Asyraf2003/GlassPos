@@ -19,6 +19,8 @@ trait SupplierTablePayload
     {
         $rows = array_map(static fn (object $row): array => [
             'id' => (string) $row->id,
+            'bank_name' => $row->bank_name,
+            'bank_account_number' => $row->bank_account_number,
             'nama_pt_pengirim' => (string) $row->nama_pt_pengirim,
             'invoice_count' => (int) $row->invoice_count,
             'outstanding_rupiah' => (int) $row->outstanding_rupiah,

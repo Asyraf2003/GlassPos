@@ -54,6 +54,8 @@ trait ProcurementInvoiceDetailPayload
                     ? (string) $summary->nomor_faktur
                     : '',
                 'supplier_id' => (string) $summary->supplier_id,
+                'bank_name' => $summary->bank_name,
+                'bank_account_number' => $summary->bank_account_number,
                 'supplier_nama_pt_pengirim_current' => $summary->supplier_nama_pt_pengirim_current !== null
                     ? (string) $summary->supplier_nama_pt_pengirim_current
                     : '',

@@ -19,7 +19,9 @@ final class UpdateSupplierRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nama_pt_pengirim' => ['required', 'string'],
+            'nama_pt_pengirim' => ['required', 'string', 'max:255'],
+            'bank_name' => ['nullable', 'string', 'max:255'],
+            'bank_account_number' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

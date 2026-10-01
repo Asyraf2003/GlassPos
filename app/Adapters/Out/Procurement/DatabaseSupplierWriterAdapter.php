@@ -23,12 +23,14 @@ final class DatabaseSupplierWriterAdapter implements SupplierWriterPort
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, string|null>
      */
     private function toRecord(Supplier $supplier): array
     {
         return [
             'id' => $supplier->id(),
+            'bank_name' => $supplier->bankName(),
+            'bank_account_number' => $supplier->bankAccountNumber(),
             'nama_pt_pengirim' => $supplier->namaPtPengirim(),
             'nama_pt_pengirim_normalized' => $supplier->namaPtPengirimNormalized(),
         ];

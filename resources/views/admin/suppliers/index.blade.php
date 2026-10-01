@@ -13,6 +13,7 @@
                     </div>
 
                     <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#supplier-create-modal">Tambah Pemasok</button>
                         <form id="supplier-search-form" class="m-0 d-flex">
                             <input type="text" id="supplier-search-input" class="form-control py-2"
                                 placeholder="Cari nama supplier" autocomplete="off">
@@ -34,6 +35,8 @@
                                         <span class="ms-1 text-muted" data-sort-indicator="nama_pt_pengirim">↕</span>
                                     </button>
                                 </th>
+                                <th>Bank</th>
+                                <th>No. Rekening</th>
                                 <th class="text-end">
                                     <button type="button" class="btn btn-link p-0 text-decoration-none" data-sort-by="invoice_count">
                                         Jumlah Hutang
@@ -63,7 +66,7 @@
                         </thead>
                         <tbody id="supplier-table-body">
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-4">Sedang memuat data...</td>
+                                <td colspan="9" class="text-center text-muted py-4">Sedang memuat data...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -77,6 +80,7 @@
         </div>
 
         @include('admin.suppliers.partials.filter_drawer')
+        @include('admin.suppliers.partials.create_modal')
 
         <div
             class="modal fade"
@@ -135,6 +139,7 @@
                             </div>
                         </div>
 
+                        <div class="px-4">@include('admin.suppliers.partials.bank_fields', ['prefix' => 'supplier-edit'])</div>
                         <div class="modal-footer border-0 px-4 pb-4 pt-0">
                             <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">Batal</button>
                             <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
@@ -154,8 +159,9 @@
             updateUrlTemplate: @json(url('/admin/suppliers/__ID__')),
             oldSupplierId: @json(old('supplier_id')),
             oldNamaPtPengirim: @json(old('nama_pt_pengirim')),
-            hasUpdateErrors: @json($errors->has('nama_pt_pengirim') || $errors->has('supplier')),
-            updateErrorMessage: @json($errors->first('nama_pt_pengirim') ?: $errors->first('supplier'))
+            restoreCreate: @json(old('supplier_form') === 'create' && $errors->any()),
+            hasUpdateErrors: @json($errors->any()),
+            updateErrorMessage: @json($errors->first())
         };
     </script>
     <script src="{{ asset('assets/static/js/pages/admin-suppliers-table.js') }}?v={{ config('app.asset_version') }}"></script>
