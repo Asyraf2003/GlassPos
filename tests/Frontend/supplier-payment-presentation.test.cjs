@@ -110,3 +110,11 @@ test('desktop payment modal shows current bank, no invoice ID and no empty separ
     assert.equal(h.get('procurement-payment-form').dataset.scopeId, 'internal-id');
   }
 });
+
+test('supplier invoice list renders latest received quantity from current projection', async () => {
+  const h = tableHarness('public/assets/static/js/pages/admin-procurement-invoices-table.js', 'procurementInvoiceTableConfig', [
+    { supplier_invoice_id: 'invoice-revised', nomor_faktur: 'INV-CURRENT', total_received_qty: 80 },
+  ]);
+  await new Promise(setImmediate);
+  assert.match(h.get('procurement-invoice-table-body').innerHTML, /<td>80<\/td>/);
+});

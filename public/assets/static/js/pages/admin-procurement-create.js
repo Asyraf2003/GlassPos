@@ -12,6 +12,10 @@
 
   if (!config || !form || !container || !productSearch || !productResults || !template) return;
 
+  const invoiceNumberValidation = window.bindSupplierInvoiceNumberValidation({
+    form, endpoint: config.invoiceNumberCheckEndpoint,
+  });
+
   const DRAFT_KEY = "admin.procurement.create-supplier-invoice.draft.v2";
   const LEGACY_DRAFT_KEYS = ["admin.procurement.create-supplier-invoice.draft.v1"];
   const clearDraftOnLoad = Boolean(config.clearDraftOnLoad);
@@ -1080,6 +1084,10 @@
   });
 
   form.addEventListener("submit", async (event) => {
+    if (!invoiceNumberValidation.canSubmit()) {
+      event.preventDefault();
+      return;
+    }
     pruneEmptyLinesBeforeSubmit();
 
     if (!validateDuplicateProductsBeforeSubmit()) {
@@ -1143,6 +1151,7 @@
     }
   }
   lineItems().filter(isLineCompletelyEmpty).forEach((item) => item.remove());
+  invoiceNumberValidation.refresh();
   syncLineNumbers(); updateRemoveButtons();
   const hydratedItems = lineItems();
   for (let offset = 0; offset < hydratedItems.length; offset += 50) {

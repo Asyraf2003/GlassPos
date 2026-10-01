@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Adapters\Out\Procurement\Concerns;
 
+use App\Adapters\Out\Procurement\SupplierInvoiceListProjectionReceiptSubqueries;
 use Illuminate\Support\Facades\DB;
 
 trait ProcurementInvoiceDetailSummaryQuery
@@ -27,10 +28,7 @@ trait ProcurementInvoiceDetailSummaryQuery
             ->selectRaw('supplier_invoice_id, COUNT(*) as receipt_count, MAX(tanggal_terima) as latest_receipt_date')
             ->groupBy('supplier_invoice_id');
 
-        $receivedQtySubquery = DB::table('supplier_receipts')
-            ->join('supplier_receipt_lines', 'supplier_receipt_lines.supplier_receipt_id', '=', 'supplier_receipts.id')
-            ->selectRaw('supplier_receipts.supplier_invoice_id, COALESCE(SUM(supplier_receipt_lines.qty_diterima), 0) as total_received_qty')
-            ->groupBy('supplier_receipts.supplier_invoice_id');
+        $receivedQtySubquery = (new SupplierInvoiceListProjectionReceiptSubqueries)->receivedQtyTotals();
 
         return DB::table('supplier_invoices')
             ->leftJoin('suppliers', 'suppliers.id', '=', 'supplier_invoices.supplier_id')
