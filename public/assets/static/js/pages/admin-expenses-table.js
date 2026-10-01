@@ -1,4 +1,5 @@
 (() => {
+  const searchGate = window.LiveSearch.create();
   const c = window.expenseTableConfig;
   if (!c) return;
 
@@ -39,10 +40,6 @@
     ? new window.bootstrap.Modal(deleteModalElement)
     : null;
 
-  let searchDebounceTimer = null;
-  let requestCounter = 0;
-  let activeController = null;
-
   const esc = (v) => String(v ?? "").replace(/[&<>\"']/g, (m) => ({
 
     "&": "&amp;",
@@ -70,7 +67,6 @@
 
     return `${match[3]}/${match[2]}/${match[1]}`;
   };
-
 
   const rupiah = (v) => "Rp " + Number(v || 0).toLocaleString("id-ID");
   const trimValue = (v) => String(v ?? "").trim();
@@ -130,8 +126,8 @@
     updateDateUiMode();
   };
 
-  const syncInputsFromState = () => {
-    if (searchInput) searchInput.value = s.q;
+  const syncInputsFromState = (restoreSearch = false) => {
+    if (searchInput && restoreSearch) { searchGate.invalidate(); searchInput.value = s.q; }
 
     if (filterForm) {
       if (filterForm.elements["category_id"]) {
@@ -262,19 +258,16 @@
   };
 
   const load = async (replaceUrl = false) => {
-    activeController?.abort();
-    const controller = new AbortController();
-    activeController = controller;
-    const currentRequest = ++requestCounter;
+    const request = searchGate.begin();
     body.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">Memuat data...</td></tr>`;
 
     try {
       const res = await fetch(`${c.endpoint}?${paramsString()}`, {
         headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
-        signal: controller.signal
+        signal: request.signal
       });
       const json = await res.json();
-      if (currentRequest !== requestCounter) return;
+      if (!request.isCurrent()) return;
       if (!res.ok || !json.success) throw new Error("expense-table-response");
 
       renderRows(json.data.rows || [], json.data.meta || {});
@@ -284,53 +277,20 @@
       syncInputsFromState();
       updateUrl(replaceUrl);
     } catch (error) {
-      if (error.name === "AbortError" || currentRequest !== requestCounter) return;
+      if (error.name === "AbortError" || !request.isCurrent()) return;
       body.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Gagal memuat data.</td></tr>`;
       pager.innerHTML = "";
       summary.textContent = "Data pengeluaran gagal dimuat.";
-    }
+    } finally { request.finish(); }
   };
 
-  searchForm?.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const value = trimValue(searchInput?.value);
-
-    if (value.length === 0) {
-      s.q = "";
-      if (s.sort_by === "relevance") { s.sort_by = defaults.sort_by; s.sort_dir = defaults.sort_dir; }
-      s.page = 1;
-      load();
-      return;
-    }
-
-    if (value.length >= 2) {
-      s.q = value;
-      s.sort_by = "relevance";
-      s.page = 1;
-      load();
-    }
-  });
-
-  searchInput?.addEventListener("input", () => {
-    const value = trimValue(searchInput?.value);
-
-    clearTimeout(searchDebounceTimer);
-
-    if (value.length < 2) {
-      s.q = "";
-      if (s.sort_by === "relevance") { s.sort_by = defaults.sort_by; s.sort_dir = defaults.sort_dir; }
-      s.page = 1;
-      searchDebounceTimer = setTimeout(() => load(), 160);
-      return;
-    }
-
-    searchDebounceTimer = setTimeout(() => {
-      s.q = value;
-      s.sort_by = "relevance";
-      s.page = 1;
-      load();
-    }, 220);
+  window.LiveSearch.bind({
+    gate: searchGate, input: searchInput, form: searchForm,
+    getQuery: () => s.q,
+    onQuery: (value) => { s.q = value; s.page = 1;
+      if (value) s.sort_by = "relevance";
+      else if (s.sort_by === "relevance") { s.sort_by = defaults.sort_by; s.sort_dir = defaults.sort_dir; } },
+    load: load,
   });
 
   [fallbackFromInput, fallbackToInput].forEach((input) => {
@@ -422,12 +382,12 @@
 
   window.addEventListener("popstate", () => {
     Object.assign(s, stateFromUrl());
-    syncInputsFromState();
+    syncInputsFromState(true);
     renderSortIndicators();
     load(true);
   });
 
-  syncInputsFromState();
+  syncInputsFromState(true);
   renderSortIndicators();
   load(true);
 })();

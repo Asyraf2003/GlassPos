@@ -1,4 +1,5 @@
 (() => {
+  const searchGate = window.LiveSearch.create();
   const c = window.productTableConfig;
   if (!c) return;
 
@@ -40,10 +41,6 @@
   const actionModal = actionModalElement && window.bootstrap && window.bootstrap.Modal
     ? new window.bootstrap.Modal(actionModalElement)
     : null;
-
-  let searchDebounceTimer = null;
-  let requestCounter = 0;
-  let activeRequestController = null;
 
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (m) => ({
     "&": "&amp;",
@@ -100,9 +97,9 @@
 
   const s = stateFromUrl();
 
-  const syncInputsFromState = () => {
+  const syncInputsFromState = (restoreSearch = false) => {
     if (searchInput) {
-      searchInput.value = s.q;
+      if (restoreSearch) { searchGate.invalidate(); searchInput.value = s.q; }
     }
 
     const statusField = filterField("status");
@@ -268,32 +265,19 @@
     });
   };
 
-  const cancelActiveRequest = () => {
-    requestCounter += 1;
-
-    if (activeRequestController) {
-      activeRequestController.abort();
-      activeRequestController = null;
-    }
-  };
-
   const load = async (replaceUrl = false) => {
-    cancelActiveRequest();
-
-    const currentRequest = ++requestCounter;
-    const controller = new AbortController();
-    activeRequestController = controller;
+    const request = searchGate.begin();
 
     body.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">Memuat data...</td></tr>`;
 
     try {
       const res = await fetch(`${c.endpoint}?${paramsString()}`, {
         headers: { Accept: "application/json" },
-        signal: controller.signal
+        signal: request.signal
       });
       const json = await res.json();
 
-      if (currentRequest !== requestCounter) {
+      if (!request.isCurrent()) {
         return;
       }
 
@@ -313,13 +297,11 @@
         return;
       }
 
-      if (currentRequest === requestCounter) {
+      if (request.isCurrent()) {
         body.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat data.</td></tr>`;
       }
     } finally {
-      if (activeRequestController === controller) {
-        activeRequestController = null;
-      }
+      request.finish();
     }
   };
 
@@ -345,31 +327,12 @@
     resetRelevanceSortIfNeeded();
   };
 
-  if (searchForm) {
-    searchForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      clearTimeout(searchDebounceTimer);
-
-      const value = trimValue(searchInput?.value);
-      applySearchValue(value);
-      load();
-    });
-  }
-
-  if (searchInput) {
-    searchInput.addEventListener("input", () => {
-      const value = trimValue(searchInput.value);
-
-      clearTimeout(searchDebounceTimer);
-      cancelActiveRequest();
-      applySearchValue(value);
-
-      searchDebounceTimer = setTimeout(
-        () => load(),
-        value.length >= 2 ? 220 : 160
-      );
-    });
-  }
+  window.LiveSearch.bind({
+    gate: searchGate, input: searchInput, form: searchForm,
+    getQuery: () => s.q,
+    onQuery: (value) => { applySearchValue(value); },
+    load: load,
+  });
 
   $("open-product-filter")?.addEventListener("click", () => drawOpen(true));
   $("close-product-filter")?.addEventListener("click", () => drawOpen(false));
@@ -450,12 +413,12 @@
 
   window.addEventListener("popstate", () => {
     Object.assign(s, stateFromUrl());
-    syncInputsFromState();
+    syncInputsFromState(true);
     renderSortIndicators();
     load(true);
   });
 
-  syncInputsFromState();
+  syncInputsFromState(true);
   renderSortIndicators();
   load(true);
 })();

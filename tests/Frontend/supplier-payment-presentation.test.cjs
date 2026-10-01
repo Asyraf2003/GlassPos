@@ -78,6 +78,7 @@ function tableHarness(file, configName, rows) {
     },
     fetch: async () => ({ ok: true, json: async () => ({ success: true, data: { rows, meta: { page: 1, per_page: 10, total: rows.length, last_page: 1 } } }) }),
   };
+  vm.runInNewContext(fs.readFileSync('public/assets/static/js/shared/live-search.js', 'utf8'), context);
   vm.runInNewContext(fs.readFileSync(file, 'utf8'), context);
   return { get };
 }

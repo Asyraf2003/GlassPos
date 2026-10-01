@@ -1,4 +1,5 @@
 (() => {
+  const searchGate = window.LiveSearch.create();
   "use strict";
 
   const config = window.AdminServiceTableConfig || {};
@@ -39,9 +40,6 @@
   };
 
   let state = stateFromUrl();
-  let debounceTimer = null;
-  let requestCounter = 0;
-  let activeController = null;
 
   const requestParams = () => {
     const params = new URLSearchParams({
@@ -65,8 +63,8 @@
     window.history[replace ? "replaceState" : "pushState"](null, "", url);
   };
 
-  const fillControls = () => {
-    searchInput.value = state.q;
+  const fillControls = (restoreSearch = false) => {
+    if (restoreSearch) { searchGate.invalidate(); searchInput.value = state.q; }
     if (filterForm?.elements.status) filterForm.elements.status.value = state.status;
   };
 
@@ -137,19 +135,16 @@
   };
 
   const load = async (replaceUrl = false) => {
-    activeController?.abort();
-    const controller = new AbortController();
-    activeController = controller;
-    const currentRequest = ++requestCounter;
+    const request = searchGate.begin();
     body.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Sedang memuat data...</td></tr>';
 
     try {
       const response = await fetch(`${config.endpoint}?${requestParams()}`, {
         headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
-        signal: controller.signal,
+        signal: request.signal,
       });
       const payload = await response.json();
-      if (currentRequest !== requestCounter) return;
+      if (!request.isCurrent()) return;
       if (!response.ok || payload?.success !== true) throw new Error("service-table-response");
       const data = payload.data || {};
       const meta = data.meta || {};
@@ -159,28 +154,22 @@
       renderSort();
       syncUrl(replaceUrl);
     } catch (error) {
-      if (error?.name === "AbortError" || currentRequest !== requestCounter) return;
+      if (error?.name === "AbortError" || !request.isCurrent()) return;
       body.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Gagal memuat data.</td></tr>';
       summary.textContent = "Menampilkan 0 sampai 0 dari 0 jasa";
       pagination.innerHTML = "";
     } finally {
-      if (activeController === controller) activeController = null;
+      request.finish();
     }
   };
 
-  const queueSearch = () => {
-    clearTimeout(debounceTimer);
-    const value = trim(searchInput.value);
-    state.q = value.length >= 2 ? value : "";
-    state.page = 1;
-    debounceTimer = window.setTimeout(() => load(), value.length >= 2 ? 220 : 160);
-  };
-
-  searchForm?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    queueSearch();
+  window.LiveSearch.bind({
+    gate: searchGate, input: searchInput, form: searchForm,
+    getQuery: () => state.q,
+    onQuery: (value) => { state.q = value; state.page = 1; },
+    load: load,
   });
-  searchInput.addEventListener("input", queueSearch);
+
   byId("open-service-filter")?.addEventListener("click", () => drawOpen(true));
   byId("close-service-filter")?.addEventListener("click", () => drawOpen(false));
   backdrop?.addEventListener("click", () => drawOpen(false));
@@ -214,10 +203,10 @@
   });
   window.addEventListener("popstate", () => {
     state = stateFromUrl();
-    fillControls();
+    fillControls(true);
     load(true);
   });
 
-  fillControls();
+  fillControls(true);
   load(true);
 })();

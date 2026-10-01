@@ -14,7 +14,7 @@
         return;
     }
 
-    let abortController = null;
+    const searchGate = window.LiveSearch.create();
     let debounceTimer = null;
     let lastQuery = '';
 
@@ -151,9 +151,7 @@
     async function runSearch(query) {
         if (query.length < 2) {
             lastQuery = '';
-            if (abortController) {
-                abortController.abort();
-            }
+            searchGate.invalidate();
             renderMinimumQueryState();
             return;
         }
@@ -164,11 +162,7 @@
 
         lastQuery = query;
 
-        if (abortController) {
-            abortController.abort();
-        }
-
-        abortController = new AbortController();
+        const request = searchGate.begin();
         setLoadingStatus();
 
         results.innerHTML = ''
@@ -188,7 +182,7 @@
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
                 },
-                signal: abortController.signal
+                signal: request.signal
             });
 
             if (!response.ok) {
@@ -196,6 +190,7 @@
             }
 
             const payload = await response.json();
+            if (!request.isCurrent()) return;
             const rows = payload && payload.data && Array.isArray(payload.data.rows)
                 ? payload.data.rows
                 : [];
@@ -207,18 +202,21 @@
 
             renderRows(rows);
         } catch (error) {
-            if (error && error.name === 'AbortError') {
+            if (!request.isCurrent() || (error && error.name === 'AbortError')) {
                 return;
             }
 
             renderErrorState();
-        }
+        } finally { request.finish(); }
     }
 
     function scheduleSearch() {
         const query = input.value.trim();
 
         clearTimeout(debounceTimer);
+        searchGate.invalidate();
+        lastQuery = "";
+        if (query.length < 2) { renderMinimumQueryState(); return; }
         debounceTimer = setTimeout(function () {
             runSearch(query);
         }, 220);
@@ -227,9 +225,7 @@
     function resetSearch() {
         clearTimeout(debounceTimer);
 
-        if (abortController) {
-            abortController.abort();
-        }
+        searchGate.invalidate();
 
         lastQuery = '';
         input.value = '';
