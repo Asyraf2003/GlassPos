@@ -76,8 +76,13 @@ final class TransactionCashLedgerAfterRevisionRefundFeatureTest extends TestCase
         $pageResponse->assertSee('Pengembalian Dana');
         $pageResponse->assertSee('Masuk');
         $pageResponse->assertSee('Keluar');
-        $pageResponse->assertSee('payment-ledger-revision-refund-001');
-        $pageResponse->assertSee($refundId);
+        $pageResponse->assertSee('note-ledger-revision-refund-001');
+        $events = $pageResponse->viewData('rows')->items();
+        self::assertSame('payment-ledger-revision-refund-001', $events[0]['customer_payment_id']);
+        self::assertSame($refundId, $events[1]['refund_id']);
+        self::assertSame([100000, 100000], array_column($events, 'event_amount_rupiah'));
+        $pageResponse->assertDontSee('payment-ledger-revision-refund-001');
+        $pageResponse->assertDontSee($refundId);
         $pageResponse->assertDontSee('payment_allocations');
         $pageResponse->assertDontSee('customer_refunds');
 
