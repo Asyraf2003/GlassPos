@@ -9,13 +9,13 @@
   }
   window.CashierNoteWorkspace = {config:{serviceLookupEndpoint:'/lookup',serviceStoreEndpoint:'/store'}};
   const NS = window.CashierNoteWorkspace;
-  let lookups = 0, creates = 0;
+  let lookups = 0, creates = 0, pendingCreate;
   window.fetch = async (url, options) => {
-   if (String(url).startsWith('/lookup')) { lookups++; return {json:async()=>({data:{rows:[{id:'service-1',label:'Servis luar',default_price_rupiah:120000}]}})}; }
-   if (url === '/store') { creates++; const body = JSON.parse(options.body); return {ok:true,json:async()=>({data:{row:{id:'manual-1',label:body.name,default_price_rupiah:body.default_price_rupiah}}})}; }
+   if (String(url).startsWith('/lookup')) { lookups++; return {ok:true,json:async()=>({success:true,data:{rows:[{id:'service-1',label:'Servis luar',default_price_rupiah:120000}]}})}; }
+   if (url === '/store') { creates++; const body = JSON.parse(options.body); const response={ok:true,json:async()=>({data:{row:{id:'manual-1',label:body.name,default_price_rupiah:body.default_price_rupiah}}})}; if(body.name==='JAYA') return new Promise(resolve=>pendingCreate=()=>resolve(response)); return response; }
    return nativeFetch(url, options);
   };
-  for (const path of ['shared/admin-money-input.js','pages/cashier-note-workspace/rows.js','pages/cashier-note-workspace/summary.js','pages/cashier-note-workspace/service-catalog.js']) {
+  for (const path of ['shared/live-search.js','shared/admin-money-input.js','pages/cashier-note-workspace/rows.js','pages/cashier-note-workspace/summary.js','pages/cashier-note-workspace/service-catalog.js']) {
    await new Promise((resolve,reject) => {const script=document.createElement('script');script.src='../../public/assets/static/js/'+path;script.onload=resolve;script.onerror=reject;document.body.append(script);});
   }
   const row = NS.addRow('service_external');
@@ -43,7 +43,11 @@
   const sibling=NS.addRow('service');
   input(sibling.querySelector('[data-service-search]'),'Manual sibling');
   input(sibling.querySelector('[data-service-price-display]'),'45000');
+  check(sibling.querySelector('[data-service-search]').value==='Manual sibling','price edit cleared live service query');
+  sibling.querySelector('[data-service-search]').focus();
   sibling.querySelector('[data-service-price-display]').dispatchEvent(new Event('blur')); await wait();
+  check(sibling.querySelector('[data-service-search]').value==='Manual sibling','automatic catalog response cleared query');
+  check(document.activeElement===sibling.querySelector('[data-service-search]'),'automatic catalog response stole focus');
   check(creates>0,'manual service create not invoked');
   check(NS.rowTotal(restored)===205000,'sibling changed external row');
   const product=NS.addRow('product',{product_lines:[{product_id:'product-fixture',qty:2,unit_price_rupiah:30000}]});
@@ -58,6 +62,16 @@
   check(restored.querySelector('[data-service-name]').value==='Manual external','manual external identity missing');
   check(NS.rowTotal(restored)===215000,'manual external selection changed part amount');
   check(NS.rowTotal(product)===60000 && NS.rowTotal(pack)===100000,'manual external selection corrupted siblings');
+  const race=NS.addRow('service');
+  const raceInput=race.querySelector('[data-service-search]');
+  input(raceInput,'JAYA'); input(race.querySelector('[data-service-price-display]'),'10000');
+  race.querySelector('[data-service-price-display]').dispatchEvent(new Event('blur')); await wait();
+  check(typeof pendingCreate==='function','delayed catalog request missing');
+  input(raceInput,'JAYA MOTOR'); raceInput.focus(); raceInput.setSelectionRange(2,3);
+  pendingCreate(); await Promise.resolve(); await Promise.resolve();
+  check(raceInput.value==='JAYA MOTOR','stale catalog response rewound input');
+  check(race.querySelector('[data-service-catalog-id]').value==='','stale catalog response assigned identity');
+  check(document.activeElement===raceInput && raceInput.selectionStart===2 && raceInput.selectionEnd===3,'stale catalog response changed focus/caret');
   const output=document.createElement('pre');output.id='payload';output.textContent=JSON.stringify(item);document.body.append(output);
   document.body.dataset.testResult='PASS';
  } catch(error) {document.body.dataset.testResult='FAIL '+error.message;}

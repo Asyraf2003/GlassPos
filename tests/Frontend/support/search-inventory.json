@@ -1,0 +1,176 @@
+[
+  {
+    "file": "public/assets/static/js/admin/dashboard-analytics.js",
+    "status": "non-search",
+    "asyncCalls": 1,
+    "pattern": "One initial monthly analytics load; filters navigate via server GET, no live search."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-audit-logs-table.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Async listing/lookup: shared immediate generation invalidation, AbortController and guarded render. Live input is authoritative."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-employee-debts-table.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Async listing/lookup: shared immediate generation invalidation, AbortController and guarded render. Live input is authoritative."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-employee-payroll-history.js",
+    "status": "non-search",
+    "asyncCalls": 1,
+    "pattern": "Employee payroll history pagination only, request identity guard; no search input."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-employee-payroll-table.js",
+    "status": "non-search",
+    "asyncCalls": 1,
+    "pattern": "Employee payroll history pagination only, request identity guard; no search input."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-employees-table.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Async listing/lookup: shared immediate generation invalidation, AbortController and guarded render. Live input is authoritative."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-expense-categories-table.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Async listing/lookup: shared immediate generation invalidation, AbortController and guarded render. Live input is authoritative."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-expenses-table.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Async listing/lookup: shared immediate generation invalidation, AbortController and guarded render. Live input is authoritative."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-note-index.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Async listing/lookup: shared immediate generation invalidation, AbortController and guarded render. Live input is authoritative."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-payrolls-table.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Async listing/lookup: shared immediate generation invalidation, AbortController and guarded render. Live input is authoritative."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-procurement-create.js",
+    "status": "fixed",
+    "asyncCalls": 2,
+    "pattern": "Supplier/PT form lookup fixed; product lookup already safe shared helper; metadata hydration updates selected row identity by matching ID without touching lookup input."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-procurement-edit.js",
+    "status": "non-search",
+    "asyncCalls": 1,
+    "pattern": "Selected-product metadata hydration by ID; only updates row card/hidden ID when ID still matches, never the global search input."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-procurement-invoices-table.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Async listing/lookup: shared immediate generation invalidation, AbortController and guarded render. Live input is authoritative."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-products-table.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Async listing/lookup: shared immediate generation invalidation, AbortController and guarded render. Live input is authoritative."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-service-product-template.js",
+    "status": "safe",
+    "asyncCalls": 1,
+    "pattern": "Package form product lookup; immediate close invalidates/aborts with request identity and min 2. Service picker is local."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-service-product-templates-table.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Async listing/lookup: shared immediate generation invalidation, AbortController and guarded render. Live input is authoritative."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-services-table.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Async listing/lookup: shared immediate generation invalidation, AbortController and guarded render. Live input is authoritative."
+  },
+  {
+    "file": "public/assets/static/js/pages/admin-suppliers-table.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Async listing/lookup: shared immediate generation invalidation, AbortController and guarded render. Live input is authoritative."
+  },
+  {
+    "file": "public/assets/static/js/pages/cashier-dashboard.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Async listing/lookup: shared immediate generation invalidation, AbortController and guarded render. Live input is authoritative."
+  },
+  {
+    "file": "public/assets/static/js/pages/cashier-note-index.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Async listing/lookup: shared immediate generation invalidation, AbortController and guarded render. Live input is authoritative."
+  },
+  {
+    "file": "public/assets/static/js/pages/cashier-note-workspace/draft.js",
+    "status": "non-search",
+    "asyncCalls": 2,
+    "pattern": "Workspace draft restore/save; boot now skips fields edited during async hydration."
+  },
+  {
+    "file": "public/assets/static/js/pages/cashier-note-workspace/package-search.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Workspace product/package row lookup had immediate token rejection; hardened with immediate abort, result clearing and dismiss invalidation."
+  },
+  {
+    "file": "public/assets/static/js/pages/cashier-note-workspace/search.js",
+    "status": "fixed",
+    "asyncCalls": 1,
+    "pattern": "Workspace product/package row lookup had immediate token rejection; hardened with immediate abort, result clearing and dismiss invalidation."
+  },
+  {
+    "file": "public/assets/static/js/pages/cashier-note-workspace/service-catalog.js",
+    "status": "fixed",
+    "asyncCalls": 2,
+    "pattern": "Workspace service/service-external lookup and automatic catalog resolution: stale render and automatic input clearing/focus stealing fixed."
+  },
+  {
+    "file": "public/assets/static/js/pages/filepond.js",
+    "status": "non-search",
+    "asyncCalls": 1,
+    "pattern": "Upload demo transport; no listing search."
+  },
+  {
+    "file": "public/assets/static/js/shared/procurement-product-search.js",
+    "status": "safe",
+    "asyncCalls": 1,
+    "pattern": "Procurement product lookup on create/edit; immediate close invalidates/aborts with request identity and min 2."
+  },
+  {
+    "file": "public/assets/static/js/shared/push-notifications.js",
+    "status": "non-search",
+    "asyncCalls": 1,
+    "pattern": "Push subscription transport; no editable query."
+  },
+  {
+    "file": "public/assets/static/js/shared/supplier-invoice-number-validation.js",
+    "status": "safe",
+    "asyncCalls": 1,
+    "pattern": "Invoice-number uniqueness validator: immediate generation/abort and exact input guard. Explicit business exception: check any nonempty number, including one character."
+  },
+  {
+    "file": "public/assets/static/js/shared/supplier-payment-proof-direct-upload.js",
+    "status": "non-search",
+    "asyncCalls": 2,
+    "pattern": "Upload transport; no search state."
+  }
+]

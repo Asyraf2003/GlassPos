@@ -1,4 +1,5 @@
 (() => {
+  const searchGate = window.LiveSearch.create();
   const c = window.auditLogTableConfig;
   if (!c) return;
   const $ = (id) => document.getElementById(id);
@@ -8,7 +9,7 @@
   const allowedSort = new Set(['created_at', 'event', 'source', 'actor', 'entity']);
   const trim = (v) => String(v ?? '').trim();
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  let timer = null, request = 0, activeController = null;
+
   const stateFromUrl = () => {
     const p = new URLSearchParams(location.search), q = trim(p.get('q')), candidate = trim(p.get('sort_by'));
     const explicit = allowedSort.has(candidate);
@@ -22,7 +23,7 @@
     if (s.source) out.source = s.source;
     return new URLSearchParams(out).toString();
   };
-  const sync = () => { if (searchInput) searchInput.value = s.q; if (filterForm?.elements.source) filterForm.elements.source.value = s.source; };
+  const sync = (restoreSearch = false) => { if (searchInput && restoreSearch) { searchGate.invalidate(); searchInput.value = s.q; } if (filterForm?.elements.source) filterForm.elements.source.value = s.source; };
   const updateUrl = (replace = false) => { const url = new URL(location.href); url.search = params(); history[replace ? 'replaceState' : 'pushState'](null, '', url); };
   const toggleDrawer = (open) => { drawer?.classList.toggle('d-none', !open); backdrop?.classList.toggle('d-none', !open); };
   const renderSort = () => document.querySelectorAll('[data-sort-indicator]').forEach((n) => { const active = n.dataset.sortIndicator === s.sort_by; n.textContent = active ? (s.sort_dir === 'asc' ? '↑' : '↓') : '↕'; n.classList.toggle('text-muted', !active); });
@@ -40,21 +41,25 @@
     pager.innerHTML=html+`<li class="page-item ${m.page===m.last_page?'disabled':''}"><a class="page-link" href="#" data-page="${m.page+1}">›</a></li></ul></nav>`;
   };
   const load = async (replace=false) => {
-    activeController?.abort(); const controller=new AbortController(); activeController=controller; const current=++request;
+    const request = searchGate.begin();
     body.innerHTML='<tr><td colspan="8" class="text-center text-muted py-4">Memuat data...</td></tr>';
     try {
-      const res=await fetch(`${c.endpoint}?${params()}`,{headers:{Accept:'application/json','X-Requested-With':'XMLHttpRequest'},signal:controller.signal}); const json=await res.json();
-      if(current!==request)return; if(!res.ok||!json.success)throw new Error('audit-table-response');
+      const res=await fetch(`${c.endpoint}?${params()}`,{headers:{Accept:'application/json','X-Requested-With':'XMLHttpRequest'},signal:request.signal}); const json=await res.json();
+      if(!request.isCurrent())return; if(!res.ok||!json.success)throw new Error('audit-table-response');
       renderRows(json.data.rows||[]); renderSummary(json.data.meta||{}); renderPager(json.data.meta||{}); renderSort(); sync(); updateUrl(replace);
-    } catch(error) { if(error.name==='AbortError'||current!==request)return; body.innerHTML='<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat audit log.</td></tr>'; pager.innerHTML=''; summary.textContent='Data audit log gagal dimuat.'; }
+    } catch(error) { if(error.name==='AbortError'||!request.isCurrent())return; body.innerHTML='<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat audit log.</td></tr>'; pager.innerHTML=''; summary.textContent='Data audit log gagal dimuat.'; } finally { request.finish(); }
   };
-  const runSearch = () => { const value=trim(searchInput?.value); s.q=value.length>=2?value:''; s.sort_by=s.q?'relevance':'created_at'; s.sort_dir='desc'; s.page=1; load(); };
-  searchForm?.addEventListener('submit',(e)=>{e.preventDefault();const value=trim(searchInput?.value);if(value.length===0||value.length>=2)runSearch();});
-  searchInput?.addEventListener('input',()=>{clearTimeout(timer);const value=trim(searchInput.value);if(value.length<2){s.q='';s.sort_by='created_at';s.sort_dir='desc';s.page=1;timer=setTimeout(()=>load(),160);return;}timer=setTimeout(runSearch,220);});
+  window.LiveSearch.bind({
+    gate: searchGate, input: searchInput, form: searchForm,
+    getQuery: () => s.q,
+    onQuery: (value) => { s.q = value; s.sort_by = value ? 'relevance' : 'created_at'; s.sort_dir = 'desc'; s.page = 1; },
+    load: load,
+  });
+
   $('open-audit-log-filter')?.addEventListener('click',()=>toggleDrawer(true)); $('close-audit-log-filter')?.addEventListener('click',()=>toggleDrawer(false)); backdrop?.addEventListener('click',()=>toggleDrawer(false));
   filterForm?.addEventListener('submit',(e)=>{e.preventDefault();s.source=trim(new FormData(filterForm).get('source'));s.page=1;toggleDrawer(false);load();});
   $('reset-audit-log-filter')?.addEventListener('click',()=>{s.source='';s.page=1;sync();toggleDrawer(false);load();});
   document.querySelector('#audit-log-table thead')?.addEventListener('click',(e)=>{const b=e.target.closest('[data-sort-by]');if(!b)return;const key=b.dataset.sortBy;s.sort_dir=s.sort_by===key&&s.sort_dir==='asc'?'desc':'asc';s.sort_by=key;s.page=1;load();});
   pager?.addEventListener('click',(e)=>{const a=e.target.closest('[data-page]');if(!a||a.parentElement.classList.contains('disabled'))return;e.preventDefault();s.page=Number(a.dataset.page||1);load();});
-  window.addEventListener('popstate',()=>{Object.assign(s,stateFromUrl());sync();renderSort();load(true);}); sync(); renderSort(); load(true);
+  window.addEventListener('popstate',()=>{Object.assign(s,stateFromUrl());sync(true);renderSort();load(true);}); sync(true); renderSort(); load(true);
 })();

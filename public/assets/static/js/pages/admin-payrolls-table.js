@@ -1,4 +1,5 @@
 (() => {
+  const searchGate = window.LiveSearch.create();
   const c = window.payrollTableConfig;
   if (!c) return;
 
@@ -35,10 +36,6 @@
   const sortKeys = new Set(["disbursement_date", "employee_name", "amount", "mode", "status"]);
   const sortDirs = new Set(["asc", "desc"]);
 
-  let timer = null;
-  let req = 0;
-  let activeController = null;
-
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (m) => ({
 
     "&": "&amp;",
@@ -66,7 +63,6 @@
 
     return `${match[3]}/${match[2]}/${match[1]}`;
   };
-
 
   const trim = (v) => String(v ?? "").trim();
 
@@ -253,62 +249,30 @@
   };
 
   const load = async (replace = false) => {
-    activeController?.abort();
-    const controller = new AbortController();
-    activeController = controller;
-    const current = ++req;
+    const request = searchGate.begin();
     body.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Sedang memuat data...</td></tr>';
     try {
-      const res = await fetch(`${c.endpoint}?${paramsString()}`, { headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" }, signal: controller.signal });
+      const res = await fetch(`${c.endpoint}?${paramsString()}`, { headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" }, signal: request.signal });
       const json = await res.json();
-      if (current !== req) return;
+      if (!request.isCurrent()) return;
       if (!res.ok || !json.success) throw new Error("payroll-table-response");
       renderRows(json.data.rows || [], json.data.meta || {}); renderSummary(json.data.meta || {}); renderPager(json.data.meta || {}); renderSort(); updateUrl(replace);
     } catch (error) {
-      if (error?.name === "AbortError" || current !== req) return;
+      if (error?.name === "AbortError" || !request.isCurrent()) return;
       body.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat data.</td></tr>';
       sum.textContent = "Menampilkan 0 sampai 0 dari 0 pencairan gaji"; pag.innerHTML = "";
-    } finally { if (activeController === controller) activeController = null; }
+    } finally {
+      request.finish();
+    }
   };
 
-  form?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const value = trim(q.value);
-
-    if (value.length < 2) {
-      s.q = "";
-      if (s.sort_by === "relevance") { s.sort_by = "disbursement_date"; s.sort_dir = "desc"; }
-      s.page = 1;
-      load();
-      return;
-    }
-
-    if (value.length >= 2) {
-      s.q = value;
-      s.sort_by = "relevance"; s.sort_dir = "asc";
-      s.page = 1;
-      load();
-    }
-  });
-
-  q?.addEventListener("input", () => {
-    const value = trim(q.value);
-    clearTimeout(timer);
-
-    if (value.length < 2) {
-      s.q = "";
-      if (s.sort_by === "relevance") { s.sort_by = "disbursement_date"; s.sort_dir = "desc"; }
-      s.page = 1;
-      timer = setTimeout(() => load(), 160);
-      return;
-    }
-
-    timer = setTimeout(() => {
-      s.q = value;
-      s.sort_by = "relevance"; s.sort_dir = "asc";
-      s.page = 1;
-      load();
-    }, 220);
+  window.LiveSearch.bind({
+    gate: searchGate, input: q, form: form,
+    getQuery: () => s.q,
+    onQuery: (value) => { s.q = value; s.page = 1;
+      if (value) { s.sort_by = "relevance"; s.sort_dir = "asc"; }
+      else if (s.sort_by === "relevance") { s.sort_by = "disbursement_date"; s.sort_dir = "desc"; } },
+    load: load,
   });
 
   document.querySelectorAll("[data-sort-by]").forEach((b) => b.addEventListener("click", () => {
@@ -374,8 +338,8 @@
     }
   });
 
-  const syncControls = () => {
-    q.value = s.q;
+  const syncControls = (restoreSearch = false) => {
+    if (restoreSearch) { searchGate.invalidate(); q.value = s.q; }
     ["mode", "status", "date_from", "date_to"].forEach((key) => { if (filterForm?.elements[key]) filterForm.elements[key].value = s[key]; });
   };
   const drawFilter = (open) => { filterDrawer?.classList.toggle("d-none", !open); filterBackdrop?.classList.toggle("d-none", !open); };
@@ -384,8 +348,8 @@
   filterBackdrop?.addEventListener("click", () => drawFilter(false));
   filterForm?.addEventListener("submit", (e) => { e.preventDefault(); ["mode", "status", "date_from", "date_to"].forEach((key) => { s[key] = trim(filterForm.elements[key].value); }); s.page = 1; drawFilter(false); load(); });
   $("reset-payroll-filter")?.addEventListener("click", () => { s.mode = ""; s.status = "all"; s.date_from = ""; s.date_to = ""; s.page = 1; syncControls(); drawFilter(false); load(); });
-  window.addEventListener("popstate", () => { Object.assign(s, stateFromUrl()); syncControls(); load(true); });
+  window.addEventListener("popstate", () => { Object.assign(s, stateFromUrl()); syncControls(true); load(true); });
 
-  syncControls();
+  syncControls(true);
   load(true);
 })();

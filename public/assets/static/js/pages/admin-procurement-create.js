@@ -206,7 +206,6 @@
       "[data-tax-header-input], [data-tax-line-input], [data-qty-input], [data-money-display], [data-money-raw]"
     ));
 
-
   const setElementHidden = (element, hidden) => {
     if (!element) return;
     element.classList.toggle("d-none", hidden);
@@ -284,7 +283,6 @@
     headerTaxInput.addEventListener("input", () => updateTaxModeFields("header"));
     headerTaxInput.addEventListener("change", () => updateTaxModeFields("header"));
   }
-
 
   const headerFields = () =>
     Array.from(form.querySelectorAll("[data-procurement-header-field]"))
@@ -431,7 +429,6 @@
 
   const duplicateProductMessage = (firstLineNo, currentLineNo) =>
     `Baris ${currentLineNo}: produk ini sudah dipakai di baris ${firstLineNo}. Satu produk hanya boleh satu kali per faktur.`;
-
 
   const validateDuplicateProductsBeforeSubmit = () => {
     let isValid = true;
@@ -840,7 +837,7 @@
     }
 
     let debounceTimer = null;
-    let requestCounter = 0;
+    const searchGate = window.LiveSearch.create();
     let activeChoiceIndex = -1;
 
     const resultButtons = () => Array.from(supplierResultsBox.querySelectorAll("[data-supplier-choice]"));
@@ -859,6 +856,7 @@
     };
 
     const hideResults = () => {
+      clearTimeout(debounceTimer); searchGate.invalidate();
       supplierResultsBox.innerHTML = "";
       supplierResultsBox.classList.add("d-none");
       activeChoiceIndex = -1;
@@ -912,30 +910,37 @@
         return;
       }
 
-      const currentRequest = ++requestCounter;
-      const response = await fetch(`${config.supplierLookupEndpoint}?q=${encodeURIComponent(query)}`, {
-        headers: { Accept: "application/json" }
-      });
+      const request = searchGate.begin();
+      try {
+        const response = await fetch(`${config.supplierLookupEndpoint}?q=${encodeURIComponent(query)}`, {
+          headers: { Accept: "application/json" }, signal: request.signal
+        });
 
-      const json = await response.json();
+        const json = await response.json();
 
-      if (currentRequest !== requestCounter) {
-        return;
-      }
+        if (!request.isCurrent()) {
+          return;
+        }
 
-      if (!response.ok || !json.success) {
-        supplierResultsBox.innerHTML = '<div class="list-group-item text-danger">Gagal memuat supplier.</div>';
-        supplierResultsBox.classList.remove("d-none");
-        activeChoiceIndex = -1;
-        return;
-      }
+        if (!response.ok || !json.success) {
+          supplierResultsBox.innerHTML = '<div class="list-group-item text-danger">Gagal memuat supplier.</div>';
+          supplierResultsBox.classList.remove("d-none");
+          activeChoiceIndex = -1;
+          return;
+        }
 
-      renderResults(json.data?.rows || []);
+        renderResults(json.data?.rows || []);
+      } catch (error) {
+        if (request.isCurrent() && error.name !== "AbortError") {
+          supplierResultsBox.innerHTML = '<div class="list-group-item text-danger">Gagal memuat supplier.</div>';
+          supplierResultsBox.classList.remove("d-none");
+        }
+      } finally { request.finish(); }
     };
 
     supplierSearchInput.addEventListener("input", () => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(fetchResults, 250);
+      hideResults();
+      if (supplierSearchInput.value.trim().length >= 2) debounceTimer = setTimeout(fetchResults, 250);
     });
 
     supplierSearchInput.addEventListener("focus", () => {

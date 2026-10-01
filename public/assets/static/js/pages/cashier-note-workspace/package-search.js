@@ -1,7 +1,11 @@
 (() => {
   const NS = (window.CashierNoteWorkspace = window.CashierNoteWorkspace || {});
   const timers = new WeakMap();
-  const requestTokens = new WeakMap();
+  const gates = new WeakMap();
+  const gateFor = (input) => {
+    if (!gates.has(input)) gates.set(input, window.LiveSearch.create());
+    return gates.get(input);
+  };
   const activeChoiceIndexes = new WeakMap();
 
   const digits = (value) =>
@@ -29,7 +33,7 @@
     const input = packageSearchInput(row);
     if (!(input instanceof HTMLInputElement)) return;
     clearTimeout(timers.get(input));
-    requestTokens.set(input, Symbol("package-search-invalidated"));
+    gateFor(input).invalidate();
   };
 
   const packageTotal = (item) => {
@@ -235,8 +239,8 @@
   const fetchPackages = async (row, input) => {
     const query = input.value.trim();
     const endpoint = NS.config?.packageLookupEndpoint;
-    const token = Symbol("package-search");
-    requestTokens.set(input, token);
+    clearTimeout(timers.get(input));
+    const token = gateFor(input).begin();
 
     if (query.length < 2 || !endpoint) {
       clearResults(row);
@@ -247,7 +251,7 @@
       const params = new URLSearchParams({ q: query });
       const separator = endpoint.includes("?") ? "&" : "?";
       const response = await fetch(`${endpoint}${separator}${params.toString()}`, {
-        headers: { Accept: "application/json" },
+        headers: { Accept: "application/json" }, signal: token.signal,
       });
 
       if (!response.ok) {
@@ -256,12 +260,12 @@
 
       const payload = await response.json();
 
-      if (requestTokens.get(input) !== token) return;
+      if (!token.isCurrent()) return;
 
       renderResults(row, payload?.data?.rows || []);
     } catch (_error) {
-      if (requestTokens.get(input) === token) clearResults(row);
-    }
+      if (token.isCurrent()) clearResults(row);
+    } finally { token.finish(); }
   };
 
   const clearPackageState = (row) => {
@@ -339,7 +343,8 @@
         return;
       }
 
-      requestTokens.set(input, Symbol("package-search-input"));
+      gateFor(input).invalidate();
+      clearResults(row);
       clearTimeout(timers.get(input));
       timers.set(input, setTimeout(() => void fetchPackages(row, input), 250));
     });
@@ -366,7 +371,7 @@
         event.preventDefault();
         buttons[activeChoiceIndexes.get(row) ?? 0]?.click();
       } else if (event.key === "Escape") {
-        clearResults(row);
+        invalidateLookup(row); clearResults(row);
       }
     });
 
@@ -377,7 +382,7 @@
     });
 
     document.addEventListener("click", (event) => {
-      if (event.target instanceof Node && !row.contains(event.target)) clearResults(row);
+      if (event.target instanceof Node && !row.contains(event.target)) { invalidateLookup(row); clearResults(row); }
     });
   };
 })();

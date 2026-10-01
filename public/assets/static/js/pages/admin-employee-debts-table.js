@@ -1,4 +1,5 @@
 (() => {
+  const searchGate = window.LiveSearch.create();
   const c = window.employeeDebtTableConfig;
   if (!c) return;
 
@@ -49,9 +50,6 @@
   };
 
   const s = state();
-  let timer = null;
-  let req = 0;
-  let activeController = null;
 
   const params = () => {
     const out = {
@@ -154,31 +152,28 @@
   };
 
   const load = async (replace = false) => {
-    activeController?.abort();
-    const controller = new AbortController(); activeController = controller;
-    const current = ++req;
+    const request = searchGate.begin();
     body.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Sedang memuat data...</td></tr>';
     try {
-      const res = await fetch(`${c.endpoint}?${paramsString()}`, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, signal: controller.signal });
+      const res = await fetch(`${c.endpoint}?${paramsString()}`, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, signal: request.signal });
       const json = await res.json();
-      if (current !== req) return;
+      if (!request.isCurrent()) return;
       if (!res.ok || !json.success) throw new Error('employee-debt-table-response');
       renderRows(json.data.rows || [], json.data.meta || {}); renderSummary(json.data.meta || {}); renderPager(json.data.meta || {}); renderSort(); updateUrl(replace);
     } catch (error) {
-      if (error?.name === 'AbortError' || current !== req) return;
+      if (error?.name === 'AbortError' || !request.isCurrent()) return;
       body.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat data.</td></tr>';
       sum.textContent = 'Menampilkan 0 sampai 0 dari 0 karyawan dengan hutang'; pag.innerHTML = '';
-    } finally { if (activeController === controller) activeController = null; }
+    } finally {
+      request.finish();
+    }
   };
 
-  q?.addEventListener('input', (e) => {
-    clearTimeout(timer);
-    const value = trim(e.target.value);
-    s.q = value.length >= 2 ? value : '';
-    s.page = 1;
-    timer = setTimeout(() => {
-      load();
-    }, value.length >= 2 ? 220 : 160);
+  window.LiveSearch.bind({
+    gate: searchGate, input: q, form: $('employee-debt-search-form'),
+    getQuery: () => s.q,
+    onQuery: (value) => { s.q = value; s.page = 1; },
+    load: load,
   });
 
   document.querySelectorAll('[data-sort-by]').forEach((b) => b.addEventListener('click', () => {
@@ -189,7 +184,7 @@
     load();
   }));
 
-  const syncControls = () => { q.value = s.q; if (filterForm?.elements.status) filterForm.elements.status.value = s.status; };
+  const syncControls = (restoreSearch = false) => { if (restoreSearch) { searchGate.invalidate(); q.value = s.q; } if (filterForm?.elements.status) filterForm.elements.status.value = s.status; };
   const drawFilter = (open) => { filterDrawer?.classList.toggle('d-none', !open); filterBackdrop?.classList.toggle('d-none', !open); };
   $('open-employee-debt-filter')?.addEventListener('click', () => drawFilter(true));
   $('close-employee-debt-filter')?.addEventListener('click', () => drawFilter(false));
@@ -204,8 +199,8 @@
     load();
   });
 
-  window.addEventListener('popstate', () => { Object.assign(s, state()); syncControls(); load(true); });
+  window.addEventListener('popstate', () => { Object.assign(s, state()); syncControls(true); load(true); });
 
-  syncControls();
+  syncControls(true);
   load(true);
 })();

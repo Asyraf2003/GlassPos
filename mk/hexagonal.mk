@@ -69,7 +69,14 @@ audit-contract: audit-lines audit-blade
 check: audit-hex test
 
 # Gerbang Verifikasi Utama (Test + Lint + Contract Audit)
-verify: lint audit-contract test-compact
+verify: lint audit-contract test-frontend test-compact
 
 # Alias untuk CI sesuai DoD 3.3
 ci: verify
+
+.PHONY: test-frontend test-browser-live-search
+test-frontend:
+	node --test tests/Frontend/*.test.cjs
+
+test-browser-live-search:
+	node scripts/test-live-search-pages.mjs

@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const searchGate = window.LiveSearch.create();
     const configNode = document.getElementById('cashier-note-index-config');
     const searchForm = document.getElementById('cashier-note-search-form');
     const searchInput = document.getElementById('cashier-note-search-input');
@@ -31,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const stateFromUrl = () => {
         const params = new URLSearchParams(window.location.search);
         return {
-            search: clean(params.get('search') || filters.search),
+            search: clean(params.get('search') || ''),
             bucket: validBucket(params.get('bucket') || filters.bucket),
             page: pageNumber(params.get('page')),
             per_page: 10,
@@ -39,11 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const state = stateFromUrl();
-    let requestCounter = 0;
-    let debounceTimer = null;
 
-    const fillControls = () => {
-        searchInput.value = state.search;
+    const fillControls = (restoreSearch = false) => {
+        if (restoreSearch) { searchGate.invalidate(); searchInput.value = state.search; }
         bucketButtons.forEach((button) => {
             button.setAttribute('aria-pressed', button.dataset.historyBucket === state.bucket ? 'true' : 'false');
         });
@@ -139,16 +138,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const request = ++requestCounter;
+        const request = searchGate.begin();
         list.setAttribute('aria-busy', 'true');
         renderState('Memuat riwayat nota...');
 
         try {
             const url = new URL(endpoint, window.location.origin);
             url.search = requestParams().toString();
-            const response = await fetch(url, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+            const response = await fetch(url, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, signal: request.signal });
             const payload = await response.json();
-            if (request !== requestCounter) return;
+            if (!request.isCurrent()) return;
             if (!response.ok || payload?.success !== true) throw new Error('history-request-failed');
 
             const data = payload.data || {};
@@ -159,12 +158,12 @@ document.addEventListener('DOMContentLoaded', () => {
             fillControls();
             updateUrl(replaceUrl);
         } catch (_error) {
-            if (request !== requestCounter) return;
+            if (!request.isCurrent()) return;
             renderState('Riwayat nota gagal dimuat.', true);
             summary.textContent = 'Gagal memuat riwayat nota.';
             pagination.replaceChildren();
             list.setAttribute('aria-busy', 'false');
-        }
+        } finally { request.finish(); }
     };
 
     bucketButtons.forEach((button) => button.addEventListener('click', () => {
@@ -176,22 +175,11 @@ document.addEventListener('DOMContentLoaded', () => {
         void load();
     }));
 
-    searchForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        state.search = clean(searchInput.value);
-        state.page = 1;
-        void load();
-    });
-
-    searchInput.addEventListener('input', () => {
-        clearTimeout(debounceTimer);
-        const value = clean(searchInput.value);
-        if (value.length === 1) return;
-        debounceTimer = window.setTimeout(() => {
-            state.search = value;
-            state.page = 1;
-            void load();
-        }, value === '' ? 200 : 300);
+    window.LiveSearch.bind({
+        gate: searchGate, input: searchInput, form: searchForm,
+        getQuery: () => state.search,
+        onQuery: (value) => { state.search = value; state.page = 1; },
+        load,
     });
 
     searchInput.addEventListener('keydown', (event) => {
@@ -211,10 +199,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addEventListener('popstate', () => {
         Object.assign(state, stateFromUrl());
-        fillControls();
+        fillControls(true);
         void load(true);
     });
 
-    fillControls();
+    fillControls(true);
     void load(true);
 });

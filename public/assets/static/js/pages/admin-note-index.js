@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const searchGate = window.LiveSearch.create();
     const configNode = document.getElementById('admin-note-index-config');
     const searchForm = document.getElementById('admin-note-search-form');
     const searchInput = document.getElementById('admin-note-search-input');
@@ -68,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return {
             date_from: normalize(params.get('date_from') || filters.date_from),
             date_to: normalize(params.get('date_to') || filters.date_to),
-            search: normalize(params.get('search') || filters.search),
+            search: normalize(params.get('search') || ''),
             line_status: normalize(params.get('line_status') || filters.line_status),
             sort_by: normalize(params.get('sort_by') || filters.sort_by) === 'relevance'
                 ? 'relevance'
@@ -81,12 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const state = stateFromUrl();
 
-    let searchDebounceTimer = null;
-    let requestCounter = 0;
-    let activeController = null;
-
-    const fillControlsFromState = () => {
-        searchInput.value = state.search;
+    const fillControlsFromState = (restoreSearch = false) => {
+        if (restoreSearch) { searchGate.invalidate(); searchInput.value = state.search; }
         dateFromInput.value = state.date_from;
         dateToInput.value = state.date_to;
         lineStatusInput.value = state.line_status;
@@ -257,11 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderError();
             return;
         }
-
-        activeController?.abort();
-        const controller = new AbortController();
-        activeController = controller;
-        const currentRequest = ++requestCounter;
+        const request = searchGate.begin();
         renderLoading();
 
         const url = new URL(endpoint, window.location.origin);
@@ -277,12 +270,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                 },
-                signal: controller.signal,
+                signal: request.signal,
             });
 
             const payload = await response.json();
 
-            if (currentRequest !== requestCounter) {
+            if (!request.isCurrent()) {
                 return;
             }
 
@@ -304,37 +297,21 @@ document.addEventListener('DOMContentLoaded', () => {
             fillControlsFromState();
             updateUrlState(replaceUrl);
         } catch (error) {
-            if (error?.name === 'AbortError' || currentRequest !== requestCounter) {
+            if (error?.name === 'AbortError' || !request.isCurrent()) {
                 return;
             }
 
             renderError();
         } finally {
-            if (activeController === controller) activeController = null;
+            request.finish();
         }
     };
 
-    searchForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        syncSearchState();
-        loadTable();
-    });
-
-    searchInput.addEventListener('input', () => {
-        clearTimeout(searchDebounceTimer);
-
-        const value = normalize(searchInput.value);
-
-        if (value.length < 2) {
-            syncSearchState();
-            searchDebounceTimer = window.setTimeout(() => loadTable(), 160);
-            return;
-        }
-
-        searchDebounceTimer = window.setTimeout(() => {
-            syncSearchState();
-            loadTable();
-        }, 220);
+    window.LiveSearch.bind({
+        gate: searchGate, input: searchInput, form: searchForm,
+        getQuery: () => state.search,
+        onQuery: () => syncSearchState(),
+        load: loadTable,
     });
 
     openFilterButton.addEventListener('click', () => {
@@ -387,10 +364,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addEventListener('popstate', () => {
         Object.assign(state, stateFromUrl());
-        fillControlsFromState();
+        fillControlsFromState(true);
         loadTable(true);
     });
 
-    fillControlsFromState();
+    fillControlsFromState(true);
     loadTable(true);
 });

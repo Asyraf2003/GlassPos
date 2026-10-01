@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="{{ asset('assets/compiled/css/iconly.css') }}?v={{ config('app.asset_version') }}">
     <link rel="stylesheet" href="{{ asset('assets/static/css/ui-foundation.css') }}?v={{ config('app.asset_version') }}">
     <link rel="stylesheet" href="{{ asset('assets/static/css/cashier-note-device-presentation.css') }}?v={{ config('app.asset_version') }}">
+    <script src="{{ asset('assets/static/js/shared/live-search.js') }}?v={{ config('app.asset_version') }}"></script>
     @stack('styles')
 </head>
 

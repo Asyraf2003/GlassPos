@@ -1,4 +1,5 @@
 (() => {
+  const searchGate = window.LiveSearch.create();
     const config = window.expenseCategoryTableConfig;
     if (!config) return;
 
@@ -8,7 +9,6 @@
     const searchForm = $('expense-category-search-form'), searchInput = $('expense-category-search-input');
     const filterForm = $('expense-category-filter-form'), statusInput = $('filter-category-status');
     const drawer = $('expense-category-filter-drawer'), backdrop = $('expense-category-filter-backdrop');
-    let debounceId = null;
 
     const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
     const url = (template, id) => template.replace('__CATEGORY_ID__', encodeURIComponent(id));
@@ -99,17 +99,20 @@
     }
 
     async function fetchTable() {
+        const request = searchGate.begin();
         body.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Sedang memuat data...</td></tr>';
         try {
-            const response = await fetch(`${config.endpoint}?${params()}`, { headers: { Accept: 'application/json' } });
+            const response = await fetch(`${config.endpoint}?${params()}`, { headers: { Accept: 'application/json' }, signal: request.signal });
             const payload = await response.json();
+            if (!request.isCurrent()) return;
             if (!response.ok || payload.success !== true) throw new Error('Gagal memuat data');
             renderRows(payload.data.rows, payload.data.meta);
         } catch (_error) {
+            if (!request.isCurrent()) return;
             body.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Gagal memuat data kategori.</td></tr>';
             summary.textContent = 'Total: -';
             pagination.innerHTML = '';
-        }
+        } finally { request.finish(); }
     }
 
     document.querySelectorAll('[data-sort-by]').forEach((btn) => {
@@ -122,11 +125,12 @@
         });
     });
 
-    searchForm?.addEventListener('submit', (e) => { e.preventDefault(); state.q = searchInput.value.trim(); state.page = 1; fetchTable(); });
-    searchInput?.addEventListener('input', () => {
-        clearTimeout(debounceId);
-        debounceId = setTimeout(() => { state.q = searchInput.value.trim(); state.page = 1; fetchTable(); }, 300);
-    });
+  window.LiveSearch.bind({
+    gate: searchGate, input: searchInput, form: searchForm,
+    getQuery: () => state.q,
+    onQuery: (value) => { state.q = value; state.page = 1; },
+    load: fetchTable,
+  });
 
     $('open-expense-category-filter')?.addEventListener('click', () => toggleDrawer(true));
     $('close-expense-category-filter')?.addEventListener('click', () => toggleDrawer(false));

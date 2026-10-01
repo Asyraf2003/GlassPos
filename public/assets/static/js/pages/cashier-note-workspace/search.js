@@ -1,7 +1,11 @@
 (() => {
   const NS = (window.CashierNoteWorkspace = window.CashierNoteWorkspace || {});
   const timers = new WeakMap();
-  const requestTokens = new WeakMap();
+  const gates = new WeakMap();
+  const gateFor = (input) => {
+    if (!gates.has(input)) gates.set(input, window.LiveSearch.create());
+    return gates.get(input);
+  };
   const activeChoiceIndexes = new WeakMap();
 
   const parseDigits = (value) =>
@@ -45,7 +49,7 @@
   const invalidateLookup = (input) => {
     if (!(input instanceof HTMLInputElement)) return;
     window.clearTimeout(timers.get(input));
-    requestTokens.set(input, Symbol("product-search-invalidated"));
+    gateFor(input).invalidate();
   };
 
   const productName = (item) => window.ProductDisplay.identity(item);
@@ -206,11 +210,11 @@
     setProductSelectedState(scope, item);
   };
 
-  const fetchRows = async (endpoint, params) => {
+  const fetchRows = async (endpoint, params, signal) => {
     const separator = endpoint.includes("?") ? "&" : "?";
     const url = `${endpoint}${separator}${params.toString()}`;
 
-    const response = await fetch(url, { headers: { Accept: "application/json" } });
+    const response = await fetch(url, { headers: { Accept: "application/json" }, signal });
     if (!response.ok) throw new Error(`Product lookup failed with status ${response.status}`);
     const payload = await response.json();
 
@@ -230,8 +234,8 @@
       const fetchResults = async () => {
         const query = input.value.trim();
         const endpoint = NS.config?.productLookupEndpoint;
-        const token = Symbol("product-search");
-        requestTokens.set(input, token);
+        clearTimeout(timers.get(input));
+        const token = gateFor(input).begin();
         if (!hidden || query.length < 2 || !endpoint) {
           clearResults(scope);
           return;
@@ -243,11 +247,11 @@
         }
 
         try {
-          const rows = await fetchRows(endpoint, params);
-          if (requestTokens.get(input) === token) renderResults(row, scope, rows);
+          const rows = await fetchRows(endpoint, params, token.signal);
+          if (token.isCurrent()) renderResults(row, scope, rows);
         } catch (_error) {
-          if (requestTokens.get(input) === token) clearResults(scope);
-        }
+          if (token.isCurrent()) clearResults(scope);
+        } finally { token.finish(); }
       };
 
       input.addEventListener("input", () => {
@@ -257,7 +261,8 @@
           return;
         }
 
-        requestTokens.set(input, Symbol("product-search-input"));
+        gateFor(input).invalidate();
+        clearResults(scope);
         const raw = scope.querySelector('input[name$="[unit_price_rupiah]"]');
         if (raw) raw.value = "";
         window.clearTimeout(timers.get(input));
@@ -273,7 +278,7 @@
         const buttons = resultButtons(scope);
         const current = activeChoiceIndexes.get(scope) ?? 0;
         if (event.key === "Escape") {
-          clearResults(scope);
+          invalidateLookup(input); clearResults(scope);
         } else if (buttons.length && event.key === "ArrowDown") {
           event.preventDefault();
           setActiveChoice(scope, current + 1);
@@ -291,7 +296,7 @@
       });
 
       document.addEventListener("click", (event) => {
-        if (event.target instanceof Node && !scope.contains(event.target)) clearResults(scope);
+        if (event.target instanceof Node && !scope.contains(event.target)) { invalidateLookup(input); clearResults(scope); }
       });
     });
   };

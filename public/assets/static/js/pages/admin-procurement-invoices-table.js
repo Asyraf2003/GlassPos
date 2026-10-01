@@ -1,4 +1,5 @@
 (() => {
+  const searchGate = window.LiveSearch.create();
   const c = window.procurementInvoiceTableConfig;
   if (!c) return;
 
@@ -78,9 +79,6 @@
     ? new window.bootstrap.Modal(voidModalElement)
     : null;
 
-  let searchDebounceTimer = null;
-  let requestCounter = 0;
-  let activeController = null;
   let pendingPaymentAction = null;
   let pendingVoidAction = null;
 
@@ -111,7 +109,6 @@
 
     return `${match[3]}/${match[2]}/${match[1]}`;
   };
-
 
   const trimValue = (v) => String(v ?? "").trim();
   const rupiah = (v) => "Rp " + Number(v || 0).toLocaleString("id-ID");
@@ -235,9 +232,9 @@
 
   const s = stateFromUrl();
 
-  const syncInputsFromState = () => {
+  const syncInputsFromState = (restoreSearch = false) => {
     if (searchInput) {
-      searchInput.value = s.q;
+      if (restoreSearch) { searchGate.invalidate(); searchInput.value = s.q; }
     }
 
     if (filterForm?.elements["payment_status"]) {
@@ -500,22 +497,19 @@
   };
 
   const load = async (replaceUrl = false) => {
-    activeController?.abort();
-    const controller = new AbortController();
-    activeController = controller;
-    const currentRequest = ++requestCounter;
+    const request = searchGate.begin();
 
     body.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-4">Memuat data...</td></tr>`;
 
     try {
       const res = await fetch(`${c.endpoint}?${paramsString()}`, {
         headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
-        signal: controller.signal
+        signal: request.signal
       });
 
       const json = await res.json();
 
-      if (currentRequest !== requestCounter) {
+      if (!request.isCurrent()) {
         return;
       }
 
@@ -551,7 +545,7 @@
         }
       }
     } catch (error) {
-      if (error?.name === "AbortError" || currentRequest !== requestCounter) {
+      if (error?.name === "AbortError" || !request.isCurrent()) {
         return;
       }
 
@@ -559,7 +553,7 @@
       summary.textContent = "Menampilkan 0 sampai 0 dari 0 nota supplier";
       pager.innerHTML = "";
     } finally {
-      if (activeController === controller) activeController = null;
+      request.finish();
     }
   };
 
@@ -611,52 +605,13 @@
     }
   });
 
-  searchForm?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const value = trimValue(searchInput?.value);
-
-    if (value.length < 2) {
-      s.q = "";
-      if (s.sort_by === "relevance") {
-        s.sort_by = defaults.sort_by;
-        s.sort_dir = defaults.sort_dir;
-      }
-      s.page = 1;
-      load();
-      return;
-    }
-
-    if (value.length >= 2) {
-      s.q = value;
-      s.sort_by = "relevance";
-      s.sort_dir = "asc";
-      s.page = 1;
-      load();
-    }
-  });
-
-  searchInput?.addEventListener("input", () => {
-    const value = trimValue(searchInput.value);
-    clearTimeout(searchDebounceTimer);
-
-    if (value.length < 2) {
-      s.q = "";
-      if (s.sort_by === "relevance") {
-        s.sort_by = defaults.sort_by;
-        s.sort_dir = defaults.sort_dir;
-      }
-      s.page = 1;
-      searchDebounceTimer = setTimeout(() => load(), 160);
-      return;
-    }
-
-    searchDebounceTimer = setTimeout(() => {
-      s.q = value;
-      s.sort_by = "relevance";
-      s.sort_dir = "asc";
-      s.page = 1;
-      load();
-    }, 220);
+  window.LiveSearch.bind({
+    gate: searchGate, input: searchInput, form: searchForm,
+    getQuery: () => s.q,
+    onQuery: (value) => { s.q = value; s.page = 1;
+      if (value) { s.sort_by = "relevance"; s.sort_dir = "asc"; }
+      else if (s.sort_by === "relevance") { s.sort_by = defaults.sort_by; s.sort_dir = defaults.sort_dir; } },
+    load: load,
   });
 
   filterForm?.addEventListener("submit", (e) => {
@@ -694,7 +649,7 @@
     s.shipment_date_from = "";
     s.shipment_date_to = "";
     s.page = 1;
-    syncInputsFromState();
+    syncInputsFromState(true);
     load();
   });
 
@@ -753,7 +708,7 @@
 
   window.addEventListener("popstate", () => {
     Object.assign(s, stateFromUrl());
-    syncInputsFromState();
+    syncInputsFromState(true);
     load(true);
   });
 
@@ -761,7 +716,7 @@
     window.AdminMoneyInput.bindMoneyPair(paymentAmountDisplay, paymentAmountRaw);
   }
 
-  syncInputsFromState();
+  syncInputsFromState(true);
   renderSortIndicators();
   renderActiveFilters();
   syncVoidSubmitState();

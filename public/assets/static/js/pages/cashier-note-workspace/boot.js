@@ -11,6 +11,11 @@
     }
   };
 
+  const edited = new WeakSet();
+  const rememberInput = (event) => { if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) edited.add(event.target); };
+  document.addEventListener("input", rememberInput, true);
+  document.addEventListener("change", rememberInput, true);
+
   const start = async () => {
     if (NS.workspaceConfigReady instanceof Promise) {
       await NS.workspaceConfigReady;
@@ -31,27 +36,27 @@
           ? NS.config.oldNote
           : {};
 
-      if (customerName && typeof note.customer_name === "string") {
+      if (customerName && !edited.has(customerName) && typeof note.customer_name === "string") {
         customerName.value = note.customer_name;
       }
 
-      if (customerPhone && typeof note.customer_phone === "string") {
+      if (customerPhone && !edited.has(customerPhone) && typeof note.customer_phone === "string") {
         customerPhone.value = note.customer_phone;
       }
 
       if (
-        transactionDate &&
+        transactionDate && !edited.has(transactionDate) &&
         typeof note.transaction_date === "string" &&
         note.transaction_date !== ""
       ) {
         transactionDate.value = note.transaction_date;
       }
 
-      if (operationalNote && typeof note.operational_note === "string") {
+      if (operationalNote && !edited.has(operationalNote) && typeof note.operational_note === "string") {
         operationalNote.value = note.operational_note;
       }
 
-      if (customerName && !customerName.value.trim()) {
+      if (customerName && !edited.has(customerName) && !customerName.value.trim()) {
         customerName.value = NS.config.defaultCustomerName || "Pelanggan no 1";
       }
     };
@@ -65,7 +70,7 @@
 
       const setValue = (id, value) => {
         const el = document.getElementById(id);
-        if (!el || value === undefined || value === null) return;
+        if (!el || edited.has(el) || value === undefined || value === null) return;
         el.value = String(value);
       };
 

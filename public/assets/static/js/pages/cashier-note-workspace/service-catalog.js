@@ -1,7 +1,11 @@
 (() => {
   const NS = (window.CashierNoteWorkspace = window.CashierNoteWorkspace || {});
   const timers = new WeakMap();
-  const requestTokens = new WeakMap();
+  const gates = new WeakMap();
+  const gateFor = (input) => {
+    if (!gates.has(input)) gates.set(input, window.LiveSearch.create());
+    return gates.get(input);
+  };
   const activeChoiceIndexes = new WeakMap();
 
   const digits = (value) =>
@@ -48,7 +52,7 @@
     const input = serviceSearchInput(row);
     if (!(input instanceof HTMLInputElement)) return;
     clearTimeout(timers.get(input));
-    requestTokens.set(input, Symbol("service-search-invalidated"));
+    gateFor(input).invalidate();
   };
 
   const setMoney = (raw, display, amount) => {
@@ -147,22 +151,22 @@
     });
   };
 
-  const selectService = (row, item, forceDisplay = true) => {
+  const selectService = (row, item, forceDisplay = true, automatic = false) => {
     const name = serviceNameInput(row);
     const query = serviceSearchInput(row);
     invalidateLookup(row);
-    if (name) name.value = item.label || "";
-    if (query) query.value = "";
+    if (name && (!automatic || name !== query)) name.value = item.label || "";
+    if (query && !automatic) query.value = "";
     if (catalogIdInput(row)) catalogIdInput(row).value = item.id || "";
     row.dataset.serviceNameManual = "1";
     row.dataset.serviceTemplateAutofilled = "0";
 
 	    const price = digits(item.default_price_rupiah);
 	    setDefaultFee(row, price, forceDisplay);
-	    setServiceSelectedState(row, item.label || "", price);
+	    if (!automatic) setServiceSelectedState(row, item.label || "", price);
 	    clearResults(row);
     NS.updateSummary?.();
-    NS.focusElement?.(serviceDisplay(row));
+    if (!automatic) NS.focusElement?.(serviceDisplay(row));
   };
 
   const renderResults = (row, items) => {
@@ -190,31 +194,30 @@
     setActiveChoice(row, 0);
   };
 
-  const fetchServices = async (row, query) => {
+  const fetchServices = async (row, query, render = false, accept = null) => {
     const endpoint = NS.config?.serviceLookupEndpoint;
     const input = serviceSearchInput(row);
     if (!endpoint || !input || String(query || "").trim().length < 2) return [];
 
-    const token = Symbol("service-search");
-    requestTokens.set(input, token);
+    clearTimeout(timers.get(input));
+    const token = gateFor(input).begin();
 
     try {
       const response = await fetch(`${endpoint}?q=${encodeURIComponent(query)}`, {
-        headers: { Accept: "application/json" },
+        headers: { Accept: "application/json" }, signal: token.signal,
       });
       const payload = await response.json();
 
-      if (requestTokens.get(input) !== token) return [];
-      return payload?.data?.rows || [];
+      if (!token.isCurrent()) return null;
+      if (!response.ok || !payload.success) throw new Error("service-lookup-response");
+      const rows = payload?.data?.rows || [];
+      if (render) renderResults(row, rows);
+      accept?.(rows);
+      return rows;
     } catch (_error) {
-      if (requestTokens.get(input) === token) clearResults(row);
-      return [];
-    }
-  };
-
-  const exactMatch = async (row, name) => {
-    const rows = await fetchServices(row, name);
-    return rows.find((item) => normalize(item.normalized_name || item.label) === normalize(name));
+      if (token.isCurrent()) clearResults(row);
+      return null;
+    } finally { token.finish(); }
   };
 
   const feeForCreate = (row) => {
@@ -232,27 +235,36 @@
 
     const price = feeForCreate(row);
     if (price <= 0) {
-      const matched = await exactMatch(row, name);
-      if (matched) selectService(row, matched, false);
+      await fetchServices(row, name, false, (rows) => {
+        const matched = rows.find((item) => normalize(item.normalized_name || item.label) === normalize(name));
+        if (matched && serviceSearchInput(row)?.value.trim() === name) selectService(row, matched, false, true);
+      });
       return;
     }
 
     const endpoint = NS.config?.serviceStoreEndpoint;
     if (!endpoint) return;
 
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "X-CSRF-TOKEN": String(NS.config?.csrfToken || ""),
-      },
-      credentials: "same-origin",
-      body: JSON.stringify({ name, default_price_rupiah: price }),
-    });
-    const payload = await response.json();
-    const rowData = payload?.data?.row;
-    if (response.ok && rowData) selectService(row, rowData, row.dataset.servicePriceManual !== "1");
+    const input = serviceSearchInput(row);
+    const token = gateFor(input).begin();
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST", signal: token.signal,
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "X-CSRF-TOKEN": String(NS.config?.csrfToken || ""),
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({ name, default_price_rupiah: price }),
+      });
+      const payload = await response.json();
+      const rowData = payload?.data?.row;
+      if (token.isCurrent() && input.value.trim() === name && response.ok && rowData) {
+        selectService(row, rowData, row.dataset.servicePriceManual !== "1", true);
+      }
+    } catch (_error) { /* Saving still validates the catalog identity. */ }
+    finally { token.finish(); }
   };
 
   NS.applyServiceProductTemplate = (row, template) => {
@@ -331,22 +343,19 @@
     if (!(input instanceof HTMLInputElement)) return;
 
     input.addEventListener("input", () => {
-      const selected = row.querySelector("[data-service-selected]");
-      if (catalogIdInput(row)?.value && selected && !selected.classList.contains("d-none")) {
-        input.value = "";
-        return;
-      }
-
-      requestTokens.set(input, Symbol("service-search-input"));
+      gateFor(input).invalidate();
+      if (catalogIdInput(row)) catalogIdInput(row).value = "";
+      name.value = input.value;
+      clearResults(row);
       row.dataset.serviceNameManual = "1";
       row.dataset.serviceTemplateAutofilled = "0";
       clearTimeout(timers.get(input));
-      timers.set(input, setTimeout(async () => renderResults(row, await fetchServices(row, input.value)), 250));
+      timers.set(input, setTimeout(() => void fetchServices(row, input.value, true), 250));
     });
 
-    input.addEventListener("focus", async () => {
+    input.addEventListener("focus", () => {
       if (input.value.trim().length >= 2) {
-        renderResults(row, await fetchServices(row, input.value));
+        void fetchServices(row, input.value, true);
       }
     });
     input.addEventListener("keydown", (event) => {
@@ -364,7 +373,7 @@
         event.preventDefault();
         buttons[activeChoiceIndexes.get(row) ?? 0]?.click();
       } else if (event.key === "Escape") {
-        clearResults(row);
+        invalidateLookup(row); clearResults(row);
       }
     });
     input.addEventListener("blur", () => setTimeout(() => void ensureCatalog(row), 150));
@@ -372,12 +381,15 @@
     serviceDisplay(row)?.addEventListener("input", () => {
       row.dataset.servicePriceManual = "1";
       const name = serviceNameInput(row)?.value?.trim() || "";
-      if (name !== "") setServiceSelectedState(row, name, digits(serviceDisplay(row)?.value));
+      if (name !== "" && catalogIdInput(row)?.value) {
+        const priceText = row.querySelector("[data-selected-service-price]");
+        if (priceText) priceText.textContent = `Rp${format(digits(serviceDisplay(row)?.value))}`;
+      }
     });
     serviceDisplay(row)?.addEventListener("blur", () => void ensureCatalog(row));
 
     document.addEventListener("click", (event) => {
-      if (event.target instanceof Node && !row.contains(event.target)) clearResults(row);
+      if (event.target instanceof Node && !row.contains(event.target)) { invalidateLookup(row); clearResults(row); }
     });
 
     row.querySelector("[data-service-change]")?.addEventListener("click", () => {

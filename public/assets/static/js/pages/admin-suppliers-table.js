@@ -1,4 +1,5 @@
 (() => {
+  const searchGate = window.LiveSearch.create();
   const c = window.supplierTableConfig;
   if (!c) return;
 
@@ -41,9 +42,6 @@
     ? new window.bootstrap.Modal(editModalElement)
     : null;
 
-  let searchDebounceTimer = null;
-  let requestCounter = 0;
-  let activeController = null;
   let lastLoadedRows = [];
 
   const esc = (v) => String(v ?? "").replace(/[&<>\"']/g, (m) => ({
@@ -165,8 +163,8 @@
 
   const s = stateFromUrl();
 
-  const syncInputsFromState = () => {
-    searchInput.value = s.q;
+  const syncInputsFromState = (restoreSearch = false) => {
+    if (restoreSearch) { searchGate.invalidate(); searchInput.value = s.q; }
     if (filterForm?.elements.status) filterForm.elements.status.value = s.status;
   };
 
@@ -294,20 +292,17 @@
   };
 
   const load = async (replaceUrl = false) => {
-    activeController?.abort();
-    const controller = new AbortController();
-    activeController = controller;
-    const currentRequest = ++requestCounter;
+    const request = searchGate.begin();
 
     body.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">Memuat data...</td></tr>`;
 
     try {
       const res = await fetch(`${c.endpoint}?${paramsString()}`, {
         headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
-        signal: controller.signal
+        signal: request.signal
       });
       const json = await res.json();
-      if (currentRequest !== requestCounter) return;
+      if (!request.isCurrent()) return;
       if (!res.ok || !json.success) throw new Error("supplier-table-response");
 
       lastLoadedRows = json.data.rows || [];
@@ -319,51 +314,20 @@
       updateUrlState(replaceUrl);
       maybeRestoreFailedEditModal();
     } catch (error) {
-      if (error?.name === "AbortError" || currentRequest !== requestCounter) return;
+      if (error?.name === "AbortError" || !request.isCurrent()) return;
       body.innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4">Gagal memuat data.</td></tr>`;
       summary.textContent = "Menampilkan 0 sampai 0 dari 0 pemasok";
       pager.innerHTML = "";
     } finally {
-      if (activeController === controller) activeController = null;
+      request.finish();
     }
   };
 
-  searchForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const value = trimValue(searchInput.value);
-
-    if (value.length < 2) {
-      s.q = "";
-      s.page = 1;
-      load();
-      return;
-    }
-
-    if (value.length >= 2) {
-      s.q = value;
-      s.page = 1;
-      load();
-    }
-  });
-
-  searchInput.addEventListener("input", () => {
-    const value = trimValue(searchInput.value);
-
-    clearTimeout(searchDebounceTimer);
-
-    if (value.length < 2) {
-      s.q = "";
-      s.page = 1;
-      searchDebounceTimer = setTimeout(() => load(), 160);
-      return;
-    }
-
-    searchDebounceTimer = setTimeout(() => {
-      s.q = value;
-      s.page = 1;
-      load();
-    }, 220);
+  window.LiveSearch.bind({
+    gate: searchGate, input: searchInput, form: searchForm,
+    getQuery: () => s.q,
+    onQuery: (value) => { s.q = value; s.page = 1; },
+    load: load,
   });
 
   const drawFilter = (open) => {
@@ -442,7 +406,7 @@
     s.sort_by = nextState.sort_by;
     s.sort_dir = nextState.sort_dir;
     s.status = nextState.status;
-    syncInputsFromState();
+    syncInputsFromState(true);
     load(true);
   });
 
@@ -455,6 +419,6 @@
   if (c.restoreCreate && window.bootstrap?.Modal) {
     window.bootstrap.Modal.getOrCreateInstance($("supplier-create-modal")).show();
   }
-  syncInputsFromState();
+  syncInputsFromState(true);
   load(true);
 })();
