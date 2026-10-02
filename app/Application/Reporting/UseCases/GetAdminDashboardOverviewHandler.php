@@ -25,7 +25,7 @@ final class GetAdminDashboardOverviewHandler
     {
         $period = AdminDashboardOverviewPeriod::build($month);
         $cacheKey = sprintf(
-            'reporting:admin_dashboard_overview:%s:%s:%s:%s',
+            'reporting:admin_dashboard_overview:v2:%s:%s:%s:%s',
             $period['active_month'],
             $period['today'],
             $period['from'],
