@@ -6,7 +6,7 @@ Date: 2026-10-03
 
 Deciders: Project Owner, Architecture Decision
 
-Scope: CRUD / UI mutation / master data / legacy references / product identity / supplier invoices / inventory / service reclassification / versioning / audit / reporting
+Scope: CRUD / UI mutation / master data / legacy references / product identity / supplier invoices / inventory / product/service boundary / versioning / audit / reporting
 
 Refines:
 
@@ -31,7 +31,7 @@ Examples:
 - renaming an active product;
 - replacing a product on a received supplier invoice;
 - merging duplicate product identities;
-- reclassifying a legacy product into a service;
+- deactivating a wrongly cataloged product and creating a separate service;
 - changing quantity after stock has already been received;
 - soft-deleting a master that remains referenced by historical documents;
 - showing current reports when historical rows refer to identities that are no longer active.
@@ -63,7 +63,7 @@ The merge used one operation identity and paired movements:
 
 The historical supplier invoice remained a historical fact referencing the identity known at that time.
 
-This is correct behavior: current stock identity changes without rewriting the original source document.
+Preserving the old invoice revisions is correct. However, the 2026-10-03 read-only audit found the CURRENT invoice still referencing A3GN5, without a dependent revision at merge time. That is an incomplete current-state migration, not the intended completed merge lifecycle. Paired stock movements alone do not prove merge completion or atomicity.
 
 ### Local opening-stock seed contamination
 
@@ -93,7 +93,23 @@ GlassPos treats persisted business data as temporal data with two simultaneous t
 
 A change to current truth must not silently rewrite historical truth.
 
-A historical reference must not become invalid merely because its current master is renamed, merged, reclassified, or soft-deleted.
+A historical reference must not become invalid merely because its current master is renamed, merged, or soft-deleted.
+
+## Owner Clarification: Same-Product Merge And Current Truth
+
+Locked by the owner on 2026-10-03:
+
+- Merge means correcting duplicate identities of the SAME physical product. Different physical products remain separate products.
+- After completed A -> B merge, B is the canonical identity in all relevant current dependent state, including current supplier invoice lines. Moving stock alone is insufficient.
+- Existing version primitives preserve the transition: R1 A qty 5 remains immutable; merge creates R2 B qty 5 with actor/reason; current is B qty 5.
+- Current lists/details prioritize B, with optional small previous-A context. History renders each revision's own snapshot.
+- Subsequent B qty 5 -> B qty 10 is an ordinary supplier invoice revision producing B +5. No special A -> B routing belongs in that ordinary edit.
+- Old revisions cannot be edited. Restoring an earlier value creates another revision.
+- A product incorrectly cataloged instead of a service is deactivated; the correct service is created separately. No product_id -> service_id transformation or generic cross-domain merge is required.
+
+Compatibility for metadata corrections and reading existing inactive references remains required. A CURRENT invoice still using inactive A after a claimed merge is an incomplete merge/current-state migration gap, not a permanent normal lifecycle. This ADR does not choose a new economic-edit policy for that incomplete state.
+
+See [PR #77 owner-model audit](../../04_lifecycle/handoff/20261003_adr0047_owner_model_audit.md) for evidence and the implementation hold. This clarification records the domain outcome; it does not authorize a merge implementation expansion or data repair.
 
 ## CRUD Is Intent-Sensitive, Not Row-Sensitive
 
@@ -121,7 +137,7 @@ A metadata-only correction must not fail merely because an unchanged line points
 
 Examples:
 
-- product A becomes product B;
+- explicit line product replacement (distinct from a master merge);
 - qty changes;
 - unit cost or line total changes;
 - tax changes;
@@ -143,15 +159,15 @@ Examples:
 - rename product;
 - merge duplicate product masters;
 - soft-delete product;
-- reclassify an old product record into service domain;
-- replace one canonical master with another.
+- deactivate a wrongly cataloged product and create the correct service separately.
 
 Contract:
 
 - current master changes control future use;
 - historical snapshots remain unchanged;
-- current stock/state that belongs to the old identity must be explicitly transferred/reconciled if required;
-- merge/reclassification requires reason, actor, time, source operation, old identity, and target/current identity where one exists;
+- a completed duplicate merge transfers/reconciles relevant current stock and dependent current references to the canonical identity, preserving prior document revisions;
+- merge requires reason, actor, time, source operation, old identity, and canonical target;
+- product and service remain separate domains; deactivation does not transform historical product references into service references;
 - no bulk rewrite of historical foreign keys merely to make old documents look current.
 
 ### Class D: Current Projection Correction
@@ -238,7 +254,7 @@ Current:    A3GN520 / PISTON GREND / AHM
 Status:     merged / superseded
 ```
 
-The current canonical label is explanatory context, not a retroactive replacement of the historical snapshot.
+In a historical revision view, the current canonical label is explanatory context and never replaces the historical snapshot. In the CURRENT document view after completed merge, canonical B is the primary identity from the new accepted revision; previous A is optional context.
 
 Current evidence for product merge includes product-version reasons plus paired `product_master_merge` movements. A dedicated lineage relation must be verified or designed before UI implementation relies on automatic canonical resolution.
 
@@ -268,8 +284,8 @@ An older revision must never accidentally become the source for new stock/paymen
 | Rename | keep old snapshot | show new name | normally unchanged | use new name |
 | Price change | keep historical price snapshot | show new price | no retroactive event rewrite | use current price policy |
 | Soft delete | remain readable | inactive | preserve justified current state until domain correction | cannot select for new use |
-| Merge duplicate | keep old identity snapshot | old inactive, target canonical | transfer current state explicitly where required | use canonical target |
-| Reclassify product -> service | keep historical product facts | product inactive / service current | reconcile inventory only from proven facts | use service domain |
+| Merge duplicate of same physical product | keep old revision identity snapshot | old inactive, target canonical | reconcile stock and revise dependent current documents to canonical identity | use canonical target |
+| Correct product entered instead of service | keep historical product facts | deactivate product; create separate service | no product-to-service transformation; no invented stock effects | use separate service catalog |
 | Qty/cost correction on received invoice | old revision immutable | master unchanged unless separate master command | explicit delta/revaluation | use new accepted revision |
 
 No cascade rewrite of historical snapshots is allowed merely because the master changed.
@@ -303,7 +319,6 @@ For legacy references the UI should display a clear state such as:
 - Active;
 - Inactive;
 - Merged -> canonical target;
-- Reclassified;
 - Historical reference only.
 
 A blank dropdown/value because the current master query excludes a historical record is a UI correctness bug.
@@ -333,7 +348,7 @@ Historical line snapshots remain available.
 
 If an unchanged line references a legacy product, it remains a valid historical line.
 
-If the operator explicitly replaces that legacy product with a current product, that is a new revision decision and its inventory/cost/payable effects must be computed from actual current state.
+After completed duplicate merge, current invoice identity is already canonical B. Subsequent B quantity/cost edits use the ordinary revision engine. A current inactive A left behind by a merge is a migration gap; retaining its historical snapshot does not authorize new economic effects on A. Do not use ordinary invoice editing as an implicit merge repair or invent canonical routing without proven source state.
 
 ## Reporting Contract
 
@@ -360,7 +375,7 @@ A blanket `WHERE products.deleted_at IS NULL` is invalid when it would erase his
 Must be able to explain:
 
 - original identity/value;
-- later correction/merge/reclassification;
+- later correction/merge/deactivation;
 - reason;
 - actor;
 - time;
@@ -411,9 +426,9 @@ Future hardening must include at least:
 3. metadata-only supplier invoice edit succeeds with unchanged soft-deleted line;
 4. adding a new line cannot select the inactive product;
 5. product merge transfers proven current stock exactly once;
-6. merge preserves original invoice/receipt/movement identities;
+6. merge preserves old invoice revisions/receipt/movement identities and creates dependent current invoice revision B with actor/reason;
 7. explicit product replacement on received invoice creates revision deltas;
-8. reclassification product -> service does not invent stock consequences;
+8. correcting product-versus-service catalog mistakes keeps the domains separate and historical product facts intact;
 9. current reports avoid duplicate legacy/canonical counting;
 10. historical reports retain inactive-product events;
 11. stale revision update cannot overwrite current accepted revision;
