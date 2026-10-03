@@ -1,5 +1,7 @@
 # Supplier invoice canonicalization — authoritative mapping gate
 
+**MERGED:** PR #77 merged at `4c9ee9b57ea45a6f431a2dad49b3bf10b756eba4`. Read [code-only merged closeout](20261004_pr77_merged.md) first; earlier OPEN/hold/next-target status below is historical. No real business-data adoption was run.
+
 RESOLVED: owner approved minimal persistence. Continue at [implementation checkpoint](20261003_adr0047_canonical_implementation.md); the STOP below is historical.
 
 ## Exact target and status
