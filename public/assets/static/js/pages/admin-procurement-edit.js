@@ -71,7 +71,12 @@
     taxRoundingResidueConfirmedInput.value = "0";
   };
 
+  let initialEconomicInputs = null;
+  const economicInputs = () => JSON.stringify(Array.from(new FormData(form).entries())
+    .filter(([name]) => name.startsWith("lines[") || name === "tax_input"));
+
   const requiresTaxRoundingResidueConfirmation = () => {
+    if (initialEconomicInputs !== null && economicInputs() === initialEconomicInputs) return false;
     const lines = collectTaxRoundingLines();
     if (lines.length === 0) return false;
 
@@ -935,6 +940,8 @@
   updateRemoveButtons();
   updateTanggalTerimaState();
   updateDraftPanelState();
+
+  initialEconomicInputs = config.hasOldInput ? null : economicInputs();
 
   const initialDraft = readDraft();
   if (initialDraft && !config.hasOldInput) {

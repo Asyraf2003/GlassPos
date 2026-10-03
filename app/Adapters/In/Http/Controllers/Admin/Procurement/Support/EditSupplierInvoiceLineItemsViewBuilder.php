@@ -14,16 +14,20 @@ final class EditSupplierInvoiceLineItemsViewBuilder
     ) {
     }
 
-    /**
-     * @param list<array<string, mixed>> $existingLines
-     * @return array<int, array<string, string|int>>
-     */
+    /** @param list<array<string, mixed>> $existingLines */
     public function build(array $existingLines): array
     {
         $productLabelsById = [];
 
         foreach ($this->productOptionsData->findAll() as $product) {
             $productLabelsById[$product->id()] = $this->productLabelBuilder->build($product);
+        }
+
+        $historicalLabels = [];
+        foreach ($existingLines as $line) {
+            $label = $this->productLabelBuilder->historical($line);
+            $historicalLabels[(string) $line['id']][(string) $line['product_id']] = $label
+                . (isset($productLabelsById[(string) $line['product_id']]) ? '' : ' — Historis (tidak aktif)');
         }
 
         $oldLines = old('lines');
@@ -71,7 +75,7 @@ final class EditSupplierInvoiceLineItemsViewBuilder
                 'line_no' => $lineNo,
                 'selected_product_id' => $selectedProductId,
                 'selected_label' => $selectedProductId !== ''
-                    ? ($productLabelsById[$selectedProductId] ?? '')
+                    ? ($historicalLabels[(string) ($line['previous_line_id'] ?? '')][$selectedProductId] ?? $productLabelsById[$selectedProductId] ?? '')
                     : '',
                 'qty_pcs' => (string) ($line['qty_pcs'] ?? '1'),
                 'line_total_raw' => $lineTotalRaw,
@@ -85,16 +89,12 @@ final class EditSupplierInvoiceLineItemsViewBuilder
         return $lineItems;
     }
 
-
     /** @param array<string, mixed> $line */
     private static function lineTotalInputRupiah(array $line): string
     {
         $subtotalBeforeTax = $line['line_subtotal_before_tax_rupiah'] ?? null;
-
-        if ($subtotalBeforeTax !== null && (int) $subtotalBeforeTax > 0) {
-            return (string) (int) $subtotalBeforeTax;
-        }
-
-        return isset($line['line_total_rupiah']) ? (string) $line['line_total_rupiah'] : '';
+        return $subtotalBeforeTax !== null && (int) $subtotalBeforeTax > 0
+            ? (string) (int) $subtotalBeforeTax
+            : (string) ($line['line_total_rupiah'] ?? '');
     }
 }

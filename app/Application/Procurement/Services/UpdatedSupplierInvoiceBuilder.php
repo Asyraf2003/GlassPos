@@ -33,7 +33,7 @@ final class UpdatedSupplierInvoiceBuilder
         $supplier = $this->supplierService->resolve($namaPtPengirim);
         $taxAllocation = $this->taxAllocator->allocate($lines, $taxInput, $taxRoundingResidueConfirmed);
         $taxCalculation = $taxAllocation->tax();
-        $invoiceLines = $this->invoiceFactory->makeLines($taxAllocation->lines());
+        $invoiceLines = $this->invoiceFactory->makeLines($taxAllocation->lines(), $current->lines());
 
         return SupplierInvoice::create(
             $current->id(),

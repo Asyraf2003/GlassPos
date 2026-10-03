@@ -32,6 +32,16 @@ user changes what is actually wrong
 -> history remains explainable
 ```
 
+## Owner-Locked Current Versus Historical Display
+
+A duplicate merge joins identities of the same physical product only. Completed A -> B merge makes B current across relevant dependent documents, while old revisions keep A. Current list/detail shows B prominently; optional previous-A context is small. History can show R1 A qty 5, R2 B qty 5, R3 B qty 10.
+
+A later B qty 5 -> B qty 10 uses the ordinary revision engine with B +5. Old revisions remain immutable; returning to an earlier value creates a new revision. An inactive A still in the current invoice after merge indicates incomplete current-state migration. The compatibility flow below permits reading and metadata correction of existing legacy data; it is not a permanent target for current economic identity.
+
+Product/service are separate domains: deactivate the wrongly entered product and create a service separately. Do not build cross-domain conversion/lineage UI.
+
+[PR #77 audit and hold](../../04_lifecycle/handoff/20261003_adr0047_owner_model_audit.md) records the observed incomplete state and economic risk. No policy for economic edits of that incomplete state is invented here.
+
 ## Core UI Vocabulary
 
 Every screen that can encounter legacy data needs explicit concepts instead of blank/missing controls.
@@ -41,7 +51,6 @@ Recommended visible states:
 - **Aktif**: eligible for new use.
 - **Tidak aktif**: master exists historically but cannot be selected for new use.
 - **Digabung**: legacy identity has a canonical replacement.
-- **Direklasifikasi**: entity moved to another business domain, for example product -> service.
 - **Historis**: valid only as an old reference/snapshot.
 - **Revisi lama**: immutable older accepted document version.
 - **Revisi saat ini**: current accepted operational version.
@@ -111,20 +120,20 @@ Examples:
 - rename product;
 - merge duplicate product;
 - deactivate product;
-- reclassify product into service.
+- deactivate a wrongly cataloged product; create the service separately.
 
 Expected UI:
 
 - do not present this as a harmless text edit when consequences exist;
 - show dependent current-state summary when available;
-- require reason for merge/reclassification/deactivation;
+- require reason for merge/deactivation;
 - show canonical target for merge;
 - show what will *not* be rewritten: historical invoices, receipts, revisions, movements.
 
 Expected backend path:
 
 - master current state change;
-- explicit lineage/current-state reconciliation;
+- duplicate merge reconciles current references to canonical identity and creates dependent document revisions;
 - current stock transfer only when proven and required;
 - historical snapshots untouched.
 
@@ -161,7 +170,7 @@ Supplier invoice is the first concrete implementation target because it already 
 
 ### Existing legacy line in edit page
 
-When a saved invoice line references a product that is now inactive/merged:
+Compatibility case: when existing legacy/incomplete data still has a saved current invoice line referencing an inactive product. After completed merge, the current line must instead show canonical B from its new accepted revision.
 
 Render the historical snapshot, for example:
 
@@ -174,7 +183,7 @@ Status: Digabung
 Sekarang: A3GN520 / PISTON GREND / AHM / 50
 ```
 
-The existing line must remain representable and submittable unchanged.
+Show a canonical target only when supported by machine-readable evidence; a free-text reason is insufficient for automatic resolution. Otherwise show the historical snapshot and inactive status only. The existing line must remain representable and submittable unchanged for metadata correction.
 
 Do not require the historical product to appear in the active-product search endpoint just to preserve the line.
 
@@ -198,17 +207,11 @@ Behavior:
 
 This is the characterization test that should reproduce and then prevent the current failure class.
 
-### Explicit line replacement
+### Economic edit after completed merge
 
-If the user changes a legacy line from `A3GN5` to `A3GN520`, that is not metadata correction.
+The merge lifecycle has already created the current canonical line B qty 5. Editing it to B qty 10 is an ordinary economic revision with B +5 and existing costing/payable reconciliation.
 
-Behavior:
-
-- classify as economic/product-identity revision;
-- resolve current authoritative stock/effects;
-- create only the delta still required;
-- never repeat a historical master-merge transfer that already happened;
-- reject if the system cannot prove the correct current effect.
+Explicit product replacement remains an economic revision. It must not serve as an implicit repair of a partially completed master merge. If current data still uses inactive A after a claimed merge, record the migration gap; do not invent special A -> B routing or repeat historical transfer movements.
 
 ### Revision timeline
 
@@ -266,26 +269,15 @@ UI should require:
 After merge:
 
 - source becomes unavailable for new use;
-- target is canonical for new use;
+- target is canonical for current dependent state and new use;
+- current supplier invoice receives a new revision using B, with actor/reason; old revision A remains immutable;
 - historical source references remain readable;
 - current stock transfer has explicit paired movement/source operation if required;
-- current UI can show `A3GN5 -> A3GN520` lineage.
+- current UI shows canonical B as primary; history shows A -> B across revisions.
 
-### Reclassify product -> service
+### Product entered instead of service
 
-UI must not assume product stock is zero simply because business semantics changed.
-
-Preflight must establish:
-
-- whether real inventory movements exist;
-- whether current qty exists;
-- whether costing exists;
-- whether documents still reference the product;
-- whether a service target/current entity exists.
-
-Unknown state blocks automatic mutation.
-
-Historical product documents remain historical product documents even when future use moves to service domain.
+Deactivate the incorrectly cataloged product and create the correct service in the separate service catalog. Keep historical product transactions unchanged. No product_id -> service_id conversion, generic cross-domain lineage, or invented stock reconciliation belongs in this flow.
 
 ## Create Flow
 
@@ -481,7 +473,7 @@ Preferred:
 3. metadata-only edit with merged historical product line;
 4. unchanged legacy line posts successfully without stock/cost/payable effect;
 5. new line cannot choose inactive product;
-6. explicit legacy -> canonical product replacement routes through revision engine;
+6. completed duplicate merge creates current canonical invoice revision; later canonical edits use the ordinary revision engine;
 7. qty increase/decrease produces exact movement delta;
 8. cost-only revision produces required revaluation without qty movement;
 9. stale revision submit rejects without partial effect;
@@ -495,8 +487,8 @@ Preferred:
 14. merge requires canonical target/reason;
 15. merge transfers current stock exactly once when required;
 16. merge does not rewrite old receipt/invoice IDs;
-17. reclassification with unknown stock state blocks safely;
-18. service target/current state is explicit after accepted reclassification.
+17. wrong product can be deactivated without rewriting historical product facts;
+18. correct service is created separately, without product-to-service conversion.
 
 ### Reporting
 

@@ -37,19 +37,28 @@ trait PersistsVersionedSupplierInvoiceWrites
         $afterSnapshot = $this->toVersionSnapshot($supplierInvoice);
         $eventName = 'supplier_invoice_updated';
 
+        $metadataFields = ['nomor_faktur' => true, 'nomor_faktur_normalized' => true];
+        $metadataOnly = array_diff_key($beforeSnapshot, $metadataFields)
+            === array_diff_key($afterSnapshot, $metadataFields);
         DB::table('supplier_invoices')
             ->where('id', $supplierInvoice->id())
-            ->update($this->toInvoiceRecord($supplierInvoice, $revisionNo));
+            ->update($metadataOnly ? [
+                'nomor_faktur' => $supplierInvoice->nomorFaktur(),
+                'nomor_faktur_normalized' => $supplierInvoice->nomorFakturNormalized(),
+                'last_revision_no' => $revisionNo,
+            ] : $this->toInvoiceRecord($supplierInvoice, $revisionNo));
 
-        DB::table('supplier_invoice_lines')
-            ->where('supplier_invoice_id', $supplierInvoice->id())
-            ->where('is_current', true)
-            ->update([
-                'is_current' => false,
-                'superseded_at' => $occurredAt,
-            ]);
+        if (! $metadataOnly) {
+            DB::table('supplier_invoice_lines')
+                ->where('supplier_invoice_id', $supplierInvoice->id())
+                ->where('is_current', true)
+                ->update([
+                    'is_current' => false,
+                    'superseded_at' => $occurredAt,
+                ]);
 
-        DB::table('supplier_invoice_lines')->insert($this->toLineRecords($supplierInvoice, $revisionNo));
+            DB::table('supplier_invoice_lines')->insert($this->toLineRecords($supplierInvoice, $revisionNo));
+        }
         DB::table('supplier_invoice_versions')->insert($this->toVersionRecord($supplierInvoice, $revisionNo, $eventName, $occurredAt, $context, $afterSnapshot));
 
         $auditEventId = $this->uuid->generate();
