@@ -1,5 +1,7 @@
 # ADR-0047 / PR #77 owner-model audit and handoff
 
+Latest continuation: [canonical mapping discovery gate](20261003_adr0047_canonical_mapping_gate.md). Owner selected current invoice canonicalization; implementation is awaiting the explicitly required persistence decision because no authoritative A -> B relation contract was found.
+
 ## Status and exact target
 
 Audit PR #77 against the owner's same-physical-product merge model. Characterize inactive-current A qty 5 -> 10, inspect actual merge evidence, distinguish immutable historical A from incorrect current A after completed merge, and record owner decisions. STOP before production logic changes, merge-lifecycle expansion, data repair, or merging PR #77.

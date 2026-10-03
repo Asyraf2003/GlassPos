@@ -1,5 +1,7 @@
 # ADR-0047 Supplier Invoice Metadata Slice Handoff
 
+Latest continuation: [canonical mapping discovery gate](20261003_adr0047_canonical_mapping_gate.md). Owner selected current invoice canonicalization; implementation is awaiting the explicitly required persistence decision because no authoritative A -> B relation contract was found.
+
 ## Superseding owner-model audit — PR #77 on hold
 
 Read [the latest audit/handoff](20261003_adr0047_owner_model_audit.md) first. Metadata compatibility proof below remains valid, but a new characterization proves same-reference economic edits can post stock/cost to inactive A after an incomplete merge. Production logic is unchanged. Do not merge PR #77 or implement merge-lifecycle expansion before owner review. Current canonical B after completed same-product merge is now explicitly locked in ADR-0047 / Blueprint UI 0019.
