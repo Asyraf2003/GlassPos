@@ -1,5 +1,7 @@
 # ADR-0047 Supplier Invoice Metadata Slice Handoff
 
+Latest delivery: [verified canonical implementation](20261003_adr0047_canonical_implementation.md). Owner approved persistence and explicit prior-transfer adoption is now implemented/tested. Earlier gate/hold sections below are historical; PR remains open for review.
+
 Latest continuation: [canonical mapping discovery gate](20261003_adr0047_canonical_mapping_gate.md). Owner selected current invoice canonicalization; implementation is awaiting the explicitly required persistence decision because no authoritative A -> B relation contract was found.
 
 ## Superseding owner-model audit — PR #77 on hold
