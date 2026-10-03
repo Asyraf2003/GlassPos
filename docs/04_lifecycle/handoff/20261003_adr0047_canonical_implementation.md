@@ -1,5 +1,7 @@
 # Supplier invoice canonicalization — implementation delivery
 
+**MERGED:** PR #77 merged at `4c9ee9b57ea45a6f431a2dad49b3bf10b756eba4`. Read [code-only merged closeout](20261004_pr77_merged.md) first; earlier OPEN/hold/next-target status below is historical. No real business-data adoption was run.
+
 ## Latest status (2026-10-04)
 
 Explicit prior-transfer adoption slice implemented and verified. Implementation commit `7602f11b` is pushed on `fix/adr0047-supplier-invoice-metadata`; this closeout is a subsequent docs commit. PR #77 remains OPEN for review, not merged/deployed. No real business mapping/invoice was migrated.

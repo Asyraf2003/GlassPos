@@ -1,5 +1,7 @@
 # ADR-0047 / PR #77 owner-model audit and handoff
 
+**MERGED:** PR #77 merged at `4c9ee9b57ea45a6f431a2dad49b3bf10b756eba4`. Read [code-only merged closeout](20261004_pr77_merged.md) first; earlier OPEN/hold/next-target status below is historical. No real business-data adoption was run.
+
 Latest delivery: [verified canonical implementation](20261003_adr0047_canonical_implementation.md). Owner approved persistence and explicit prior-transfer adoption is now implemented/tested. Earlier gate/hold sections below are historical; PR remains open for review.
 
 Latest continuation: [canonical mapping discovery gate](20261003_adr0047_canonical_mapping_gate.md). Owner selected current invoice canonicalization; implementation is awaiting the explicitly required persistence decision because no authoritative A -> B relation contract was found.
