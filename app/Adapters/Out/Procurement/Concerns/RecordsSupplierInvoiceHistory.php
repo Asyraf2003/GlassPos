@@ -48,11 +48,16 @@ trait RecordsSupplierInvoiceHistory
             'reason' => $context['reason'],
             'source_channel' => $context['source_channel'],
             'request_id' => null,
-            'correlation_id' => null,
+            'correlation_id' => $context['source_operation_id'] ?? null,
             'occurred_at' => $occurredAt,
             'metadata_json' => json_encode([
                 'supplier_invoice' => $snapshot,
                 'revision_no' => $revisionNo,
+                ...(($context['source_operation_id'] ?? null) === null ? [] : [
+                    'source_merge_operation_id' => $context['source_operation_id'],
+                    'before_revision_no' => $revisionNo - 1,
+                    'after_revision_no' => $revisionNo,
+                ]),
             ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
         ];
     }

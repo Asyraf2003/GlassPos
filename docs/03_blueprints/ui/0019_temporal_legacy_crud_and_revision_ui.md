@@ -513,6 +513,14 @@ Preferred:
 31. viewing an old revision is visually distinct from current revision;
 32. print/export from an old revision is labeled historical.
 
+## Supplier Invoice Canonicalization Delivery Boundary
+
+The explicit backend command `products:adopt-transferred-merge` adopts an owner-authorized duplicate identity relation and prior transfer linkage; it discovers affected current active invoices automatically. It is dry-run by default and requires `--apply` plus explicit same-physical-product attestation to commit. No per-invoice UI repair is required.
+
+After success, existing current edit/detail rendering reads canonical B from the new accepted line snapshot. The existing version timeline preserves A and shows B in the next revision, with actor/reason. History can be expanded for browser printing. No new dense legacy narrative is added to current screens. The existing invoice list is header/total oriented, not a product-line list; its projections remain synchronized.
+
+The command does not infer mappings or initiate stock transfers. Unknown evidence, remaining source stock/value, or an A/B line collision rejects atomically rather than choosing new business semantics.
+
 ## Suggested Implementation Order
 
 Do not attempt all CRUD surfaces at once.

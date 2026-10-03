@@ -39,6 +39,8 @@ class ProductCatalogServiceProvider extends ServiceProvider
         $this->app->scoped(ProductChangeContext::class, fn (): ProductChangeContext => new ProductChangeContext());
 
         $this->app->singleton(MinSellingPricePolicy::class);
+        $this->app->bind(\App\Ports\Out\ProductCatalog\ProductIdentityMergePort::class, \App\Adapters\Out\ProductCatalog\DatabaseProductIdentityMergeAdapter::class);
+        $this->app->bind(\App\Ports\Out\Procurement\SupplierInvoiceCanonicalizationReaderPort::class, \App\Adapters\Out\Procurement\DatabaseSupplierInvoiceCanonicalizationReaderAdapter::class);
 
         $this->app->singleton(ProductReaderPort::class, DatabaseProductReaderAdapter::class);
         $this->app->singleton(ProductLookupReaderPort::class, DatabaseProductLookupReaderAdapter::class);

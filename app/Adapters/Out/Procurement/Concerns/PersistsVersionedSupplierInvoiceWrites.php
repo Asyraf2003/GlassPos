@@ -42,11 +42,11 @@ trait PersistsVersionedSupplierInvoiceWrites
             === array_diff_key($afterSnapshot, $metadataFields);
         DB::table('supplier_invoices')
             ->where('id', $supplierInvoice->id())
-            ->update($metadataOnly ? [
+            ->update(($context['source_operation_id'] ?? null) !== null ? ['last_revision_no' => $revisionNo] : ($metadataOnly ? [
                 'nomor_faktur' => $supplierInvoice->nomorFaktur(),
                 'nomor_faktur_normalized' => $supplierInvoice->nomorFakturNormalized(),
                 'last_revision_no' => $revisionNo,
-            ] : $this->toInvoiceRecord($supplierInvoice, $revisionNo));
+            ] : $this->toInvoiceRecord($supplierInvoice, $revisionNo)));
 
         if (! $metadataOnly) {
             DB::table('supplier_invoice_lines')

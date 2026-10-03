@@ -256,7 +256,19 @@ Status:     merged / superseded
 
 In a historical revision view, the current canonical label is explanatory context and never replaces the historical snapshot. In the CURRENT document view after completed merge, canonical B is the primary identity from the new accepted revision; previous A is optional context.
 
-Current evidence for product merge includes product-version reasons plus paired `product_master_merge` movements. A dedicated lineage relation must be verified or designed before UI implementation relies on automatic canonical resolution.
+Historical transfer evidence includes product-version reasons plus paired `product_master_merge` movements. Neither prose nor paired movements alone authorizes a canonical relation.
+
+### Explicit prior-transfer adoption (supplier invoice slice)
+
+Owner-approved ProductCatalog persistence is `product_identity_merges`: unique operation ID, unique retired source product, canonical target product, actor, reason, occurred_at, and unique prior_stock_transfer_source_id. Source differs from target; both are ProductCatalog identities. Records are append-only through the application; conflicting source/operation claims reject, exact retries reuse the existing record. A future correction must be a separate explicit operation, never an update of the accepted historical relation; a correction workflow is not introduced in this slice.
+
+The first command adopts an explicit same-physical-product merge whose stock transfer is already applied. It requires a retired source, active target, registered actor, explicit reason and transfer linkage. It verifies the supplied source/target against the paired transfer rather than discovering the target from movements, prose, codes or names. No automatic backfill is permitted.
+
+Within one existing database transaction: record relation; lock affected current active supplier invoices; append canonical identity revisions with B snapshots; synchronize invoice projections; record audit and source-operation links. Identity-only revision preserves invoice economics and historical receipts/payments/versions. It creates no inventory movement or cost revaluation. A final locking ledger read requires no remaining A stock/value. Failure rolls back relation and all dependent writes; dry-run rolls back the same path. An exact rerun skips current B invoices.
+
+Existing one-product-per-invoice-revision uniqueness remains in force. If an invoice already contains both A and B, the entire adoption rejects under that existing invariant. Consolidating quantity/tax/cost across those lines requires a separately defined correction policy; it is not silently implemented here.
+
+This command is adoption/recovery for prior transfers, not a physical stock-transfer executor for a new merge. It does not claim to complete canonicalization in other domains. New physical merge and correction lifecycles remain separate work; no partially applied future lifecycle is exposed by this command.
 
 ## Versioning Contract
 

@@ -1,5 +1,7 @@
 # Supplier invoice canonicalization — authoritative mapping gate
 
+RESOLVED: owner approved minimal persistence. Continue at [implementation checkpoint](20261003_adr0047_canonical_implementation.md); the STOP below is historical.
+
 ## Exact target and status
 
 Latest owner target: finish canonical product merge lifecycle ONLY for current supplier invoice references. Given authoritative same-physical-product A -> B, append invoice revision B with canonical snapshot, preserve old A revisions, and do not repeat inventory transfer or change qty/value/cost/payable/payment/receipts. Batch affected current invoices; rerun skips already-B invoices. Keep PR #77 metadata compatibility and stale guard.
