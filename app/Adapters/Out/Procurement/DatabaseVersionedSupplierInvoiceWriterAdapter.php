@@ -12,6 +12,7 @@ use App\Application\Procurement\Context\SupplierInvoiceChangeContext;
 use App\Core\Procurement\SupplierInvoice\SupplierInvoice;
 use App\Ports\Out\ClockPort;
 use App\Ports\Out\Procurement\SupplierInvoiceLifecyclePort;
+use App\Ports\Out\Procurement\SupplierInvoiceReaderPort;
 use App\Ports\Out\Procurement\SupplierInvoiceWriterPort;
 use App\Ports\Out\UuidPort;
 
@@ -24,6 +25,7 @@ final class DatabaseVersionedSupplierInvoiceWriterAdapter implements SupplierInv
 
     public function __construct(
         private readonly UuidPort $uuid,
+        private readonly SupplierInvoiceReaderPort $reader,
         private readonly ClockPort $clock,
         private readonly SupplierInvoiceChangeContext $changeContext,
     ) {

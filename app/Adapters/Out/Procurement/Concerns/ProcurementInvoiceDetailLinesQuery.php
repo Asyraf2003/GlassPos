@@ -30,6 +30,7 @@ trait ProcurementInvoiceDetailLinesQuery
             ->orderBy('supplier_invoice_lines.line_no')
             ->get([
                 'supplier_invoice_lines.id',
+                'supplier_invoice_lines.line_no',
                 'supplier_invoice_lines.supplier_invoice_id',
                 'supplier_invoice_lines.product_id',
                 'supplier_invoice_lines.product_kode_barang_snapshot as kode_barang',
@@ -48,6 +49,7 @@ trait ProcurementInvoiceDetailLinesQuery
             ])
             ->map(static fn (object $row): array => [
                 'id' => (string) $row->id,
+                'line_no' => (int) $row->line_no,
                 'supplier_invoice_id' => (string) $row->supplier_invoice_id,
                 'product_id' => (string) $row->product_id,
                 'kode_barang' => $row->kode_barang !== null ? (string) $row->kode_barang : null,
