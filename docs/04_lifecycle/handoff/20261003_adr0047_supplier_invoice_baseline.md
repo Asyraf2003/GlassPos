@@ -1,5 +1,32 @@
 # ADR-0047 Supplier Invoice Metadata Slice Handoff
 
+## Latest status — implementation delivered for review
+
+This section supersedes earlier in-progress checkpoints below.
+
+- Implementation committed and pushed: 14f7093ee6d7465df6ea2b73d162251024a5259e.
+- Branch: fix/adr0047-supplier-invoice-metadata; baseline origin/main: 9d16c3819532ab768a7a7a63c6d9b862165eb90d.
+- Issue: https://github.com/Asyraf2003/GlassPos/issues/76.
+- PR: https://github.com/Asyraf2003/GlassPos/pull/77 (open; not merged or deployed).
+- Full make verify passed: 1881 tests / 14704 assertions, 86 frontend tests, PHPStan and contract audits.
+- Final procurement rerun after review and stronger assertions passed: 317 tests / 2243 assertions, 31.66 seconds. This includes the 12 dedicated legacy metadata tests, query/selected-ID lookup exclusion, immutable previous versions, and complete economic-header comparison.
+- Final PHPStan, 86 frontend tests, line/Blade audits and diff whitespace checks passed.
+- Real Chromium legacy fixture proof passed on desktop/mobile, including metadata save and detail/history consistency. No real business invoice was modified.
+- Dashboard worktree preserved at c170c8a2. No dashboard files in this diff.
+- Supplementary hexagonal audit has two unchanged baseline violations in bulk product maintenance; not repaired in this slice. Concurrent two-connection supplier-invoice contention remains untested; sequential stale rejection is covered.
+- Raw logs/screenshots were temporary artifacts under /tmp; they may not survive environment rotation. Their outcomes and exact reproduction commands are preserved here; do not treat missing temporary artifacts as missing implementation progress.
+
+ONE next target: review PR #77 and address only concrete review findings within this slice. No automatic merge is authorized by this report. Implementation, tests and browser proof are complete; review/merge/deployment remain pending.
+
+Next-session commands, from /home/asus/projects/GlassPos-adr0047:
+
+    git status --short --branch
+    git log -2 --oneline
+    git rev-parse HEAD origin/main
+    gh pr view 77 --repo Asyraf2003/GlassPos --json state,url,headRefOid,mergeStateStatus,reviews,statusCheckRollup
+
+Do not repeat closed discovery without new contradictory evidence. For a relevant new code change, use the test/browser commands below. This documentation closeout is a separate commit after the implementation SHA above; git log gives its exact SHA.
+
 ## Exact target and authorization
 
 Implement invoice-number metadata correction with unchanged historical/soft-deleted product references; preserve historical snapshots and economic rows; render historical references on edit/detail; reject inactive new selections; retain existing revision/audit actor/reason and economic reconciliation. No dashboard changes, product resurrection, canonical FK rewrite, schema, opening_stock_seed cleanup, or new inventory/version engine.
