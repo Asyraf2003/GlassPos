@@ -105,6 +105,30 @@ Implementation boundary:
 - stale concurrent editors must not silently overwrite a newer revision;
 - cashier UX edits current truth while backend carries historical consequences automatically.
 
+### ADR-0047
+
+Status:
+
+Accepted.
+
+Topic:
+
+CRUD over legacy or historically referenced data is intent-sensitive and temporal. Current master changes must not silently rewrite historical truth, and unchanged historical references remain valid even when their master becomes inactive, merged, or reclassified.
+
+File:
+
+- docs/02_architecture/adr/0047_temporal_legacy_reference_and_ui_mutation_policy.md
+
+Implementation boundary:
+
+- metadata correction, economic revision, master lifecycle correction, projection repair, and delete-like intent are separate mutation classes;
+- new references require eligible current masters while persisted historical references remain readable and valid;
+- soft delete means unavailable for new use, not erased from history;
+- merges/reclassifications preserve old document snapshots and reconcile current state explicitly;
+- UI/backend use semantic diff rather than treating every posted field as changed;
+- current reports and historical/event reports answer different questions and must not collapse those semantics;
+- UI implementation is tracked by `docs/03_blueprints/ui/0019_temporal_legacy_crud_and_revision_ui.md`.
+
 ## Current Cleanup Notes
 
 ### ADR-0046
