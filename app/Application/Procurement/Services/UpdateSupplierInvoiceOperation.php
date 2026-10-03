@@ -12,6 +12,7 @@ final class UpdateSupplierInvoiceOperation
 {
     public function __construct(
         private readonly SupplierInvoiceWriterPort $writer,
+        private readonly SupplierInvoiceMetadataChange $metadata,
         private readonly UpdatedSupplierInvoiceBuilder $builder,
         private readonly SupplierInvoiceRevisionContextResolver $contextResolver,
         private readonly SupplierInvoiceRevisionDeltaMovementsBuilder $deltaMovements,
@@ -30,6 +31,12 @@ final class UpdateSupplierInvoiceOperation
         null|string|int $taxInput = null,
         bool $taxRoundingResidueConfirmed = false,
     ): Result {
+        if ($this->metadata->matches($current, $namaPtPengirim, $tanggalPengiriman, $lines, $taxInput)) {
+            $this->writer->update($this->metadata->correctNumber($current, $nomorFaktur));
+
+            return Result::success(['id' => $current->id()], 'Nota supplier berhasil diperbarui.');
+        }
+
         $updated = $this->builder->build(
             $current,
             $nomorFaktur,

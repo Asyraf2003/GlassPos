@@ -19,7 +19,7 @@ final class SupplierInvoiceFactory
     ) {
     }
 
-    public function makeLines(array $lines): array
+    public function makeLines(array $lines, array $currentLines = []): array
     {
         if ($lines === []) {
             throw new DomainException('Invoice minimal 1 line.');
@@ -27,11 +27,17 @@ final class SupplierInvoiceFactory
 
         $this->assertNoDuplicateProducts($lines);
 
-        return array_map(function ($line, int $index) {
+        $historical = [];
+        foreach ($currentLines as $currentLine) {
+            $historical[$currentLine->id()] = $currentLine;
+        }
+        return array_map(function ($line, int $index) use ($historical) {
             $productId = trim((string) ($line['product_id'] ?? ''));
-            $product = $productId !== '' ? $this->products->getById($productId) : null;
+            $previous = $historical[trim((string) ($line['previous_line_id'] ?? ''))] ?? null;
+            $previous = $previous !== null && $previous->productId() === $productId ? $previous : null;
+            $product = $previous === null && $productId !== '' ? $this->products->getById($productId) : null;
 
-            if ($product === null) {
+            if ($product === null && $previous === null) {
                 throw new DomainException('Product tidak ditemukan.');
             }
 
@@ -41,10 +47,10 @@ final class SupplierInvoiceFactory
                 $this->uuid->generate(),
                 $lineNo,
                 $productId,
-                $product->kodeBarang(),
-                $product->namaBarang(),
-                $product->merek(),
-                $product->ukuran(),
+                $previous !== null ? $previous->productKodeBarangSnapshot() : $product->kodeBarang(),
+                $previous !== null ? $previous->productNamaBarangSnapshot() : $product->namaBarang(),
+                $previous !== null ? $previous->productMerekSnapshot() : $product->merek(),
+                $previous !== null ? $previous->productUkuranSnapshot() : $product->ukuran(),
                 (int) ($line['qty_pcs'] ?? 0),
                 Money::fromInt((int) ($line['line_total_rupiah'] ?? 0)),
                 Money::fromInt((int) ($line['line_subtotal_before_tax_rupiah'] ?? ($line['line_total_rupiah'] ?? 0))),

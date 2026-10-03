@@ -1,0 +1,58 @@
+// Run from repo root after supplier-invoice-canonical-fixture.php and the local server (see handoff).
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { mkdtempSync, readFileSync, writeFileSync, existsSync, rmSync } from 'node:fs';
+import { homedir } from 'node:os';
+const profile=mkdtempSync(homedir()+'/snap/chromium/common/adr0047-');
+const browser=spawn('chromium',['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--no-first-run','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{stdio:'ignore'});
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const until=async(fn,label)=>{for(let i=0;i<150;i++){if(await fn())return;await sleep(100);}throw Error('Timeout '+label);};
+let socket;
+try {
+ await until(()=>existsSync(profile+'/DevToolsActivePort'),'browser');
+ const port=readFileSync(profile+'/DevToolsActivePort','utf8').split('\n')[0];
+ const tab=await(await fetch(`http://127.0.0.1:${port}/json/new?about:blank`,{method:'PUT'})).json();
+ socket=new WebSocket(tab.webSocketDebuggerUrl); await new Promise(r=>socket.addEventListener('open',r,{once:true}));
+ let seq=0;const pending=new Map();socket.addEventListener('message',e=>{let m=JSON.parse(e.data);if(!m.id)return;let p=pending.get(m.id);pending.delete(m.id);m.error?p.reject(Error(JSON.stringify(m.error))):p.resolve(m.result);});
+ const call=(method,params={})=>new Promise((resolve,reject)=>{let id=++seq;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
+ const ev=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;};
+ const shot=async name=>{let s=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});writeFileSync('/tmp/adr0047-'+name+'.png',Buffer.from(s.data,'base64'));};
+ await call('Page.enable');await call('Emulation.setDeviceMetricsOverride',{width:1280,height:1000,deviceScaleFactor:1,mobile:false});
+ await call('Page.navigate',{url:'http://127.0.0.1:8175/login'});
+ await until(()=>ev('!!document.querySelector("input[name=email]")'),'login');
+ await ev(`document.querySelector('input[name=email]').value='adr0047@example.test';document.querySelector('input[name=password]').value='browser-test-only';document.querySelector('form').requestSubmit()`);
+ await until(()=>ev('!location.pathname.includes("login")'),'authenticated');
+ await call('Page.navigate',{url:'http://127.0.0.1:8175/admin/procurement/supplier-invoices/invoice-1/edit'});
+ await until(()=>ev('!!document.querySelector("#procurement-edit-form")'),'edit');
+ await sleep(1200);
+ const initialRevision=await ev('Number(document.querySelector("[name=expected_revision_no]").value)');
+ const label=await ev('document.querySelector("[data-selected-product-label]").textContent');
+ assert.match(label,/KB-002.*Ban Luar Canonical/);assert.doesNotMatch(label,/Historis/);
+ assert.equal(await ev('document.querySelector("[data-product-id]").value'),'product-2');
+ await shot('canonical-edit');
+ await ev(`document.querySelector('[name=nomor_faktur]').value='BROWSER-CORRECTED-${initialRevision+1}';document.querySelector('[name=nomor_faktur]').dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('[name=change_reason]').value='Browser proof ADR-0047';document.querySelector('[name=change_reason]').dispatchEvent(new Event('input',{bubbles:true}))`);
+ await sleep(1200);
+ await ev('document.querySelector("#procurement-edit-form").requestSubmit()');
+ await until(()=>ev('!location.pathname.endsWith("edit") && !location.pathname.endsWith("revise")'),'saved');
+ await until(()=>ev('!!document.body && document.readyState === "complete" && document.body.innerText.includes("BROWSER-CORRECTED")'),'detail ready');
+ const body=await ev('document.body.innerText');
+ assert.match(body,/BROWSER-CORRECTED/);assert.match(body,/Ban Luar/);assert.match(body,/Browser proof ADR-0047/);assert.doesNotMatch(body,/CURRENT MASTER NAME/);
+ const currentTable=await ev('document.querySelector(".table-responsive").innerText');
+ assert.match(currentTable,/Ban Luar Canonical/);
+ await ev(`document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(button=>button.click())`);
+ await sleep(600);
+ const history=await ev('document.querySelector(".timeline").innerText');
+ assert.match(history,/KB-001/);assert.match(history,/KB-002/);
+ assert.match(history,/Explicit same physical product canonical identity correction/);
+ await shot('canonical-detail');
+ const pdf=await call('Page.printToPDF',{printBackground:true});
+ writeFileSync('/tmp/adr0047-canonical-history.pdf',Buffer.from(pdf.data,'base64'));
+
+ await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+ await call('Page.navigate',{url:'http://127.0.0.1:8175/admin/procurement/supplier-invoices/invoice-1/edit'});
+ await until(()=>ev('!!document.querySelector("#procurement-edit-form")'),'mobile edit');await sleep(600);
+ assert.match(await ev('document.querySelector("[data-selected-product-label]").textContent'),/Ban Luar Canonical/);
+ assert.equal(await ev('Number(document.querySelector("[name=expected_revision_no]").value)'),initialRevision+1);
+ await shot('canonical-mobile');
+ console.log('PASS: real Chromium current B edit -> metadata save -> current B detail + old A/canonical B history -> PDF print -> mobile B. Artifacts /tmp/adr0047-canonical-*');
+} finally {socket?.close();browser.kill();await sleep(500);rmSync(profile,{recursive:true,force:true});}
