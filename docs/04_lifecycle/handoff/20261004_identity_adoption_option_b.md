@@ -38,3 +38,30 @@ Command is products:adopt-transferred-merge OP A B --actor=1 --reason='above exa
 At initial writing: apply NOT YET run. Finish verify, apply exact approved mapping, post-apply and idempotency/UI proof, then close. No owner checkpoint needed absent NEW contradictory evidence.
 
 Separate next-slice candidate ONLY: projection received50 vs source60, supplier invoice_count14 vs source15, shipment2026-07-21 vs source2026-09-06. Preserve in this operation. B opening_stock_seed discrepancy ledger77/value8480600 vs projection30/value3710100 is also preserved and outside scope.
+
+## FINAL — adoption CLOSED on glasspos_local
+
+Implementation commit fc4dc7db. Executed existing command with --apply after passing dry-run:
+`APPLIED: 1 supplier invoice revisions; no stock transfer.`
+
+- Exactly one relation persisted, operation/prior-transfer 8087a690-0324-429e-bc87-3887d4bd03bb, actor 1, exact approved reason and recorded occurrence time.
+- iss26041043 R3 A -> R4 B. Canonical current line qty10/value1236700; invoice grand total6785250 unchanged. All six new line economic fields match prior current lines; only target identity snapshots change.
+- R1-R3 version rows unchanged byte-for-byte. Historical code is lowercase `a3gn5`, preserved; current snapshot `A3GN520`.
+- Invoice header changes only revision. Invoice list projection changes only revision marker. Received50, supplier count14, last shipment2026-07-21 preserved.
+- Entire inventory_movements/product_inventory/product_inventory_costing/inventory_cost_adjustments/receipt/payment/supplier projection table hashes unchanged. Thus no duplicate merge, invoice delta movement, cost revaluation, payable/payment/receipt effect; B seed anomaly also untouched.
+- Expected changed tables/row deltas only: relation+1; invoice lines+6; versions+1; audit_events+1; audit_event_snapshots+2; audit_outbox+1; invoice header and invoice projection row counts unchanged.
+- Audit verifies actor/reason/correlation to merge OP, before_revision3/after_revision4 and before A/after B snapshots.
+- Exact retry with --apply: `APPLIED: 0 supplier invoice revisions; no stock transfer.` ALL 73 table counts/hashes identical before/after retry. No added audit/version/relation effects.
+- Post-apply independent read confirms relation count1, R4, received50, supplier count14/dateJuly21. Source-derived discrepancies still60/15/Sep6; no repair performed.
+
+Proof files in private durable directory above: apply-proof.json, retry-proof.json, before/after-apply.json, before/after-retry.json, apply.log/retry.log. Validation observed effects BEFORE commit and again AFTER commit, not only CLI output.
+
+Final checks: make verify exit0, PHPStan no errors; contract audits passed; 86 frontend tests passed; 1895 PHP tests /14827 assertions passed. Procurement targeted run331/2359. Diff self-review/check clean. No global withTrashed, hardcoded business values, inventory engine changes, schema changes or dashboard modifications.
+
+Browser/manual proof: actual DB detail + edit views rendered through existing controller/use-case in READ ONLY transaction with in-memory actor/session; all 73 table hashes unchanged after rendering. Chromium opened these exported actual HTML pages served locally with assets: current B, R3 historical a3gn5, R4 B, edit product_id B, expected_revision4 all asserted. History panels expanded; screenshot detail.png and browser-proof.json retained privately. This is actual-data rendered-view/browser proof, NOT authenticated HTTP login/navigation coverage. No form submitted to real data. Initial Snap browser could not start; cached Chromium worked using existing Snap shared libraries. One initial history assertion incorrectly expected uppercase old code; corrected assertion to actual immutable lowercase snapshot, with NO data/code mutation.
+
+Code follow-up is pushed for review; do not claim merged main contains patch until PR actually merged. Real-data adoption target is CLOSED. Remaining repository delivery: follow-up PR review/merge (no automatic merge authorization inferred from old PR77 approval). No further business mutation needed.
+
+ONE next target recommendation: separately review stale projection reconciliation scope (received50 vs60, supplier count14 vs15, shipmentJuly21 vsSep6). Do not perform it without owner scope approval. Opening-stock-seed remains excluded.
+
+Resume commands: git fetch origin; git status -sb; git log -1; read this FINAL section first. Do NOT rerun adoption as unfinished work. For read-only persisted-state recheck: php /home/asus/.local/state/glasspos-adoption-20261004/run.php inspect. No future session should rely on /tmp artifacts.
