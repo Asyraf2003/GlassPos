@@ -1,5 +1,7 @@
 # One real mapping preflight: A3GN5 -> A3GN520
 
+> Superseded execution status: see [projection gate continuation](20261004_real_adoption_projection_gate.md). Owner authorized migration and apply; schema now exists. New dry-run projection differences require a decision. Original preflight below is historical evidence.
+
 ## Status / owner boundary
 
 Target: audit this ONE owner-confirmed same-physical-product mapping and run adoption DRY RUN, then stop for review. No apply, no real relation insert, no stock movement, no seed cleanup, no second candidate.
