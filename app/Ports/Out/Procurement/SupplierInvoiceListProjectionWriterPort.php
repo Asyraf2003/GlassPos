@@ -30,4 +30,7 @@ interface SupplierInvoiceListProjectionWriterPort
      * } $row
      */
     public function upsert(array $row): void;
+
+    /** Refresh only the revision marker on an existing projection; never rebuild aggregates. */
+    public function syncRevisionFromInvoice(string $supplierInvoiceId): void;
 }

@@ -10,6 +10,7 @@ use App\Core\Procurement\SupplierInvoice\SupplierInvoiceLine;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Ports\Out\Procurement\SupplierInvoiceCanonicalizationReaderPort;
 use App\Ports\Out\Procurement\SupplierInvoiceReaderPort;
+use App\Ports\Out\Procurement\SupplierInvoiceListProjectionWriterPort;
 use App\Ports\Out\Procurement\SupplierInvoiceWriterPort;
 use App\Ports\Out\ProductCatalog\ProductReaderPort;
 use App\Ports\Out\UuidPort;
@@ -23,7 +24,7 @@ final class CanonicalizeSupplierInvoiceProduct
         private readonly SupplierInvoiceWriterPort $writer,
         private readonly ProductReaderPort $products,
         private readonly UuidPort $uuid,
-        private readonly SupplierInvoiceListProjectionService $projection,
+        private readonly SupplierInvoiceListProjectionWriterPort $projection,
     ) {}
 
     public function apply(ProductIdentityMerge $merge): int
@@ -59,7 +60,7 @@ final class CanonicalizeSupplierInvoiceProduct
                 $lines, $current->taxSummary(),
             );
             $this->writer->update($updated);
-            $this->projection->syncInvoice($id);
+            $this->projection->syncRevisionFromInvoice($id);
             $count++;
         }
         return $count;
