@@ -17,10 +17,11 @@ final class SupplierInvoiceCanonicalMergeFeatureTest extends TestCase
     public function test_adoption_revises_current_identity_without_replaying_inventory(): void
     {
         $actor = $this->seedTransferredMerge();
+        app(\App\Application\Procurement\Services\SupplierInvoiceListProjectionService::class)->syncInvoice('invoice-1');
         $oldVersion = DB::table('supplier_invoice_versions')->where('id', 'original-version')->value('snapshot_json');
         $headerBefore = (array) DB::table('supplier_invoices')->where('id', 'invoice-1')->sole();
         $before = [];
-        foreach (['inventory_movements', 'product_inventory', 'product_inventory_costing', 'supplier_payments', 'supplier_receipt_lines'] as $table) {
+        foreach (['inventory_movements', 'product_inventory', 'product_inventory_costing', 'inventory_cost_adjustments', 'supplier_payments', 'supplier_receipts', 'supplier_receipt_lines'] as $table) {
             $before[$table] = DB::table($table)->get()->toJson();
         }
         $handler = app(AdoptTransferredProductMergeHandler::class);
@@ -55,9 +56,30 @@ final class SupplierInvoiceCanonicalMergeFeatureTest extends TestCase
         $this->assertSame($oldVersion, DB::table('supplier_invoice_versions')->where('id', 'original-version')->value('snapshot_json'));
     }
 
+    public function test_identity_adoption_preserves_unrelated_stale_projection_values(): void
+    {
+        $actor = $this->seedTransferredMerge();
+        app(\App\Application\Procurement\Services\SupplierInvoiceListProjectionService::class)->syncInvoice('invoice-1');
+        DB::table('supplier_invoice_list_projection')->update(['total_received_qty' => 50]);
+        DB::table('supplier_list_projection')->update(['invoice_count' => 14, 'last_shipment_date' => '2026-07-21']);
+        $invoiceBefore = (array) DB::table('supplier_invoice_list_projection')->sole();
+        $supplierBefore = DB::table('supplier_list_projection')->get()->toJson();
+        $handler = app(AdoptTransferredProductMergeHandler::class);
+        $this->assertSame(1, $handler->handle('merge-1', 'product-1', 'product-2', $actor, 'Explicit duplicate identity', 'prior-transfer'));
+        $invoiceAfter = (array) DB::table('supplier_invoice_list_projection')->sole();
+        $this->assertSame(2, $invoiceAfter['last_revision_no']);
+        unset($invoiceBefore['last_revision_no'], $invoiceAfter['last_revision_no']);
+        $this->assertSame($invoiceBefore, $invoiceAfter);
+        $this->assertSame($supplierBefore, DB::table('supplier_list_projection')->get()->toJson());
+        $this->assertDatabaseHas('supplier_invoice_lines', ['is_current' => true, 'product_id' => 'product-2']);
+        $this->assertSame(0, $handler->handle('merge-1', 'product-1', 'product-2', $actor, 'Explicit duplicate identity', 'prior-transfer'));
+        $this->assertSame($supplierBefore, DB::table('supplier_list_projection')->get()->toJson());
+    }
+
     public function test_ordinary_economic_edit_after_adoption_moves_only_canonical_stock(): void
     {
         $actor = $this->seedTransferredMerge();
+        app(\App\Application\Procurement\Services\SupplierInvoiceListProjectionService::class)->syncInvoice('invoice-1');
         app(AdoptTransferredProductMergeHandler::class)->handle('merge-1', 'product-1', 'product-2', $actor, 'Explicit duplicate identity', 'prior-transfer');
         $line = DB::table('supplier_invoice_lines')->where('is_current', true)->sole();
         $this->put(route('admin.procurement.supplier-invoices.update', ['supplierInvoiceId' => 'invoice-1']), [
@@ -75,6 +97,7 @@ final class SupplierInvoiceCanonicalMergeFeatureTest extends TestCase
     public function test_all_affected_invoices_are_revised_but_canonical_and_unrelated_are_untouched(): void
     {
         $actor = $this->seedTransferredMerge();
+        app(\App\Application\Procurement\Services\SupplierInvoiceListProjectionService::class)->syncInvoice('invoice-1');
         foreach (['invoice-2' => 'product-1', 'invoice-3' => 'product-2'] as $id => $product) {
             $invoice = (array) DB::table('supplier_invoices')->where('id', 'invoice-1')->sole();
             unset($invoice['active_nomor_faktur_normalized']);
